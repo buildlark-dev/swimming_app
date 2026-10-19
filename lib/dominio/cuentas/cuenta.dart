@@ -38,6 +38,45 @@ enum Rol {
   }
 }
 
+/// En qué punto está la identidad de quien abre la app.
+///
+/// Son **tres** estados y no dos, y esa es la corrección: «con sesión pero sin
+/// rol todavía» no es «sin sesión». El rol lo asigna el servidor después de
+/// crear la cuenta, así que durante unos segundos existe una identidad real
+/// cuyo papel aún no se sabe.
+///
+/// Tratar ese momento como «sin sesión» devolvía a quien acababa de
+/// registrarse a la pantalla de acceso, una y otra vez, sin explicar nada.
+sealed class EstadoDeCuenta {
+  const EstadoDeCuenta();
+}
+
+/// Nadie ha iniciado sesión.
+final class SinSesion extends EstadoDeCuenta {
+  const SinSesion();
+}
+
+/// Hay cuenta y se sabe lo que puede hacer.
+final class CuentaLista extends EstadoDeCuenta {
+  const CuentaLista(this.cuenta);
+
+  final Cuenta cuenta;
+}
+
+/// Hay sesión, pero el token todavía no trae un rol que se entienda.
+///
+/// Es normal justo después de crear una cuenta: el disparador que asigna el
+/// rol corre en el servidor y tarda. También ocurre si ese disparador falló,
+/// que es un problema distinto y hay que poder distinguirlo.
+///
+/// **No concede nada.** Las reglas de acceso deniegan todo a un token sin rol,
+/// así que esta cuenta no puede leer ni escribir nada mientras siga así.
+final class CuentaSinRol extends EstadoDeCuenta {
+  const CuentaSinRol(this.id);
+
+  final String id;
+}
+
 /// Una identidad con sesión iniciada.
 class Cuenta {
   Cuenta({

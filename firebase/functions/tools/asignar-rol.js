@@ -23,10 +23,10 @@ const ROLES = ['entrenador', 'nadador'];
 const CLAVE_DEL_ROL = 'rol';
 
 async function main() {
-  const [uid, rol] = process.argv.slice(2);
+  const [quien, rol] = process.argv.slice(2);
 
-  if (!uid || !rol) {
-    console.error('Uso: asignar-rol <uid> <entrenador|nadador>');
+  if (!quien || !rol) {
+    console.error('Uso: asignar-rol <uid-o-correo> <entrenador|nadador>');
     process.exit(2);
   }
 
@@ -62,13 +62,19 @@ async function main() {
 
   initializeApp({ projectId: process.env.GCLOUD_PROJECT || 'demo-natacion' });
 
-  const usuario = await getAuth().getUser(uid);
+  // Acepta el correo además del UID. Copiar un identificador de veintiocho
+  // caracteres desde la consola es justo donde se cuela una errata, y esto se
+  // corre sobre la cuenta que aprueba y publica entrenamientos de menores.
+  const usuario = quien.includes('@')
+    ? await getAuth().getUserByEmail(quien)
+    : await getAuth().getUser(quien);
+
   await getAuth().setCustomUserClaims(usuario.uid, {
     ...(usuario.customClaims || {}),
     [CLAVE_DEL_ROL]: rol,
   });
 
-  console.log(`${usuario.uid} -> ${rol}`);
+  console.log(`${usuario.email || usuario.uid} (${usuario.uid}) -> ${rol}`);
   console.log(
     'El token en curso todavia lleva el rol anterior. Quien lo tenga abierto\n' +
       'tiene que volver a entrar, o refrescar el token, para que surta efecto.'

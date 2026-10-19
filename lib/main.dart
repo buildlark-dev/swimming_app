@@ -218,6 +218,18 @@ class _Acceso extends StatelessWidget {
                 body: Center(child: CircularProgressIndicator()),
               );
 
+            case EstadoDeSesion.preparando:
+              // La cuenta existe; el servidor todavía le está asignando el
+              // rol. Dura unos segundos y hay que decirlo, no dejar la
+              // pantalla en blanco ni devolver a nadie al login.
+              return const _Preparando();
+
+            case EstadoDeSesion.sinRol:
+              return _SinRol(
+                alReintentar: () => sesion.reintentar(),
+                alSalir: () => sesion.cerrarSesion(),
+              );
+
             case EstadoDeSesion.fuera:
               return PantallaAcceso(
                 alEnviar: ({
@@ -250,6 +262,92 @@ class _Acceso extends StatelessWidget {
               );
           }
         },
+      ),
+    );
+  }
+}
+
+/// La cuenta existe y el servidor le está asignando el rol.
+class _Preparando extends StatelessWidget {
+  const _Preparando();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 24),
+              Text(
+                'Preparando tu cuenta',
+                key: const Key('preparando-cuenta'),
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Tarda unos segundos la primera vez.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Hay sesión, pero el rol nunca llegó.
+///
+/// Se muestra en lugar de devolver al login, porque volver al login invita a
+/// registrarse otra vez y el problema se repite igual.
+class _SinRol extends StatelessWidget {
+  const _SinRol({required this.alReintentar, required this.alSalir});
+
+  final VoidCallback alReintentar;
+  final VoidCallback alSalir;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.hourglass_disabled_outlined, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  'Tu cuenta quedó a medio preparar',
+                  key: const Key('cuenta-sin-rol'),
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'La cuenta existe, pero el servidor no terminó de '
+                  'configurarla. No hace falta volver a crearla: eso haría '
+                  'una cuenta nueva con el mismo problema.\n\n'
+                  'Avisa al entrenador.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  key: const Key('boton-reintentar-rol'),
+                  onPressed: alReintentar,
+                  child: const Text('Volver a intentarlo'),
+                ),
+                TextButton(onPressed: alSalir, child: const Text('Salir')),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

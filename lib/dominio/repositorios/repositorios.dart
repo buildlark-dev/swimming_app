@@ -168,8 +168,9 @@ class FalloDeAcceso implements Exception {
 ///
 /// Contrato: `specs/004-cuentas-y-consentimiento/contracts/cuentas_y_roles.md`.
 abstract class Identidad {
-  /// La cuenta activa, o `null` si no hay sesión iniciada.
-  Future<Cuenta?> actual();
+  /// En qué punto está la identidad: sin sesión, con cuenta lista, o con
+  /// sesión pero sin rol asignado todavía.
+  Future<EstadoDeCuenta> actual();
 
   /// Entra con una cuenta que ya existe.
   ///
@@ -181,7 +182,7 @@ abstract class Identidad {
   Future<void> crearCuenta({required String correo, required String clave});
 
   /// Emite cada vez que la sesión cambia: entra, sale o caduca.
-  Stream<Cuenta?> get cambios;
+  Stream<EstadoDeCuenta> get cambios;
 
   /// Cierra la sesión y **no deja en el dispositivo datos del nadador
   /// anterior** (garantía A7): ni la caché de lectura ni lo guardado en local.

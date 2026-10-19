@@ -60,11 +60,11 @@ class SesionFirebase implements Identidad {
   final AlmacenLocal? almacenLocal;
 
   @override
-  Future<Cuenta?> actual() => _cuentaDe(auth.currentUser);
+  Future<EstadoDeCuenta> actual() => _estadoDe(auth.currentUser);
 
   @override
-  Stream<Cuenta?> get cambios =>
-      auth.idTokenChanges().asyncMap(_cuentaDe);
+  Stream<EstadoDeCuenta> get cambios =>
+      auth.idTokenChanges().asyncMap(_estadoDe);
 
   @override
   Future<void> entrar({required String correo, required String clave}) async {
@@ -137,14 +137,14 @@ class SesionFirebase implements Identidad {
     await auth.signOut();
   }
 
-  /// Traduce un usuario de Firebase a una cuenta del dominio.
+  /// Traduce un usuario de Firebase al estado de identidad del dominio.
   ///
-  /// Devuelve `null` cuando no hay sesión **y también cuando el token no trae
-  /// un rol que se entienda**. Un token sin rol reconocible no se resuelve al
-  /// rol menos peligroso: se trata como si no hubiera sesión, porque actuar
-  /// con un permiso supuesto es justo como se cuela un acceso.
-  Future<Cuenta?> _cuentaDe(fb.User? usuario) async {
-    if (usuario == null) return null;
+  /// Un token sin rol reconocible **no** se resuelve al rol menos peligroso:
+  /// actuar con un permiso supuesto es justo como se cuela un acceso. Pero
+  /// tampoco se trata como «no hay sesión», que es lo que hacía antes y lo que
+  /// devolvía al login a quien acababa de registrarse.
+  Future<EstadoDeCuenta> _estadoDe(fb.User? usuario) async {
+    if (usuario == null) return const SinSesion();
 
     var rol = Rol.porClave(
       (await usuario.getIdTokenResult()).claims?[claveDelRol] as String?,
@@ -174,12 +174,15 @@ class SesionFirebase implements Identidad {
       }
     }
 
-    if (rol == null) return null;
+    if (rol == null) return CuentaSinRol(usuario.uid);
 
-    return Cuenta(
-      id: usuario.uid,
-      rol: rol,
-      nadadorId: rol == Rol.entrenador ? null : await _nadadorIdDe(usuario.uid),
+    return CuentaLista(
+      Cuenta(
+        id: usuario.uid,
+        rol: rol,
+        nadadorId:
+            rol == Rol.entrenador ? null : await _nadadorIdDe(usuario.uid),
+      ),
     );
   }
 
