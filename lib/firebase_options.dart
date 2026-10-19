@@ -21,15 +21,9 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for android - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -60,5 +54,22 @@ class DefaultFirebaseOptions {
     authDomain: 'swimming-app-ab45f.firebaseapp.com',
     storageBucket: 'swimming-app-ab45f.firebasestorage.app',
     measurementId: 'G-67WTF12LC9',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyB3P1jxnVdKcdX7YPggeZOFCZ1AhUrr_xw',
+    appId: '1:569625667913:ios:c12b4e49050fe6c01d9298',
+    messagingSenderId: '569625667913',
+    projectId: 'swimming-app-ab45f',
+    storageBucket: 'swimming-app-ab45f.firebasestorage.app',
+    iosBundleId: 'com.example.natacionApp',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyAydbSbP9rkxH1_SyPQdEVcDHcagUxVdfk',
+    appId: '1:569625667913:android:4d81f12cea33e5f81d9298',
+    messagingSenderId: '569625667913',
+    projectId: 'swimming-app-ab45f',
+    storageBucket: 'swimming-app-ab45f.firebasestorage.app',
   );
 }

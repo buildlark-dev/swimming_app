@@ -105,7 +105,7 @@ flutter run -d chrome
 With local emulators, in two terminals:
 
 ```bash
-firebase emulators:start --project demo-natacion --config firebase/firebase.json
+firebase emulators:start --project demo-natacion
 ```
 
 ```bash
@@ -297,7 +297,7 @@ the way they are.
 ```bash
 npm --prefix firebase/functions ci
 flutter build web --release
-firebase deploy --config firebase/firebase.json --only firestore:rules,functions,hosting
+firebase deploy --project swimming-app-ab45f --only firestore:rules,functions,hosting
 ```
 
 Rules and functions before hosting, deliberately: the gate has to be in place

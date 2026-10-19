@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && firebase emulators:exec --project demo-natacion --config ../firebase.json \"node --test --test-concurrency=1 test/*.test.js\"",
+    "test": "npm run build && firebase emulators:exec --project demo-natacion --config ../../firebase.json \"node --test --test-concurrency=1 test/*.test.js\"",
     "asignar-rol": "node tools/asignar-rol.js"
   },
   "dependencies": {

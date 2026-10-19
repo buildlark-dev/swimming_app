@@ -14,7 +14,7 @@ roto, no solo qué mirar.
 Emuladores de Firestore, Auth y Functions:
 
 ```bash
-firebase emulators:start --project demo-natacion --config firebase/firebase.json
+firebase emulators:start --project demo-natacion
 ```
 
 La app contra los emuladores:

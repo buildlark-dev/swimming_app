@@ -1,1 +1,85 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"swimming-app-ab45f","configurations":{"web":"1:569625667913:web:2238528d97bf0d631d9298"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "swimming-app-ab45f",
+          "configurations": {
+            "android": "1:569625667913:android:4d81f12cea33e5f81d9298",
+            "ios": "1:569625667913:ios:c12b4e49050fe6c01d9298",
+            "web": "1:569625667913:web:2238528d97bf0d631d9298"
+          }
+        }
+      },
+      "android": {
+        "default": {
+          "projectId": "swimming-app-ab45f",
+          "appId": "1:569625667913:android:4d81f12cea33e5f81d9298",
+          "fileOutput": "android/app/google-services.json"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firebase/firestore.rules",
+    "indexes": "firebase/firestore.indexes.json"
+  },
+  "functions": [
+    {
+      "source": "firebase/functions",
+      "codebase": "default",
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ],
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "DENY"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "same-origin"
+          }
+        ]
+      }
+    ]
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "functions": {
+      "port": 5001
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
+  }
+}
