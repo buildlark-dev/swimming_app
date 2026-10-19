@@ -39,13 +39,25 @@ async function main() {
   }
 
   const contraEmulador = Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST);
-  if (!contraEmulador && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    console.error(
-      'Sin FIREBASE_AUTH_EMULATOR_HOST ni GOOGLE_APPLICATION_CREDENTIALS.\n' +
-        'Contra un proyecto real hacen falta credenciales de administrador,\n' +
-        'que este repositorio no guarda y no debe guardar.'
+
+  // Contra un proyecto real, el Admin SDK usa las Credenciales de Aplicacion
+  // por Omision. Hay dos formas de tenerlas, y **se prefiere la primera**:
+  //
+  //   1. `gcloud auth application-default login`, que las deja en el perfil
+  //      del usuario y caducan solas.
+  //   2. GOOGLE_APPLICATION_CREDENTIALS apuntando a una clave de cuenta de
+  //      servicio, que SI es un secreto de verdad: un archivo que abre el
+  //      proyecto entero, que no caduca y que hay que custodiar.
+  //
+  // El script no exige la segunda. Pedirla cuando la primera basta seria
+  // empujar a tener una clave permanente en el disco sin necesidad.
+  if (!contraEmulador) {
+    console.log(`Proyecto: ${process.env.GCLOUD_PROJECT || '(sin GCLOUD_PROJECT)'}`);
+    console.log(
+      process.env.GOOGLE_APPLICATION_CREDENTIALS
+        ? 'Credenciales: GOOGLE_APPLICATION_CREDENTIALS'
+        : 'Credenciales: las de gcloud (application-default)'
     );
-    process.exit(2);
   }
 
   initializeApp({ projectId: process.env.GCLOUD_PROJECT || 'demo-natacion' });
@@ -65,5 +77,14 @@ async function main() {
 
 main().catch((error) => {
   console.error(error.message);
+
+  if (/credential|authenticate|PERMISSION_DENIED/i.test(error.message)) {
+    console.error(
+      '\nSin credenciales para ese proyecto. Lo mas simple:\n' +
+        '  gcloud auth application-default login\n' +
+        'y vuelve a correrlo con GCLOUD_PROJECT puesto.'
+    );
+  }
+
   process.exit(1);
 });

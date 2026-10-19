@@ -7,6 +7,7 @@ library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:natacion_app/firebase_options.dart';
 
 /// Identificador ficticio. Los emuladores lo aceptan sin que exista nada en la
 /// nube, y así no hay riesgo de tocar un proyecto real por descuido.
@@ -34,17 +35,22 @@ class ConfiguracionDatos {
 
   /// Opciones con las que se arranca Firebase.
   ///
-  /// Contra emuladores, un proyecto ficticio. Sin emuladores, ninguna: la
-  /// configuración la pone la plataforma, y si no la hay, no hay proyecto al
-  /// que conectarse y [conectar] devuelve `null`.
-  FirebaseOptions? get opciones => usarEmuladores
+  /// Contra emuladores, un proyecto ficticio: así un arranque descuidado no
+  /// escribe en la nube. Sin emuladores, las del proyecto real, que genera
+  /// `flutterfire configure` en `lib/firebase_options.dart`.
+  ///
+  /// La clave web que hay ahí **no es una credencial**: identifica el proyecto
+  /// ante Google y viaja en el JavaScript de cualquier app web de Firebase.
+  /// Lo que protege los datos son las reglas de `firestore.rules`, que es por
+  /// lo que están probadas como están.
+  FirebaseOptions get opciones => usarEmuladores
       ? const FirebaseOptions(
           apiKey: 'emulador-local',
           appId: 'emulador-local',
           messagingSenderId: 'emulador-local',
           projectId: proyectoLocal,
         )
-      : null;
+      : DefaultFirebaseOptions.currentPlatform;
 
   /// Inicializa Firebase y, si procede, redirige a los emuladores.
   ///
