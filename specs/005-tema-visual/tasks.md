@@ -64,14 +64,14 @@ lugar de medir medio sistema y volver después.
 
 ### Los tokens
 
-- [ ] T006 Crear `lib/ui/tema/paleta.dart` con los colores crudos, **en claro y en oscuro desde ya** (decisión D3 y nota de arriba). Es el único archivo del proyecto autorizado a contener literales de color. Grupos según `data-model.md`: marca, superficies, avisos, zonas, estados de plan
-- [ ] T007 **Proponer al entrenador los valores concretos de la paleta** y esperar su aprobación antes de seguir. `research.md` lo dejó fuera a propósito: son azules marinos y su identidad, no una decisión técnica. Las restricciones que la propuesta debe cumplir ya están fijadas: azules marinos, contraste comprobado, y la rampa de zonas por claridad
-- [ ] T008 [P] Crear `lib/ui/tema/tipografia.dart` con la escala sobre la fuente del sistema (decisión D2), **con el uso de cada nivel declarado**. Un nivel sin uso declarado es un nivel que alguien usará para otra cosa
-- [ ] T009 [P] Crear `lib/ui/tema/espaciado.dart` con separaciones, radios y **el tamaño mínimo de área pulsable** (FR-006), que vive aquí porque es una medida
-- [ ] T010 [P] Crear `lib/ui/tema/avisos.dart` con los cuatro tonos —informativo, éxito, cuidado, error— según la tabla de `data-model.md`
-- [ ] T011 Crear `lib/ui/tema/tema.dart` que arme los dos `ThemeData` a partir de los tokens, y enchufar el claro en `lib/main.dart` sustituyendo el `colorSchemeSeed` de una línea
-- [ ] T012 Hacer que `lib/main.dart` arranque con la apariencia por omisión si el tema no se pudiera construir (garantía V14). Ya hubo un caso en este proyecto —el arranque sin Firebase del PR #5— donde un fallo que debía degradar tumbaba el arranque entero
-- [ ] T013 [P] Escribir en `test/ui/tema/arranque_sin_tema_test.dart` la garantía V14, con un doble que lanza al construir el tema, comprobando que la app sigue en pie
+- [X] T006 Crear `lib/ui/tema/paleta.dart` con los colores crudos, **en claro y en oscuro desde ya** (decisión D3 y nota de arriba). Es el único archivo del proyecto autorizado a contener literales de color. Grupos según `data-model.md`: marca, superficies, avisos, zonas, estados de plan
+- [X] T007 **Proponer al entrenador los valores concretos de la paleta** y esperar su aprobación antes de seguir. `research.md` lo dejó fuera a propósito: son azules marinos y su identidad, no una decisión técnica. Las restricciones que la propuesta debe cumplir ya están fijadas: azules marinos, contraste comprobado, y la rampa de zonas por claridad
+- [X] T008 [P] Crear `lib/ui/tema/tipografia.dart` con la escala sobre la fuente del sistema (decisión D2), **con el uso de cada nivel declarado**. Un nivel sin uso declarado es un nivel que alguien usará para otra cosa
+- [X] T009 [P] Crear `lib/ui/tema/espaciado.dart` con separaciones, radios y **el tamaño mínimo de área pulsable** (FR-006), que vive aquí porque es una medida
+- [X] T010 [P] Crear `lib/ui/tema/avisos.dart` con los cuatro tonos —informativo, éxito, cuidado, error— según la tabla de `data-model.md`
+- [X] T011 Crear `lib/ui/tema/tema.dart` que arme los dos `ThemeData` a partir de los tokens, y enchufar el claro en `lib/main.dart` sustituyendo el `colorSchemeSeed` de una línea
+- [X] T012 Hacer que `lib/main.dart` arranque con la apariencia por omisión si el tema no se pudiera construir (garantía V14). Ya hubo un caso en este proyecto —el arranque sin Firebase del PR #5— donde un fallo que debía degradar tumbaba el arranque entero
+- [X] T013 [P] Escribir en `test/ui/tema/arranque_sin_tema_test.dart` la garantía V14, con un doble que lanza al construir el tema, comprobando que la app sigue en pie
 
 **Checkpoint**: hay tokens y hay cerrojo. La app ya se ve distinta en claro.
 

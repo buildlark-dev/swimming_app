@@ -111,7 +111,7 @@ class _FilaCriterio extends StatelessWidget {
                       Chip(
                         label: Text(
                           criterio.severidad.nombre,
-                          style: const TextStyle(fontSize: 11),
+                          style: Theme.of(context).textTheme.labelMedium,
                         ),
                         visualDensity: VisualDensity.compact,
                         padding: EdgeInsets.zero,

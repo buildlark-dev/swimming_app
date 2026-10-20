@@ -131,6 +131,7 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
             titulo: 'El nadador o el grupo',
             children: [
               DropdownButtonFormField<Categoria>(
+                isExpanded: true,
                 initialValue: _categoria,
                 decoration: const InputDecoration(labelText: 'Categoría'),
                 items: [
@@ -153,6 +154,7 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
                 }),
               ),
               DropdownButtonFormField<Estilo>(
+                isExpanded: true,
                 initialValue: _estilo,
                 decoration:
                     const InputDecoration(labelText: 'Estilo objetivo'),
@@ -184,6 +186,7 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
             children: [
               if (_categoria.usaAtr)
                 DropdownButtonFormField<FaseAtr>(
+                  isExpanded: true,
                   initialValue: _fase,
                   decoration: const InputDecoration(labelText: 'Fase ATR'),
                   items: [
@@ -230,6 +233,7 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
                 alCambiar: (v) => setState(() => _duracion = v),
               ),
               DropdownButtonFormField<int>(
+                isExpanded: true,
                 initialValue: _piscina,
                 decoration:
                     const InputDecoration(labelText: 'Longitud de piscina'),

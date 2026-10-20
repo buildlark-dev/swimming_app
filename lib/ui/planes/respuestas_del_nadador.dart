@@ -103,11 +103,10 @@ class _Molestias extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'La app no propone ninguna conducta: decide usted.',
-              style: TextStyle(
-                color: esquema.onErrorContainer,
-                fontSize: 12,
-                fontStyle: FontStyle.italic,
-              ),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: esquema.onErrorContainer,
+                    fontStyle: FontStyle.italic,
+                  ),
             ),
           ],
         ),

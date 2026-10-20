@@ -46,7 +46,9 @@ class PanelImpedimentos extends StatelessWidget {
             Text(
               'La metodología prohíbe planificar con datos faltantes. Un plan '
               'con huecos rellenados a suposición parece válido y no lo es.',
-              style: TextStyle(color: esquema.onErrorContainer, fontSize: 12),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: esquema.onErrorContainer,
+              ),
             ),
             const Divider(),
             for (final impedimento in impedimentos)

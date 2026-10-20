@@ -161,7 +161,9 @@ class _Entrada extends StatelessWidget {
                     Expanded(
                       child: Text(
                         registro!.molestia!.descripcion,
-                        style: TextStyle(color: esquema.error, fontSize: 12),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: esquema.error,
+                        ),
                       ),
                     ),
                   ],

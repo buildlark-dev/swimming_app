@@ -7,6 +7,7 @@ import 'package:natacion_app/datos/auth/sesion_firebase.dart';
 import 'package:natacion_app/datos/firestore/configuracion.dart';
 import 'package:natacion_app/dominio/cuentas/cuenta.dart';
 import 'package:natacion_app/ui/acceso/estado_sesion.dart';
+import 'package:natacion_app/ui/tema/tema.dart';
 import 'package:natacion_app/ui/acceso/pantalla_acceso.dart';
 import 'package:natacion_app/datos/firestore/envio_registros.dart';
 import 'package:natacion_app/datos/firestore/repositorios_firestore.dart';
@@ -93,12 +94,32 @@ class AppNatacion extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Planificación de natación',
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF0B6E99),
-        useMaterial3: true,
-      ),
+      theme: temaSeguro(Tema.claro),
+      darkTheme: temaSeguro(Tema.oscuro),
+      // Sigue al sistema, sin ajuste propio (decisión D3). El interruptor
+      // pertenece a la pantalla de Ajustes de la feature 007, y construirlo
+      // aquí sería hacer algo que esa feature va a rehacer.
+      themeMode: ThemeMode.system,
       home: const PantallaInicio(),
     );
+  }
+}
+
+/// El tema, o la apariencia por omisión si no se pudiera construir.
+///
+/// **Garantía V14**: quedarse sin abrir por un asunto de aspecto no es
+/// aceptable. Ya hubo un caso en este proyecto —el arranque sin Firebase del
+/// PR #5— donde un fallo que debía degradar tumbaba el arranque entero, y la
+/// lección fue que estas cosas se escriben antes de necesitarlas.
+///
+/// Se atrapa cualquier fallo, no solo las excepciones: un error al construir
+/// una escala de color es un `Error`, no una `Exception`, que es exactamente
+/// lo que se nos escapó aquella vez.
+ThemeData temaSeguro(ThemeData Function() construir) {
+  try {
+    return construir();
+  } catch (_) {
+    return ThemeData(useMaterial3: true);
   }
 }
 

@@ -108,10 +108,9 @@ class _TarjetaPerfil extends StatelessWidget {
             for (final falta in faltas)
               Text(
                 falta.descripcion,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                  fontSize: 12,
-                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
               ),
           ],
         ),
@@ -165,6 +164,7 @@ class _DialogoPerfilState extends State<_DialogoPerfil> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<Categoria>(
+              isExpanded: true,
               initialValue: _categoria,
               decoration: const InputDecoration(labelText: 'Categoría'),
               items: [
@@ -178,6 +178,7 @@ class _DialogoPerfilState extends State<_DialogoPerfil> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<Estilo>(
+              isExpanded: true,
               initialValue: _estilo,
               decoration: const InputDecoration(labelText: 'Estilo objetivo'),
               items: [
@@ -206,10 +207,9 @@ class _DialogoPerfilState extends State<_DialogoPerfil> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   falta.descripcion,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                    fontSize: 12,
-                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                 ),
               ),
           ],

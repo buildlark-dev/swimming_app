@@ -127,7 +127,7 @@ class _FilaReparto extends StatelessWidget {
               '${reparto.porcentajePrescrito.toStringAsFixed(0)}% '
               '(${reparto.diferencia >= 0 ? '+' : ''}'
               '${reparto.diferencia.toStringAsFixed(1)})',
-              style: TextStyle(color: color, fontSize: 12),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
               textAlign: TextAlign.end,
             ),
           ),
@@ -238,7 +238,9 @@ class _FilaTid extends StatelessWidget {
             Text(
               '${rango.desviacion(real) >= 0 ? '+' : ''}'
               '${rango.desviacion(real).toStringAsFixed(1)} puntos',
-              style: TextStyle(color: esquema.error, fontSize: 12),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: esquema.error,
+                        ),
             ),
           ],
           const Spacer(),
