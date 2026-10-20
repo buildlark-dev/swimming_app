@@ -19,7 +19,8 @@ Same inputs, same plan. Offline and free: composition comes from coded rules, no
 - Offline-first for the swimmer: reading and writing never require a network
 - Accounts and roles, with every permission enforced in the security rules
 - Verifiable guardian consent, which gates a swimmer's data ever leaving their device
-- Tech stack
+
+## Tech stack
 - Flutter/Dart - Firebase - Cloud Functions (TypeScript) - Web + mobile
 
 ## Architecture highlights
