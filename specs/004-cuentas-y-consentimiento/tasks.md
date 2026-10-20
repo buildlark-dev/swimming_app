@@ -256,7 +256,7 @@ consentimiento, y comprobar que lo único bloqueado es la entrega.
 - [X] T084 [P] Actualizar `README.md` y `docs/DEVELOPMENT.md`, **en inglés**, con las cuentas, los roles y la superficie de servidor
 - [X] T085 [P] Revisar que ningún archivo del repositorio contenga credenciales, claves ni tokens, incluidos los de prueba de las funciones
 - [X] T086 Recorrer entero [quickstart.md](quickstart.md) y marcar cada escenario con lo que lo cubre
-- [ ] T087 Desplegar en Firebase Hosting, que es lo que esta feature existe para desbloquear. **Bloqueada el 2026-10-15, no por falta de trabajo**: la cuenta no tiene ningún proyecto de Firebase para esta app —solo `languages-buildlark` y `preciojusto-a70ab`, que son de otros productos—, y desplegar las reglas en cualquiera de ellos **sobrescribiría las reglas de seguridad de ese producto**. Hace falta crear un proyecto propio, con plan Blaze para las funciones, y generar `lib/firebase_options.dart`. Los pasos exactos están en `docs/DEVELOPMENT.md`, sección Deploying
+- [X] T087 Desplegar en Firebase Hosting. **Hecho el 2026-10-19 en el proyecto `swimming-app-ab45f`**: reglas, servidor y sitio, en ese orden, para que la puerta estuviera puesta antes de que existiera una app capaz de escribir a través de ella. Vivo en https://swimming-app-ab45f.web.app, con el entrenador entrando con su cuenta. El camino no fue limpio: ver «Lo que el despliegue destapó» más abajo
 - [ ] T088 **Cerrar T071 de la feature 003**: verificar los escenarios C1 y C2 en un dispositivo real con el modo avión puesto. Lleva pendiente desde que no había dónde desplegar
 - [ ] T089 Verificar C7 y C8 de esta feature **en un dispositivo real**: hermanos compartiendo teléfono y sesión caducada al borde de la piscina. No se pueden comprobar de verdad en un navegador de escritorio
 - [X] T090 Pasar las cuatro puertas de calidad en orden: `flutter analyze`, `flutter test`, `npm --prefix firebase test` y `dart run tool/verificar_metodologia.dart`
@@ -322,3 +322,49 @@ lista aprendió a no hacer cuando T006 de la 003 estuvo marcada sin estarlo.
   la app.
 - El texto informativo del consentimiento queda marcado como **pendiente de revisión
   jurídica** hasta que un abogado lo mire. Está anotado también en el checklist.
+
+---
+
+## Lo que el despliegue destapó
+
+Cinco fallos. **Ninguno lo encontraron las pruebas**: los encontró el entrenador usando
+la app desplegada. Quedan escritos porque el patrón importa más que cada uno por separado.
+
+| # | Qué fallaba | Por qué no salió antes |
+|---|---|---|
+| 1 | Las funciones no compilaban al desplegar | Los proyectos nuevos de Google Cloud ya no conceden a la cuenta de Cloud Build el rol que necesita. No es del código |
+| 2 | `firebase_auth` no se registraba en release, y **nadie podía entrar** | `firebase_auth` entró en `pubspec.yaml` después de compilaciones web anteriores, y la build incremental reutilizó un registrant de plugins cacheado. Debug lo regenera; solo release estaba roto |
+| 3 | La corrección desplegada no surtía efecto | Los puntos de entrada de Flutter web no llevan hash en el nombre, y Hosting cachea una hora. El navegador seguía con el bundle roto |
+| 4 | Una cuenta nueva volvía al login | El disparador que asigna el rol falló por permisos, **y** el cliente trataba «con sesión, sin rol todavía» igual que «sin sesión» |
+| 5 | «Preparando tu cuenta» giraba sin fin | Comprobar el rol refresca el token a la fuerza; cada refresco hacía emitir al flujo de cambios, que reiniciaba la espera |
+
+### Lo que esto dice de las pruebas
+
+Las 995 pruebas pasaban con los cinco fallos presentes, porque **ninguna recorría el camino
+real contra Firebase**: dos eran de empaquetado, uno de caché HTTP, y los otros dos vivían
+en la frontera entre el reloj del servidor y el estado del cliente, que es justo donde los
+dobles no llegan.
+
+Los fallos 4 y 5 sí tienen prueba ahora —`test/ui/acceso/sesion_test.dart` cubre el rebote
+al login y el bucle infinito—, y se comprobó que fallan contra el código anterior. Los
+otros tres no son cubribles con pruebas unitarias; se contienen con lo que se dejó en el
+repositorio: `Cache-Control: no-cache` en los puntos de entrada, y el procedimiento de
+despliegue escrito en `docs/DEVELOPMENT.md`.
+
+**La conclusión que importa:** esta feature no tiene ni una prueba automática del recorrido
+completo contra un Firebase de verdad. Es la misma carencia que T071 de la feature 003
+viene arrastrando, y sigue abierta.
+
+### Una corrección a mitad de diagnóstico
+
+Durante el fallo 3 concluí que la causa eran las cabeceras de seguridad, porque al quitarlas
+en un canal de vista previa funcionó. Era falso: un segundo canal **con** las cabeceras
+también funcionó, y lo que arreglaba era que un dominio nuevo tiene la caché vacía. Las
+cabeceras se quedaron. Queda anotado porque estuve a punto de retirar tres cabeceras de
+seguridad por un diagnóstico mal hecho.
+
+### El rol hubo que asignarlo dos veces
+
+La primera asignación no quedó. Se comprobó con `ver-rol`, que se escribió justamente
+porque «el rol ya está asignado» se había dado por bueno dos veces sin mirarlo, y los
+*custom claims* no se ven en la consola de Firebase.
