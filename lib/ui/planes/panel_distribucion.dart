@@ -10,6 +10,8 @@ import 'package:natacion_app/dominio/calculo/agregacion_plan.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/metodologia/modelo_tid.dart';
 import 'package:natacion_app/dominio/metodologia/zonas.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
+import 'package:natacion_app/ui/tema/tipografia.dart';
 
 class PanelDistribucion extends StatelessWidget {
   const PanelDistribucion({
@@ -33,19 +35,25 @@ class PanelDistribucion extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text(
-                  'Distribución del plan',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const Spacer(),
-                Text(
-                  '${plan.metros} m · '
-                  '${plan.porcentajeTecnico.toStringAsFixed(1)}% técnico',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: Espaciado.corto,
+                runSpacing: Espaciado.minimo,
+                children: [
+                  Text(
+                    'Distribución del plan',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Text(
+                    '${plan.metros} m · '
+                    '${plan.porcentajeTecnico.toStringAsFixed(1)}% técnico',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
             ),
 
             if (agregacion.metrosSinZona > 0)
@@ -95,43 +103,95 @@ class _FilaReparto extends StatelessWidget {
   final Reparto reparto;
   final Tolerancia tolerancia;
 
+  /// Lo que hace falta para que la fila quepa como tabla, con la letra normal.
+  ///
+  /// Es la suma de los anchos fijos —110 de etiqueta, 70 de metros, 150 de
+  /// comparación, más dos separaciones— y un trozo de barra que se pueda leer.
+  static const double _anchoDeTabla = 414;
+
   @override
   Widget build(BuildContext context) {
     final dentro = tolerancia.admite(reparto.diferencia);
     final color = dentro ? null : Theme.of(context).colorScheme.error;
 
+    // Los anchos de la tabla son fijos, así que **no crecen con la letra**: lo
+    // que crece es el texto que va dentro. Se escalan a mano para que siga
+    // cabiendo cuando el nadador lleva el teléfono al 200%.
+    final escala = MediaQuery.textScalerOf(context).scale(1);
+
+    final etiqueta = Text(reparto.etiqueta, style: TextStyle(color: color));
+    // Cifras tabulares en las dos columnas de números (FR-008): siete filas de
+    // metros y porcentajes se leen como una tabla, y una tabla cuyas cifras no
+    // se alinean deja de ser una tabla.
+    final metros = Text(
+      '${reparto.metros} m',
+      textAlign: TextAlign.end,
+      style: Tipografia.notacion(
+        Theme.of(context).textTheme.bodyLarge ?? const TextStyle(),
+      ),
+    );
+    final barra = LinearProgressIndicator(
+      value: (reparto.porcentajeReal / 100).clamp(0.0, 1.0),
+      color: color,
+    );
+    final comparacion = Text(
+      '${reparto.porcentajeReal.toStringAsFixed(1)}% de '
+      '${reparto.porcentajePrescrito.toStringAsFixed(0)}% '
+      '(${reparto.diferencia >= 0 ? '+' : ''}'
+      '${reparto.diferencia.toStringAsFixed(1)})',
+      style: Tipografia.notacion(
+        (Theme.of(context).textTheme.bodySmall ?? const TextStyle())
+            .copyWith(color: color),
+      ),
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 110,
-            child: Text(reparto.etiqueta, style: TextStyle(color: color)),
-          ),
-          SizedBox(
-            width: 70,
-            child: Text('${reparto.metros} m', textAlign: TextAlign.end),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: LinearProgressIndicator(
-              value: (reparto.porcentajeReal / 100).clamp(0.0, 1.0),
-              color: color,
-            ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 150,
-            child: Text(
-              '${reparto.porcentajeReal.toStringAsFixed(1)}% de '
-              '${reparto.porcentajePrescrito.toStringAsFixed(0)}% '
-              '(${reparto.diferencia >= 0 ? '+' : ''}'
-              '${reparto.diferencia.toStringAsFixed(1)})',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
-              textAlign: TextAlign.end,
-            ),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, restricciones) {
+          // En un teléfono de 360 puntos esta fila ya se salía 50 píxeles **con
+          // la letra normal**: los anchos fijos sumaban más que la pantalla. No
+          // se veía porque las pruebas de antes medían en una ventana de 800.
+          //
+          // Cuando no cabe como tabla, se apila: la cifra sigue a su etiqueta y
+          // la barra pasa debajo, a lo ancho. Se pierde la alineación en
+          // columnas, que en ese ancho no existía de todos modos.
+          if (restricciones.maxWidth < _anchoDeTabla * escala) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    spacing: Espaciado.corto,
+                    runSpacing: Espaciado.minimo,
+                    children: [etiqueta, metros, comparacion],
+                  ),
+                ),
+                const SizedBox(height: Espaciado.minimo),
+                barra,
+              ],
+            );
+          }
+
+          return Row(
+            children: [
+              SizedBox(width: 110 * escala, child: etiqueta),
+              SizedBox(width: 70 * escala, child: metros),
+              const SizedBox(width: Espaciado.normal),
+              Expanded(child: barra),
+              const SizedBox(width: Espaciado.normal),
+              SizedBox(
+                width: 150 * escala,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: comparacion,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

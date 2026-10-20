@@ -87,19 +87,40 @@ sin ampliar el texto ni fallar un toque (escenario V10 del quickstart).
 
 ### Las pruebas que miden
 
-- [ ] T014 [P] [US1] Escribir en `test/ui/tema/contraste_test.dart` el cálculo de la relación de contraste y la garantía V4: **cada par declarado** de texto y fondo cumple su mínimo, en claro y en oscuro, fallando con el par y el valor obtenido. Se mide, no se opina
-- [ ] T015 [P] [US1] Añadir la garantía V5: las siete zonas cumplen el contraste **una por una**, nunca de media. Una rampa suele cumplir en los extremos y fallar en medio, y un promedio lo esconde
-- [ ] T016 [P] [US1] Escribir en `test/ui/tema/tamano_de_letra_test.dart` la garantía V7: abrir las pantallas con el factor de escala al **200%** y fallar ante cualquier desbordamiento. No es un caso extremo: hay personas que llevan el teléfono así siempre
-- [ ] T017 [P] [US1] Escribir en `test/ui/tema/area_pulsable_test.dart` la garantía V6: toda área sensible alcanza el mínimo, aunque su icono sea más pequeño
+- [X] T014 [P] [US1] Escribir en `test/ui/tema/contraste_test.dart` el cálculo de la relación de contraste y la garantía V4: **cada par declarado** de texto y fondo cumple su mínimo, en claro y en oscuro, fallando con el par y el valor obtenido. Se mide, no se opina
+- [X] T015 [P] [US1] Añadir la garantía V5: las siete zonas cumplen el contraste **una por una**, nunca de media. Una rampa suele cumplir en los extremos y fallar en medio, y un promedio lo esconde
+- [X] T016 [P] [US1] Escribir en `test/ui/tema/tamano_de_letra_test.dart` la garantía V7: abrir las pantallas con el factor de escala al **200%** y fallar ante cualquier desbordamiento. No es un caso extremo: hay personas que llevan el teléfono así siempre
+- [X] T017 [P] [US1] Escribir en `test/ui/tema/area_pulsable_test.dart` la garantía V6: toda área sensible alcanza el mínimo, aunque su icono sea más pequeño
 
 ### Lo que hace que pasen
 
-- [ ] T018 [US1] Ajustar los valores de `paleta.dart` hasta que T014 y T015 pasen en los dos modos. **Si un color bonito no cumple, gana el contraste**: la app se usa al sol
-- [ ] T019 [US1] Fijar en `lib/ui/tema/tema.dart` los tamaños mínimos de los controles para que T017 pase sin que cada pantalla lo repita
-- [ ] T020 [US1] Fijar **tabulación de cifras** en los niveles tipográficos donde se muestran series (FR-008). `4x100 / 1'40"` es una instrucción de entrenamiento: si las columnas bailan, se lee mal, y leer mal una cifra cambia lo que el nadador hace
-- [ ] T021 [US1] Corregir en las pantallas existentes lo que T016 destape, **sin cambiar lo que dicen ni lo que hacen**
+- [X] T018 [US1] Ajustar los valores de `paleta.dart` hasta que T014 y T015 pasen en los dos modos. **Si un color bonito no cumple, gana el contraste**: la app se usa al sol
+- [X] T019 [US1] Fijar en `lib/ui/tema/tema.dart` los tamaños mínimos de los controles para que T017 pase sin que cada pantalla lo repita
+- [X] T020 [US1] Fijar **tabulación de cifras** en los niveles tipográficos donde se muestran series (FR-008). `4x100 / 1'40"` es una instrucción de entrenamiento: si las columnas bailan, se lee mal, y leer mal una cifra cambia lo que el nadador hace
+- [X] T021 [US1] Corregir en las pantallas existentes lo que T016 destape, **sin cambiar lo que dicen ni lo que hacen**
 
 **Checkpoint**: se lee. Medido, no opinado.
+
+### Lo que destapó esta fase
+
+T016 encontró **siete sitios que se desbordaban**, y ninguno lo había causado el tema:
+
+| Sitio | Qué pasaba |
+|---|---|
+| `pantalla_editor.dart` barra superior | Los totales en vivo se salían 49 px al 200%. Bajaron a la cabecera de la sesión |
+| `pantalla_sesion_del_dia.dart` barra superior | «Al día hasta el 20/10 a las 07:00» se salía 279 px. Bajó al cuerpo, junto al aviso del que habla |
+| `_SelectorRpe` del editor | Etiqueta y deslizador en una fila: 402 px fuera. Ahora la etiqueta va encima |
+| `_CampoParte` del editor | Cabecera de parte, 6 desbordes. `Wrap` en lugar de `Row` |
+| Desplegable de categoría del editor | El séptimo que faltaba de los seis de la fase 2: `isExpanded` |
+| `_ParteVista` del nadador y `formulario_registro.dart` | Cabeceras de dos piezas que no caben juntas con la letra grande |
+| `_FilaReparto` de `panel_distribucion.dart` | **Se salía 50 px en un teléfono de 360 puntos con la letra normal.** Los anchos fijos sumaban 354 sobre 304 disponibles, y no se veía porque las pruebas de widget miden en una ventana de 800 |
+
+El último no es un problema de accesibilidad: es un fallo que el entrenador ya estaba
+viendo en su teléfono y que ninguna prueba contaba. **Medir al 200% en una pantalla de 360
+encontró un fallo del 100%.**
+
+T020 añadió `test/ui/tema/cifras_tabulares_test.dart`, que `tasks.md` no había previsto: la
+tabulación es invisible, y una `copyWith` descuidada la quita sin que nada falle.
 
 ---
 

@@ -13,6 +13,8 @@ import 'package:natacion_app/dominio/notacion/renderizador.dart';
 import 'package:natacion_app/ui/nadador/aviso_sincronizacion.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:natacion_app/ui/nadador/formulario_registro.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
+import 'package:natacion_app/ui/tema/tipografia.dart';
 import 'package:provider/provider.dart';
 
 class PantallaSesionDelDia extends StatelessWidget {
@@ -30,15 +32,12 @@ class PantallaSesionDelDia extends StatelessWidget {
     final estado = context.watch<EstadoNadador>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mi entrenamiento'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Center(child: UltimaSincronizacion(estado: estado)),
-          ),
-        ],
-      ),
+      // «Al día hasta el 20/10 a las 07:00» **no cabe en la barra**.
+      //
+      // Con la letra del sistema al 200% se salía 279 píxeles por la derecha, y
+      // quien agranda la letra es precisamente quien necesita leer eso. Baja al
+      // cuerpo, junto al aviso de sincronización, que es de lo que habla.
+      appBar: AppBar(title: const Text('Mi entrenamiento')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -47,6 +46,8 @@ class PantallaSesionDelDia extends StatelessWidget {
             const SizedBox(height: 12),
           ],
           AvisoSincronizacion(estado: estado),
+          const SizedBox(height: Espaciado.minimo),
+          UltimaSincronizacion(estado: estado),
           const SizedBox(height: 8),
           _Hoy(estado: estado),
           const SizedBox(height: 80),
@@ -167,18 +168,41 @@ class _Parte extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(tipo.nombre, style: Theme.of(context).textTheme.titleSmall),
-                Text(
-                  '${parte.metros} m',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+            // `Wrap` y no `Row`: si el nombre de la parte y los metros no caben
+            // en una línea, los metros bajan a la siguiente en lugar de
+            // salirse. El `SizedBox` es lo que mantiene los metros a la
+            // derecha cuando sí caben, porque esta columna no estira a sus
+            // hijos.
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: Espaciado.corto,
+                runSpacing: Espaciado.minimo,
+                children: [
+                  Text(
+                    tipo.nombre,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  Text(
+                    '${parte.metros} m',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
             ),
             const Divider(),
-            SelectableText(renderizador.series(parte.series)),
+            // Cifras de ancho fijo (FR-008). `4x100 / 1'40"` es una
+            // **instrucción**: si las columnas bailan de línea a línea, se lee
+            // mal, y leer mal una cifra cambia lo que el nadador hace en el
+            // agua. Es el sitio de la app donde esto más importa.
+            SelectableText(
+              renderizador.series(parte.series),
+              style: Tipografia.notacion(
+                Theme.of(context).textTheme.bodyLarge ?? const TextStyle(),
+              ),
+            ),
           ],
         ),
       ),

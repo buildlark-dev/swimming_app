@@ -12,6 +12,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/calculo/progreso_nadador.dart';
+import 'package:natacion_app/ui/tema/tipografia.dart';
 
 class RespuestasDelNadador extends StatelessWidget {
   const RespuestasDelNadador({super.key, required this.progreso});
@@ -140,10 +141,14 @@ class _Fila extends StatelessWidget {
                   entrada.sesion.objetivoTecnico,
                   style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
+                // Cifras tabulares (FR-008): esta columna se lee de arriba
+                // abajo, sesión por sesión, y para eso tiene que alinearse.
                 Text(
                   '${entrada.sesion.metros} m · '
                   '${entrada.sesion.porcentajeTecnico.toStringAsFixed(0)}% téc',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Tipografia.notacion(
+                    Theme.of(context).textTheme.bodySmall ?? const TextStyle(),
+                  ),
                 ),
               ],
             ),

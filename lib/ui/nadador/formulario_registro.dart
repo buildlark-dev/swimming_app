@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
 
 class FormularioRegistro extends StatefulWidget {
   const FormularioRegistro({
@@ -189,16 +190,23 @@ class _SelectorRpe extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            const Text('Esfuerzo percibido (0-10)'),
-            const Spacer(),
-            if (valor != null)
-              TextButton(
-                onPressed: () => alCambiar(null),
-                child: const Text('Quitar'),
-              ),
-          ],
+        // La etiqueta y el «Quitar» en un `Wrap`: con la letra grande no caben
+        // en una línea, y el botón bajando es mejor que el botón invisible.
+        SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: Espaciado.corto,
+            children: [
+              const Text('Esfuerzo percibido (0-10)'),
+              if (valor != null)
+                TextButton(
+                  onPressed: () => alCambiar(null),
+                  child: const Text('Quitar'),
+                ),
+            ],
+          ),
         ),
         Wrap(
           spacing: 6,
