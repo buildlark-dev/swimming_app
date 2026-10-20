@@ -3,7 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:natacion_app/dominio/metodologia/zonas.dart';
+import 'package:natacion_app/ui/tema/dominio/escala_de_zonas.dart';
 import 'package:natacion_app/ui/tema/paleta.dart';
+import 'package:natacion_app/ui/tema/tema.dart';
 
 /// Garantías V8 y V9 — las zonas se distinguen sin color, y en su orden.
 ///
@@ -127,6 +129,89 @@ void main() {
         Zona.values.map((z) => z.abreviatura).toList(),
         ['A1', 'A2', 'A3', 'AT', 'Máx', 'Velocidad', 'Exp'],
       );
+    });
+
+    testWidgets('la escala que usan las pantallas es esta misma', (
+      tester,
+    ) async {
+      // Lo de arriba mide `Paleta`. Esto comprueba que lo que llega a la
+      // pantalla es lo mismo: sin esto, alguien podría construir una segunda
+      // rampa en `EscalaDeZonas` y las garantías V8 y V9 seguirían pasando
+      // mientras la app enseña otra cosa.
+      for (final oscuro in [false, true]) {
+        final esperadas = oscuro ? Paleta.zonasOscuro : Paleta.zonas;
+        final vistas = <Color>[];
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: oscuro ? Tema.oscuro() : Tema.claro(),
+            home: Builder(
+              builder: (context) {
+                for (final zona in Zona.values) {
+                  vistas.add(EscalaDeZonas.fondoDe(context, zona));
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+        await tester.pump();
+
+        expect(vistas, esperadas, reason: oscuro ? 'en oscuro' : 'en claro');
+      }
+    });
+
+    testWidgets('sobre cada zona va el texto que más contraste da', (
+      tester,
+    ) async {
+      // El umbral fijo fue lo que hizo fallar a la zona AT con 2.93 la primera
+      // vez que se midió esto. Elegir el mejor de los dos no tiene ese hueco.
+      for (final oscuro in [false, true]) {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: oscuro ? Tema.oscuro() : Tema.claro(),
+            home: Builder(
+              builder: (context) {
+                final esquema = Theme.of(context).colorScheme;
+
+                for (final zona in Zona.values) {
+                  final fondo = EscalaDeZonas.fondoDe(context, zona);
+                  final texto = EscalaDeZonas.textoSobre(context, zona);
+
+                  double relacion(Color a, Color b) {
+                    final la = luminancia(a);
+                    final lb = luminancia(b);
+                    return (math.max(la, lb) + 0.05) /
+                        (math.min(la, lb) + 0.05);
+                  }
+
+                  final elegido = relacion(texto, fondo);
+                  final otro = texto == esquema.onSurface
+                      ? relacion(esquema.surface, fondo)
+                      : relacion(esquema.onSurface, fondo);
+
+                  expect(
+                    elegido,
+                    greaterThanOrEqualTo(otro),
+                    reason: 'Sobre ${zona.abreviatura} se eligió el texto que '
+                        'menos contraste da',
+                  );
+                  expect(
+                    elegido,
+                    greaterThanOrEqualTo(3.0),
+                    reason: 'Sobre ${zona.abreviatura} el texto queda en '
+                        '${elegido.toStringAsFixed(2)}',
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+        await tester.pump();
+      }
     });
 
     test('ninguna zona repite color: no se agrupan', () {

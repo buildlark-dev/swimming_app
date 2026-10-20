@@ -11,6 +11,7 @@ import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/metodologia/modelo_tid.dart';
 import 'package:natacion_app/dominio/metodologia/zonas.dart';
 import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
+import 'package:natacion_app/ui/componentes/etiqueta_de_zona.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/ui/tema/tipografia.dart';
 
@@ -63,8 +64,16 @@ class PanelDistribucion extends StatelessWidget {
                 'Zonas de intensidad frente a ${plan.faseAtr?.nombre ?? 'la fase'}',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
-              for (final reparto in porZona)
-                _FilaReparto(reparto: reparto, tolerancia: tolerancia),
+              // La zona va con su color. `repartoPorZona` se construye
+              // recorriendo `Zona.values` en orden, así que la posición dice
+              // cuál es: el dominio no guarda colores y la interfaz traduce
+              // (principio II).
+              for (var i = 0; i < porZona.length; i++)
+                _FilaReparto(
+                  reparto: porZona[i],
+                  tolerancia: tolerancia,
+                  zona: i < Zona.values.length ? Zona.values[i] : null,
+                ),
             ],
 
             if (porEstilo.isNotEmpty) ...[
@@ -84,10 +93,20 @@ class PanelDistribucion extends StatelessWidget {
 }
 
 class _FilaReparto extends StatelessWidget {
-  const _FilaReparto({required this.reparto, required this.tolerancia});
+  const _FilaReparto({
+    required this.reparto,
+    required this.tolerancia,
+    this.zona,
+  });
 
   final Reparto reparto;
   final Tolerancia tolerancia;
+
+  /// La zona de la fila, cuando la fila es de una zona.
+  ///
+  /// Nula en el reparto de estilos, que no tiene zonas: ahí la etiqueta es
+  /// «Libre» o «Espalda» y no le corresponde ningún color de la rampa.
+  final Zona? zona;
 
   /// Lo que hace falta para que la fila quepa como tabla, con la letra normal.
   ///
@@ -105,7 +124,11 @@ class _FilaReparto extends StatelessWidget {
     // cabiendo cuando el nadador lleva el teléfono al 200%.
     final escala = MediaQuery.textScalerOf(context).scale(1);
 
-    final etiqueta = Text(reparto.etiqueta, style: TextStyle(color: color));
+    // Con zona, la marca de color **con su abreviatura dentro**; sin zona, el
+    // texto de siempre. El color acompaña al nombre, no lo sustituye.
+    final Widget etiqueta = zona == null
+        ? Text(reparto.etiqueta, style: TextStyle(color: color))
+        : EtiquetaDeZona(zona: zona!);
     // Cifras tabulares en las dos columnas de números (FR-008): siete filas de
     // metros y porcentajes se leen como una tabla, y una tabla cuyas cifras no
     // se alinean deja de ser una tabla.
@@ -204,18 +227,10 @@ class _ModeloDeLaFase extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(
-              'Modelo de ${fase.nombre}: ${modelo.nombre}',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              modelo.patron,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+        CabeceraSeccion(
+          titulo: 'Modelo de ${fase.nombre}: ${modelo.nombre}',
+          cifra: modelo.patron,
+          estilo: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 6),
         for (final tid in ZonaTid.values)
@@ -252,51 +267,51 @@ class _FilaTid extends StatelessWidget {
     final dentro = rango.contiene(real);
     final esquema = Theme.of(context).colorScheme;
 
+    // Esta fila tenía la misma enfermedad que `_FilaReparto`: anchos fijos de
+    // 32, 70 y 90, más un icono, más una descripción, todo en una línea. Nadie
+    // la había visto desbordarse porque **solo se pinta cuando el plan tiene
+    // fase ATR**, y ninguna prueba montaba un plan con fase hasta la fase 6.
+    //
+    // Se salía 71 píxeles con la letra normal y 316 al 200%. Ahora las cifras
+    // van arriba, en un `Wrap`, y la descripción debajo a lo ancho.
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 32,
-            child: Text(
-              tid.abreviatura,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: Espaciado.corto,
+            runSpacing: Espaciado.minimo,
+            children: [
+              Text(
+                tid.abreviatura,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text('${real.toStringAsFixed(1)}%'),
+              Text(
+                rango.toString(),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              Icon(
+                dentro ? Icons.check_circle_outline : Icons.error_outline,
+                size: Espaciado.iconoEnLinea,
+                color: dentro ? esquema.primary : esquema.error,
+              ),
+              if (!dentro)
+                Text(
+                  '${rango.desviacion(real) >= 0 ? '+' : ''}'
+                  '${rango.desviacion(real).toStringAsFixed(1)} puntos',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: esquema.error),
+                ),
+            ],
           ),
-          SizedBox(
-            width: 70,
-            child: Text('${real.toStringAsFixed(1)}%'),
-          ),
-          SizedBox(
-            width: 90,
-            child: Text(
-              rango.toString(),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-          Icon(
-            dentro ? Icons.check_circle_outline : Icons.error_outline,
-            size: 16,
-            color: dentro ? esquema.primary : esquema.error,
-          ),
-          if (!dentro) ...[
-            const SizedBox(width: 6),
-            Text(
-              '${rango.desviacion(real) >= 0 ? '+' : ''}'
-              '${rango.desviacion(real).toStringAsFixed(1)} puntos',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: esquema.error,
-                        ),
-            ),
-          ],
-          const Spacer(),
-          Expanded(
-            flex: 3,
-            child: Text(
-              tid.descripcion,
-              style: Theme.of(context).textTheme.bodySmall,
-              overflow: TextOverflow.ellipsis,
-            ),
+          Text(
+            tid.descripcion,
+            style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ),

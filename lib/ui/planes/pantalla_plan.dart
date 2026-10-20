@@ -10,6 +10,7 @@ import 'package:natacion_app/dominio/entidades/ciclo_vida_plan.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/metodologia/validacion_fase.dart';
+import 'package:natacion_app/ui/componentes/etiqueta_de_estado.dart';
 import 'package:natacion_app/ui/planes/dialogo_aprobacion.dart';
 import 'package:natacion_app/ui/planes/panel_distribucion.dart';
 import 'package:natacion_app/ui/planes/tabla_auditoria.dart';
@@ -176,7 +177,10 @@ class _PantallaPlanState extends State<PantallaPlan> {
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Center(child: Chip(label: Text(_plan.estado.nombre))),
+            // Con su color y su icono, no un `Chip` gris igual para los tres.
+            // Aprobar no es entregar, y la barra de arriba es donde el
+            // entrenador mira para saber en qué punto está.
+            child: Center(child: EtiquetaDeEstado(estado: _plan.estado)),
           ),
         ],
       ),

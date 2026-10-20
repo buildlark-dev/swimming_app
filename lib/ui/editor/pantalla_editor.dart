@@ -13,6 +13,7 @@ import 'package:natacion_app/dominio/metodologia/zonas.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/ui/editor/panel_avisos.dart';
 import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
+import 'package:natacion_app/ui/componentes/etiqueta_de_zona.dart';
 import 'package:natacion_app/ui/componentes/campo.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/ui/tema/tipografia.dart';
@@ -328,6 +329,9 @@ class _FilaSerie extends StatelessWidget {
           ),
           Expanded(
             flex: 2,
+            // La zona lleva su color, **sin perder la abreviatura** (FR-016).
+            // El entrenador ve la rampa mientras asigna, y quien no distinga
+            // colores sigue leyendo `A1` o `Máx` igual que antes.
             child: DropdownButton<Zona>(
               isExpanded: true,
               value: serie.zona,
@@ -336,7 +340,7 @@ class _FilaSerie extends StatelessWidget {
                 for (final zona in Zona.values)
                   DropdownMenuItem(
                     value: zona,
-                    child: Text(zona.abreviatura),
+                    child: EtiquetaDeZona(zona: zona),
                   ),
               ],
               onChanged: (zona) {

@@ -223,16 +223,39 @@ sin color.
 **Independent Test**: mostrar las siete zonas juntas, un plan en cada estado y una sesión con
 molestia, y distinguirlos sin leer la etiqueta **y** en escala de grises (escenarios C4 y C7).
 
-- [ ] T034 [P] [US4] Escribir en `test/ui/tema/escala_de_zonas_test.dart` las garantías V8 y V9: las siete tienen luminancias separadas, y su orden es **monótono en el orden de intensidad de la sección 9**. Enseñar otro orden sería enseñar una ordenación que la metodología no hace
-- [ ] T035 [US4] Crear `lib/ui/tema/dominio/escala_de_zonas.dart` con la rampa **por claridad, no por tono** (decisión D4), hasta que T034 y T015 pasen. Una rampa por tono se convierte en siete grises casi iguales para quien no distingue colores
-- [ ] T036 [P] [US4] Crear `lib/ui/tema/dominio/estados_de_plan.dart` para `borrador`, `aprobado` y `publicado`. `aprobado` **no puede verse como `publicado`**: aprobar no es entregar, y confundirlos borraría la distinción que el principio IV protege
-- [ ] T037 [P] [US4] Escribir en `test/ui/tema/estados_de_plan_test.dart` la garantía SC-007: los tres se reconocen sin leer la etiqueta y sin depender solo del color
-- [ ] T038 [US4] Aplicar la escala de zonas donde se muestran series y distribuciones, **conservando siempre la etiqueta**. El color acompaña al nombre, no lo sustituye: la notación es del entrenador
-- [ ] T039 [US4] Dar al reporte de molestia el tono de **cuidado** en `lib/ui/planes/respuestas_del_nadador.dart`, nunca el de error
-- [ ] T040 [P] [US4] Escribir en `test/ui/tema/molestia_test.dart` la garantía V11 del contrato: el reporte de molestia se encuentra sin leerlo todo y **no usa el tono de error**. El principio IV prohíbe que la app diagnostique, y pintarlo como una emergencia es una forma de opinar
-- [ ] T041 [P] [US4] Escribir en `test/ui/tema/avisos_test.dart` la garantía V12: el aviso de «guardado, se enviará cuando tengas internet» usa el tono de **éxito**. Hoy es rojo, y es una buena noticia: significa que la bandeja de salida de la feature 003 hizo su trabajo
+- [X] T034 [P] [US4] Escribir en `test/ui/tema/escala_de_zonas_test.dart` las garantías V8 y V9: las siete tienen luminancias separadas, y su orden es **monótono en el orden de intensidad de la sección 9**. Enseñar otro orden sería enseñar una ordenación que la metodología no hace
+- [X] T035 [US4] Crear `lib/ui/tema/dominio/escala_de_zonas.dart` con la rampa **por claridad, no por tono** (decisión D4), hasta que T034 y T015 pasen. Una rampa por tono se convierte en siete grises casi iguales para quien no distingue colores
+- [X] T036 [P] [US4] Crear `lib/ui/tema/dominio/estados_de_plan.dart` para `borrador`, `aprobado` y `publicado`. `aprobado` **no puede verse como `publicado`**: aprobar no es entregar, y confundirlos borraría la distinción que el principio IV protege
+- [X] T037 [P] [US4] Escribir en `test/ui/tema/estados_de_plan_test.dart` la garantía SC-007: los tres se reconocen sin leer la etiqueta y sin depender solo del color
+- [X] T038 [US4] Aplicar la escala de zonas donde se muestran series y distribuciones, **conservando siempre la etiqueta**. El color acompaña al nombre, no lo sustituye: la notación es del entrenador
+- [X] T039 [US4] Dar al reporte de molestia el tono de **cuidado** en `lib/ui/planes/respuestas_del_nadador.dart`, nunca el de error
+- [X] T040 [P] [US4] Escribir en `test/ui/tema/molestia_test.dart` la garantía V11 del contrato: el reporte de molestia se encuentra sin leerlo todo y **no usa el tono de error**. El principio IV prohíbe que la app diagnostique, y pintarlo como una emergencia es una forma de opinar
+- [X] T041 [P] [US4] Escribir en `test/ui/tema/avisos_test.dart` la garantía V12: el aviso de «guardado, se enviará cuando tengas internet» usa el tono de **éxito**. Hoy es rojo, y es una buena noticia: significa que la bandeja de salida de la feature 003 hizo su trabajo
 
 **Checkpoint**: la app habla el idioma de la metodología.
+
+### Un hueco de medición que esta fase destapó
+
+El banco de pantallas de la fase 3 montaba un plan **sin fase ATR**, y
+`repartoPorZona` devuelve una lista vacía cuando no hay fase. Resultado: las siete filas de
+zonas —justo lo que esta fase pinta— no se pintaban en ninguna prueba, y tampoco el modelo
+de la fase ni sus tres bandas TID.
+
+Al añadir la fase al banco, la garantía V7 encontró **dos sitios más con la misma enfermedad
+de anchos fijos** que `_FilaReparto` tenía en la fase 3: `_FilaTid` se salía 71 píxeles con
+la letra normal y 316 al 200%, y la cabecera del modelo otros 118. Llevaban ahí desde la
+feature 002 sin que nadie los viera, porque solo se pintan cuando el plan tiene fase ATR.
+
+La lección no es sobre layout: **un banco de pruebas solo mide los caminos que monta**. Un
+dato por omisión que apaga media pantalla apaga también media medición.
+
+### Dónde no se aplicó la escala, y por qué
+
+En la **pantalla del nadador** la sesión se muestra como un bloque de notación renderizada,
+con las zonas dentro del texto: `4×100 Nado Libre (A1)`. Colorear ahí obligaría a trocear
+esa cadena para pintar cada zona, y la notación es del entrenador: partirla para decorarla
+es justo lo que FR-004 prohíbe. La escala se aplicó donde las zonas son elementos propios —
+el desplegable del editor y el reparto del plan— y la notación se quedó intacta.
 
 ---
 

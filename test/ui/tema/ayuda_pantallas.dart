@@ -24,6 +24,7 @@ import 'package:natacion_app/dominio/entidades/serie.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/metodologia/estilos.dart';
+import 'package:natacion_app/dominio/metodologia/fases_atr.dart';
 import 'package:natacion_app/dominio/metodologia/zonas.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
@@ -103,6 +104,11 @@ Plan _plan() => Plan(
       estiloObjetivo: Estilo.libre,
       pruebaObjetivo: '800 Libre',
       estado: EstadoPlan.publicado,
+      // **Con fase ATR a propósito.** Sin ella, `repartoPorZona` devuelve una
+      // lista vacía y las siete filas de zonas —con su rampa de color— no se
+      // pintan en ninguna prueba. El banco mediría una pantalla a la que le
+      // falta justo lo que la fase 6 añadió.
+      faseAtr: FaseAtr.acumulacion,
       versionMetodologia: '3.6.0',
       microciclos: const [
         Microciclo(

@@ -12,8 +12,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/calculo/progreso_nadador.dart';
+import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
 import 'package:natacion_app/ui/componentes/tarjeta.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/ui/tema/tipografia.dart';
 
@@ -57,51 +59,33 @@ class _Molestias extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final esquema = Theme.of(context).colorScheme;
-
-    return Card(
-      color: esquema.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.healing_outlined, color: esquema.onErrorContainer),
-                const SizedBox(width: 8),
-                Text(
-                  'Reportes de molestia (${entradas.length})',
-                  style: TextStyle(
-                    color: esquema.onErrorContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+    // **Tono de cuidado, nunca el de error** (garantía V11).
+    //
+    // Un nadador diciendo que le molestó el hombro es información, no una
+    // avería. Tiene que encontrarse sin leer todas las observaciones de todas
+    // las sesiones —por eso va arriba y por eso lleva color—, y a la vez no
+    // puede parecer una urgencia médica.
+    //
+    // Pintarlo de rojo es una forma de opinar, y el principio IV prohíbe que la
+    // app diagnostique o proponga conducta. La última línea lo dice en voz
+    // alta: decide el entrenador.
+    return Aviso(
+      tono: TonoDeAviso.cuidado,
+      icono: Icons.healing_outlined,
+      titulo: 'Reportes de molestia (${entradas.length})',
+      mensaje: 'La app no propone ninguna conducta: decide usted.',
+      detalles: [
+        for (final entrada in entradas)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Text(
+              '${entrada.sesion.objetivoTecnico}: '
+              '${entrada.registro!.molestia!.descripcion}'
+              '${entrada.registro!.molestia!.zonaDelCuerpo.isEmpty ? '' : ' '
+                  '(${entrada.registro!.molestia!.zonaDelCuerpo})'}',
             ),
-            const SizedBox(height: 8),
-            for (final entrada in entradas)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Text(
-                  '${entrada.sesion.objetivoTecnico}: '
-                  '${entrada.registro!.molestia!.descripcion}'
-                  '${entrada.registro!.molestia!.zonaDelCuerpo.isEmpty ? '' : ' '
-                      '(${entrada.registro!.molestia!.zonaDelCuerpo})'}',
-                  style: TextStyle(color: esquema.onErrorContainer),
-                ),
-              ),
-            const SizedBox(height: 8),
-            Text(
-              'La app no propone ninguna conducta: decide usted.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: esquema.onErrorContainer,
-                    fontStyle: FontStyle.italic,
-                  ),
-            ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 }
