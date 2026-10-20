@@ -84,6 +84,14 @@ async function main() {
 main().catch((error) => {
   console.error(error.message);
 
+  if (/quota.project|adc-troubleshooting|billing|consumer/i.test(error.message)) {
+    console.error(
+      '\nA las credenciales de gcloud les falta el proyecto de cuota.\n' +
+        'Un comando y se arregla:\n' +
+        '  gcloud auth application-default set-quota-project swimming-app-ab45f'
+    );
+  }
+
   if (/credential|authenticate|PERMISSION_DENIED/i.test(error.message)) {
     console.error(
       '\nSin credenciales para ese proyecto. Lo mas simple:\n' +
