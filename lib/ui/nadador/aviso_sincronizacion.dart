@@ -11,7 +11,9 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
+import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 
 class AvisoSincronizacion extends StatelessWidget {
   const AvisoSincronizacion({super.key, required this.estado});
@@ -24,25 +26,19 @@ class AvisoSincronizacion extends StatelessWidget {
     // cuando no hace falta.
     if (!estado.hayPendientes) return const SizedBox.shrink();
 
-    final esquema = Theme.of(context).colorScheme;
-
-    return Card(
-      color: esquema.secondaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Icon(Icons.cloud_off_outlined, color: esquema.onSecondaryContainer),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                avisoProgresoGuardado,
-                style: TextStyle(color: esquema.onSecondaryContainer),
-              ),
-            ),
-          ],
-        ),
-      ),
+    // **Tono de éxito, no de error.**
+    //
+    // «Guardado, se enviará cuando tengas internet» es una buena noticia:
+    // significa que la bandeja de salida de la feature 003 hizo su trabajo y
+    // que el nadador no perdió nada. Lo que no hay es señal, y eso no es culpa
+    // suya ni un fallo de la app.
+    //
+    // El icono sí sigue siendo el de la nube tachada, que es lo que describe el
+    // caso mejor que un visto (garantía V12).
+    return const Aviso(
+      tono: TonoDeAviso.exito,
+      icono: Icons.cloud_off_outlined,
+      mensaje: avisoProgresoGuardado,
     );
   }
 }

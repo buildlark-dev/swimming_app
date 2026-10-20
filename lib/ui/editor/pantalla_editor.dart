@@ -12,6 +12,8 @@ import 'package:natacion_app/dominio/metodologia/estilos.dart';
 import 'package:natacion_app/dominio/metodologia/zonas.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/ui/editor/panel_avisos.dart';
+import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
+import 'package:natacion_app/ui/componentes/campo.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/ui/tema/tipografia.dart';
 import 'package:provider/provider.dart';
@@ -132,55 +134,33 @@ class _CabeceraSesion extends StatelessWidget {
           children: [
             // Los totales en vivo, que antes estaban en la barra de arriba.
             // Aquí caben: si no entran en una línea, bajan a la siguiente.
-            Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              spacing: Espaciado.corto,
-              runSpacing: Espaciado.minimo,
-              children: [
-                Text(
-                  '${estado.sesion.metros} m',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  '${estado.sesion.porcentajeTecnico.toStringAsFixed(0)}% '
+            CabeceraSeccion(
+              titulo: '${estado.sesion.metros} m',
+              cifra: '${estado.sesion.porcentajeTecnico.toStringAsFixed(0)}% '
                   'técnico',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+              estiloDeCifra: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: Espaciado.corto),
-            DropdownButtonFormField<Categoria>(
-              isExpanded: true,
-              initialValue: estado.categoria,
-              decoration: const InputDecoration(labelText: 'Categoría'),
-              items: [
-                for (final categoria in Categoria.values)
-                  DropdownMenuItem(
-                    value: categoria,
-                    child: Text(
-                      '${categoria.nombre} · ${categoria.volumenPorSesion}',
-                    ),
-                  ),
-              ],
-              onChanged: (valor) {
+            CampoDeOpciones<Categoria>(
+              etiqueta: 'Categoría',
+              valor: estado.categoria,
+              opciones: Categoria.values,
+              nombreDe: (c) => '${c.nombre} · ${c.volumenPorSesion}',
+              alCambiar: (valor) {
                 if (valor != null) estado.cambiarCategoria(valor);
               },
             ),
             const SizedBox(height: 8),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Objetivo técnico',
-                hintText: 'Mejoramiento técnica de Espalda',
-              ),
-              onChanged: estado.cambiarObjetivoTecnico,
+            Campo(
+              etiqueta: 'Objetivo técnico',
+              pista: 'Mejoramiento técnica de Espalda',
+              alCambiar: estado.cambiarObjetivoTecnico,
             ),
             const SizedBox(height: 8),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Objetivo fisiológico',
-                hintText: 'Base aeróbica',
-              ),
-              onChanged: estado.cambiarObjetivoFisiologico,
+            Campo(
+              etiqueta: 'Objetivo fisiológico',
+              pista: 'Base aeróbica',
+              alCambiar: estado.cambiarObjetivoFisiologico,
             ),
             const SizedBox(height: 8),
             _SelectorRpe(estado: estado),
@@ -236,22 +216,10 @@ class _CampoParte extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: Espaciado.corto,
-              runSpacing: Espaciado.minimo,
-              children: [
-                Text(
-                  tipo.nombre,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  '${parte.metros} m · ${porcentaje.toStringAsFixed(0)}% '
+            CabeceraSeccion(
+              titulo: tipo.nombre,
+              cifra: '${parte.metros} m · ${porcentaje.toStringAsFixed(0)}% '
                   '(prescrito ${tipo.porcentajePrescrito}%)',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
             ),
             const SizedBox(height: 8),
             TextField(

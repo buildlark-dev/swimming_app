@@ -12,6 +12,9 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/calculo/progreso_nadador.dart';
+import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
+import 'package:natacion_app/ui/componentes/tarjeta.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/ui/tema/tipografia.dart';
 
 class RespuestasDelNadador extends StatelessWidget {
@@ -23,38 +26,25 @@ class RespuestasDelNadador extends StatelessWidget {
   Widget build(BuildContext context) {
     final conMolestia = progreso.conMolestia;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'Respuesta del nadador',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const Spacer(),
-                Text(
-                  'Completadas ${progreso.adherenciaDelPlan.descripcion}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
+    return Tarjeta(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CabeceraSeccion(
+            titulo: 'Respuesta del nadador',
+            cifra: 'Completadas ${progreso.adherenciaDelPlan.descripcion}',
+          ),
 
-            // Las molestias se listan arriba para que se encuentren **sin leer
-            // todas las observaciones de todas las sesiones** (SC-006).
-            if (conMolestia.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _Molestias(entradas: conMolestia),
-            ],
-
-            const Divider(height: 24),
-            for (final entrada in progreso.historial)
-              _Fila(entrada: entrada),
+          // Las molestias se listan arriba para que se encuentren **sin leer
+          // todas las observaciones de todas las sesiones** (SC-006).
+          if (conMolestia.isNotEmpty) ...[
+            const SizedBox(height: Espaciado.normal),
+            _Molestias(entradas: conMolestia),
           ],
-        ),
+
+          const Divider(height: Espaciado.seccion),
+          for (final entrada in progreso.historial) _Fila(entrada: entrada),
+        ],
       ),
     );
   }

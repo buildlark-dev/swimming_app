@@ -34,6 +34,9 @@ import 'package:natacion_app/dominio/generacion/resultado.dart';
 import 'package:natacion_app/ui/editor/pantalla_editor.dart';
 import 'package:natacion_app/ui/generacion/pantalla_peticion.dart';
 import 'package:natacion_app/ui/nadadores/pantalla_perfiles.dart';
+import 'package:natacion_app/ui/componentes/aviso.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:provider/provider.dart';
 
 /// Punto de entrada de la aplicación.
@@ -737,25 +740,23 @@ class _BarraDeSesion extends StatelessWidget {
     final esquema = Theme.of(context).colorScheme;
 
     if (modoLocal) {
-      return Material(
-        color: esquema.errorContainer,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
-            children: [
-              Icon(Icons.cloud_off_outlined, color: esquema.onErrorContainer),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Modo local, sin servidor: no hay cuentas ni consentimiento '
-                  'registrado, y nada se guarda al cerrar. Solo datos de '
-                  'prueba.',
-                  key: const Key('aviso-modo-local'),
-                  style: TextStyle(color: esquema.onErrorContainer),
-                ),
-              ),
-            ],
-          ),
+      // **Tono de cuidado, no de error.**
+      //
+      // El modo local no es un fallo: es un modo de trabajo, el que permite
+      // desarrollar sin servidor. Lo que exige es cuidado, porque sin servidor
+      // no hay consentimiento registrado y el principio V obliga a usar solo
+      // datos de prueba. Pintarlo de rojo lo confundía con una avería.
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: Espaciado.amplio,
+          vertical: Espaciado.corto,
+        ),
+        child: const Aviso(
+          tono: TonoDeAviso.cuidado,
+          icono: Icons.cloud_off_outlined,
+          claveDelMensaje: Key('aviso-modo-local'),
+          mensaje: 'Modo local, sin servidor: no hay cuentas ni consentimiento '
+              'registrado, y nada se guarda al cerrar. Solo datos de prueba.',
         ),
       );
     }

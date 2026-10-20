@@ -13,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
+import 'package:natacion_app/ui/componentes/campo.dart';
+import 'package:natacion_app/ui/componentes/boton.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 
 class FormularioRegistro extends StatefulWidget {
@@ -158,10 +160,11 @@ class _FormularioRegistroState extends State<FormularioRegistro> {
             ],
 
             const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: _guardando ? null : () => _guardar(realizada: true),
-              icon: const Icon(Icons.check),
-              label: const Text('Marcar como realizada'),
+            BotonPrincipal(
+              etiqueta: 'Marcar como realizada',
+              icono: Icons.check,
+              trabajando: _guardando,
+              alPulsar: () => _guardar(realizada: true),
             ),
             const SizedBox(height: 8),
             // «No pude ir» también es información (escenario R3).
@@ -200,6 +203,8 @@ class _SelectorRpe extends StatelessWidget {
             spacing: Espaciado.corto,
             children: [
               const Text('Esfuerzo percibido (0-10)'),
+              // Un `TextButton` suelto y no `BotonSecundario`: este no es una
+              // acción de la pantalla, es deshacer una elección de al lado.
               if (valor != null)
                 TextButton(
                   onPressed: () => alCambiar(null),
@@ -208,16 +213,11 @@ class _SelectorRpe extends StatelessWidget {
             ],
           ),
         ),
-        Wrap(
-          spacing: 6,
-          children: [
-            for (var i = 0; i <= 10; i++)
-              ChoiceChip(
-                label: Text('$i'),
-                selected: valor == i,
-                onSelected: (_) => alCambiar(i),
-              ),
-          ],
+        OpcionesEnFila<int>(
+          opciones: const [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+          nombreDe: (n) => '$n',
+          elegida: valor,
+          alElegir: alCambiar,
         ),
       ],
     );

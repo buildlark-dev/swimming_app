@@ -10,6 +10,7 @@ import 'package:natacion_app/dominio/calculo/agregacion_plan.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/metodologia/modelo_tid.dart';
 import 'package:natacion_app/dominio/metodologia/zonas.dart';
+import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/ui/tema/tipografia.dart';
 
@@ -35,25 +36,10 @@ class PanelDistribucion extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              width: double.infinity,
-              child: Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: Espaciado.corto,
-                runSpacing: Espaciado.minimo,
-                children: [
-                  Text(
-                    'Distribución del plan',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  Text(
-                    '${plan.metros} m · '
-                    '${plan.porcentajeTecnico.toStringAsFixed(1)}% técnico',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
+            CabeceraSeccion(
+              titulo: 'Distribución del plan',
+              cifra: '${plan.metros} m · '
+                  '${plan.porcentajeTecnico.toStringAsFixed(1)}% técnico',
             ),
 
             if (agregacion.metrosSinZona > 0)

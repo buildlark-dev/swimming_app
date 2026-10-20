@@ -6,6 +6,8 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/componentes/aviso.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/generacion/resultado.dart';
 
 class PanelImpedimentos extends StatelessWidget {
@@ -95,58 +97,31 @@ class PanelAvisosGeneracion extends StatelessWidget {
 
     if (!hayAlgo) return const SizedBox.shrink();
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Lo que conviene que sepas de este plan',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const Divider(),
+    // Tono **informativo**: nada ha fallado y nadie se ha equivocado. Son
+    // supuestos que el generador tomó y huecos de la biblioteca que no rellenó,
+    // y el entrenador tiene derecho a saberlos antes de aprobar.
+    return Aviso(
+      tono: TonoDeAviso.informativo,
+      mensaje: 'Lo que conviene que sepas de este plan',
+      detalles: [
+        const Divider(),
 
-            for (final aviso in resultado.avisos)
-              _Linea(icono: Icons.healing_outlined, texto: aviso),
+        for (final aviso in resultado.avisos)
+          LineaDeAviso(icono: Icons.healing_outlined, texto: aviso),
 
-            for (final vacio in resultado.vaciosDeBiblioteca)
-              _Linea(
-                icono: Icons.search_off,
-                texto: '$vacio. No se eligió otro ejercicio en su lugar: '
-                    'sustituirlo sería inventar por aproximación.',
-              ),
+        for (final vacio in resultado.vaciosDeBiblioteca)
+          LineaDeAviso(
+            icono: Icons.search_off,
+            texto: '$vacio. No se eligió otro ejercicio en su lugar: '
+                'sustituirlo sería inventar por aproximación.',
+          ),
 
-            for (final supuesto in resultado.supuestos)
-              _Linea(
-                icono: Icons.info_outline,
-                texto: '${supuesto.descripcion}. ${supuesto.motivo}',
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Linea extends StatelessWidget {
-  const _Linea({required this.icono, required this.texto});
-
-  final IconData icono;
-  final String texto;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icono, size: 16),
-          const SizedBox(width: 8),
-          Expanded(child: Text(texto)),
-        ],
-      ),
+        for (final supuesto in resultado.supuestos)
+          LineaDeAviso(
+            icono: Icons.info_outline,
+            texto: '${supuesto.descripcion}. ${supuesto.motivo}',
+          ),
+      ],
     );
   }
 }

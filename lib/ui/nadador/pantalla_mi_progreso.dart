@@ -13,7 +13,9 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/calculo/progreso_nadador.dart';
+import 'package:natacion_app/ui/componentes/estado_vacio.dart';
 import 'package:natacion_app/ui/nadador/aviso_sincronizacion.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:provider/provider.dart';
 
@@ -28,7 +30,15 @@ class PantallaMiProgreso extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Mi progreso')),
       body: progreso == null
-          ? const Center(child: Text('Todavía no tienes un plan asignado'))
+          ? const Padding(
+              padding: EdgeInsets.all(Espaciado.amplio),
+              child: EstadoVacio(
+                icono: Icons.event_busy_outlined,
+                titulo: 'Todavía no tienes un plan asignado',
+                queHacer: 'Cuando tu entrenador te asigne uno, tu progreso '
+                    'aparecerá aquí.',
+              ),
+            )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

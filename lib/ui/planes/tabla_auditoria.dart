@@ -5,6 +5,8 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/componentes/tarjeta.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/dominio/auditoria/auditoria.dart';
 import 'package:natacion_app/dominio/auditoria/criterio.dart';
 
@@ -17,27 +19,24 @@ class TablaAuditoria extends StatelessWidget {
   Widget build(BuildContext context) {
     final esquema = Theme.of(context).colorScheme;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'Auditoría metodológica',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const Spacer(),
-                _Resumen(resultado: resultado),
-              ],
-            ),
-            const SizedBox(height: 8),
-            for (final criterio in resultado.criterios)
-              _FilaCriterio(criterio: criterio, esquema: esquema),
-          ],
-        ),
+    return Tarjeta(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Auditoría metodológica',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const Spacer(),
+              _Resumen(resultado: resultado),
+            ],
+          ),
+          const SizedBox(height: Espaciado.corto),
+          for (final criterio in resultado.criterios)
+            _FilaCriterio(criterio: criterio, esquema: esquema),
+        ],
       ),
     );
   }

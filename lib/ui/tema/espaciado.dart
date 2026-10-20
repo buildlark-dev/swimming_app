@@ -41,4 +41,22 @@ abstract final class Espaciado {
 
   /// Altura mínima de un campo de formulario.
   static const double alturaCampoMinima = 52;
+
+  // --- Iconos ----------------------------------------------------------
+  //
+  // Tres tamaños y no doce. Están aquí y no en los componentes porque son
+  // medidas: cuando un componente necesitó el tamaño de su icono, lo que
+  // faltaba era el token, no el número suelto.
+  //
+  // El tamaño del icono **no es el del área que responde**: un icono de 18
+  // sigue teniendo 48 de área pulsable, y eso lo pone el tema.
+
+  /// Un icono que acompaña a una línea de texto.
+  static const double iconoEnLinea = 18;
+
+  /// Un icono de acción, el de un botón o una barra.
+  static const double iconoNormal = 24;
+
+  /// El icono de un estado vacío, que es la figura de la pantalla.
+  static const double iconoGrande = 40;
 }

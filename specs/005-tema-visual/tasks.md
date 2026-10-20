@@ -131,17 +131,42 @@ tabulación es invisible, y una `copyWith` descuidada la quita sin que nada fall
 **Independent Test**: recorrer las pantallas existentes y comprobar que tarjetas, campos,
 botones y avisos se ven y se comportan igual (escenario C1 del quickstart).
 
-- [ ] T022 [P] [US2] Crear `lib/ui/componentes/aviso.dart`, que recibe **cuál de los cuatro tonos** es. Es el componente que más se repite hoy y el que peor está: casi todos los avisos de la app son rojos
-- [ ] T023 [P] [US2] Crear `lib/ui/componentes/tarjeta.dart`
-- [ ] T024 [P] [US2] Crear `lib/ui/componentes/campo.dart`
-- [ ] T025 [P] [US2] Crear `lib/ui/componentes/boton.dart`
-- [ ] T026 [P] [US2] Crear `lib/ui/componentes/cabecera_seccion.dart`
-- [ ] T027 [P] [US2] Crear `lib/ui/componentes/estado_vacio.dart`, para «Todavía no tienes un plan asignado» y sus hermanos
-- [ ] T028 [US2] Sustituir por `Aviso` los avisos de `lib/ui/nadador/aviso_sincronizacion.dart`, `lib/main.dart` (modo local y barra de sesión) y `lib/ui/editor/panel_avisos.dart`, **asignando a cada uno su tono correcto**. El de sincronización pasa a éxito: ver T031
-- [ ] T029 [US2] Sustituir por los componentes nuevos los elementos repetidos del resto de pantallas de `lib/ui/`, sin cambiar lo que hacen
-- [ ] T030 [P] [US2] Escribir en `test/ui/tema/componentes_test.dart` la garantía V3: un componente no contiene valores propios, los toma de los tokens. Si uno necesita un valor que no está, **falta un token**, y no se añade el valor al componente
+- [X] T022 [P] [US2] Crear `lib/ui/componentes/aviso.dart`, que recibe **cuál de los cuatro tonos** es. Es el componente que más se repite hoy y el que peor está: casi todos los avisos de la app son rojos
+- [X] T023 [P] [US2] Crear `lib/ui/componentes/tarjeta.dart`
+- [X] T024 [P] [US2] Crear `lib/ui/componentes/campo.dart`
+- [X] T025 [P] [US2] Crear `lib/ui/componentes/boton.dart`
+- [X] T026 [P] [US2] Crear `lib/ui/componentes/cabecera_seccion.dart`
+- [X] T027 [P] [US2] Crear `lib/ui/componentes/estado_vacio.dart`, para «Todavía no tienes un plan asignado» y sus hermanos
+- [X] T028 [US2] Sustituir por `Aviso` los avisos de `lib/ui/nadador/aviso_sincronizacion.dart`, `lib/main.dart` (modo local y barra de sesión) y `lib/ui/editor/panel_avisos.dart`, **asignando a cada uno su tono correcto**. El de sincronización pasa a éxito: ver T031
+- [X] T029 [US2] Sustituir por los componentes nuevos los elementos repetidos del resto de pantallas de `lib/ui/`, sin cambiar lo que hacen
+- [X] T030 [P] [US2] Escribir en `test/ui/tema/componentes_test.dart` la garantía V3: un componente no contiene valores propios, los toma de los tokens. Si uno necesita un valor que no está, **falta un token**, y no se añade el valor al componente
 
 **Checkpoint**: lo repetido está decidido una vez.
+
+### Dos desviaciones del plan, a propósito
+
+**No hay `BotonSecundario`.** Se escribió y se quitó: la app no tiene hoy **ni un solo
+`OutlinedButton`**, así que era un componente para un sitio que no existe. Cuando el HUB de
+la feature 007 necesite una acción secundaria de verdad, se añade con su primer uso al lado.
+Es la misma disciplina que la de los tokens, al revés: no se añade por si acaso.
+
+**`Tarjeta` no sustituyó las quince tarjetas de la app, sino tres.** El proyecto no está
+formateado con `dart format` —73 de 96 archivos difieren—, así que quitar un nivel de
+anidamiento exige reindentar a mano el método entero. Se hizo donde el panel es
+autocontenido (`tabla_auditoria`, `respuestas_del_nadador`, y dentro de `EstadoVacio`) y se
+dejó en las pantallas grandes, que se tocarán de todos modos en las features 007 a 010. Lo
+que decide la tarjeta —borde, radio, color, margen— ya lo pone `cardTheme` una vez; lo único
+que quedaba repetido es el relleno de dentro.
+
+### Lo que cazó la garantía V7, otra vez
+
+`BotonPrincipal` con icono se salía **64 píxeles** del botón al 200%: `FilledButton.icon` de
+Material envuelve su etiqueta en un `Flexible` y al escribir esa fila a mano se quedó fuera.
+Lo encontró el banco de pantallas de la fase 3 **en el mismo commit en que se introdujo**.
+
+También cazó una prueba de la feature 004: poner la clave en el envoltorio en lugar del
+`FilledButton` de dentro rompió `confirmacion_test.dart`, que busca el botón por clave para
+preguntarle si está habilitado. Se arregló el componente, no la prueba.
 
 ---
 

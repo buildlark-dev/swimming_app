@@ -13,6 +13,8 @@ import 'package:natacion_app/dominio/notacion/renderizador.dart';
 import 'package:natacion_app/ui/nadador/aviso_sincronizacion.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:natacion_app/ui/nadador/formulario_registro.dart';
+import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
+import 'package:natacion_app/ui/componentes/estado_vacio.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/ui/tema/tipografia.dart';
 import 'package:provider/provider.dart';
@@ -65,27 +67,27 @@ class _Hoy extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (estado.plan == null) {
-      return const _Mensaje(
+      return const EstadoVacio(
         icono: Icons.event_busy_outlined,
         titulo: 'Todavía no tienes un plan asignado',
-        detalle: 'Cuando tu entrenador te asigne uno, aparecerá aquí.',
+        queHacer: 'Cuando tu entrenador te asigne uno, aparecerá aquí.',
       );
     }
 
     return switch (estado.hoy) {
       SesionDeHoy(:final sesion) => _Sesion(sesion: sesion, estado: estado),
-      SinSesionHoy(:final siguiente, :final cuando) => _Mensaje(
+      SinSesionHoy(:final siguiente, :final cuando) => EstadoVacio(
           icono: Icons.event_available_outlined,
           titulo: 'Hoy descansas',
-          detalle: 'Tu próxima sesión es el '
+          queHacer: 'Tu próxima sesión es el '
               '${cuando.day.toString().padLeft(2, '0')}/'
               '${cuando.month.toString().padLeft(2, '0')}: '
               '${siguiente.objetivoTecnico}',
         ),
-      SinSesionesPorDelante() => const _Mensaje(
+      SinSesionesPorDelante() => const EstadoVacio(
           icono: Icons.flag_outlined,
           titulo: 'No quedan sesiones por delante',
-          detalle: 'Habla con tu entrenador para el siguiente ciclo.',
+          queHacer: 'Habla con tu entrenador para el siguiente ciclo.',
         ),
     };
   }
@@ -170,27 +172,11 @@ class _Parte extends StatelessWidget {
           children: [
             // `Wrap` y no `Row`: si el nombre de la parte y los metros no caben
             // en una línea, los metros bajan a la siguiente en lugar de
-            // salirse. El `SizedBox` es lo que mantiene los metros a la
-            // derecha cuando sí caben, porque esta columna no estira a sus
-            // hijos.
-            SizedBox(
-              width: double.infinity,
-              child: Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: Espaciado.corto,
-                runSpacing: Espaciado.minimo,
-                children: [
-                  Text(
-                    tipo.nombre,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  Text(
-                    '${parte.metros} m',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
+            // salirse.
+            CabeceraSeccion(
+              titulo: tipo.nombre,
+              cifra: '${parte.metros} m',
+              estilo: Theme.of(context).textTheme.titleSmall,
             ),
             const Divider(),
             // Cifras de ancho fijo (FR-008). `4x100 / 1'40"` es una
@@ -210,32 +196,3 @@ class _Parte extends StatelessWidget {
   }
 }
 
-class _Mensaje extends StatelessWidget {
-  const _Mensaje({
-    required this.icono,
-    required this.titulo,
-    required this.detalle,
-  });
-
-  final IconData icono;
-  final String titulo;
-  final String detalle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Icon(icono, size: 40),
-            const SizedBox(height: 12),
-            Text(titulo, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 4),
-            Text(detalle, textAlign: TextAlign.center),
-          ],
-        ),
-      ),
-    );
-  }
-}
