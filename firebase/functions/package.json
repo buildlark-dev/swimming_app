@@ -10,7 +10,8 @@
   "scripts": {
     "build": "tsc",
     "test": "npm run build && firebase emulators:exec --project demo-natacion --config ../../firebase.json \"node --test --test-concurrency=1 test/*.test.js\"",
-    "asignar-rol": "node tools/asignar-rol.js"
+    "asignar-rol": "node tools/asignar-rol.js",
+    "ver-rol": "node tools/ver-rol.js"
   },
   "dependencies": {
     "firebase-admin": "^14.5.0",

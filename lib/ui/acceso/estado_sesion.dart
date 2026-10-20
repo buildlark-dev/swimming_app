@@ -73,6 +73,14 @@ class SesionActiva extends ChangeNotifier {
   /// Para no lanzar dos esperas a la vez si llegan dos avisos seguidos.
   bool _esperandoRol = false;
 
+  /// Ya se agotaron los reintentos y no hay que volver a empezar solo.
+  ///
+  /// Hace falta porque comprobar el rol **refresca el token a la fuerza**, y
+  /// cada refresco hace que el flujo de cambios emita de nuevo. Sin esta
+  /// bandera, esa emisión reiniciaba la espera y la pantalla se quedaba en
+  /// «preparando» para siempre, refrescando el token sin parar.
+  bool _rendido = false;
+
   Future<void> _primera() async {
     try {
       _actualizar(await identidad.actual());
@@ -89,15 +97,23 @@ class SesionActiva extends ChangeNotifier {
       case SinSesion():
         _cuenta = null;
         _esperandoRol = false;
+        _rendido = false;
         _fijar(EstadoDeSesion.fuera);
 
       case CuentaLista(:final cuenta):
         _cuenta = cuenta;
         _esperandoRol = false;
+        _rendido = false;
         _fijar(EstadoDeSesion.dentro);
 
       case CuentaSinRol():
         _cuenta = null;
+
+        // Si ya se agotaron los reintentos, se queda como está. Volver a
+        // «preparando» cada vez que el token se refresca es exactamente el
+        // bucle que dejaba la pantalla cargando sin fin.
+        if (_rendido) return;
+
         _fijar(EstadoDeSesion.preparando);
         if (!_esperandoRol) unawaited(_esperarAlRol());
     }
@@ -133,11 +149,13 @@ class SesionActiva extends ChangeNotifier {
     // invitaría a registrarse otra vez y a repetir el problema. Se dice lo que
     // pasa, que es que la cuenta existe y le falta el rol.
     _esperandoRol = false;
+    _rendido = true;
     _fijar(EstadoDeSesion.sinRol);
   }
 
   /// Vuelve a intentarlo, para el botón de la pantalla de espera.
   Future<void> reintentar() async {
+    _rendido = false;
     _fijar(EstadoDeSesion.preparando);
     if (!_esperandoRol) await _esperarAlRol();
   }

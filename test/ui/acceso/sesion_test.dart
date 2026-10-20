@@ -114,6 +114,43 @@ void main() {
       expect(sesion.hayCuenta, isFalse);
     });
 
+    test('refrescar el token no reinicia la espera para siempre', () async {
+      // Comprobar el rol refresca el token a la fuerza, y cada refresco hace
+      // que el flujo de cambios emita. Esa emisión reiniciaba la espera, así
+      // que la pantalla se quedaba en «preparando» sin fin, refrescando el
+      // token una y otra vez. Es lo que le pasó al entrenador.
+      final identidad = _IdentidadFalsa(inicial: const CuentaSinRol('u1'));
+      final sesion = SesionActiva(identidad: identidad, esperas: rapidas);
+
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      expect(sesion.estado, EstadoDeSesion.sinRol);
+
+      // El flujo emite otra vez, como haría un refresco de token.
+      identidad.entra(const CuentaSinRol('u1'));
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+
+      expect(
+        sesion.estado,
+        EstadoDeSesion.sinRol,
+        reason: 'Una emisión más no puede devolver la pantalla a «preparando»: '
+            'eso es el bucle que no terminaba nunca',
+      );
+    });
+
+    test('el botón de reintentar sí vuelve a empezar', () async {
+      final identidad = _IdentidadFalsa(inicial: const CuentaSinRol('u1'));
+      final sesion = SesionActiva(identidad: identidad, esperas: rapidas);
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      expect(sesion.estado, EstadoDeSesion.sinRol);
+
+      // Entre medias, alguien le asignó el rol en el servidor.
+      identidad.estado = CuentaLista(Cuenta(id: 'u1', rol: Rol.entrenador));
+      await sesion.reintentar();
+
+      expect(sesion.estado, EstadoDeSesion.dentro);
+      expect(sesion.cuenta!.esEntrenador, isTrue);
+    });
+
     test('mientras no hay rol, no se concede ninguna cuenta', () async {
       // Las reglas deniegan todo a un token sin rol. El cliente no puede
       // inventarse uno «mientras tanto».
