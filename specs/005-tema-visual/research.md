@@ -139,3 +139,55 @@ tonos de aviso hacen falta.
   contraste comprobado, rampa por claridad— y la tarea propone valores que él aprueba.
 - **Iconografía y logotipo**, fuera de alcance.
 - **El ajuste manual de claro/oscuro**, que es de la feature 007.
+
+---
+
+## D6 — Inventario de partida (tarea T002)
+
+Medido sobre `lib/` antes de tocar nada, el 2026-10-20. Es la lista contra la que se
+comprueba al final que **ninguna pantalla cambió de significado** (garantía V13).
+
+### Uso del esquema de color, por rol
+
+| Rol | Usos |
+|---|---|
+| `error` | 16 |
+| `onErrorContainer` | 13 |
+| `errorContainer` | 5 |
+| `onSurfaceVariant` | 5 |
+| `primary` | 4 |
+| `outline` | 4 |
+| `surfaceContainerHighest` | 2 |
+| `secondaryContainer` | 2 |
+| `onSecondaryContainer` | 2 |
+| `tertiary` | 1 |
+
+**Treinta y cuatro de cincuenta y cuatro usos son de la familia de error.** No es que la app
+falle mucho: es que no tiene otra forma de decir «mira esto».
+
+### Dónde está el rojo
+
+| Usos | Archivo | Qué dice de verdad |
+|---|---|---|
+| 6 | `ui/planes/respuestas_del_nadador.dart` | Incluye el **reporte de molestia** → cuidado, nunca error (V11) |
+| 6 | `ui/generacion/panel_impedimentos.dart` | Impedimentos para generar → cuidado |
+| 4 | `ui/planes/panel_distribucion.dart` | Desviaciones de la distribución → cuidado |
+| 3 | `ui/planes/pantalla_plan.dart` | Avisos de auditoría → cuidado |
+| 3 | `ui/nadadores/pantalla_perfiles.dart` | Perfil incompleto → informativo |
+| 3 | `main.dart` | **Modo local** → cuidado |
+| 2 | `ui/planes/dialogo_aprobacion.dart` | Lo que impide aprobar → cuidado |
+| 2 | `ui/nadador/pantalla_mi_progreso.dart` | Molestias en el historial → cuidado |
+| 1 | `ui/editor/panel_avisos.dart` | Avisos del editor → cuidado |
+| 1 | `ui/consentimiento/pantalla_confirmacion.dart` | Error de confirmación → **error de verdad** |
+| 1 | `ui/consentimiento/panel_estado.dart` | Sin consentimiento → informativo |
+| 1 | `ui/acceso/pantalla_acceso.dart` | Fallo al entrar → **error de verdad** |
+| 1 | `ui/planes/tabla_auditoria.dart` | Criterio incumplido → cuidado |
+
+**Solo dos de los trece son errores de verdad.** Los demás son cuidado o información, y de
+ahí sale FR-016.
+
+### Lo que falta y no aparece aquí
+
+`ui/nadador/aviso_sincronizacion.dart` **no usa el color de error**. El aviso de «guardado,
+se enviará cuando tengas internet» ya es neutro, así que lo que la tarea T028 hace con él no
+es quitarle el rojo sino **darle el tono de éxito**, que es lo que de verdad significa.

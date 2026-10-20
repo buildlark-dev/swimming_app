@@ -45,8 +45,8 @@ lugar de medir medio sistema y volver después.
 
 **Purpose**: dejar el terreno listo. Nada de esto se ve en la app.
 
-- [ ] T001 [P] Crear las carpetas con un archivo `library;` de marcador: `lib/ui/tema/`, `lib/ui/tema/dominio/`, `lib/ui/componentes/`, `test/ui/tema/`
-- [ ] T002 Inventariar en `specs/005-tema-visual/research.md`, como decisión D6, **todos los sitios donde hoy se lee del esquema de color**, con archivo y rol usado. Es la lista contra la que se comprueba al final que ninguna pantalla cambió de significado. Hoy son 50 usos, 27 de ellos del color de error
+- [X] T001 [P] Crear las carpetas con un archivo `library;` de marcador: `lib/ui/tema/`, `lib/ui/tema/dominio/`, `lib/ui/componentes/`, `test/ui/tema/`
+- [X] T002 Inventariar en `specs/005-tema-visual/research.md`, como decisión D6, **todos los sitios donde hoy se lee del esquema de color**, con archivo y rol usado. Es la lista contra la que se comprueba al final que ninguna pantalla cambió de significado. Hoy son 50 usos, 27 de ellos del color de error
 
 ---
 
@@ -58,9 +58,9 @@ lugar de medir medio sistema y volver después.
 
 ### El cerrojo primero
 
-- [ ] T003 Escribir en `test/ui/tema/frontera_tema_test.dart` la garantía V1 **antes de que exista la paleta**: recorre `lib/` leyendo el código fuente y falla si encuentra `Color(0x...)` o `Colors.loQueSea` fuera de `lib/ui/tema/paleta.dart`, nombrando archivo y línea. Escribirla antes importa: después se escribiría para que pase con lo que ya hay
-- [ ] T004 Comprobar que T003 **caza de verdad**: meter un `Color(0xFF123456)` en una pantalla cualquiera, ver fallar la prueba con el archivo y la línea correctos, y quitarlo. Una frontera que no caza nada no es una frontera
-- [ ] T005 [P] Ampliar `test/ui/tema/frontera_tema_test.dart` con la garantía V2: tamaños de letra y espaciados literales fuera de `tipografia.dart` y `espaciado.dart`
+- [X] T003 Escribir en `test/ui/tema/frontera_tema_test.dart` la garantía V1 **antes de que exista la paleta**: recorre `lib/` leyendo el código fuente y falla si encuentra `Color(0x...)` o `Colors.loQueSea` fuera de `lib/ui/tema/paleta.dart`, nombrando archivo y línea. Escribirla antes importa: después se escribiría para que pase con lo que ya hay
+- [X] T004 Comprobar que T003 **caza de verdad**: meter un `Color(0xFF123456)` en una pantalla cualquiera, ver fallar la prueba con el archivo y la línea correctos, y quitarlo. Una frontera que no caza nada no es una frontera
+- [X] T005 [P] Ampliar `test/ui/tema/frontera_tema_test.dart` con la garantía V2: tamaños de letra y espaciados literales fuera de `tipografia.dart` y `espaciado.dart`
 
 ### Los tokens
 
