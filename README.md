@@ -16,7 +16,8 @@ Same inputs, same plan. Offline and free: composition comes from coded rules, no
 - Hybrid session editor that parses the coach's own notation
 - Plan lifecycle: draft -> approved -> published (approved plans are immutable)
 - Swimmer profiles and plan assignment
-- Tech stack
+
+## Tech stack
 - Flutter/Dart - Firebase - Web + mobile
 
 ## Architecture highlights
