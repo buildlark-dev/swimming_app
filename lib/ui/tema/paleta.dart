@@ -70,7 +70,19 @@ abstract final class Paleta {
   // El orden es el de la sección 9: A1, A2, A3, AT, Máx, Velocidad, Exp.
 
   static const List<Color> zonas = <Color>[
-    Color(0xFFDCE9F2), // A1
+    // A1 era `#DCE9F2`, y se oscureció una pizca en la fase 5.
+    //
+    // Contra un blanco puro cumplía. Pero el fondo claro de la app no es
+    // blanco: Material lo deriva de la semilla marina y sale `#F8F9FF`. Contra
+    // ese fondo de verdad, A1 daba 1.177 y hacía falta 1.2, así que la zona más
+    // suave se diluía en la página.
+    //
+    // Este valor es **el único que cumple las dos cosas a la vez**: 1.211 contra
+    // el fondo, y 6.9 de salto en L* hasta A2, que necesita 6. Oscurecerla más
+    // separaría mejor del fondo y juntaría demasiado con A2. El extremo claro de
+    // la rampa va apretado entre esas dos exigencias, y conviene saberlo antes
+    // de tocarlo.
+    Color(0xFFD8E6F0), // A1
     Color(0xFFBBD4E6), // A2
     Color(0xFF93B8D4), // A3
     Color(0xFF6B9CC2), // AT

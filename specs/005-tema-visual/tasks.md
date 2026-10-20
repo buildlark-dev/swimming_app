@@ -177,11 +177,41 @@ preguntarle si está habilitado. Se arregló el componente, no la prueba.
 **Independent Test**: cambiar el tema del sistema y recorrer las pantallas en los dos modos
 (escenario C8 del quickstart).
 
-- [ ] T031 [US3] Enchufar `darkTheme` en `lib/main.dart` con `ThemeMode.system`, sin ajuste propio ni preferencia guardada (decisión D3). El interruptor pertenece a la pantalla de Ajustes de la feature 007
-- [ ] T032 [P] [US3] Escribir en `test/ui/tema/modo_oscuro_test.dart` la garantía V11: un mismo significado se reconoce igual en los dos modos
-- [ ] T033 [US3] Recorrer las pantallas en oscuro y corregir lo que se vea mal, **sin cambiar comportamiento**
+- [X] T031 [US3] Enchufar `darkTheme` en `lib/main.dart` con `ThemeMode.system`, sin ajuste propio ni preferencia guardada (decisión D3). El interruptor pertenece a la pantalla de Ajustes de la feature 007
+- [X] T032 [P] [US3] Escribir en `test/ui/tema/modo_oscuro_test.dart` la garantía V11: un mismo significado se reconoce igual en los dos modos
+- [X] T033 [US3] Recorrer las pantallas en oscuro y corregir lo que se vea mal, **sin cambiar comportamiento**
 
 **Checkpoint**: la app deja de ser un rectángulo blanco de noche.
+
+### T033 no encontró nada que arreglar, y eso significa algo
+
+Se recorrieron las siete pantallas en oscuro, pintadas a imagen con una fuente real para
+poder mirarlas de verdad. **No hubo que corregir una sola.**
+
+No es suerte: es la garantía V1. Al prohibir los literales de color, toda la app quedó
+leyendo del tema, y el modo oscuro salió bien **por construcción**. El inventario lo
+confirma: de los colores que usa `lib/ui/`, ninguno está escrito a mano y todos vienen del
+esquema o de `ColoresDelDominio`.
+
+Lo que sí se ve raro en oscuro —el reporte de molestia en rojo, la pastilla del estado del
+plan sin color propio— es trabajo de la fase 6, no de esta.
+
+### Dos hallazgos de medición
+
+**La prueba de contraste medía contra un blanco que no existe.** Usaba `#FFFFFF` y un negro
+escrito a mano; los fondos de verdad que Material deriva de la semilla marina son `#F8F9FF`
+y `#111418`. Ahora se miden los reales. El supuesto era conservador en oscuro y optimista en
+claro.
+
+**La zona A1 se diluía en la página.** Contra blanco puro cumplía; contra el fondo de verdad
+daba 1.177 donde hacen falta 1.2. Pasó de `#DCE9F2` a `#D8E6F0`, que es **el único valor que
+cumple a la vez** el contraste contra el fondo (1.211) y el salto de claridad hasta A2 (6.9,
+donde se exigen 6). El extremo claro de la rampa va apretado entre esas dos exigencias.
+
+**Y un agujero que abrió la fase 4**: el `Aviso` se pinta sobre `surfaceContainerHighest`,
+no sobre el fondo de la pantalla, y ahí el tono de éxito baja de 4.79 a 3.89. Basta para un
+icono o un borde, no para un párrafo. Es exactamente por eso que el componente escribe su
+texto en el color normal de la superficie. Ahora ese par está medido.
 
 ---
 
