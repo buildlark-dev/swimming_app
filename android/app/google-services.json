@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "569625667913",
+    "project_id": "swimming-app-ab45f",
+    "storage_bucket": "swimming-app-ab45f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:569625667913:android:4d81f12cea33e5f81d9298",
+        "android_client_info": {
+          "package_name": "com.example.natacion_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAydbSbP9rkxH1_SyPQdEVcDHcagUxVdfk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

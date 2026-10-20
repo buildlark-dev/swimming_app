@@ -35,6 +35,13 @@ abstract class AlmacenLocal {
   /// Borra una colección entera. Es lo que hace posible el derecho al borrado
   /// del principio V sin rediseñar nada.
   Future<void> borrarColeccion(String coleccion);
+
+  /// Borra **todo lo de esta cuenta** en el dispositivo.
+  ///
+  /// Es lo que se llama al cerrar sesión (garantía A7). Borra lo de la cuenta
+  /// que este almacén tenga delante y nada más: lo de otra cuenta en el mismo
+  /// teléfono sigue donde estaba, porque también es de alguien.
+  Future<void> vaciar();
 }
 
 /// Fallo al escribir en el dispositivo.
@@ -53,8 +60,21 @@ class FalloDeAlmacenLocal implements Exception {
 }
 
 class AlmacenPreferencias implements AlmacenLocal {
-  AlmacenPreferencias({SharedPreferences? preferencias})
+  AlmacenPreferencias({SharedPreferences? preferencias, this.cuentaId})
       : _inyectadas = preferencias;
+
+  /// De quién es lo que se guarda aquí.
+  ///
+  /// Todas las claves cuelgan de este identificador, de modo que **dos cuentas
+  /// en el mismo dispositivo no comparten ni una** (garantía A9). No es una
+  /// precaución teórica: el grupo son hermanos que comparten teléfono, y un
+  /// registro del hermano equivocado es un dato personal de un menor en manos
+  /// de otro.
+  ///
+  /// Nulo antes de iniciar sesión. Lo que se escriba entonces vive en una
+  /// partición propia que no es de nadie y que nunca se mezcla con la de una
+  /// cuenta.
+  final String? cuentaId;
 
   final SharedPreferences? _inyectadas;
   SharedPreferences? _cache;
@@ -77,10 +97,19 @@ class AlmacenPreferencias implements AlmacenLocal {
 
   /// Clave compuesta. El prefijo evita chocar con lo que guarde otra parte de
   /// la app en las mismas preferencias.
-  String _clave(String coleccion, String clave) =>
-      'natacion_app/$coleccion/$clave';
+  /// Lo de esta cuenta, y nada más, cuelga de aquí.
+  ///
+  /// El esquema de claves cambió en la feature 004 al meter la cuenta en
+  /// medio. No hace falta migrar nada: hasta esta feature la app solo se usaba
+  /// con perfiles de prueba o con los datos del propio entrenador, porque el
+  /// principio V lo exigía mientras no existiera el registro de
+  /// consentimiento.
+  String get _raiz => 'natacion_app/${cuentaId ?? 'sin_cuenta'}/';
 
-  String _prefijo(String coleccion) => 'natacion_app/$coleccion/';
+  String _clave(String coleccion, String clave) =>
+      '${_prefijo(coleccion)}$clave';
+
+  String _prefijo(String coleccion) => '$_raiz$coleccion/';
 
   @override
   Future<Map<String, Map<String, dynamic>>> leerTodo(String coleccion) async {
@@ -146,8 +175,16 @@ class AlmacenPreferencias implements AlmacenLocal {
 
   @override
   Future<void> borrarColeccion(String coleccion) async {
+    await _borrarBajo(_prefijo(coleccion));
+  }
+
+  @override
+  Future<void> vaciar() async {
+    await _borrarBajo(_raiz);
+  }
+
+  Future<void> _borrarBajo(String prefijo) async {
     final prefs = await _prefs;
-    final prefijo = _prefijo(coleccion);
     final claves = prefs.getKeys().where((k) => k.startsWith(prefijo)).toList();
     for (final clave in claves) {
       await prefs.remove(clave);

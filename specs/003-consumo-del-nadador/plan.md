@@ -67,7 +67,18 @@ alguien mojado.
 | **VII. Rebanadas verticales y simplicidad** | Cuatro historias comprobables por separado; la primera entrega valor sola. Se descarta una base de datos local propia por no justificar su complejidad (D1) | ✅ |
 | **VIII. Control de carga interna** | Es la razón de ser de la feature: registro por sesión, que llega al entrenador junto al plan que lo originó, con carga externa e interna separadas y la molestia aparte | ✅ |
 
-### Desviación declarada — Principio V
+### Desviación declarada — Principio V · **CERRADA el 2026-10-15**
+
+> **Ya no es una desviación.** La feature 004 la cerró en su tarea T024: las reglas comparan
+> contra `request.auth.uid` y cada nadador lee y escribe únicamente lo suyo.
+>
+> Se cumplió lo que esta sección prometió. **No hubo que migrar un solo documento**, porque
+> cada registro ya llevaba su `nadadorId` desde esta feature. Y dejó de hacer falta la
+> contención de más arriba: el consentimiento verificable existe, así que la app ya puede
+> usarse con nadadores reales.
+>
+> Lo que sigue es el texto original, conservado porque un plan describe lo que se decidió
+> cuando se decidió, no lo que acabó pasando.
 
 **Qué**: las reglas de acceso de esta feature **no distinguen a un nadador de otro**. La
 colección de registros se escribe solo con el rol de entrenador y deniega al resto.

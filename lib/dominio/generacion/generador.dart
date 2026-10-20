@@ -106,7 +106,6 @@ class Generador {
       faseAtr: peticion.faseAtr,
       microciclos: [microciclo],
       sesiones: sesiones,
-      nadadoresIds: peticion.nadadoresIds,
       origen: OrigenPlan.automatico,
     );
 

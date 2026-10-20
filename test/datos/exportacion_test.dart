@@ -100,9 +100,13 @@ void main() {
       final plan = constructor.planAcumulacionCorrecto();
       final texto = const Exportacion().aTexto(const Exportacion().plan(plan));
 
-      // El plan referencia nadadores por identificador, nunca por nombre.
-      expect(texto.contains('"nadadoresIds"'), isTrue);
+      // Desde la feature 004 un plan **no sabe de quién es**: la entrega es
+      // una asignación, un documento aparte. Así que un plan exportado no
+      // contiene identificadores de nadador en absoluto, que es todavía menos
+      // de lo que el principio V pedía.
+      expect(texto.contains('nadadoresIds'), isFalse);
       expect(texto.toLowerCase().contains('fechanacimiento'), isFalse);
+      expect(texto.toLowerCase().contains('nadadorid'), isFalse);
     });
   });
 

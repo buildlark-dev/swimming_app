@@ -13,7 +13,7 @@ flutter pub get
 ```
 
 ```bash
-firebase emulators:start --project demo-natacion --config firebase/firebase.json
+firebase emulators:start --project demo-natacion
 ```
 
 ```bash

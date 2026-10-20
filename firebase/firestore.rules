@@ -5,14 +5,70 @@ rules_version = '2';
 // Postura: DENEGAR POR DEFECTO. Ninguna coleccion es legible ni escribible
 // salvo por concesion explicita.
 //
-// Hoy no hay autenticacion: esa feature esta aplazada. Pero las reglas se
-// escriben y se prueban desde ahora, como exige el principio III de la
-// constitucion. NO se deja ninguna regla permisiva "provisional": una regla
-// abierta puesta para salir del paso es exactamente lo que se queda puesto.
+// **Aqui vive la puerta de consentimiento** (decision D1 de la feature 004).
+// No en la pantalla: una puerta que solo comprueba el cliente no es una
+// puerta, es una cortesia. El cliente la comprueba tambien, para no enviar lo
+// que va a rebotar y para explicarselo al nadador, pero quien la hace cumplir
+// es este archivo.
+//
+// La decision de quien puede que esta escrita aqui esta escrita tambien en
+// `lib/dominio/cuentas/permisos.dart`, del lado del cliente. Que las dos
+// coincidan lo vigila `test/acceso/casos.json`, que las dos suites recorren
+// (garantia A10).
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Funciones de apoyo -------------------------------------------
+    // --- Quien eres ----------------------------------------------------
+
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    // El rol viaja dentro del token, firmado por el Admin SDK. Un cliente no
+    // puede alterarlo (decision D2). Si esta cadena cambia, cambia tambien en
+    // `Rol.clave` de lib/dominio/cuentas/cuenta.dart el mismo dia.
+    function rol() {
+      return autenticado() ? request.auth.token.get('rol', '') : '';
+    }
+
+    function esEntrenador() {
+      return rol() == 'entrenador';
+    }
+
+    function esNadador() {
+      return rol() == 'nadador';
+    }
+
+    // A que perfil de nadador corresponde la cuenta. Vive en un documento y no
+    // en el token porque es un dato que cambia y no tiene por que viajar en
+    // cada peticion.
+    function miNadadorId() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid))
+        .data.get('nadadorId', '');
+    }
+
+    function soyEseNadador(nadadorId) {
+      return esNadador()
+          && exists(/databases/$(database)/documents/usuarios/$(request.auth.uid))
+          && miNadadorId() == nadadorId;
+    }
+
+    // --- La puerta de consentimiento ------------------------------------
+
+    // Un nadador menor sin consentimiento vigente no tiene datos aqui. Lo que
+    // escriba se queda en su dispositivo, en la bandeja de salida, hasta que
+    // su acudiente consienta. No queda bloqueado: queda retenido.
+    //
+    // Cuesta una lectura por escritura. A esta escala —decenas de nadadores—
+    // es irrelevante, y desnormalizarlo para ahorrarla crearia la posibilidad
+    // de que el estado de la puerta discrepe de si mismo en dos sitios.
+    function tieneConsentimientoVigente(nadadorId) {
+      return exists(/databases/$(database)/documents/consentimientos/$(nadadorId))
+          && get(/databases/$(database)/documents/consentimientos/$(nadadorId))
+               .data.get('vigente', false) == true;
+    }
+
+    // --- Planes ---------------------------------------------------------
 
     // Un plan aprobado o publicado es inmutable (FR-025). Ni el entrenador
     // puede escribir sobre el: editarlo crea una version nueva.
@@ -24,62 +80,190 @@ service cloud.firestore {
       return resource != null && estadoEsInmutable(resource.data.estado);
     }
 
-    // Marcador de la feature de cuentas. Mientras no exista autenticacion,
-    // ninguna peticion la satisface, y por tanto todo queda denegado.
-    function esEntrenador() {
-      return request.auth != null
-          && request.auth.token.get('rol', '') == 'entrenador';
+    // Lo que un nadador ve: solo lo publicado y asignado a el.
+    //
+    // Las dos condiciones importan por separado. Un borrador no es de nadie
+    // todavia; un aprobado esta firmado pero no entregado —aprobar no es
+    // entregar—; uno publicado sin asignar no es de este nadador.
+    //
+    // La asignacion es un documento aparte, uno por nadador, y no una lista
+    // dentro del plan: ver la coleccion `asignaciones` mas abajo.
+    function leEstaAsignado(planId) {
+      return exists(/databases/$(database)/documents/asignaciones/$(planId + '|' + miNadadorId()));
     }
 
-    // --- Planes --------------------------------------------------------
+    function planEsDelNadador(planId) {
+      return resource.data.estado == 'publicado' && leEstaAsignado(planId);
+    }
+
+    // Entregar: pasar de aprobado a publicado.
+    //
+    // Es la UNICA escritura permitida sobre un plan inmutable, y solo porque
+    // **no toca su contenido**: cambia el estado y nada mas. La inmutabilidad
+    // de FR-025 es sobre lo que el entrenador firmo —sesiones, series, version
+    // de metodologia—, no sobre el hecho de haberlo entregado.
+    //
+    // Sin esto, publicar seria imposible: un plan aprobado no se puede
+    // escribir, asi que nunca podria llegar a publicado. No salio antes porque
+    // los planes vivian en memoria y nunca se guardaban.
+    function cambiaElEstado() {
+      return request.resource.data.estado != resource.data.estado;
+    }
+
+    // Firmar: borrador -> aprobado. Es el paso que el principio IV reserva al
+    // entrenador. Puede traer consigo la version de metodologia y la fecha,
+    // que es justo lo que el sello estampa.
+    function esLaAprobacion() {
+      return resource.data.estado == 'borrador'
+          && request.resource.data.estado == 'aprobado';
+    }
+
+    function esLaEntrega() {
+      return resource.data.estado == 'aprobado'
+          && request.resource.data.estado == 'publicado'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado']);
+    }
 
     match /planes/{planId} {
-      allow read: if esEntrenador();
+      allow read: if esEntrenador()
+                  || (esNadador()
+                      && exists(/databases/$(database)/documents/usuarios/$(request.auth.uid))
+                      && planEsDelNadador(planId));
 
       // Crear: solo el entrenador, y solo en estado borrador.
       allow create: if esEntrenador()
                     && request.resource.data.estado == 'borrador';
 
-      // Actualizar: solo el entrenador, y nunca sobre un plan ya aprobado o
-      // publicado.
-      allow update: if esEntrenador() && !planExistenteEsInmutable();
+      // Actualizar. El estado solo avanza por su camino y nunca se salta un
+      // paso: borrador -> aprobado -> publicado.
+      //
+      // Que un borrador pudiera saltar directo a publicado lo destapo una
+      // prueba al escribir esta regla. Habria dejado llegar a un nadador un
+      // plan que el entrenador nunca firmo, y la firma es exactamente lo que
+      // el principio IV no delega.
+      //
+      // Un nadador no mueve un plan a ningun estado, en ningun caso.
+      allow update: if esEntrenador()
+                    && (
+                      (!cambiaElEstado() && !planExistenteEsInmutable())
+                      || esLaAprobacion()
+                      || esLaEntrega()
+                    );
 
       allow delete: if esEntrenador() && !planExistenteEsInmutable();
 
-      // Sesiones del plan.
+      // Sesiones del plan: se leen con el plan y se escriben con el plan.
       match /sesiones/{sesionId} {
-        allow read: if esEntrenador();
-        allow write: if esEntrenador()
-                     && !estadoEsInmutable(
-                          get(/databases/$(database)/documents/planes/$(planId))
-                            .data.estado
-                        );
+        function elPlan() {
+          return get(/databases/$(database)/documents/planes/$(planId)).data;
+        }
+
+        allow read: if esEntrenador()
+                    || (esNadador()
+                        && elPlan().estado == 'publicado'
+                        && leEstaAsignado(planId));
+
+        allow write: if esEntrenador() && !estadoEsInmutable(elPlan().estado);
       }
     }
 
-    // --- Nadadores -----------------------------------------------------
+    // --- Asignaciones ----------------------------------------------------
+    //
+    // A quien se le entrego un plan. Una por nadador, con identificador
+    // determinista `planId|nadadorId`, de modo que entregar dos veces escribe
+    // el mismo documento y no duplica nada.
+    //
+    // **Aqui vive la puerta de publicacion** (FR-013). Y aqui es donde se
+    // puede vivir: con una asignacion por nadador, la regla comprueba SU
+    // consentimiento con un solo `get()`. Con la lista dentro del plan haria
+    // falta recorrerla, y el lenguaje de reglas no tiene bucles, asi que la
+    // puerta se habria quedado sin poder hacerse cumplir en el servidor.
+    match /asignaciones/{asignacionId} {
+      allow read: if esEntrenador()
+                  || (esNadador()
+                      && resource.data.nadadorId == miNadadorId());
 
-    match /nadadores/{nadadorId} {
-      allow read, write: if esEntrenador();
+      allow create: if esEntrenador()
+                    && asignacionId == request.resource.data.planId + '|'
+                                     + request.resource.data.nadadorId
+                    && tieneConsentimientoVigente(request.resource.data.nadadorId);
+
+      // Reasignar no se edita: se borra y se vuelve a crear, que pasa otra vez
+      // por la puerta. Permitir un update dejaria cambiar el nadadorId de una
+      // asignacion ya concedida sin volver a comprobar su consentimiento.
+      allow update: if false;
+
+      // Retirar un plan es del entrenador. No borra los registros que el
+      // nadador ya envio: eso es suyo.
+      allow delete: if esEntrenador();
     }
 
-    // --- Registros del nadador (feature 003) ----------------------------
+    // --- Nadadores ------------------------------------------------------
+
+    match /nadadores/{nadadorId} {
+      allow read: if esEntrenador() || soyEseNadador(nadadorId);
+      allow write: if esEntrenador();
+    }
+
+    // --- Registros del nadador ------------------------------------------
     //
-    // La respuesta del nadador a una sesion: si la cumplio, su RPE y sus
-    // observaciones. Es una coleccion aparte del plan a proposito: un plan
-    // aprobado es inmutable y lo que el nadador escribe no lo toca.
+    // La respuesta del nadador a una sesion. Coleccion aparte del plan a
+    // proposito: un plan aprobado es inmutable y lo que el nadador escribe no
+    // lo toca.
     //
-    // LIMITACION CONOCIDA, declarada en specs/003-consumo-del-nadador/plan.md:
-    // estas reglas NO distinguen a un nadador de otro, porque no hay identidad
-    // de nadador hasta la feature 004. Escribir una regla que compare contra un
-    // identificador que cualquiera puede declarar daria una falsa sensacion de
-    // proteccion, asi que por ahora solo escribe el entrenador y se deniega al
-    // resto, como en todas las demas colecciones.
-    //
-    // La regla por nadador se anade en la 004. Cada registro ya lleva su
-    // nadadorId, asi que entonces no habra que migrar datos.
+    // La feature 003 dejo aqui una limitacion declarada: las reglas no
+    // distinguian a un nadador de otro porque no habia identidad. Queda
+    // cerrada. No hizo falta migrar nada, porque cada registro ya llevaba su
+    // nadadorId.
     match /registros/{registroId} {
-      allow read, write: if esEntrenador();
+      // El entrenador lee los de su comunidad. **No los escribe**: lo que el
+      // nadador responde es su carga interna, no la del entrenador. Es un
+      // cambio deliberado respecto de la 003, donde era lo unico permitido.
+      allow read: if esEntrenador() || soyEseNadador(resource.data.nadadorId);
+
+      allow create: if soyEseNadador(request.resource.data.nadadorId)
+                    && tieneConsentimientoVigente(request.resource.data.nadadorId);
+
+      allow update: if soyEseNadador(resource.data.nadadorId)
+                    && soyEseNadador(request.resource.data.nadadorId)
+                    && tieneConsentimientoVigente(resource.data.nadadorId);
+
+      // Un registro no se borra desde el cliente. El derecho al borrado del
+      // principio V se ejerce por la via del servidor, que puede dejar
+      // constancia de que se ejercio.
+      allow delete: if false;
+    }
+
+    // --- Consentimientos y solicitudes -----------------------------------
+    //
+    // **Ninguna escritura del cliente.** Ni la del entrenador. La fecha la
+    // pone el servidor (D5) y el canje lo hace el servidor (D4); si el cliente
+    // pudiera escribir aqui, las dos garantias serian declaraciones suyas.
+    match /consentimientos/{nadadorId} {
+      allow read: if esEntrenador() || soyEseNadador(nadadorId);
+      allow write: if false;
+
+      match /historial/{consentimientoId} {
+        allow read: if esEntrenador() || soyEseNadador(nadadorId);
+        allow write: if false;
+      }
+    }
+
+    match /solicitudes/{solicitudId} {
+      // El entrenador ve en que estado va. El token en claro no esta aqui:
+      // solo su resumen, asi que leer esta coleccion no permite fabricar un
+      // enlace valido (garantia C4).
+      allow read: if esEntrenador();
+      allow write: if false;
+    }
+
+    // --- Vinculo cuenta <-> perfil de nadador ----------------------------
+
+    match /usuarios/{uid} {
+      allow read: if esEntrenador() || (autenticado() && request.auth.uid == uid);
+      // Lo escribe el servidor al asociar un perfil. Si el cliente pudiera,
+      // cualquiera se declararia dueno del perfil de otro y leeria sus planes.
+      allow write: if false;
     }
 
     // --- Propuestas de ejercicio y glosario -----------------------------

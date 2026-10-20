@@ -12,7 +12,7 @@ flutter run -d chrome
 Con emuladores, en dos terminales:
 
 ```bash
-firebase emulators:start --project demo-natacion --config firebase/firebase.json
+firebase emulators:start --project demo-natacion
 ```
 
 ```bash

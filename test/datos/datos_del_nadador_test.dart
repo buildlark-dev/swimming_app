@@ -230,6 +230,9 @@ class _AlmacenEnMemoria implements AlmacenLocal {
   @override
   Future<void> borrarColeccion(String coleccion) async =>
       _datos.remove(coleccion);
+
+  @override
+  Future<void> vaciar() async => _datos.clear();
 }
 
 /// Plan mínimo para la prueba de la copia descargable.

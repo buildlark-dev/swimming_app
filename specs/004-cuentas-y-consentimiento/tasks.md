@@ -48,12 +48,12 @@ nadador de verdad.
 
 **Purpose**: dejar el terreno listo. Nada de esto se ve en la app.
 
-- [ ] T001 Añadir `firebase_auth` a `pubspec.yaml` y comprobar que `flutter build web --release` sigue compilando y que `flutter analyze` sigue limpio
-- [ ] T002 [P] Crear las carpetas nuevas del dominio con un archivo `library;` de marcador: `lib/dominio/cuentas/`, `lib/dominio/consentimiento/`, `lib/datos/auth/`, `lib/ui/acceso/`, `lib/ui/consentimiento/`
-- [ ] T003 Crear el esqueleto del servidor en `firebase/functions/` con `package.json`, `tsconfig.json` y `src/index.ts` vacío, fijando las versiones de `firebase-admin` y `firebase-functions`. Decisión D3: Cloud Functions de 2ª generación en TypeScript
-- [ ] T004 Añadir los emuladores de **Auth** y **Functions** a `firebase/firebase.json`, junto al de Firestore que ya está. Sin ellos no se puede probar ni una sola garantía de esta feature
-- [ ] T005 [P] Añadir al CI de `.github/workflows/ci.yml` la ejecución de las pruebas de las funciones, en el mismo trabajo que ya corre las de reglas. Una superficie de servidor sin pruebas en CI es una superficie que se rompe sin avisar
-- [ ] T006 [P] Documentar en `docs/DEVELOPMENT.md`, **en inglés**, cómo levantar los tres emuladores y cómo correr las pruebas de funciones
+- [X] T001 Añadir `firebase_auth` a `pubspec.yaml` y comprobar que `flutter build web --release` sigue compilando y que `flutter analyze` sigue limpio
+- [X] T002 [P] Crear las carpetas nuevas del dominio con un archivo `library;` de marcador: `lib/dominio/cuentas/`, `lib/dominio/consentimiento/`, `lib/datos/auth/`, `lib/ui/acceso/`, `lib/ui/consentimiento/`
+- [X] T003 Crear el esqueleto del servidor en `firebase/functions/` con `package.json`, `tsconfig.json` y `src/index.ts` vacío, fijando las versiones de `firebase-admin` y `firebase-functions`. Decisión D3: Cloud Functions de 2ª generación en TypeScript
+- [X] T004 Añadir los emuladores de **Auth** y **Functions** a `firebase/firebase.json`, junto al de Firestore que ya está. Sin ellos no se puede probar ni una sola garantía de esta feature
+- [X] T005 [P] Añadir al CI de `.github/workflows/ci.yml` la ejecución de las pruebas de las funciones, en el mismo trabajo que ya corre las de reglas. Una superficie de servidor sin pruebas en CI es una superficie que se rompe sin avisar
+- [X] T006 [P] Documentar en `docs/DEVELOPMENT.md`, **en inglés**, cómo levantar los tres emuladores y cómo correr las pruebas de funciones
 
 ---
 
@@ -63,19 +63,19 @@ nadador de verdad.
 
 **⚠️ CRITICAL**: ninguna historia puede empezar hasta que esta fase esté completa.
 
-- [ ] T007 Crear `Rol` y `Cuenta` en `lib/dominio/cuentas/cuenta.dart`, en Dart puro. `Rol` es una enumeración cerrada de dos valores —`entrenador` y `nadador`— y **no un `String`**, para que añadir un rol obligue a revisar dónde se decide
-- [ ] T008 [P] Escribir en `test/dominio/cuentas/cuenta_test.dart` las invariantes de `data-model.md`: una cuenta de entrenador **nunca** tiene `nadadorId`; una cuenta de nadador sin `nadadorId` es válida y puede entrar, pero no tiene plan ni registros
-- [ ] T009 Implementar la tabla de permisos en `lib/dominio/cuentas/permisos.dart`, en Dart puro: quién aprueba, quién publica, quién lee los registros de quién, quién los escribe
-- [ ] T010 [P] Escribir en `test/dominio/cuentas/permisos_test.dart` la **lista de casos compartida** con las pruebas de reglas (garantía A10). Es la lista que luego recorren las dos suites; si una regla cambia y el dominio no, una de las dos falla
-- [ ] T011 Declarar la interfaz `Identidad` en `lib/dominio/repositorios/repositorios.dart` según [contracts/cuentas_y_roles.md](contracts/cuentas_y_roles.md): `actual()`, `cambios` y `cerrarSesion()`. **Ninguna firma menciona Firebase**
-- [ ] T012 Implementar `Identidad` en `lib/datos/auth/sesion_firebase.dart`. Es el **único archivo del proyecto** que puede importar `firebase_auth`
-- [ ] T013 [P] Ampliar la prueba de frontera de arquitectura para que falle si `lib/dominio/` importa `firebase_auth`, igual que ya falla con `cloud_firestore` y con Flutter
-- [ ] T014 Implementar en `firebase/functions/src/roles.ts` el disparador que asigna el claim `rol: 'nadador'` al crearse una cuenta. **Toda cuenta nace como nadador** (garantía A2)
-- [ ] T015 Implementar en `firebase/functions/src/roles.ts` la operación administrativa `asignarRol(uid, rol)`, **no llamable desde la app**, que es la única vía para conceder `entrenador`
-- [ ] T016 Resolver el arranque del primer entrenador y **documentarlo** en `docs/DEVELOPMENT.md`: nadie puede concederse el claim a sí mismo, así que hace falta un procedimiento explícito. Registrarlo como decisión D7 en `research.md`
-- [ ] T017 [P] Escribir en `firebase/functions/test/roles.test.js` las pruebas sobre el emulador: una cuenta nueva trae `rol: 'nadador'`; escribir `rol: 'entrenador'` en el propio documento de usuario **no** cambia el token (garantía A1)
-- [ ] T018 Particionar `lib/datos/local/almacen_local.dart` **por cuenta**, de modo que dos cuentas en el mismo dispositivo no compartan ni una clave, tampoco en la bandeja de salida
-- [ ] T019 [P] Escribir en `test/datos/local/particion_por_cuenta_test.dart` la garantía A9: dos cuentas escriben sin red en el mismo dispositivo y cada bandeja contiene lo suyo y nada más
+- [X] T007 Crear `Rol` y `Cuenta` en `lib/dominio/cuentas/cuenta.dart`, en Dart puro. `Rol` es una enumeración cerrada de dos valores —`entrenador` y `nadador`— y **no un `String`**, para que añadir un rol obligue a revisar dónde se decide
+- [X] T008 [P] Escribir en `test/dominio/cuentas/cuenta_test.dart` las invariantes de `data-model.md`: una cuenta de entrenador **nunca** tiene `nadadorId`; una cuenta de nadador sin `nadadorId` es válida y puede entrar, pero no tiene plan ni registros
+- [X] T009 Implementar la tabla de permisos en `lib/dominio/cuentas/permisos.dart`, en Dart puro: quién aprueba, quién publica, quién lee los registros de quién, quién los escribe
+- [X] T010 [P] Escribir en `test/dominio/cuentas/permisos_test.dart` la **lista de casos compartida** con las pruebas de reglas (garantía A10). Es la lista que luego recorren las dos suites; si una regla cambia y el dominio no, una de las dos falla
+- [X] T011 Declarar la interfaz `Identidad` en `lib/dominio/repositorios/repositorios.dart` según [contracts/cuentas_y_roles.md](contracts/cuentas_y_roles.md): `actual()`, `cambios` y `cerrarSesion()`. **Ninguna firma menciona Firebase**
+- [X] T012 Implementar `Identidad` en `lib/datos/auth/sesion_firebase.dart`. Es el **único archivo del proyecto** que puede importar `firebase_auth`
+- [X] T013 [P] Ampliar la prueba de frontera de arquitectura para que falle si `lib/dominio/` importa `firebase_auth`, igual que ya falla con `cloud_firestore` y con Flutter
+- [X] T014 Implementar en `firebase/functions/src/roles.ts` el disparador que asigna el claim `rol: 'nadador'` al crearse una cuenta. **Toda cuenta nace como nadador** (garantía A2)
+- [X] T015 Implementar en `firebase/functions/src/roles.ts` la operación administrativa `asignarRol(uid, rol)`, **no llamable desde la app**, que es la única vía para conceder `entrenador`
+- [X] T016 Resolver el arranque del primer entrenador y **documentarlo** en `docs/DEVELOPMENT.md`: nadie puede concederse el claim a sí mismo, así que hace falta un procedimiento explícito. Registrarlo como decisión D7 en `research.md`
+- [X] T017 [P] Escribir en `firebase/functions/test/roles.test.js` las pruebas sobre el emulador: una cuenta nueva trae `rol: 'nadador'`; escribir `rol: 'entrenador'` en el propio documento de usuario **no** cambia el token (garantía A1)
+- [X] T018 Particionar `lib/datos/local/almacen_local.dart` **por cuenta**, de modo que dos cuentas en el mismo dispositivo no compartan ni una clave, tampoco en la bandeja de salida
+- [X] T019 [P] Escribir en `test/datos/local/particion_por_cuenta_test.dart` la garantía A9: dos cuentas escriben sin red en el mismo dispositivo y cada bandeja contiene lo suyo y nada más
 
 **Checkpoint**: hay identidad, hay roles y el almacenamiento local no mezcla personas.
 
@@ -92,23 +92,23 @@ quickstart).
 
 ### Pruebas de reglas — se escriben primero y tienen que fallar
 
-- [ ] T020 [P] [US3] Escribir en `firebase/test/reglas.test.js` los casos negativos de la garantía A4, uno por uno: leer el plan de otro, leer el registro de otro, escribir un registro con el `nadadorId` de otro, leer un plan en `borrador`, leer uno `aprobado` sin publicar, leer uno publicado sin asignar
-- [ ] T021 [P] [US3] Escribir los casos de la garantía A3: con cuenta de nadador, intentar escribir `estado: 'aprobado'` y `estado: 'publicado'` sobre un plan. Las dos se deniegan
-- [ ] T022 [P] [US3] Escribir el caso de la garantía A5: **con la cuenta del entrenador, escribir un registro se deniega**. Es un cambio respecto de la feature 003, donde era lo único permitido
-- [ ] T023 [P] [US3] Escribir los casos de la garantía A6: sin autenticar, leer **cada** colección del esquema. Todas deniegan
+- [X] T020 [P] [US3] Escribir en `firebase/test/reglas.test.js` los casos negativos de la garantía A4, uno por uno: leer el plan de otro, leer el registro de otro, escribir un registro con el `nadadorId` de otro, leer un plan en `borrador`, leer uno `aprobado` sin publicar, leer uno publicado sin asignar
+- [X] T021 [P] [US3] Escribir los casos de la garantía A3: con cuenta de nadador, intentar escribir `estado: 'aprobado'` y `estado: 'publicado'` sobre un plan. Las dos se deniegan
+- [X] T022 [P] [US3] Escribir el caso de la garantía A5: **con la cuenta del entrenador, escribir un registro se deniega**. Es un cambio respecto de la feature 003, donde era lo único permitido
+- [X] T023 [P] [US3] Escribir los casos de la garantía A6: sin autenticar, leer **cada** colección del esquema. Todas deniegan
 
 ### Implementación
 
-- [ ] T024 [US3] Reescribir `firebase/firestore.rules` para que compare contra `request.auth.uid`: un nadador lee y escribe solo sus registros, y lee solo los planes `publicado` que le están asignados. Retirar el comentario de limitación conocida que la feature 003 dejó escrito
-- [ ] T025 [US3] Añadir a `firebase/firestore.rules` la colección `usuarios/{uid}` con el vínculo cuenta ↔ `nadadorId`, legible por su dueño y por el entrenador de su comunidad, y **no escribible por el cliente**
-- [ ] T026 [US3] Crear `lib/ui/acceso/estado_sesion.dart`, que expone la cuenta activa a la interfaz y reacciona a `Identidad.cambios`
-- [ ] T027 [US3] Crear `lib/ui/acceso/pantalla_acceso.dart`: entrar con una cuenta propia. **Ningún campo de esta pantalla, ni ninguna prueba, contiene una credencial real**
-- [ ] T028 [US3] Hacer que `lib/main.dart` arranque según haya sesión o no, conservando la propiedad de que la app arranca aunque Firebase no esté configurado (la que se arregló en el PR #5)
-- [ ] T029 [US3] Implementar el cierre de sesión en `lib/datos/auth/sesion_firebase.dart`, limpiando **la caché de Firestore y el almacenamiento local** del nadador anterior (garantía A7)
-- [ ] T030 [P] [US3] Escribir en `test/ui/acceso/cierre_sesion_test.dart` la garantía A7: tras cerrar sesión no queda plan, registro ni perfil del anterior. Es el caso de los hermanos que comparten teléfono
-- [ ] T031 [US3] Hacer que la caducidad de sesión **no** impida leer el plan ya descargado ni anotar (garantía A8). Lo que queda retenido es el envío
-- [ ] T032 [P] [US3] Escribir en `test/ui/acceso/caducidad_test.dart` la garantía A8: con la sesión caducada y sin red, abrir la app, leer la sesión del día y anotar. Las tres funcionan
-- [ ] T033 [US3] Esconder de la interfaz del nadador todo lo que su rol no permite, apoyándose en `permisos.dart` y no en condiciones repartidas por las pantallas
+- [X] T024 [US3] Reescribir `firebase/firestore.rules` para que compare contra `request.auth.uid`: un nadador lee y escribe solo sus registros, y lee solo los planes `publicado` que le están asignados. Retirar el comentario de limitación conocida que la feature 003 dejó escrito
+- [X] T025 [US3] Añadir a `firebase/firestore.rules` la colección `usuarios/{uid}` con el vínculo cuenta ↔ `nadadorId`, legible por su dueño y por el entrenador de su comunidad, y **no escribible por el cliente**
+- [X] T026 [US3] Crear `lib/ui/acceso/estado_sesion.dart`, que expone la cuenta activa a la interfaz y reacciona a `Identidad.cambios`
+- [X] T027 [US3] Crear `lib/ui/acceso/pantalla_acceso.dart`: entrar con una cuenta propia. **Ningún campo de esta pantalla, ni ninguna prueba, contiene una credencial real**
+- [X] T028 [US3] Hacer que `lib/main.dart` arranque según haya sesión o no, conservando la propiedad de que la app arranca aunque Firebase no esté configurado (la que se arregló en el PR #5)
+- [X] T029 [US3] Implementar el cierre de sesión en `lib/datos/auth/sesion_firebase.dart`, limpiando **la caché de Firestore y el almacenamiento local** del nadador anterior (garantía A7)
+- [X] T030 [P] [US3] Escribir en `test/ui/acceso/cierre_sesion_test.dart` la garantía A7: tras cerrar sesión no queda plan, registro ni perfil del anterior. Es el caso de los hermanos que comparten teléfono
+- [X] T031 [US3] Hacer que la caducidad de sesión **no** impida leer el plan ya descargado ni anotar (garantía A8). Lo que queda retenido es el envío
+- [X] T032 [P] [US3] Escribir en `test/ui/acceso/caducidad_test.dart` la garantía A8: con la sesión caducada y sin red, abrir la app, leer la sesión del día y anotar. Las tres funcionan
+- [X] T033 [US3] Esconder de la interfaz del nadador todo lo que su rol no permite, apoyándose en `permisos.dart` y no en condiciones repartidas por las pantallas
 
 **Checkpoint**: hay cuentas y cada quien ve lo suyo. **Todavía no hay consentimiento, así que
 sigue sin poder usarse con un nadador real.**
@@ -125,37 +125,37 @@ registro responde a las cinco preguntas sin interpretar nada (SC-005).
 
 ### Entidades del dominio y sus pruebas
 
-- [ ] T034 [P] [US2] Crear `Consentimiento`, `Otorgante` y `Alcance` en `lib/dominio/consentimiento/consentimiento.dart`. `vigente` **se deriva** de `revocadoEn == null` y no es un campo que se escriba, para que no pueda contradecir a la fecha
-- [ ] T035 [P] [US2] Crear `SolicitudDeConsentimiento` en `lib/dominio/consentimiento/solicitud.dart`, con `resumenDelToken` y **sin ningún campo para el token en claro** (decisión D4)
-- [ ] T036 [P] [US2] Escribir en `test/dominio/consentimiento/consentimiento_test.dart` las invariantes de `data-model.md`: un consentimiento con `alcances` vacío **no se construye**; revocar no borra `otorgadoEn` ni `otorgadoPor`; `datosDeEntrenamiento` y `video` son alcances distintos y conceder uno no concede el otro
-- [ ] T037 [P] [US2] Escribir en `test/dominio/consentimiento/solicitud_test.dart` que `utilizable` exige las tres condiciones a la vez: no canjeada, no vencida, y token que coincide con el resumen
+- [X] T034 [P] [US2] Crear `Consentimiento`, `Otorgante` y `Alcance` en `lib/dominio/consentimiento/consentimiento.dart`. `vigente` **se deriva** de `revocadoEn == null` y no es un campo que se escriba, para que no pueda contradecir a la fecha
+- [X] T035 [P] [US2] Crear `SolicitudDeConsentimiento` en `lib/dominio/consentimiento/solicitud.dart`, con `resumenDelToken` y **sin ningún campo para el token en claro** (decisión D4)
+- [X] T036 [P] [US2] Escribir en `test/dominio/consentimiento/consentimiento_test.dart` las invariantes de `data-model.md`: un consentimiento con `alcances` vacío **no se construye**; revocar no borra `otorgadoEn` ni `otorgadoPor`; `datosDeEntrenamiento` y `video` son alcances distintos y conceder uno no concede el otro
+- [X] T037 [P] [US2] Escribir en `test/dominio/consentimiento/solicitud_test.dart` que `utilizable` exige las tres condiciones a la vez: no canjeada, no vencida, y token que coincide con el resumen
 
 ### El servidor
 
-- [ ] T038 [US2] Implementar `emitirSolicitud(nadadorId, canal, alcances)` en `firebase/functions/src/consentimiento.ts`, **llamable solo por el entrenador**: genera un token aleatorio criptográficamente seguro, guarda solo su resumen SHA-256, con fecha de servidor y vencimiento
-- [ ] T039 [US2] Definir el puerto `EnviadorDeAvisos` en `firebase/functions/src/consentimiento.ts`, de modo que la función **no sepa** si detrás hay correo o mensajería. Qué canal concreto se usa se decide al implementar y nada más depende de ello (research.md, «lo que no se resuelve aquí»)
-- [ ] T040 [US2] Implementar `canjear(token, declaracion)`, pública porque la abre el acudiente, que no tiene cuenta. Rechaza sin decir **cuál** de las tres condiciones falló: no existe, venció o ya se canjeó
-- [ ] T041 [US2] Exigir en el canje la declaración completa —nombre, documento, calidad, ser el representante legal y **que el menor fue oído**— y escribir el consentimiento con la **fecha del servidor** (FR-017, FR-021)
-- [ ] T042 [US2] Implementar el aviso de vuelta al mismo canal tras un canje (garantía C9). No impide un enlace mal dirigido; lo hace **descubrible por el acudiente**
-- [ ] T043 [US2] Implementar `revocar`, accesible **desde el canal del acudiente sin cuenta de entrenador** (garantía C10), registrando `revocadoEn` con fecha de servidor
-- [ ] T044 [US2] Añadir a `firebase/firestore.rules` las colecciones `consentimientos/{nadadorId}`, su subcolección `historial/` y `solicitudes/{solicitudId}`: **ninguna escritura del cliente**, solo lectura según la tabla de `data-model.md`
+- [X] T038 [US2] Implementar `emitirSolicitud(nadadorId, canal, alcances)` en `firebase/functions/src/consentimiento.ts`, **llamable solo por el entrenador**: genera un token aleatorio criptográficamente seguro, guarda solo su resumen SHA-256, con fecha de servidor y vencimiento
+- [X] T039 [US2] Definir el puerto `EnviadorDeAvisos` en `firebase/functions/src/consentimiento.ts`, de modo que la función **no sepa** si detrás hay correo o mensajería. Qué canal concreto se usa se decide al implementar y nada más depende de ello (research.md, «lo que no se resuelve aquí»)
+- [X] T040 [US2] Implementar `canjear(token, declaracion)`, pública porque la abre el acudiente, que no tiene cuenta. Rechaza sin decir **cuál** de las tres condiciones falló: no existe, venció o ya se canjeó
+- [X] T041 [US2] Exigir en el canje la declaración completa —nombre, documento, calidad, ser el representante legal y **que el menor fue oído**— y escribir el consentimiento con la **fecha del servidor** (FR-017, FR-021)
+- [X] T042 [US2] Implementar el aviso de vuelta al mismo canal tras un canje (garantía C9). No impide un enlace mal dirigido; lo hace **descubrible por el acudiente**
+- [X] T043 [US2] Implementar `revocar`, accesible **desde el canal del acudiente sin cuenta de entrenador** (garantía C10), registrando `revocadoEn` con fecha de servidor
+- [X] T044 [US2] Añadir a `firebase/firestore.rules` las colecciones `consentimientos/{nadadorId}`, su subcolección `historial/` y `solicitudes/{solicitudId}`: **ninguna escritura del cliente**, solo lectura según la tabla de `data-model.md`
 
 ### Pruebas del servidor y de las reglas
 
-- [ ] T045 [P] [US2] Escribir en `firebase/functions/test/consentimiento.test.js` la garantía C1: con cuenta de nadador, emitir una solicitud y cambiar el canal de una existente. **Las dos se deniegan.** Es la garantía que cierra el agujero de que un niño ponga un correo suyo
-- [ ] T046 [P] [US2] Escribir la garantía C2: canjear dos veces el mismo token deja **exactamente un** consentimiento y el segundo intento se rechaza
-- [ ] T047 [P] [US2] Escribir la garantía C3: con el reloj adelantado más allá del vencimiento, el canje se rechaza
-- [ ] T048 [P] [US2] Escribir la garantía C4: tras emitir, el documento **no contiene el token** y lo que hay no permite reconstruirlo
-- [ ] T049 [P] [US2] Escribir la garantía C5: canjear con el reloj del cliente adelantado un año registra **la fecha del servidor**
-- [ ] T050 [P] [US2] Escribir la garantía C7: canjear sin la constancia de que el menor fue oído se rechaza
-- [ ] T051 [P] [US2] Escribir la garantía C8: tras revocar, el historial conserva quién otorgó y cuándo, y `vigente` pasa a falso
-- [ ] T052 [P] [US2] Escribir en `firebase/test/reglas.test.js` que ninguna cuenta —ni la del entrenador— puede escribir en `consentimientos` ni en `solicitudes`
+- [X] T045 [P] [US2] Escribir en `firebase/functions/test/consentimiento.test.js` la garantía C1: con cuenta de nadador, emitir una solicitud y cambiar el canal de una existente. **Las dos se deniegan.** Es la garantía que cierra el agujero de que un niño ponga un correo suyo
+- [X] T046 [P] [US2] Escribir la garantía C2: canjear dos veces el mismo token deja **exactamente un** consentimiento y el segundo intento se rechaza
+- [X] T047 [P] [US2] Escribir la garantía C3: con el reloj adelantado más allá del vencimiento, el canje se rechaza
+- [X] T048 [P] [US2] Escribir la garantía C4: tras emitir, el documento **no contiene el token** y lo que hay no permite reconstruirlo
+- [X] T049 [P] [US2] Escribir la garantía C5: canjear con el reloj del cliente adelantado un año registra **la fecha del servidor**
+- [X] T050 [P] [US2] Escribir la garantía C7: canjear sin la constancia de que el menor fue oído se rechaza
+- [X] T051 [P] [US2] Escribir la garantía C8: tras revocar, el historial conserva quién otorgó y cuándo, y `vigente` pasa a falso
+- [X] T052 [P] [US2] Escribir en `firebase/test/reglas.test.js` que ninguna cuenta —ni la del entrenador— puede escribir en `consentimientos` ni en `solicitudes`
 
 ### La interfaz
 
-- [ ] T053 [US2] Crear `lib/ui/consentimiento/pantalla_confirmacion.dart`: la ruta que abre el acudiente, **en español**, con el texto informativo versionado, la declaración y la casilla de que el menor fue oído
-- [ ] T054 [US2] Crear el primer texto informativo versionado en `assets/consentimiento/texto_v1.md`, marcado como **pendiente de revisión jurídica**, con su versión registrada en cada consentimiento que se otorgue bajo él
-- [ ] T055 [US2] Crear `lib/ui/consentimiento/panel_estado.dart`: lo que el entrenador ve de cada nadador —sin consentimiento, solicitud enviada, vigente, revocado— y desde donde emite la solicitud con el canal de su matrícula
+- [X] T053 [US2] Crear `lib/ui/consentimiento/pantalla_confirmacion.dart`: la ruta que abre el acudiente, **en español**, con el texto informativo versionado, la declaración y la casilla de que el menor fue oído
+- [X] T054 [US2] Crear el primer texto informativo versionado en `assets/consentimiento/texto_v1.md`, marcado como **pendiente de revisión jurídica**, con su versión registrada en cada consentimiento que se otorgue bajo él
+- [X] T055 [US2] Crear `lib/ui/consentimiento/panel_estado.dart`: lo que el entrenador ve de cada nadador —sin consentimiento, solicitud enviada, vigente, revocado— y desde donde emite la solicitud con el canal de su matrícula
 
 **Checkpoint**: se puede pedir y registrar un consentimiento. **La puerta todavía no está
 puesta**, así que esto aún no protege nada por sí solo.
@@ -174,22 +174,22 @@ C3 del quickstart).
 
 ### Las pruebas de la puerta
 
-- [ ] T056 [P] [US1] Escribir en `firebase/test/reglas.test.js` la garantía P1: con la cuenta **correcta** del nadador y saltándose la app, escribir un registro sin consentimiento vigente se deniega. Se prueba así y no por la interfaz, porque una puerta probada solo a través de su propia pantalla no está probada
-- [ ] T057 [P] [US1] Escribir la garantía P6: con consentimiento vigente se envía; se revoca; el siguiente se deniega
-- [ ] T058 [P] [US1] Escribir la garantía P5: publicar un plan a un nadador sin consentimiento vigente se deniega en la regla
+- [X] T056 [P] [US1] Escribir en `firebase/test/reglas.test.js` la garantía P1: con la cuenta **correcta** del nadador y saltándose la app, escribir un registro sin consentimiento vigente se deniega. Se prueba así y no por la interfaz, porque una puerta probada solo a través de su propia pantalla no está probada
+- [X] T057 [P] [US1] Escribir la garantía P6: con consentimiento vigente se envía; se revoca; el siguiente se deniega
+- [X] T058 [P] [US1] Escribir la garantía P5: publicar un plan a un nadador sin consentimiento vigente se deniega en la regla
 
 ### Implementación
 
-- [ ] T059 [US1] Declarar `PuertaDeConsentimiento` en `lib/dominio/consentimiento/puerta.dart`, con una sola pregunta: `Future<bool> puedeSalir(String nadadorId)`
-- [ ] T060 [US1] Añadir la condición de la puerta a `firebase/firestore.rules` en `registros/{registroId}`, con `get()` del documento de consentimiento del nadador y `vigente == true` (decisión D1). Acepta el coste de una lectura por escritura, que a esta escala es irrelevante
-- [ ] T061 [US1] Inyectar la puerta en el `Sincronizador` de `lib/dominio/sincronizacion/bandeja_salida.dart`. **No se añade ningún estado a `EstadoDeEnvio`** (decisión D6): un registro retenido es un registro pendiente, y ya existe cómo representarlo
-- [ ] T062 [US1] Hacer que estar sin consentimiento **no incremente `intentos`** ni dispare la espera exponencial, igual que ya ocurre al estar sin conexión
-- [ ] T063 [P] [US1] Escribir en `test/dominio/sincronizacion/puerta_test.dart` la garantía P4, **en Dart puro con un doble de la puerta**: muchos ciclos del sincronizador con la puerta cerrada dejan `intentos` en cero
-- [ ] T064 [P] [US1] Escribir la garantía P3: se anota sin consentimiento, se otorga, y el registro llega **con su contenido intacto y sin intervención**
-- [ ] T065 [US1] Implementar `lib/datos/firestore/consentimientos.dart`, que implementa la puerta leyendo el documento del nadador y **funciona desde la caché sin red**, porque el nadador no puede quedarse sin poder anotar por no tener señal
-- [ ] T066 [US1] Impedir la publicación de un plan a un nadador sin consentimiento vigente en `lib/ui/planes/pantalla_plan.dart`, diciendo **exactamente qué falta** en lugar de un error genérico
-- [ ] T067 [US1] Mostrar al nadador sin consentimiento, sin bloquearlo, por qué lo suyo está esperando. Reutiliza `lib/ui/nadador/aviso_sincronizacion.dart`, que ya sabe decir que algo quedó guardado
-- [ ] T068 [P] [US1] Escribir en `test/ui/nadador/sin_consentimiento_test.dart` la garantía P2 y SC-002: recorrer la app entera con un nadador sin consentimiento y comprobar que **no hay un solo punto** que exija consentimiento para continuar
+- [X] T059 [US1] Declarar `PuertaDeConsentimiento` en `lib/dominio/consentimiento/puerta.dart`, con una sola pregunta: `Future<bool> puedeSalir(String nadadorId)`
+- [X] T060 [US1] Añadir la condición de la puerta a `firebase/firestore.rules` en `registros/{registroId}`, con `get()` del documento de consentimiento del nadador y `vigente == true` (decisión D1). Acepta el coste de una lectura por escritura, que a esta escala es irrelevante
+- [X] T061 [US1] Inyectar la puerta en el `Sincronizador` de `lib/dominio/sincronizacion/bandeja_salida.dart`. **No se añade ningún estado a `EstadoDeEnvio`** (decisión D6): un registro retenido es un registro pendiente, y ya existe cómo representarlo
+- [X] T062 [US1] Hacer que estar sin consentimiento **no incremente `intentos`** ni dispare la espera exponencial, igual que ya ocurre al estar sin conexión
+- [X] T063 [P] [US1] Escribir en `test/dominio/sincronizacion/puerta_test.dart` la garantía P4, **en Dart puro con un doble de la puerta**: muchos ciclos del sincronizador con la puerta cerrada dejan `intentos` en cero
+- [X] T064 [P] [US1] Escribir la garantía P3: se anota sin consentimiento, se otorga, y el registro llega **con su contenido intacto y sin intervención**
+- [X] T065 [US1] Implementar `lib/datos/firestore/consentimientos.dart`, que implementa la puerta leyendo el documento del nadador y **funciona desde la caché sin red**, porque el nadador no puede quedarse sin poder anotar por no tener señal
+- [X] T066 [US1] Impedir la publicación de un plan a un nadador sin consentimiento vigente en `lib/ui/planes/pantalla_plan.dart`, diciendo **exactamente qué falta** en lugar de un error genérico
+- [X] T067 [US1] Mostrar al nadador sin consentimiento, sin bloquearlo, por qué lo suyo está esperando. Reutiliza `lib/ui/nadador/aviso_sincronizacion.dart`, que ya sabe decir que algo quedó guardado
+- [X] T068 [P] [US1] Escribir en `test/ui/nadador/sin_consentimiento_test.dart` la garantía P2 y SC-002: recorrer la app entera con un nadador sin consentimiento y comprobar que **no hay un solo punto** que exija consentimiento para continuar
 
 **Checkpoint**: 🎯 **aquí la feature empieza a valer.** La puerta existe y la hace cumplir el
 servidor. A partir de este punto se puede desplegar sin incumplir el principio V.
@@ -208,13 +208,13 @@ comprobar que está igual, byte a byte (escenario V13).
 > se escribió entero en la feature 001 y `lib/main.dart` sencillamente nunca lo usó: tiene un
 > `List<Plan>` en memoria y un `RepositorioNadadoresMemoria`. Es, sobre todo, cableado.
 
-- [ ] T069 [US4] Sustituir en `lib/main.dart` el `List<Plan> _planes` en memoria por `RepositorioPlanesFirestore`, que ya existe y ya implementa todo el contrato
-- [ ] T070 [US4] Sustituir `RepositorioNadadoresMemoria` por `RepositorioNadadoresFirestore` en `lib/main.dart`, conservando el camino de perfiles de prueba para desarrollo
-- [ ] T071 [US4] Añadir `declaraSerMayorDeEdad` a `lib/dominio/entidades/nadador.dart` como `bool?`, donde `null` significa «todavía no lo declaró», que **no es lo mismo que menor**. Mantener `fechaNacimiento` opcional (minimización, FR-008)
-- [ ] T072 [US4] Serializar el campo nuevo en `lib/datos/serializacion.dart` sin romper los documentos ya guardados
-- [ ] T073 [P] [US4] Escribir en `test/datos/persistencia_plan_test.dart` que guardar y recuperar un plan aprobado **no altera un byte**, y que un borrador guardado sigue siendo borrador (FR-032, FR-033)
-- [ ] T074 [P] [US4] Escribir en `test/dominio/metodologia/categoria_sin_edad_test.dart` el criterio SC-016: la categoría de un nadador **no cambia** al añadirle, quitarle o cambiarle la fecha de nacimiento, ni se sugiere a partir de ella (sección 11.1 de la metodología 3.6.0)
-- [ ] T075 [US4] Comprobar que la lectura de los planes propios sigue funcionando **sin red**, apoyada en la caché de Firestore que la feature 003 dejó activada (FR-034)
+- [X] T069 [US4] Sustituir en `lib/main.dart` el `List<Plan> _planes` en memoria por `RepositorioPlanesFirestore`, que ya existe y ya implementa todo el contrato
+- [X] T070 [US4] Sustituir `RepositorioNadadoresMemoria` por `RepositorioNadadoresFirestore` en `lib/main.dart`, conservando el camino de perfiles de prueba para desarrollo
+- [X] T071 [US4] Añadir `declaraSerMayorDeEdad` a `lib/dominio/entidades/nadador.dart` como `bool?`, donde `null` significa «todavía no lo declaró», que **no es lo mismo que menor**. Mantener `fechaNacimiento` opcional (minimización, FR-008)
+- [X] T072 [US4] Serializar el campo nuevo en `lib/datos/serializacion.dart` sin romper los documentos ya guardados
+- [X] T073 [P] [US4] Escribir en `test/datos/persistencia_plan_test.dart` que guardar y recuperar un plan aprobado **no altera un byte**, y que un borrador guardado sigue siendo borrador (FR-032, FR-033)
+- [X] T074 [P] [US4] Escribir en `test/dominio/metodologia/categoria_sin_edad_test.dart` el criterio SC-016: la categoría de un nadador **no cambia** al añadirle, quitarle o cambiarle la fecha de nacimiento, ni se sugiere a partir de ella (sección 11.1 de la metodología 3.6.0)
+- [X] T075 [US4] Comprobar que la lectura de los planes propios sigue funcionando **sin red**, apoyada en la caché de Firestore que la feature 003 dejó activada (FR-034)
 
 **Checkpoint**: el trabajo del entrenador sobrevive. Con esto y la fase 5, la feature es
 desplegable.
@@ -230,10 +230,10 @@ ejercer.
 comprobando que lo exportado es legible y que **los planes del entrenador siguen ahí**
 (escenario V14).
 
-- [ ] T076 [US5] Implementar la consulta de qué se guarda sobre un nadador, **en términos comprensibles para un acudiente** y no como un volcado técnico (FR-036)
-- [ ] T077 [US5] Conectar la exportación de los datos del nadador reutilizando `lib/datos/exportacion.dart`, que la feature 001 ya construyó (FR-037)
-- [ ] T078 [US5] Implementar la eliminación de los datos personales de un nadador, apoyándose en `RepositorioRegistros.eliminarDe` que ya existe desde la 003 (FR-038)
-- [ ] T079 [P] [US5] Escribir en `test/datos/borrado_sin_destruir_test.dart` el criterio SC-014: eliminados los datos personales de un nadador, **los planes del entrenador siguen siendo consultables**
+- [X] T076 [US5] Implementar la consulta de qué se guarda sobre un nadador, **en términos comprensibles para un acudiente** y no como un volcado técnico (FR-036)
+- [X] T077 [US5] Conectar la exportación de los datos del nadador reutilizando `lib/datos/exportacion.dart`, que la feature 001 ya construyó (FR-037)
+- [X] T078 [US5] Implementar la eliminación de los datos personales de un nadador, apoyándose en `RepositorioRegistros.eliminarDe` que ya existe desde la 003 (FR-038). **Ojo con las subcolecciones**: en Firestore no se borran con su documento padre, se quedan huérfanas pero legibles. Apareció al escribir las pruebas de consentimiento, donde el historial sobrevivía a la limpieza. Borrar el consentimiento de un nadador sin recorrer su `historial/` dejaría en pie justo lo que hay que borrar
+- [X] T079 [P] [US5] Escribir en `test/datos/borrado_sin_destruir_test.dart` el criterio SC-014: eliminados los datos personales de un nadador, **los planes del entrenador siguen siendo consultables**
 
 ---
 
@@ -244,22 +244,22 @@ comprobando que lo exportado es legible y que **los planes del entrenador siguen
 **Independent Test**: generar, auditar y aprobar un plan sin ningún nadador con
 consentimiento, y comprobar que lo único bloqueado es la entrega.
 
-- [ ] T080 [US6] Comprobar que generar, auditar, aprobar y guardar un plan **no consulta la puerta en ningún punto**: el trabajo del entrenador es su obra profesional y no son datos personales de nadie
-- [ ] T081 [P] [US6] Escribir en `test/ui/planes/trabajar_sin_consentimientos_test.dart` el recorrido completo sin un solo nadador con consentimiento, terminando en el intento de publicar, que es el único que se deniega
+- [X] T080 [US6] Comprobar que generar, auditar, aprobar y guardar un plan **no consulta la puerta en ningún punto**: el trabajo del entrenador es su obra profesional y no son datos personales de nadie
+- [X] T081 [P] [US6] Escribir en `test/ui/planes/trabajar_sin_consentimientos_test.dart` el recorrido completo sin un solo nadador con consentimiento, terminando en el intento de publicar, que es el único que se deniega
 
 ---
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T082 **Retirar `lib/ui/nadadores/aviso_consentimiento.dart`** y sus usos. Lleva escrito en su propia documentación: «debe retirarse cuando la feature de cuentas implemente el consentimiento verificable, **no antes**». Ahora es antes
-- [ ] T083 Retirar de `specs/003-consumo-del-nadador/plan.md` la desviación declarada del principio V, dejando constancia de en qué tarea de esta feature se cerró
-- [ ] T084 [P] Actualizar `README.md` y `docs/DEVELOPMENT.md`, **en inglés**, con las cuentas, los roles y la superficie de servidor
-- [ ] T085 [P] Revisar que ningún archivo del repositorio contenga credenciales, claves ni tokens, incluidos los de prueba de las funciones
-- [ ] T086 Recorrer entero [quickstart.md](quickstart.md) y marcar cada escenario con lo que lo cubre
-- [ ] T087 Desplegar en Firebase Hosting, que es lo que esta feature existe para desbloquear
+- [X] T082 **Retirar `lib/ui/nadadores/aviso_consentimiento.dart`** y sus usos. Lleva escrito en su propia documentación: «debe retirarse cuando la feature de cuentas implemente el consentimiento verificable, **no antes**». Ahora es antes
+- [X] T083 Retirar de `specs/003-consumo-del-nadador/plan.md` la desviación declarada del principio V, dejando constancia de en qué tarea de esta feature se cerró
+- [X] T084 [P] Actualizar `README.md` y `docs/DEVELOPMENT.md`, **en inglés**, con las cuentas, los roles y la superficie de servidor
+- [X] T085 [P] Revisar que ningún archivo del repositorio contenga credenciales, claves ni tokens, incluidos los de prueba de las funciones
+- [X] T086 Recorrer entero [quickstart.md](quickstart.md) y marcar cada escenario con lo que lo cubre
+- [X] T087 Desplegar en Firebase Hosting. **Hecho el 2026-10-19 en el proyecto `swimming-app-ab45f`**: reglas, servidor y sitio, en ese orden, para que la puerta estuviera puesta antes de que existiera una app capaz de escribir a través de ella. Vivo en https://swimming-app-ab45f.web.app, con el entrenador entrando con su cuenta. El camino no fue limpio: ver «Lo que el despliegue destapó» más abajo
 - [ ] T088 **Cerrar T071 de la feature 003**: verificar los escenarios C1 y C2 en un dispositivo real con el modo avión puesto. Lleva pendiente desde que no había dónde desplegar
 - [ ] T089 Verificar C7 y C8 de esta feature **en un dispositivo real**: hermanos compartiendo teléfono y sesión caducada al borde de la piscina. No se pueden comprobar de verdad en un navegador de escritorio
-- [ ] T090 Pasar las cuatro puertas de calidad en orden: `flutter analyze`, `flutter test`, `npm --prefix firebase test` y `dart run tool/verificar_metodologia.dart`
+- [X] T090 Pasar las cuatro puertas de calidad en orden: `flutter analyze`, `flutter test`, `npm --prefix firebase test` y `dart run tool/verificar_metodologia.dart`
 
 ---
 
@@ -322,3 +322,49 @@ lista aprendió a no hacer cuando T006 de la 003 estuvo marcada sin estarlo.
   la app.
 - El texto informativo del consentimiento queda marcado como **pendiente de revisión
   jurídica** hasta que un abogado lo mire. Está anotado también en el checklist.
+
+---
+
+## Lo que el despliegue destapó
+
+Cinco fallos. **Ninguno lo encontraron las pruebas**: los encontró el entrenador usando
+la app desplegada. Quedan escritos porque el patrón importa más que cada uno por separado.
+
+| # | Qué fallaba | Por qué no salió antes |
+|---|---|---|
+| 1 | Las funciones no compilaban al desplegar | Los proyectos nuevos de Google Cloud ya no conceden a la cuenta de Cloud Build el rol que necesita. No es del código |
+| 2 | `firebase_auth` no se registraba en release, y **nadie podía entrar** | `firebase_auth` entró en `pubspec.yaml` después de compilaciones web anteriores, y la build incremental reutilizó un registrant de plugins cacheado. Debug lo regenera; solo release estaba roto |
+| 3 | La corrección desplegada no surtía efecto | Los puntos de entrada de Flutter web no llevan hash en el nombre, y Hosting cachea una hora. El navegador seguía con el bundle roto |
+| 4 | Una cuenta nueva volvía al login | El disparador que asigna el rol falló por permisos, **y** el cliente trataba «con sesión, sin rol todavía» igual que «sin sesión» |
+| 5 | «Preparando tu cuenta» giraba sin fin | Comprobar el rol refresca el token a la fuerza; cada refresco hacía emitir al flujo de cambios, que reiniciaba la espera |
+
+### Lo que esto dice de las pruebas
+
+Las 995 pruebas pasaban con los cinco fallos presentes, porque **ninguna recorría el camino
+real contra Firebase**: dos eran de empaquetado, uno de caché HTTP, y los otros dos vivían
+en la frontera entre el reloj del servidor y el estado del cliente, que es justo donde los
+dobles no llegan.
+
+Los fallos 4 y 5 sí tienen prueba ahora —`test/ui/acceso/sesion_test.dart` cubre el rebote
+al login y el bucle infinito—, y se comprobó que fallan contra el código anterior. Los
+otros tres no son cubribles con pruebas unitarias; se contienen con lo que se dejó en el
+repositorio: `Cache-Control: no-cache` en los puntos de entrada, y el procedimiento de
+despliegue escrito en `docs/DEVELOPMENT.md`.
+
+**La conclusión que importa:** esta feature no tiene ni una prueba automática del recorrido
+completo contra un Firebase de verdad. Es la misma carencia que T071 de la feature 003
+viene arrastrando, y sigue abierta.
+
+### Una corrección a mitad de diagnóstico
+
+Durante el fallo 3 concluí que la causa eran las cabeceras de seguridad, porque al quitarlas
+en un canal de vista previa funcionó. Era falso: un segundo canal **con** las cabeceras
+también funcionó, y lo que arreglaba era que un dominio nuevo tiene la caché vacía. Las
+cabeceras se quedaron. Queda anotado porque estuve a punto de retirar tres cabeceras de
+seguridad por un diagnóstico mal hecho.
+
+### El rol hubo que asignarlo dos veces
+
+La primera asignación no quedó. Se comprobó con `ver-rol`, que se escribió justamente
+porque «el rol ya está asignado» se había dado por bueno dos veces sin mirarlo, y los
+*custom claims* no se ven en la consola de Firebase.

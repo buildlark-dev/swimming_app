@@ -105,7 +105,7 @@ flutter run -d chrome
 With local emulators, in two terminals:
 
 ```bash
-firebase emulators:start --project demo-natacion --config firebase/firebase.json
+firebase emulators:start --project demo-natacion
 ```
 
 ```bash
@@ -115,6 +115,32 @@ flutter run -d chrome --dart-define=USAR_EMULADORES=true
 `demo-natacion` is a dummy project id. The emulators accept it without anything
 existing in the cloud, so there is no risk of carelessly writing into a real
 project. The flag defaults to false on purpose.
+
+That one command starts all of them: Firestore on 8080, Authentication on 9099,
+Functions on 5001, and the emulator UI on 4000. Accounts and the consent gate
+need all three — Authentication because the rules read the role from the token,
+and Functions because the server is what signs that role and dates a consent.
+
+Server dependencies install separately, since the functions have their own
+package:
+
+```bash
+npm --prefix firebase/functions install
+```
+
+### The first coach
+
+Nobody can grant themselves the coach role. Every account is created as a
+swimmer, and `entrenador` is only ever set by an administrative call that the
+app cannot make. To promote the first one, with the emulators running:
+
+```bash
+npm --prefix firebase/functions run asignar-rol -- <uid> entrenador
+```
+
+Against a real project the same script needs credentials that are never stored
+in this repository. This is deliberate friction: the role that approves and
+publishes training for minors should not be a checkbox on a sign-up form.
 
 ## Tests
 
@@ -134,6 +160,12 @@ Firestore security rules, with their negative cases:
 
 ```bash
 npm --prefix firebase test
+```
+
+The server, against the Authentication and Firestore emulators:
+
+```bash
+npm --prefix firebase/functions test
 ```
 
 Normative document checksums — fails if one changed without bumping the
@@ -216,6 +248,83 @@ To see the full catalogue with its fault field:
 ```bash
 dart run tool/probar_diagnostico.dart --vocabulario
 ```
+
+## Deploying
+
+**Not done yet, and it cannot be until a Firebase project exists for this
+app.** What follows is everything needed, in order.
+
+### 1. A project of its own
+
+This app has no Firebase project. Deploying it into one that belongs to a
+different product would, among other things, overwrite that product's
+Firestore security rules — so it needs its own:
+
+```bash
+firebase projects:create
+```
+
+Cloud Functions require the Blaze plan. That is a billing decision, not a
+technical one, and it belongs to whoever owns the account.
+
+### 2. Point the repository at it
+
+```bash
+firebase use --add
+```
+
+This writes `firebase/.firebaserc`, which records the project id. The id is
+not a secret.
+
+### 3. Give the app its configuration
+
+```bash
+dart pub global activate flutterfire_cli
+flutterfire configure
+```
+
+This generates `lib/firebase_options.dart`. Without it the web app has no way
+to reach the project, which is exactly the failure fixed in PR #5: it boots
+and says it is in local mode, because there is nobody to authenticate against.
+
+The file holds a web API key. That key is **not** a credential — it identifies
+the project to Google and is visible in any Firebase web app. What protects the
+data is the security rules in `firestore.rules`, which is why they are tested
+the way they are.
+
+### 4. Deploy, rules and server first
+
+```bash
+npm --prefix firebase/functions ci
+flutter build web --release
+firebase deploy --project swimming-app-ab45f --only firestore:rules,functions,hosting
+```
+
+Rules and functions before hosting, deliberately: the gate has to be in place
+before there is an app that can write through it.
+
+### 5. The first coach
+
+Every account is created as a swimmer. Promote the coach's own account once,
+as described under "The first coach" above, this time against the real project
+rather than the emulators.
+
+### 6. Verify on a real device
+
+Two scenarios cannot be checked in a desktop browser, and both involve
+children: siblings sharing a phone, and a session expiring at the poolside
+with no signal. They are C7 and C8 of
+[the feature 004 quickstart](../specs/004-cuentas-y-consentimiento/quickstart.md),
+plus C1 and C2 of
+[the feature 003 one](../specs/003-consumo-del-nadador/quickstart.md), which
+have been waiting for somewhere to deploy to.
+
+### Before any real swimmer uses it
+
+The informative consent text in `assets/consentimiento/texto_v1.md` says in its
+own first lines that it has not been reviewed by a lawyer. It should be, along
+with the declaration the guardian signs and the record that the minor was
+heard, before a single family sees it.
 
 ## Governance
 

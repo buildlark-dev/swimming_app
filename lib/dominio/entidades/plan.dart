@@ -97,7 +97,6 @@ class Plan {
     this.faseAtr,
     this.microciclos = const <Microciclo>[],
     this.sesiones = const <Sesion>[],
-    this.nadadoresIds = const <String>[],
     this.estado = EstadoPlan.borrador,
     this.origen = OrigenPlan.manual,
     this.versionMetodologia,
@@ -123,7 +122,6 @@ class Plan {
 
   final List<Microciclo> microciclos;
   final List<Sesion> sesiones;
-  final List<String> nadadoresIds;
 
   final EstadoPlan estado;
 
@@ -175,7 +173,6 @@ class Plan {
     FaseAtr? faseAtr,
     List<Microciclo>? microciclos,
     List<Sesion>? sesiones,
-    List<String>? nadadoresIds,
     EstadoPlan? estado,
     /// Se acepta por uniformidad de la firma, pero NO se aplica: el origen
     /// solo se fija al construir el plan (FR-026).
@@ -197,7 +194,6 @@ class Plan {
       faseAtr: faseAtr ?? this.faseAtr,
       microciclos: microciclos ?? this.microciclos,
       sesiones: sesiones ?? this.sesiones,
-      nadadoresIds: nadadoresIds ?? this.nadadoresIds,
       estado: estado ?? this.estado,
       origen: this.origen,
       versionMetodologia: versionMetodologia ?? this.versionMetodologia,

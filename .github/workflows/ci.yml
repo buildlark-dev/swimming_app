@@ -66,6 +66,14 @@ jobs:
         run: flutter build web --release
 
   rules:
+    # DO NOT RENAME. This exact string is a required status check in the
+    # repository ruleset, and a required check that never reports blocks every
+    # pull request forever rather than failing visibly.
+    #
+    # It happened: adding the server tests to this job renamed it, and the
+    # ruleset went on waiting for a check that no longer existed. The job also
+    # runs the server suite now; what it covers belongs in the step names
+    # below, not in a name that something else depends on.
     name: Firestore security rules
     runs-on: ubuntu-latest
     steps:
@@ -75,7 +83,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: firebase/package-lock.json
+          cache-dependency-path: |
+            firebase/package-lock.json
+            firebase/functions/package-lock.json
 
       - uses: actions/setup-java@v4
         # The Firestore emulator runs on the JVM.
@@ -86,6 +96,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
         working-directory: firebase
+
+      - name: Install server dependencies
+        run: npm ci
+        working-directory: firebase/functions
 
       - name: Install the Firebase CLI
         # Pinned and deliberately kept out of package.json: as a devDependency
@@ -98,3 +112,9 @@ jobs:
         # nobody reads a swimmer's data without permission. Principle III.
         run: npm test
         working-directory: firebase
+
+      - name: Server tests
+        # The consent gate is enforced here, so it is tested here. A server
+        # surface without tests in CI is a surface that breaks silently.
+        run: npm test
+        working-directory: firebase/functions

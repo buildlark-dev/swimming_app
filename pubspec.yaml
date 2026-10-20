@@ -45,6 +45,11 @@ dependencies:
   cloud_firestore: ^5.5.0
   shared_preferences: ^2.5.6
 
+  # Identidad (feature 004). Se importa en UN SOLO archivo del proyecto,
+  # `lib/datos/auth/sesion_firebase.dart`: el dominio habla de `Cuenta` y
+  # `Rol`, y la prueba de frontera vigila que no se cuele mas adentro.
+  firebase_auth: ^5.3.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -75,6 +80,10 @@ flutter:
   assets:
     - docs/metodologia/metodologia.json
     - assets/biblioteca/
+    # El texto informativo del consentimiento va versionado: cada
+    # consentimiento consta bajo la version que su otorgante leyo, y cambiar
+    # el texto no reescribe lo que alguien ya acepto (FR-018).
+    - assets/consentimiento/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -1,0 +1,407 @@
+{
+  "proposito": "Lista de casos de acceso compartida por las dos suites que deciden lo mismo en lenguajes distintos: test/dominio/cuentas/permisos_test.dart (Dart, lado cliente) y firebase/test/reglas.test.js (reglas de Firestore, lado servidor). La garantia A10 del contrato dice que tienen que coincidir. No hay forma automatica de demostrar que dos lenguajes expresan la misma regla; lo que hay es esta lista, leida por los dos, y la disciplina de ampliarla aqui y no en cada suite por separado.",
+  "comoSeAnade": "Un caso nuevo se escribe aqui. Las dos suites lo recogen solas y fallara la que no lo cumpla, que es justo lo que se quiere: si una regla cambia y el dominio no, o al reves, alguien se entera el mismo dia.",
+  "casos": [
+    {
+      "nombre": "sin sesion no se lee un plan publicado y asignado",
+      "garantia": "A6",
+      "cuenta": null,
+      "accion": "leerPlan",
+      "plan": {
+        "estado": "publicado",
+        "asignado": false
+      },
+      "permitido": false
+    },
+    {
+      "nombre": "sin sesion no se escribe un registro",
+      "garantia": "A6",
+      "cuenta": null,
+      "accion": "escribirRegistro",
+      "registroDe": "n1",
+      "permitido": false
+    },
+    {
+      "nombre": "sin sesion no se aprueba",
+      "garantia": "A6",
+      "cuenta": null,
+      "accion": "aprobarPlan",
+      "permitido": false
+    },
+    {
+      "nombre": "el nadador lee su plan publicado y asignado",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "leerPlan",
+      "plan": {
+        "estado": "publicado",
+        "asignado": true
+      },
+      "permitido": true
+    },
+    {
+      "nombre": "el nadador no lee un plan en borrador aunque le este asignado",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "leerPlan",
+      "plan": {
+        "estado": "borrador",
+        "asignado": true
+      },
+      "permitido": false
+    },
+    {
+      "nombre": "el nadador no lee un plan aprobado sin publicar: aprobar no es entregar",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "leerPlan",
+      "plan": {
+        "estado": "aprobado",
+        "asignado": true
+      },
+      "permitido": false
+    },
+    {
+      "nombre": "el nadador no lee un plan publicado que no le esta asignado",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "leerPlan",
+      "plan": {
+        "estado": "publicado",
+        "asignado": false
+      },
+      "permitido": false
+    },
+    {
+      "nombre": "el nadador no lee un plan publicado sin asignar a nadie",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "leerPlan",
+      "plan": {
+        "estado": "publicado",
+        "asignado": false
+      },
+      "permitido": false
+    },
+    {
+      "nombre": "un plan puede estar asignado a varios y cada uno lo lee",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n2"
+      },
+      "accion": "leerPlan",
+      "plan": {
+        "estado": "publicado",
+        "asignado": true
+      },
+      "permitido": true
+    },
+    {
+      "nombre": "una cuenta de nadador sin perfil asociado no lee ningun plan",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": null
+      },
+      "accion": "leerPlan",
+      "plan": {
+        "estado": "publicado",
+        "asignado": false
+      },
+      "permitido": false
+    },
+    {
+      "nombre": "el nadador escribe su propio registro",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "escribirRegistro",
+      "registroDe": "n1",
+      "permitido": true
+    },
+    {
+      "nombre": "el nadador no escribe el registro de otro",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "escribirRegistro",
+      "registroDe": "n2",
+      "permitido": false
+    },
+    {
+      "nombre": "el nadador lee su propio registro",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "leerRegistro",
+      "registroDe": "n1",
+      "esDeSuComunidad": true,
+      "permitido": true
+    },
+    {
+      "nombre": "el nadador no lee el registro de otro",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "leerRegistro",
+      "registroDe": "n2",
+      "esDeSuComunidad": true,
+      "permitido": false
+    },
+    {
+      "nombre": "el nadador no aprueba un plan",
+      "garantia": "A3",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "aprobarPlan",
+      "permitido": false
+    },
+    {
+      "nombre": "el nadador no publica un plan",
+      "garantia": "A3",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "publicarPlan",
+      "permitido": false
+    },
+    {
+      "nombre": "el nadador no emite una solicitud de consentimiento",
+      "garantia": "C1",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "emitirSolicitud",
+      "permitido": false
+    },
+    {
+      "nombre": "el entrenador aprueba",
+      "garantia": "A3",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "aprobarPlan",
+      "permitido": true
+    },
+    {
+      "nombre": "el entrenador publica",
+      "garantia": "A3",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "publicarPlan",
+      "permitido": true
+    },
+    {
+      "nombre": "el entrenador lee un plan en borrador",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "leerPlan",
+      "plan": {
+        "estado": "borrador",
+        "asignado": false
+      },
+      "permitido": true
+    },
+    {
+      "nombre": "el entrenador edita un borrador",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "editarPlan",
+      "plan": {
+        "estado": "borrador",
+        "asignado": false
+      },
+      "permitido": true
+    },
+    {
+      "nombre": "el entrenador no edita un plan aprobado: es inmutable",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "editarPlan",
+      "plan": {
+        "estado": "aprobado",
+        "asignado": false
+      },
+      "permitido": false
+    },
+    {
+      "nombre": "el entrenador no edita un plan publicado: tambien es inmutable",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "editarPlan",
+      "plan": {
+        "estado": "publicado",
+        "asignado": false
+      },
+      "permitido": false
+    },
+    {
+      "nombre": "el entrenador lee los registros de su comunidad",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "leerRegistro",
+      "registroDe": "n1",
+      "esDeSuComunidad": true,
+      "permitido": true
+    },
+    {
+      "nombre": "el entrenador no lee los registros de quien no es de su comunidad",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "leerRegistro",
+      "registroDe": "ajeno",
+      "esDeSuComunidad": false,
+      "permitido": false
+    },
+    {
+      "nombre": "el entrenador NO escribe el registro de un nadador",
+      "garantia": "A5",
+      "nota": "Cambio deliberado respecto de la feature 003, donde era lo unico permitido porque no habia identidad de nadador. Lo que el nadador responde es su carga interna.",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "escribirRegistro",
+      "registroDe": "n1",
+      "permitido": false
+    },
+    {
+      "nombre": "el entrenador emite una solicitud de consentimiento",
+      "garantia": "C1",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "emitirSolicitud",
+      "permitido": true
+    },
+    {
+      "nombre": "ni siquiera el entrenador escribe un consentimiento desde el cliente",
+      "garantia": "C5",
+      "nota": "La fecha la pone el servidor y el canje lo hace el servidor. Si el cliente pudiera escribir aqui, las dos garantias serian declaraciones suyas.",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "escribirConsentimiento",
+      "permitido": false
+    },
+    {
+      "nombre": "el nadador tampoco escribe un consentimiento",
+      "garantia": "C5",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "escribirConsentimiento",
+      "permitido": false
+    },
+    {
+      "nombre": "el nadador lee su propio consentimiento",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "leerConsentimiento",
+      "deNadador": "n1",
+      "esDeSuComunidad": true,
+      "permitido": true
+    },
+    {
+      "nombre": "el nadador no lee el consentimiento de otro",
+      "garantia": "A4",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "leerConsentimiento",
+      "deNadador": "n2",
+      "esDeSuComunidad": true,
+      "permitido": false
+    },
+    {
+      "nombre": "el entrenador asigna a un nadador con consentimiento vigente",
+      "garantia": "P5",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "asignar",
+      "tieneConsentimiento": true,
+      "permitido": true
+    },
+    {
+      "nombre": "el entrenador NO asigna a un nadador sin consentimiento",
+      "garantia": "P5",
+      "nota": "El consentimiento es puerta de publicacion. Una asignacion por nadador es lo que permite que la regla lo compruebe con un solo get().",
+      "cuenta": {
+        "rol": "entrenador",
+        "nadadorId": null
+      },
+      "accion": "asignar",
+      "tieneConsentimiento": false,
+      "permitido": false
+    },
+    {
+      "nombre": "el nadador no se asigna un plan a si mismo, ni con consentimiento",
+      "garantia": "P5",
+      "cuenta": {
+        "rol": "nadador",
+        "nadadorId": "n1"
+      },
+      "accion": "asignar",
+      "tieneConsentimiento": true,
+      "permitido": false
+    }
+  ]
+}

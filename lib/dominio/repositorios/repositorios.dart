@@ -7,6 +7,8 @@
 library;
 
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
+import 'package:natacion_app/dominio/cuentas/cuenta.dart';
+import 'package:natacion_app/dominio/entidades/asignacion.dart';
 import 'package:natacion_app/dominio/entidades/envio_pendiente.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
@@ -66,6 +68,30 @@ abstract class RepositorioBiblioteca {
   Future<Biblioteca> cargar();
 }
 
+/// A quién se le entregó cada plan (feature 004).
+///
+/// Las asignaciones viven aparte del plan a propósito: un plan aprobado es
+/// inmutable, y las reglas de acceso comprueban el consentimiento de **un**
+/// nadador por escritura. Ver `lib/dominio/entidades/asignacion.dart`.
+abstract class RepositorioAsignaciones {
+  Future<List<Asignacion>> listar();
+
+  Future<List<Asignacion>> deNadador(String nadadorId);
+
+  Future<List<Asignacion>> dePlan(String planId);
+
+  /// Entrega el plan a un nadador.
+  ///
+  /// El servidor comprueba su consentimiento. Si no lo tiene, esto falla, y
+  /// falla a propósito: es la puerta de publicación (FR-013).
+  Future<void> asignar(Asignacion asignacion);
+
+  /// Retira un plan a un nadador.
+  ///
+  /// **No borra sus registros**: lo que el nadador ya envió es suyo.
+  Future<void> retirar(String planId, String nadadorId);
+}
+
 /// Los registros que el nadador escribe sobre sus sesiones (feature 003).
 ///
 /// `guardar` escribe **primero en local** y encola el envío después. Ese orden
@@ -118,4 +144,49 @@ abstract class EnvioDeRegistros {
   ///
   /// Lanza si no se pudo enviar: la bandeja lo traduce a un reintento.
   Future<DateTime> enviar(RegistroDeSesion registro);
+}
+
+/// No se pudo entrar, con un mensaje que se le puede enseñar a alguien.
+///
+/// Es del dominio y no del proveedor a propósito: la pantalla de acceso no
+/// tiene por qué saber qué códigos de error devuelve Firebase.
+class FalloDeAcceso implements Exception {
+  const FalloDeAcceso(this.mensaje);
+
+  final String mensaje;
+
+  @override
+  String toString() => mensaje;
+}
+
+/// Quién está usando la app (feature 004).
+///
+/// El dominio no sabe que existe Firebase: habla de [Cuenta] y de `Rol`. La
+/// implementación vive en `lib/datos/auth/sesion_firebase.dart`, que es el
+/// único archivo del proyecto que puede importar `firebase_auth`, y la prueba
+/// de frontera lo vigila.
+///
+/// Contrato: `specs/004-cuentas-y-consentimiento/contracts/cuentas_y_roles.md`.
+abstract class Identidad {
+  /// En qué punto está la identidad: sin sesión, con cuenta lista, o con
+  /// sesión pero sin rol asignado todavía.
+  Future<EstadoDeCuenta> actual();
+
+  /// Entra con una cuenta que ya existe.
+  ///
+  /// Lanza [FalloDeAcceso] con un mensaje que se le puede enseñar a alguien.
+  Future<void> entrar({required String correo, required String clave});
+
+  /// Crea una cuenta. **Nace siempre como nadador** (garantía A2): el rol de
+  /// entrenador no se concede por registrarse.
+  Future<void> crearCuenta({required String correo, required String clave});
+
+  /// Emite cada vez que la sesión cambia: entra, sale o caduca.
+  Stream<EstadoDeCuenta> get cambios;
+
+  /// Cierra la sesión y **no deja en el dispositivo datos del nadador
+  /// anterior** (garantía A7): ni la caché de lectura ni lo guardado en local.
+  ///
+  /// No es una cortesía. El grupo son hermanos que comparten teléfono.
+  Future<void> cerrarSesion();
 }

@@ -22,7 +22,7 @@ No hace falta instalar nada más, ni crear un proyecto en la nube: todo corre en
 Los emuladores primero, en su propia terminal:
 
 ```bash
-firebase emulators:start --project demo-natacion --config firebase/firebase.json
+firebase emulators:start --project demo-natacion
 ```
 
 `demo-natacion` es un identificador de proyecto ficticio. Los emuladores lo aceptan sin

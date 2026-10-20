@@ -52,6 +52,39 @@ function sinAutenticar() {
   return entorno.unauthenticatedContext().firestore();
 }
 
+/** Cliente de un nadador, con el rol que viaja en su token. */
+function comoNadador(uid) {
+  return entorno.authenticatedContext(uid, { rol: 'nadador' }).firestore();
+}
+
+/** Escribe saltandose las reglas, para dejar el escenario montado. */
+async function sembrar(escribir) {
+  await entorno.withSecurityRulesDisabled(async (contexto) => {
+    await escribir(contexto.firestore());
+  });
+}
+
+/**
+ * Deja una cuenta de nadador lista: su vinculo con el perfil y, si procede,
+ * su consentimiento vigente.
+ *
+ * Las dos cosas las escribe el servidor en la app real, nunca el cliente, asi
+ * que aqui se siembran saltandose las reglas: montar el escenario por la via
+ * del cliente seria probar que el cliente puede hacer algo que no debe poder.
+ */
+async function darDeAlta(uid, nadadorId, { conConsentimiento = false } = {}) {
+  await sembrar(async (db) => {
+    await db.collection('usuarios').doc(uid).set({ nadadorId });
+    if (conConsentimiento) {
+      await db.collection('consentimientos').doc(nadadorId).set({
+        vigente: true,
+        otorgadoEn: '2026-10-14T10:00:00.000Z',
+        alcances: ['datosDeEntrenamiento'],
+      });
+    }
+  });
+}
+
 const planBorrador = {
   nombre: 'Tecnica de eficiencia',
   categoria: 'Precompetitivo',
@@ -248,17 +281,28 @@ test('sin autenticar no se listan los registros de nadie', async () => {
   await assertFails(sinAutenticar().collection('registros').get());
 });
 
-test('el entrenador escribe y lee registros', async () => {
-  await assertSucceeds(
-    comoEntrenador().collection('registros').doc('r1').set(unRegistro),
-  );
+test('A5 — el entrenador lee los registros pero NO los escribe', async () => {
+  // Cambio deliberado de la feature 004. En la 003 el entrenador era el unico
+  // que podia escribir aqui, porque no habia identidad de nadador y dejar la
+  // coleccion abierta era peor. Con cuentas, lo que el nadador responde solo
+  // lo escribe el nadador: es su carga interna, no la del entrenador.
+  await sembrar(async (db) => {
+    await db.collection('registros').doc('r1').set(unRegistro);
+  });
+
   await assertSucceeds(comoEntrenador().collection('registros').doc('r1').get());
+  await assertFails(
+    comoEntrenador().collection('registros').doc('r2').set(unRegistro),
+  );
 });
 
 test('reenviar el mismo registro lo sobrescribe, no lo duplica', async () => {
   // El identificador del documento es el identificador determinista del
   // registro: dos envios escriben el mismo documento (FR-020, decision D2).
-  const db = comoEntrenador();
+  // Ahora lo escribe el nadador, que es de quien es.
+  await darDeAlta('u-n1', 'n1', { conConsentimiento: true });
+
+  const db = comoNadador('u-n1');
   const id = 'n1|p1|s1|3.5.0';
 
   await assertSucceeds(db.collection('registros').doc(id).set(unRegistro));

@@ -11,6 +11,7 @@
 /// simulados, sin emulador y sin probar Firebase.
 library;
 
+import 'package:natacion_app/dominio/consentimiento/puerta.dart';
 import 'package:natacion_app/dominio/entidades/envio_pendiente.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
@@ -39,6 +40,7 @@ class Sincronizador {
     required this.bandeja,
     required this.red,
     required this.transporte,
+    this.puerta = const PuertaAbierta(),
     DateTime Function()? reloj,
   })  :
         // El reloj se inyecta para poder probar los reintentos sin esperar
@@ -51,6 +53,15 @@ class Sincronizador {
   /// Quién lleva el registro a su destino. Se llama transporte y no «envío»
   /// para no confundirlo con `EnvioPendiente`, que es una entrada de la cola.
   final EnvioDeRegistros transporte;
+
+  /// Si lo de este nadador puede salir del dispositivo (feature 004).
+  ///
+  /// **No se añadió ningún estado a `EstadoDeEnvio`** (decisión D6): un
+  /// registro retenido por falta de consentimiento *es* un registro pendiente,
+  /// y ya existía la forma de representarlo. Modelarlo como algo distinto
+  /// duplicaría el mecanismo que ya funciona y ya está probado.
+  final PuertaDeConsentimiento puerta;
+
   final DateTime Function() _ahora;
 
   /// Guarda un registro y lo deja encolado.
@@ -114,6 +125,17 @@ class Sincronizador {
       // de la cola. Es el único caso en que una entrada sale sin haber viajado,
       // y ocurre solo si algo externo borró el registro.
       await bandeja.actualizar(enCola.marcandoEnviado());
+      return false;
+    }
+
+    // La puerta, justo antes de enviar y no antes de encolar. Encolar siempre
+    // ocurre: lo que el nadador escribe se guarda pase lo que pase (garantía
+    // G1). Lo que la puerta decide es si **sale**.
+    if (!await puerta.puedeSalir(registro.nadadorId)) {
+      // **No cuenta como intento fallido**, igual que no cuenta estar sin
+      // conexión. No es un error: es una condición que todavía no se cumple.
+      // Si contara, un consentimiento que tarda una semana dejaría el envío
+      // esperando cinco minutos entre intentos por algo que no falló.
       return false;
     }
 

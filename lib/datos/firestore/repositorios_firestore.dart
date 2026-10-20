@@ -11,6 +11,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:natacion_app/datos/serializacion.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
+import 'package:natacion_app/dominio/entidades/asignacion.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
@@ -131,7 +132,6 @@ class RepositorioPlanesFirestore implements RepositorioPlanes {
       fechaFin: aprobado.fechaFin,
       faseAtr: aprobado.faseAtr,
       microciclos: aprobado.microciclos,
-      nadadoresIds: aprobado.nadadoresIds,
       // Una versión nueva de un plan generado sigue siendo generada (FR-026).
       origen: aprobado.origen,
       justificaciones: aprobado.justificaciones,
@@ -270,5 +270,76 @@ class RepositorioNadadoresFirestore implements RepositorioNadadores {
     final nadador = await obtener(id);
     if (nadador == null) throw FalloDeDatos('No existe el nadador $id');
     return nadadorAJson(nadador);
+  }
+}
+
+/// Asignaciones en Firestore (feature 004).
+///
+/// El identificador del documento es el determinista `planId|nadadorId`:
+/// entregar dos veces el mismo plan a la misma persona escribe el mismo
+/// documento. No duplica por construcción, no por una comprobación que alguien
+/// pueda olvidar.
+class RepositorioAsignacionesFirestore implements RepositorioAsignaciones {
+  RepositorioAsignacionesFirestore(this._db);
+
+  final FirebaseFirestore _db;
+
+  CollectionReference<Map<String, dynamic>> get _coleccion =>
+      _db.collection('asignaciones');
+
+  Asignacion _desde(Map<String, dynamic> json) => Asignacion(
+        planId: json['planId'] as String,
+        nadadorId: json['nadadorId'] as String,
+        asignadaEn:
+            DateTime.tryParse(json['asignadaEn'] as String? ?? '') ??
+                DateTime.fromMillisecondsSinceEpoch(0),
+      );
+
+  @override
+  Future<List<Asignacion>> listar() async {
+    final instantanea = await _coleccion.get();
+    return instantanea.docs.map((d) => _desde(d.data())).toList();
+  }
+
+  @override
+  Future<List<Asignacion>> deNadador(String nadadorId) async {
+    final instantanea =
+        await _coleccion.where('nadadorId', isEqualTo: nadadorId).get();
+    return instantanea.docs.map((d) => _desde(d.data())).toList();
+  }
+
+  @override
+  Future<List<Asignacion>> dePlan(String planId) async {
+    final instantanea =
+        await _coleccion.where('planId', isEqualTo: planId).get();
+    return instantanea.docs.map((d) => _desde(d.data())).toList();
+  }
+
+  @override
+  Future<void> asignar(Asignacion asignacion) async {
+    try {
+      await _coleccion.doc(asignacion.id).set({
+        'planId': asignacion.planId,
+        'nadadorId': asignacion.nadadorId,
+        'asignadaEn': asignacion.asignadaEn.toIso8601String(),
+      });
+    } on FirebaseException catch (e) {
+      // El caso esperado es que el servidor lo deniegue por falta de
+      // consentimiento. Se traduce al dominio para que la pantalla pueda
+      // decir qué falta en lugar de enseñar un código de Firebase.
+      throw FalloDeDatos(
+        e.code == 'permission-denied'
+            ? 'No se puede entregar el plan: ese nadador no tiene '
+                'consentimiento vigente de su acudiente.'
+            : 'No se pudo entregar el plan: ${e.message}',
+      );
+    }
+  }
+
+  @override
+  Future<void> retirar(String planId, String nadadorId) async {
+    await _coleccion
+        .doc(Asignacion.idDeterminista(planId: planId, nadadorId: nadadorId))
+        .delete();
   }
 }

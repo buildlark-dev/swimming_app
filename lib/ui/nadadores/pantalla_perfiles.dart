@@ -9,7 +9,6 @@ import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/metodologia/estilos.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
-import 'package:natacion_app/ui/nadadores/aviso_consentimiento.dart';
 
 class PantallaPerfiles extends StatefulWidget {
   const PantallaPerfiles({super.key, required this.repositorio});
@@ -64,8 +63,6 @@ class _PantallaPerfilesState extends State<PantallaPerfiles> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                const AvisoConsentimiento(),
-                const SizedBox(height: 16),
                 if (_nadadores.isEmpty)
                   const Padding(
                     padding: EdgeInsets.all(24),

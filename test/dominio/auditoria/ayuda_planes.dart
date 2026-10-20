@@ -178,7 +178,6 @@ class ConstructorPlanes {
         faseAtr: plan.faseAtr,
         microciclos: plan.microciclos,
         sesiones: plan.sesiones,
-        nadadoresIds: plan.nadadoresIds,
         estado: plan.estado,
         origen: OrigenPlan.automatico,
         versionMetodologia: plan.versionMetodologia,

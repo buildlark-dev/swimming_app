@@ -216,7 +216,6 @@ Map<String, dynamic> planAJson(Plan plan, {bool conSesiones = false}) =>
                 'objetivo': m.objetivo,
               })
           .toList(),
-      'nadadoresIds': plan.nadadoresIds,
       'estado': plan.estado.name,
       'origen': plan.origen.name,
       if (plan.versionMetodologia != null)
@@ -274,8 +273,6 @@ Plan planDesdeJson(
             .cast<Map<String, dynamic>>()
             .map((s) => sesionDesdeJson(s, biblioteca))
             .toList(),
-    nadadoresIds:
-        ((json['nadadoresIds'] as List<dynamic>?) ?? const []).cast<String>(),
     estado: EstadoPlan.values.firstWhere(
       (e) => e.name == json['estado'],
       orElse: () => EstadoPlan.borrador,
@@ -310,6 +307,8 @@ Map<String, dynamic> nadadorAJson(Nadador nadador) => <String, dynamic>{
       if (nadador.fechaNacimiento != null)
         'fechaNacimiento':
             nadador.fechaNacimiento!.toIso8601String().split('T').first,
+      if (nadador.declaraSerMayorDeEdad != null)
+        'declaraSerMayorDeEdad': nadador.declaraSerMayorDeEdad,
       if (nadador.categoria != null) 'categoria': nadador.categoria!.nombre,
       if (nadador.estiloObjetivo != null)
         'estiloObjetivo': nadador.estiloObjetivo!.nombre,
@@ -332,6 +331,7 @@ Nadador nadadorDesdeJson(Map<String, dynamic> json, {String? id}) {
     fechaNacimiento: json['fechaNacimiento'] == null
         ? null
         : DateTime.tryParse(json['fechaNacimiento'] as String),
+    declaraSerMayorDeEdad: json['declaraSerMayorDeEdad'] as bool?,
     categoria: Categoria.porNombre(json['categoria'] as String? ?? ''),
     estiloObjetivo: Estilo.porNombre(json['estiloObjetivo'] as String? ?? ''),
     pruebaObjetivo: json['pruebaObjetivo'] as String? ?? '',

@@ -14,7 +14,7 @@ roto, no solo qué mirar.
 Emuladores de Firestore, Auth y Functions:
 
 ```bash
-firebase emulators:start --project demo-natacion --config firebase/firebase.json
+firebase emulators:start --project demo-natacion
 ```
 
 La app contra los emuladores:
@@ -244,3 +244,38 @@ comprobar de verdad en un navegador de escritorio.
 **Lo que esta feature desbloquea**: con el despliegue hecho, se cierra por fin la tarea
 **T071** de la feature 003 —escenarios C1 y C2 en un dispositivo real con el modo avión
 puesto— que quedó pendiente por no tener dónde desplegar.
+
+---
+
+## Qué cubre cada escenario (T086)
+
+Recorrido el 2026-10-15, al cerrar la implementación.
+
+| Escenario | Estado | Qué lo cubre |
+|---|---|---|
+| **C1** Sin consentimiento, el nadador no queda bloqueado | ✅ | `puerta_test.dart` (P2: guardar nunca consulta la puerta) y `sin_consentimiento` en el dominio |
+| **C2** Sin consentimiento, los datos no salen | ✅ | `reglas_cuentas.test.js` P1, **contra el emulador con la cuenta correcta del nadador y saltándose la app**, más `puerta_test.dart` |
+| **C3** El acudiente confirma y lo retenido sale solo | ✅ | `consentimiento.test.js` (canje, fecha de servidor, aviso de vuelta) y `puerta_test.dart` P3 |
+| **C4** El enlace sirve una vez y vence | ✅ | `consentimiento.test.js` C2, C3 y C4, incluida la comprobación de que el token no está en la base de datos |
+| **C5** El nadador designa quién consiente: no puede | ✅ | Garantía C1 en `permisos_test.dart` y en las reglas |
+| **C6** Cada quien ve lo suyo | ✅ | 34 casos de `test/acceso/casos.json`, recorridos por las **dos** suites |
+| **C7** Hermanos con un solo teléfono | ⚠️ Parcial | `particion_por_cuenta_test.dart` cubre el almacenamiento y `sesion_test.dart` el cierre de sesión. **Falta en dispositivo real** (T089) |
+| **C8** La sesión caduca al borde de la piscina | ⚠️ Parcial | Cubierto en el dominio; el refresco de token sin red se atrapa y conserva el rol del token guardado. **Falta en dispositivo real** (T089) |
+| **V9** Esperar no es fallar | ✅ | `puerta_test.dart` P4: veinticinco ciclos dejan `intentos` en cero |
+| **V10** Revocar | ✅ | `consentimiento.test.js` C8 y `reglas_cuentas.test.js` P6 |
+| **V11** El alcance no se concede en bloque | ✅ | `consentimiento_test.dart` y `consentimiento.test.js` C6 |
+| **V12** La categoría no es la edad | ✅ | `categoria_sin_edad_test.dart`, once pruebas |
+| **V13** El trabajo del entrenador sobrevive | ✅ | `persistencia_plan_test.dart`, ida y vuelta byte a byte |
+| **V14** Borrar sin destruir | ✅ | `derechos_del_titular_test.dart`, SC-014 con dos pruebas |
+
+### Lo que no se puede marcar desde aquí
+
+**C7 y C8 necesitan un dispositivo real**, y las dos son sobre niños: hermanos que
+comparten teléfono, y una sesión que caduca sin señal. El almacenamiento y la decisión
+están probados; lo que no se puede comprobar en un navegador de escritorio es el
+comportamiento real del dispositivo.
+
+Lo mismo vale para **C1 y C2 de la feature 003**, que llevan pendientes desde que no
+había dónde desplegar (su tarea T071).
+
+Las cuatro se cierran juntas cuando exista el despliegue.

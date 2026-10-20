@@ -11,6 +11,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/dominio/entidades/asignacion.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
@@ -21,6 +22,7 @@ class SelectorDePerfil extends StatelessWidget {
     required this.estado,
     required this.nadadores,
     required this.planes,
+    this.asignaciones = const <Asignacion>[],
     required this.alElegir,
   });
 
@@ -29,6 +31,9 @@ class SelectorDePerfil extends StatelessWidget {
 
   /// Planes **publicados**. Un borrador o un aprobado no son del nadador.
   final List<Plan> planes;
+
+  /// A quién se le entregó cada plan.
+  final List<Asignacion> asignaciones;
 
   final Future<void> Function(Nadador) alElegir;
 
@@ -114,17 +119,34 @@ class SelectorDePerfil extends StatelessWidget {
 
 /// El plan publicado que le corresponde a un nadador, si lo hay.
 ///
-/// **Solo publicados** (FR-001): un `borrador` o un `aprobado` no son suyos
-/// todavía. De haber varios, se queda con el último, que es el que está
-/// entrenando.
-Plan? planDe(Nadador nadador, List<Plan> planes) {
+/// Las dos condiciones son independientes y las dos hacen falta:
+///
+/// - **publicado** (FR-001): un `borrador` o un `aprobado` no son de nadie
+///   todavía. Aprobar no es entregar.
+/// - **asignado**: la entrega es una [Asignacion], un documento por nadador, y
+///   no una lista dentro del plan. Un plan aprobado es inmutable, así que
+///   asignarle alguien después no puede ser escribir sobre él; y las reglas de
+///   acceso no saben recorrer listas, con lo que la puerta de publicación no
+///   podría hacerse cumplir en el servidor.
+///
+/// De haber varios, se queda con el último, que es el que está entrenando.
+Plan? planDe(
+  Nadador nadador,
+  List<Plan> planes,
+  List<Asignacion> asignaciones,
+) {
   final id = nadador.id;
   if (id == null) return null;
 
-  final suyos = planes
+  final suyos = asignaciones
+      .where((a) => a.nadadorId == id)
+      .map((a) => a.planId)
+      .toSet();
+
+  final publicados = planes
       .where((p) => p.estado == EstadoPlan.publicado)
-      .where((p) => p.nadadoresIds.contains(id))
+      .where((p) => p.id != null && suyos.contains(p.id))
       .toList();
 
-  return suyos.isEmpty ? null : suyos.last;
+  return publicados.isEmpty ? null : publicados.last;
 }

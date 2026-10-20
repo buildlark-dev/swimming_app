@@ -51,6 +51,7 @@ class Nadador {
     this.id,
     required this.nombre,
     this.fechaNacimiento,
+    this.declaraSerMayorDeEdad,
     this.categoria,
     this.estiloObjetivo,
     this.pruebaObjetivo = '',
@@ -61,6 +62,33 @@ class Nadador {
   final String? id;
   final String nombre;
   final DateTime? fechaNacimiento;
+
+  /// Lo que el nadador declaró sobre su mayoría de edad (FR-008).
+  ///
+  /// Es **el dato mínimo suficiente** para saber si hace falta el
+  /// consentimiento de un acudiente, y por eso se prefiere a la fecha de
+  /// nacimiento, que dice bastante más de lo que hace falta (minimización,
+  /// principio V).
+  ///
+  /// `null` significa **que todavía no lo declaró**, que no es lo mismo que
+  /// ser menor. Ante `null` se trata como menor, porque el error de pedir un
+  /// consentimiento que no hacía falta se arregla; el de no pedirlo, no.
+  final bool? declaraSerMayorDeEdad;
+
+  /// Si hace falta el consentimiento de un acudiente.
+  ///
+  /// Nada de esto determina la **categoría** del nadador. La categoría se
+  /// declara por habilidades y nunca por la edad (sección 11.1 de la
+  /// metodología 3.6.0): un niño y un adulto pueden entrenar en Iniciación.
+  bool necesitaAcudienteEn(DateTime referencia) {
+    if (declaraSerMayorDeEdad == true) return false;
+
+    // Si consta la fecha de nacimiento y dice que es mayor, se respeta: es un
+    // dato más fuerte que la ausencia de declaración.
+    if (esMenorEn(referencia) == false) return false;
+
+    return true;
+  }
 
   /// Obligatoria para dar el perfil por completo: sin ella no se puede validar
   /// el volumen de sus sesiones.
@@ -124,6 +152,7 @@ class Nadador {
     String? id,
     String? nombre,
     DateTime? fechaNacimiento,
+    bool? declaraSerMayorDeEdad,
     Categoria? categoria,
     Estilo? estiloObjetivo,
     String? pruebaObjetivo,
@@ -134,6 +163,8 @@ class Nadador {
       id: id ?? this.id,
       nombre: nombre ?? this.nombre,
       fechaNacimiento: fechaNacimiento ?? this.fechaNacimiento,
+      declaraSerMayorDeEdad:
+          declaraSerMayorDeEdad ?? this.declaraSerMayorDeEdad,
       categoria: categoria ?? this.categoria,
       estiloObjetivo: estiloObjetivo ?? this.estiloObjetivo,
       pruebaObjetivo: pruebaObjetivo ?? this.pruebaObjetivo,
