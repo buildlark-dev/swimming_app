@@ -84,6 +84,10 @@ flutter:
     # consentimiento consta bajo la version que su otorgante leyo, y cambiar
     # el texto no reescribe lo que alguien ya acepto (FR-018).
     - assets/consentimiento/
+    # Los terminos y condiciones, por la misma razon: queda guardado que
+    # version acepto cada quien y cuando, y cambiar el texto no reescribe lo
+    # que alguien ya acepto.
+    - assets/terminos/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

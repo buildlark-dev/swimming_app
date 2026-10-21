@@ -87,13 +87,13 @@ app le saluda por su nombre y no vuelve a preguntarle nada (escenario C1).
 
 ### El servidor
 
-- [ ] T015 [US1] Crear `firebase/functions/src/perfil.ts` con `guardarPerfil`, que escribe `usuarios/{uid}` **solo para el propio llamante**. Las reglas siguen en `write: if false` para el cliente (decisión D3)
-- [ ] T016 [P] [US1] Escribir en `firebase/test/perfil.test.js` la garantía A3: el cliente intenta escribir su perfil directamente y es **rechazado**; la operación del servidor sí puede
-- [ ] T017 [US1] Comprobar que `guardarPerfil` rechaza escribir el perfil **de otro**, no solo que exige autenticación
+- [X] T015 [US1] Crear `firebase/functions/src/perfil.ts` con `guardarPerfil`, que escribe `usuarios/{uid}` **solo para el propio llamante**. Las reglas siguen en `write: if false` para el cliente (decisión D3)
+- [X] T016 [P] [US1] Escribir en `firebase/test/perfil.test.js` la garantía A3: el cliente intenta escribir su perfil directamente y es **rechazado**; la operación del servidor sí puede
+- [X] T017 [US1] Comprobar que `guardarPerfil` rechaza escribir el perfil **de otro**, no solo que exige autenticación
 
 ### Lo que se escribe
 
-- [ ] T018 [P] [US1] Escribir `assets/terminos/texto_v1.md`, **marcado como borrador pendiente de revisión legal**, igual que el texto de consentimiento de la 004
+- [X] T018 [P] [US1] Escribir `assets/terminos/texto_v1.md`, **marcado como borrador pendiente de revisión legal**, igual que el texto de consentimiento de la 004
 - [ ] T019 [P] [US1] Crear `lib/datos/perfil/repositorio_perfil.dart` y su implementación contra la operación del servidor
 
 ### Las pantallas
@@ -166,7 +166,7 @@ queda sin que se le pida el consentimiento.
 **Independent Test**: seguir el enlace de una solicitud emitida en el alta y comprobar que
 lleva al formulario correcto (escenario C7).
 
-- [ ] T045 [US4] Comprobar que el enlace emitido en el alta lleva al formulario de la 004 **de ese nadador concreto**, sin cambiar el formulario
+- [ ] T045 [US4] **Construir** el camino hasta el formulario de la 004: una ruta que entienda `/consentimiento?t=…`, que la abra sin exigir haber entrado —el acudiente no tiene cuenta— y que llame a `canjear`. **No estaba construido**: ver decisión D10
 - [ ] T046 [P] [US4] Escribir en `test/ui/alta/ciclo_completo_test.dart` el escenario C7 y la garantía A11: al autorizar, **lo que estaba retenido sale solo**
 - [ ] T047 [US4] Enseñar el `origen` en la pantalla de consentimientos del entrenador, y dejarle volver a pedirlo desde su matrícula (escenario C8)
 - [ ] T048 [P] [US4] Escribir en `test/ui/alta/enlace_vencido_test.dart` que un enlace **vencido o ya usado** lo dice en palabras y explica cómo pedir otro, sin revelar cuál de las tres condiciones falló

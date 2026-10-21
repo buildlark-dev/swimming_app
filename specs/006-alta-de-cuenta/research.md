@@ -237,6 +237,61 @@ de la feature 002 las usa y no se puede modificar.
 
 ---
 
+## D9 — El cliente nunca ha llamado a una función, y ahora tiene que hacerlo
+
+**Lo que se encontró al implementar.** El plan decía que esta feature no añade ninguna
+dependencia. No se sostiene: el perfil lo escribe el servidor (D3), y **el cliente de esta app
+no tiene con qué llamar a una función**. `cloud_functions` no está en `pubspec.yaml`, y las
+cuatro operaciones de la feature 004 se llaman desde los scripts de administración, no desde
+la app.
+
+**Decisión.** Añadir `cloud_functions`, y justificarlo como pide el principio VII:
+
+- Es de la misma familia que `firebase_core`, `cloud_firestore` y `firebase_auth`, que ya
+  están. Funciona con los mismos emuladores.
+- La alternativa es montar a mano una petición HTTPS con el token de sesión, lo que significa
+  otra dependencia (`http`) **más** el código de firmar y reintentar que la librería ya trae.
+  Más dependencia y más superficie para equivocarse.
+- No aflojar la regla no es negociable: `usuarios/{uid}` lleva el vínculo entre cuenta y
+  nadador, y es lo que decide qué planes se leen.
+
+Queda escrito aquí porque el plan decía lo contrario, y un plan que se incumple en silencio
+deja de servir para nada.
+
+---
+
+## D10 — La cadena de consentimiento de la 004 **nunca se ha enchufado**
+
+**Lo que se encontró.** `PantallaConfirmacion` —el formulario donde un acudiente autoriza—
+existe, está probada y **no la construye nadie**. No hay ruta `/consentimiento` en
+`main.dart`, ni nada en `lib/` que la monte. La función `emitirSolicitud` del servidor
+tampoco la llama la app.
+
+Es decir: la feature 004 construyó la puerta, el formulario y el mecanismo, **y los tres
+nunca se han tocado entre sí fuera de las pruebas**. El enlace que un acudiente recibiría no
+lleva a ninguna parte.
+
+**Lo que esto significa para la 006.** La tarea T045 estaba escrita como «comprobar que el
+enlace lleva al formulario». No hay nada que comprobar: **hay que construir ese camino**. Es
+más trabajo del previsto y hay que decirlo, no absorberlo.
+
+Concretamente, falta:
+
+1. Una ruta que entienda `/consentimiento?t=…` y abra el formulario con ese token.
+2. Que el formulario llame a `canjear` en el servidor, que ya existe y está probado.
+3. Que la app, al arrancar con esa ruta, **no exija haber entrado**: el acudiente no tiene
+   cuenta, y ese es el punto.
+
+**Por qué no se notó antes.** Porque la feature 004 se dio por buena con 88 de 90 tareas y dos
+pendientes de verificación en dispositivo real —las T088 y T089, que siguen abiertas—. Las
+pruebas de unidad cubrían cada pieza por separado, y el escenario que las juntaba era
+precisamente uno de los que quedaron pendientes.
+
+Es el mismo patrón que la feature 005 encontró dos veces: **un banco solo mide los caminos que
+monta**. Aquí no había banco que montara el camino entero.
+
+---
+
 ## D7b — Lo que la app sea internacional deja abierto
 
 Al decidir la Q2 se acordó que el país es **solo informativo**: para que el club sepa de dónde
