@@ -265,7 +265,7 @@ el desplegable del editor y el reparto del plan— y la notación se quedó inta
 - [X] T043 [P] Documentar en `docs/DEVELOPMENT.md`, **en inglés**, dónde vive el tema y la regla de que `paleta.dart` es el único archivo con literales de color
 - [X] T044 Recorrer entero [quickstart.md](quickstart.md) y marcar cada escenario con lo que lo cubre
 - [X] T045 Pasar las cuatro puertas de calidad en orden: `flutter analyze`, `flutter test`, `npm --prefix firebase test` y `dart run tool/verificar_metodologia.dart`
-- [ ] T046 Desplegar con la secuencia de `docs/DEVELOPMENT.md` y **comprobar el sitio en vivo**, no dar por bueno un «deploy complete». La app está en uso, y la feature 004 enseñó que un despliegue correcto puede servir un bundle viejo
+- [X] T046 Desplegar con la secuencia de `docs/DEVELOPMENT.md` y **comprobar el sitio en vivo**, no dar por bueno un «deploy complete». La app está en uso, y la feature 004 enseñó que un despliegue correcto puede servir un bundle viejo
 - [ ] T047 Verificar el escenario V10 **en un teléfono, al aire libre y con sol**. Es lo único que ninguna prueba automática dice: si de verdad se lee. El contraste calculado es condición necesaria, no suficiente
 
 ---
@@ -333,3 +333,22 @@ ve su app.
   veces, y en la 004 el despliegue destapó cinco fallos que las pruebas no veían.
 - **Si un color bonito no cumple el contraste, gana el contraste.** La app se usa al sol, con
   la pantalla mojada, y a veces la lee un niño de nueve años.
+
+---
+
+## Lo que encontró el despliegue (tarea T046)
+
+La feature 004 arregló la caché del navegador poniendo `no-cache` en los cinco puntos de
+entrada sin hash, uno de ellos `/index.html`. **Pero por `/index.html` no entra nadie**: se
+entra por `/`, que la reescritura sirve desde el mismo archivo y que no casaba con esa
+regla. Salía con `max-age=3600`.
+
+En la práctica hacía poco daño, porque `flutter_bootstrap.js` y `main.dart.js` sí eran
+`no-cache` y el código llegaba fresco igual. Pero era el mismo agujero de la 004 con otra
+ruta, y se cerró añadiendo `/` a las cabeceras.
+
+Lo demás salió limpio a la primera: `FirebaseAuthWeb.registerWith` está en el registrante
+—el fallo 2 de la 004 no se repitió, porque se construyó tras un `flutter clean`—, la
+consola del sitio en vivo no tiene un solo error, y **la app sigue al tema del navegador en
+el sitio desplegado**, que es la prueba de que el bundle servido es el nuevo: antes de esta
+feature no había modo oscuro que seguir.
