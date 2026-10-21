@@ -29,6 +29,9 @@ import 'package:natacion_app/dominio/metodologia/zonas.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
 import 'package:natacion_app/ui/acceso/pantalla_acceso.dart';
+import 'package:natacion_app/dominio/cuentas/perfil.dart';
+import 'package:natacion_app/ui/alta/estado_alta.dart';
+import 'package:natacion_app/ui/alta/pantalla_alta.dart';
 import 'package:natacion_app/ui/consentimiento/pantalla_confirmacion.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/ui/editor/pantalla_editor.dart';
@@ -125,6 +128,35 @@ Plan _plan() => Plan(
       ],
     );
 
+/// El alta, montada en el paso que se quiera mirar.
+///
+/// Los pasos del alta son pantallas distintas aunque compartan contenedor, y
+/// medir solo el primero dejaría los otros cuatro sin medir — que es
+/// exactamente el fallo que la feature 005 cometió dos veces.
+Widget _alta(Perfil perfil, {int paso = 0}) {
+  final estado = EstadoAlta(
+    operaciones: null,
+    correoDeLaCuenta: 'nadador@ejemplo.com',
+    reloj: () => _hoy,
+  );
+
+  if (perfil.nombre.isNotEmpty) estado.escribirNombre(perfil.nombre);
+  if (perfil.fechaNacimiento != null) {
+    estado.escribirNacimiento(perfil.fechaNacimiento);
+  }
+  if (perfil.pais != null) estado.escribirPais(perfil.pais);
+  if (perfil.terminos != null) estado.aceptarTerminos(aceptados: true);
+
+  for (var i = 0; i < paso; i++) {
+    estado.avanzar();
+  }
+
+  return ChangeNotifierProvider<EstadoAlta>.value(
+    value: estado,
+    child: PantallaAlta(alTerminar: (_) {}),
+  );
+}
+
 EstadoNadador _estadoNadador() {
   final estado = EstadoNadador(
     sincronizador: Sincronizador(
@@ -202,6 +234,41 @@ List<PantallaMedible> pantallasDeLaApp() => [
         () => PantallaPeticion(
           biblioteca: _biblioteca(),
           alGenerar: (_) {},
+        ),
+      ),
+      PantallaMedible(
+        'alta — nombre',
+        () => _alta(const Perfil()),
+      ),
+      PantallaMedible(
+        'alta — términos',
+        // El paso de los términos lleva el texto legal entero dentro, que es
+        // el contenido más largo de toda la app. Si algo desborda, es aquí.
+        () => _alta(
+          Perfil(
+            nombre: 'Juan Esteban Restrepo',
+            fechaNacimiento: DateTime(1995, 4, 12),
+            pais: 'CO',
+          ),
+          paso: 3,
+        ),
+      ),
+      PantallaMedible(
+        'alta — acudiente',
+        // Solo aparece para menores, así que el perfil lleva una fecha de
+        // menor a propósito: con una de adulto, este paso no existiría y la
+        // pantalla no se mediría.
+        () => _alta(
+          Perfil(
+            nombre: 'Ana María Restrepo',
+            fechaNacimiento: DateTime(2014, 3, 10),
+            pais: 'CO',
+            terminos: AceptacionDeTerminos(
+              version: 'v1',
+              aceptadaEn: _hoy,
+            ),
+          ),
+          paso: 4,
         ),
       ),
       PantallaMedible(

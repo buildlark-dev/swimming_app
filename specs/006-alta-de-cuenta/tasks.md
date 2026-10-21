@@ -94,22 +94,22 @@ app le saluda por su nombre y no vuelve a preguntarle nada (escenario C1).
 ### Lo que se escribe
 
 - [X] T018 [P] [US1] Escribir `assets/terminos/texto_v1.md`, **marcado como borrador pendiente de revisión legal**, igual que el texto de consentimiento de la 004
-- [ ] T019 [P] [US1] Crear `lib/datos/perfil/repositorio_perfil.dart` y su implementación contra la operación del servidor
+- [ ] T019 [P] [US1] Crear `lib/datos/perfil/repositorio_perfil.dart` para **leer** si el perfil está completo. La escritura ya la hace `OperacionesDelServidor`; lo que falta es la lectura, y de ella depende T026 y toda la historia 3
 
 ### Las pantallas
 
-- [ ] T020 [US1] Crear `lib/ui/alta/estado_alta.dart`: el recorrido por pasos y lo que lleva escrito, **guardado en el dispositivo** hasta el envío final (decisión D6)
-- [ ] T021 [US1] Crear `lib/ui/alta/pantalla_alta.dart`, el contenedor con el avance visible y el botón de volver
-- [ ] T022 [P] [US1] Crear `lib/ui/alta/paso_nombre.dart` con `Campo` de la feature 005
-- [ ] T023 [P] [US1] Crear `lib/ui/alta/paso_nacimiento.dart`
-- [ ] T024 [P] [US1] Crear `lib/ui/alta/paso_pais.dart` con `CampoDeOpciones`, y **la opción de no decirlo** (FR-009)
-- [ ] T025 [US1] Crear `lib/ui/alta/paso_terminos.dart` con el texto **delante, legible en la pantalla, no detrás de un enlace** (FR-005). Es la misma regla que la 004 aplicó al consentimiento
-- [ ] T026 [US1] Enganchar el alta al botón «¿No tienes cuenta? Créala» de `lib/ui/acceso/pantalla_acceso.dart`
-- [ ] T027 [US1] Añadir las pantallas del alta a `test/ui/tema/ayuda_pantallas.dart`, **con contenido realista**. Si no, T006 falla, que es justo para lo que está
+- [X] T020 [US1] Crear `lib/ui/alta/estado_alta.dart`: el recorrido por pasos y lo que lleva escrito, **guardado en el dispositivo** hasta el envío final (decisión D6)
+- [X] T021 [US1] Crear `lib/ui/alta/pantalla_alta.dart`, el contenedor con el avance visible y el botón de volver
+- [X] T022 [P] [US1] Crear `lib/ui/alta/paso_nombre.dart` con `Campo` de la feature 005
+- [X] T023 [P] [US1] Crear `lib/ui/alta/paso_nacimiento.dart`
+- [X] T024 [P] [US1] Crear `lib/ui/alta/paso_pais.dart` con `CampoDeOpciones`, y **la opción de no decirlo** (FR-009)
+- [X] T025 [US1] Crear `lib/ui/alta/paso_terminos.dart` con el texto **delante, legible en la pantalla, no detrás de un enlace** (FR-005). Es la misma regla que la 004 aplicó al consentimiento
+- [ ] T026 [US1] Enganchar el alta **al arranque, no al botón**: tras entrar, si el perfil está incompleto se recorren los pasos. Así la historia 1 y la 3 son el mismo camino, que es lo que pide T040. Depende de T019
+- [X] T027 [US1] Añadir las pantallas del alta a `test/ui/tema/ayuda_pantallas.dart`, **con contenido realista**. Si no, T006 falla, que es justo para lo que está
 
 ### Las pruebas que miden
 
-- [ ] T028 [P] [US1] Escribir en `test/ui/alta/recorrido_test.dart` los escenarios C1 y C2: los pasos se recorren, y **volver atrás no borra nada**
+- [X] T028 [P] [US1] Escribir en `test/ui/alta/recorrido_test.dart` los escenarios C1 y C2: los pasos se recorren, y **volver atrás no borra nada**
 - [ ] T029 [P] [US1] Escribir en `test/ui/alta/interrupcion_test.dart` la garantía A2 y el escenario C3: se cierra a mitad, se vuelve, sigue donde estaba, y **en el servidor no hay nada escrito**
 - [ ] T030 [P] [US1] Escribir en `test/ui/alta/sin_consentimiento_test.dart` que a un adulto **nunca se le menciona** acudiente ni consentimiento
 

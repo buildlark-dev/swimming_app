@@ -18,6 +18,7 @@ class Campo extends StatelessWidget {
     super.key,
     required this.etiqueta,
     this.controlador,
+    this.valorInicial,
     this.pista,
     this.ayuda,
     this.problema,
@@ -30,6 +31,13 @@ class Campo extends StatelessWidget {
 
   final String etiqueta;
   final TextEditingController? controlador;
+
+  /// Lo que el campo trae escrito al aparecer.
+  ///
+  /// Hace falta para que **volver atrás en un recorrido no borre nada**: sin
+  /// esto el campo se reconstruye vacío aunque el dato siga guardado, y quien
+  /// vuelve cree que lo perdió. Lo cazó la prueba C2 del alta.
+  final String? valorInicial;
 
   /// Ejemplo de lo que se espera, dentro del campo.
   final String? pista;
@@ -53,6 +61,8 @@ class Campo extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controlador,
+      // `TextFormField` no admite las dos cosas a la vez.
+      initialValue: controlador == null ? valorInicial : null,
       obscureText: esClave,
       keyboardType: tipoDeTeclado,
       maxLines: lineas,
