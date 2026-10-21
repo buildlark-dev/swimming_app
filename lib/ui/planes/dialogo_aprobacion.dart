@@ -6,6 +6,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/auditoria/auditoria.dart';
 import 'package:natacion_app/dominio/auditoria/criterio.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
@@ -64,7 +65,6 @@ class _DialogoAprobacionState extends State<DialogoAprobacion> {
     final resultado = widget.auditoria.evaluar(widget.plan);
     final bloqueantes = resultado.bloqueantesEnRojo;
     final justificables = resultado.justificablesEnRojo;
-    final esquema = Theme.of(context).colorScheme;
 
     final puedeAprobar =
         bloqueantes.isEmpty && _todasLasJustificacionesEscritas;
@@ -79,12 +79,15 @@ class _DialogoAprobacionState extends State<DialogoAprobacion> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (bloqueantes.isNotEmpty) ...[
+                // **Cuidado, no error.** La app no ha fallado: ha encontrado
+                // un incumplimiento que la metodología no deja justificar. Es
+                // un límite, no una avería (FR-016).
                 Text(
                   'No se puede aprobar',
                   style: Theme.of(context)
                       .textTheme
                       .titleSmall
-                      ?.copyWith(color: esquema.error),
+                      ?.copyWith(color: context.colores.cuidado),
                 ),
                 const SizedBox(height: 4),
                 const Text(
@@ -166,7 +169,7 @@ class _Impedimento extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.block, size: 16, color: Theme.of(context).colorScheme.error),
+          Icon(Icons.block, size: 16, color: context.colores.cuidado),
           const SizedBox(width: 8),
           Expanded(
             child: Column(

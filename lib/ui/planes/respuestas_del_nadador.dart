@@ -12,6 +12,12 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/calculo/progreso_nadador.dart';
+import 'package:natacion_app/ui/componentes/aviso.dart';
+import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
+import 'package:natacion_app/ui/componentes/tarjeta.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
+import 'package:natacion_app/ui/tema/tipografia.dart';
 
 class RespuestasDelNadador extends StatelessWidget {
   const RespuestasDelNadador({super.key, required this.progreso});
@@ -22,38 +28,25 @@ class RespuestasDelNadador extends StatelessWidget {
   Widget build(BuildContext context) {
     final conMolestia = progreso.conMolestia;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'Respuesta del nadador',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const Spacer(),
-                Text(
-                  'Completadas ${progreso.adherenciaDelPlan.descripcion}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
+    return Tarjeta(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CabeceraSeccion(
+            titulo: 'Respuesta del nadador',
+            cifra: 'Completadas ${progreso.adherenciaDelPlan.descripcion}',
+          ),
 
-            // Las molestias se listan arriba para que se encuentren **sin leer
-            // todas las observaciones de todas las sesiones** (SC-006).
-            if (conMolestia.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _Molestias(entradas: conMolestia),
-            ],
-
-            const Divider(height: 24),
-            for (final entrada in progreso.historial)
-              _Fila(entrada: entrada),
+          // Las molestias se listan arriba para que se encuentren **sin leer
+          // todas las observaciones de todas las sesiones** (SC-006).
+          if (conMolestia.isNotEmpty) ...[
+            const SizedBox(height: Espaciado.normal),
+            _Molestias(entradas: conMolestia),
           ],
-        ),
+
+          const Divider(height: Espaciado.seccion),
+          for (final entrada in progreso.historial) _Fila(entrada: entrada),
+        ],
       ),
     );
   }
@@ -66,52 +59,33 @@ class _Molestias extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final esquema = Theme.of(context).colorScheme;
-
-    return Card(
-      color: esquema.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.healing_outlined, color: esquema.onErrorContainer),
-                const SizedBox(width: 8),
-                Text(
-                  'Reportes de molestia (${entradas.length})',
-                  style: TextStyle(
-                    color: esquema.onErrorContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+    // **Tono de cuidado, nunca el de error** (garantía V11).
+    //
+    // Un nadador diciendo que le molestó el hombro es información, no una
+    // avería. Tiene que encontrarse sin leer todas las observaciones de todas
+    // las sesiones —por eso va arriba y por eso lleva color—, y a la vez no
+    // puede parecer una urgencia médica.
+    //
+    // Pintarlo de rojo es una forma de opinar, y el principio IV prohíbe que la
+    // app diagnostique o proponga conducta. La última línea lo dice en voz
+    // alta: decide el entrenador.
+    return Aviso(
+      tono: TonoDeAviso.cuidado,
+      icono: Icons.healing_outlined,
+      titulo: 'Reportes de molestia (${entradas.length})',
+      mensaje: 'La app no propone ninguna conducta: decide usted.',
+      detalles: [
+        for (final entrada in entradas)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Text(
+              '${entrada.sesion.objetivoTecnico}: '
+              '${entrada.registro!.molestia!.descripcion}'
+              '${entrada.registro!.molestia!.zonaDelCuerpo.isEmpty ? '' : ' '
+                  '(${entrada.registro!.molestia!.zonaDelCuerpo})'}',
             ),
-            const SizedBox(height: 8),
-            for (final entrada in entradas)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Text(
-                  '${entrada.sesion.objetivoTecnico}: '
-                  '${entrada.registro!.molestia!.descripcion}'
-                  '${entrada.registro!.molestia!.zonaDelCuerpo.isEmpty ? '' : ' '
-                      '(${entrada.registro!.molestia!.zonaDelCuerpo})'}',
-                  style: TextStyle(color: esquema.onErrorContainer),
-                ),
-              ),
-            const SizedBox(height: 8),
-            Text(
-              'La app no propone ninguna conducta: decide usted.',
-              style: TextStyle(
-                color: esquema.onErrorContainer,
-                fontSize: 12,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 }
@@ -141,10 +115,14 @@ class _Fila extends StatelessWidget {
                   entrada.sesion.objetivoTecnico,
                   style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
+                // Cifras tabulares (FR-008): esta columna se lee de arriba
+                // abajo, sesión por sesión, y para eso tiene que alinearse.
                 Text(
                   '${entrada.sesion.metros} m · '
                   '${entrada.sesion.porcentajeTecnico.toStringAsFixed(0)}% téc',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Tipografia.notacion(
+                    Theme.of(context).textTheme.bodySmall ?? const TextStyle(),
+                  ),
                 ),
               ],
             ),
@@ -165,14 +143,18 @@ class _Fila extends StatelessWidget {
                     children: [
                       Row(
                         children: [
+                          // «No la hizo» **no es un error**: también es
+                          // información, y el nadador pudo tener un buen
+                          // motivo. El icono ya lo distingue; el color solo
+                          // tiene que hacerlo visible.
                           Icon(
                             registro.realizada
                                 ? Icons.check_circle_outline
                                 : Icons.cancel_outlined,
-                            size: 16,
+                            size: Espaciado.iconoEnLinea,
                             color: registro.realizada
                                 ? esquema.primary
-                                : esquema.error,
+                                : context.colores.cuidado,
                           ),
                           const SizedBox(width: 6),
                           Text(

@@ -12,8 +12,11 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/calculo/progreso_nadador.dart';
+import 'package:natacion_app/ui/componentes/estado_vacio.dart';
 import 'package:natacion_app/ui/nadador/aviso_sincronizacion.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:provider/provider.dart';
 
@@ -28,7 +31,15 @@ class PantallaMiProgreso extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Mi progreso')),
       body: progreso == null
-          ? const Center(child: Text('Todavía no tienes un plan asignado'))
+          ? const Padding(
+              padding: EdgeInsets.all(Espaciado.amplio),
+              child: EstadoVacio(
+                icono: Icons.event_busy_outlined,
+                titulo: 'Todavía no tienes un plan asignado',
+                queHacer: 'Cuando tu entrenador te asigne uno, tu progreso '
+                    'aparecerá aquí.',
+              ),
+            )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -156,12 +167,14 @@ class _Entrada extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(Icons.healing_outlined,
-                        size: 16, color: esquema.error),
+                        size: 16, color: context.colores.cuidado),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         registro!.molestia!.descripcion,
-                        style: TextStyle(color: esquema.error, fontSize: 12),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: context.colores.cuidado,
+                        ),
                       ),
                     ),
                   ],

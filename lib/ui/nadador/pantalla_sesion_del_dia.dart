@@ -13,6 +13,10 @@ import 'package:natacion_app/dominio/notacion/renderizador.dart';
 import 'package:natacion_app/ui/nadador/aviso_sincronizacion.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:natacion_app/ui/nadador/formulario_registro.dart';
+import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
+import 'package:natacion_app/ui/componentes/estado_vacio.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
+import 'package:natacion_app/ui/tema/tipografia.dart';
 import 'package:provider/provider.dart';
 
 class PantallaSesionDelDia extends StatelessWidget {
@@ -30,15 +34,12 @@ class PantallaSesionDelDia extends StatelessWidget {
     final estado = context.watch<EstadoNadador>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mi entrenamiento'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Center(child: UltimaSincronizacion(estado: estado)),
-          ),
-        ],
-      ),
+      // «Al día hasta el 20/10 a las 07:00» **no cabe en la barra**.
+      //
+      // Con la letra del sistema al 200% se salía 279 píxeles por la derecha, y
+      // quien agranda la letra es precisamente quien necesita leer eso. Baja al
+      // cuerpo, junto al aviso de sincronización, que es de lo que habla.
+      appBar: AppBar(title: const Text('Mi entrenamiento')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -47,6 +48,8 @@ class PantallaSesionDelDia extends StatelessWidget {
             const SizedBox(height: 12),
           ],
           AvisoSincronizacion(estado: estado),
+          const SizedBox(height: Espaciado.minimo),
+          UltimaSincronizacion(estado: estado),
           const SizedBox(height: 8),
           _Hoy(estado: estado),
           const SizedBox(height: 80),
@@ -64,27 +67,27 @@ class _Hoy extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (estado.plan == null) {
-      return const _Mensaje(
+      return const EstadoVacio(
         icono: Icons.event_busy_outlined,
         titulo: 'Todavía no tienes un plan asignado',
-        detalle: 'Cuando tu entrenador te asigne uno, aparecerá aquí.',
+        queHacer: 'Cuando tu entrenador te asigne uno, aparecerá aquí.',
       );
     }
 
     return switch (estado.hoy) {
       SesionDeHoy(:final sesion) => _Sesion(sesion: sesion, estado: estado),
-      SinSesionHoy(:final siguiente, :final cuando) => _Mensaje(
+      SinSesionHoy(:final siguiente, :final cuando) => EstadoVacio(
           icono: Icons.event_available_outlined,
           titulo: 'Hoy descansas',
-          detalle: 'Tu próxima sesión es el '
+          queHacer: 'Tu próxima sesión es el '
               '${cuando.day.toString().padLeft(2, '0')}/'
               '${cuando.month.toString().padLeft(2, '0')}: '
               '${siguiente.objetivoTecnico}',
         ),
-      SinSesionesPorDelante() => const _Mensaje(
+      SinSesionesPorDelante() => const EstadoVacio(
           icono: Icons.flag_outlined,
           titulo: 'No quedan sesiones por delante',
-          detalle: 'Habla con tu entrenador para el siguiente ciclo.',
+          queHacer: 'Habla con tu entrenador para el siguiente ciclo.',
         ),
     };
   }
@@ -167,18 +170,25 @@ class _Parte extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(tipo.nombre, style: Theme.of(context).textTheme.titleSmall),
-                Text(
-                  '${parte.metros} m',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+            // `Wrap` y no `Row`: si el nombre de la parte y los metros no caben
+            // en una línea, los metros bajan a la siguiente en lugar de
+            // salirse.
+            CabeceraSeccion(
+              titulo: tipo.nombre,
+              cifra: '${parte.metros} m',
+              estilo: Theme.of(context).textTheme.titleSmall,
             ),
             const Divider(),
-            SelectableText(renderizador.series(parte.series)),
+            // Cifras de ancho fijo (FR-008). `4x100 / 1'40"` es una
+            // **instrucción**: si las columnas bailan de línea a línea, se lee
+            // mal, y leer mal una cifra cambia lo que el nadador hace en el
+            // agua. Es el sitio de la app donde esto más importa.
+            SelectableText(
+              renderizador.series(parte.series),
+              style: Tipografia.notacion(
+                Theme.of(context).textTheme.bodyLarge ?? const TextStyle(),
+              ),
+            ),
           ],
         ),
       ),
@@ -186,32 +196,3 @@ class _Parte extends StatelessWidget {
   }
 }
 
-class _Mensaje extends StatelessWidget {
-  const _Mensaje({
-    required this.icono,
-    required this.titulo,
-    required this.detalle,
-  });
-
-  final IconData icono;
-  final String titulo;
-  final String detalle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Icon(icono, size: 40),
-            const SizedBox(height: 12),
-            Text(titulo, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 4),
-            Text(detalle, textAlign: TextAlign.center),
-          ],
-        ),
-      ),
-    );
-  }
-}

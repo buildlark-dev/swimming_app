@@ -12,6 +12,11 @@ import 'package:natacion_app/dominio/metodologia/estilos.dart';
 import 'package:natacion_app/dominio/metodologia/zonas.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/ui/editor/panel_avisos.dart';
+import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
+import 'package:natacion_app/ui/componentes/etiqueta_de_zona.dart';
+import 'package:natacion_app/ui/componentes/campo.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
+import 'package:natacion_app/ui/tema/tipografia.dart';
 import 'package:provider/provider.dart';
 
 class PantallaEditor extends StatelessWidget {
@@ -36,16 +41,14 @@ class PantallaEditor extends StatelessWidget {
               )
             : null,
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Center(
-              child: Text(
-                '${estado.sesion.metros} m · '
-                '${estado.sesion.porcentajeTecnico.toStringAsFixed(0)}% técnico',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-          ),
+          // Los totales en vivo **no van aquí**. Una barra de herramientas
+          // tiene una altura fija, y con la letra del sistema al 200% el texto
+          // se salía 49 píxeles por la derecha: el entrenador que agranda la
+          // letra es justo el que deja de ver los metros. Viven en la cabecera
+          // de la sesión, donde pueden ocupar dos líneas si hace falta.
+          //
+          // Lo destapó la garantía V7.
+
           // Sin esto, lo revisado se quedaba en el editor: no había por dónde
           // aprobarlo, publicarlo ni entregárselo a nadie (tarea T006).
           if (estado.revisandoGenerado && alRevisarPlan != null)
@@ -130,37 +133,35 @@ class _CabeceraSesion extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DropdownButtonFormField<Categoria>(
-              initialValue: estado.categoria,
-              decoration: const InputDecoration(labelText: 'Categoría'),
-              items: [
-                for (final categoria in Categoria.values)
-                  DropdownMenuItem(
-                    value: categoria,
-                    child: Text(
-                      '${categoria.nombre} · ${categoria.volumenPorSesion}',
-                    ),
-                  ),
-              ],
-              onChanged: (valor) {
+            // Los totales en vivo, que antes estaban en la barra de arriba.
+            // Aquí caben: si no entran en una línea, bajan a la siguiente.
+            CabeceraSeccion(
+              titulo: '${estado.sesion.metros} m',
+              cifra: '${estado.sesion.porcentajeTecnico.toStringAsFixed(0)}% '
+                  'técnico',
+              estiloDeCifra: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: Espaciado.corto),
+            CampoDeOpciones<Categoria>(
+              etiqueta: 'Categoría',
+              valor: estado.categoria,
+              opciones: Categoria.values,
+              nombreDe: (c) => '${c.nombre} · ${c.volumenPorSesion}',
+              alCambiar: (valor) {
                 if (valor != null) estado.cambiarCategoria(valor);
               },
             ),
             const SizedBox(height: 8),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Objetivo técnico',
-                hintText: 'Mejoramiento técnica de Espalda',
-              ),
-              onChanged: estado.cambiarObjetivoTecnico,
+            Campo(
+              etiqueta: 'Objetivo técnico',
+              pista: 'Mejoramiento técnica de Espalda',
+              alCambiar: estado.cambiarObjetivoTecnico,
             ),
             const SizedBox(height: 8),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Objetivo fisiológico',
-                hintText: 'Base aeróbica',
-              ),
-              onChanged: estado.cambiarObjetivoFisiologico,
+            Campo(
+              etiqueta: 'Objetivo fisiológico',
+              pista: 'Base aeróbica',
+              alCambiar: estado.cambiarObjetivoFisiologico,
             ),
             const SizedBox(height: 8),
             _SelectorRpe(estado: estado),
@@ -178,18 +179,21 @@ class _SelectorRpe extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    // La etiqueta encima y el control debajo, no al lado.
+    //
+    // Con la letra al 200% el texto medía más que la pantalla y el deslizador
+    // se salía 402 píxeles. Un control de una fila solo cabe si el texto que
+    // lo acompaña es corto, y este no lo es en ningún idioma.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('RPE previsto (Borg 0-10):'),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Slider(
-            value: (estado.sesion.rpePrevisto ?? 0).toDouble(),
-            max: 10,
-            divisions: 10,
-            label: '${estado.sesion.rpePrevisto ?? 0}',
-            onChanged: (valor) => estado.cambiarRpe(valor.round()),
-          ),
+        Slider(
+          value: (estado.sesion.rpePrevisto ?? 0).toDouble(),
+          max: 10,
+          divisions: 10,
+          label: '${estado.sesion.rpePrevisto ?? 0}',
+          onChanged: (valor) => estado.cambiarRpe(valor.round()),
         ),
       ],
     );
@@ -213,19 +217,10 @@ class _CampoParte extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  tipo.nombre,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  '${parte.metros} m · ${porcentaje.toStringAsFixed(0)}% '
+            CabeceraSeccion(
+              titulo: tipo.nombre,
+              cifra: '${parte.metros} m · ${porcentaje.toStringAsFixed(0)}% '
                   '(prescrito ${tipo.porcentajePrescrito}%)',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
             ),
             const SizedBox(height: 8),
             TextField(
@@ -319,16 +314,24 @@ class _FilaSerie extends StatelessWidget {
         children: [
           Expanded(
             flex: 3,
+            // Cifras tabulares (FR-008): esta es la columna donde el
+            // entrenador compara lo que escribió con lo que la app entendió, y
+            // compararlas exige que se alineen.
             child: Text(
               '${serie.repeticiones}x${serie.distancia} m'
               '${serie.ejercicio != null ? ' · ${serie.ejercicio!.nombreParaPlan}' : ''}',
-              style: TextStyle(
-                fontWeight: corregida ? FontWeight.bold : FontWeight.normal,
+              style: Tipografia.notacion(
+                TextStyle(
+                  fontWeight: corregida ? FontWeight.bold : FontWeight.normal,
+                ),
               ),
             ),
           ),
           Expanded(
             flex: 2,
+            // La zona lleva su color, **sin perder la abreviatura** (FR-016).
+            // El entrenador ve la rampa mientras asigna, y quien no distinga
+            // colores sigue leyendo `A1` o `Máx` igual que antes.
             child: DropdownButton<Zona>(
               isExpanded: true,
               value: serie.zona,
@@ -337,7 +340,7 @@ class _FilaSerie extends StatelessWidget {
                 for (final zona in Zona.values)
                   DropdownMenuItem(
                     value: zona,
-                    child: Text(zona.abreviatura),
+                    child: EtiquetaDeZona(zona: zona),
                   ),
               ],
               onChanged: (zona) {
@@ -350,6 +353,7 @@ class _FilaSerie extends StatelessWidget {
             child: Text(
               '${serie.metros} m',
               textAlign: TextAlign.end,
+              style: Tipografia.notacion(const TextStyle()),
             ),
           ),
           if (corregida)

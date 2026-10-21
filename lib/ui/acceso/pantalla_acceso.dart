@@ -10,6 +10,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/componentes/boton.dart';
 
 /// Qué hace el botón: entrar con una cuenta que ya existe, o crear una.
 enum ModoDeAcceso { entrar, crear }
@@ -136,16 +137,11 @@ class _PantallaAccesoState extends State<PantallaAcceso> {
                     ),
                   ],
                   const SizedBox(height: 24),
-                  FilledButton(
-                    key: const Key('boton-acceso'),
-                    onPressed: _enviando ? null : _enviar,
-                    child: _enviando
-                        ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(creando ? 'Crear cuenta' : 'Entrar'),
+                  BotonPrincipal(
+                    clave: const Key('boton-acceso'),
+                    etiqueta: creando ? 'Crear cuenta' : 'Entrar',
+                    trabajando: _enviando,
+                    alPulsar: _enviar,
                   ),
                   const SizedBox(height: 8),
                   TextButton(

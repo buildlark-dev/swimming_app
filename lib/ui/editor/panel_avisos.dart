@@ -8,7 +8,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/entidades/parte.dart';
+import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
 
 class PanelAvisos extends StatelessWidget {
   const PanelAvisos({super.key, required this.estado});
@@ -20,93 +23,88 @@ class PanelAvisos extends StatelessWidget {
     final pendientes = estado.pendientes;
     final volumen = estado.volumen;
     final faltas = estado.sesion.faltas;
-    final esquema = Theme.of(context).colorScheme;
 
     final completa = estado.sesion.estaCompleta;
 
-    return Card(
-      color: completa
-          ? esquema.secondaryContainer
-          : esquema.errorContainer.withValues(alpha: 0.35),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(completa ? Icons.check_circle : Icons.info_outline),
-                const SizedBox(width: 8),
-                Text(
-                  completa ? 'Sesión completa' : 'Sesión incompleta',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const Divider(),
-
-            // Volumen frente a la categoría.
-            _Linea(
-              icono: volumen.dentroDelRango
-                  ? Icons.check
-                  : Icons.report_problem_outlined,
-              texto: volumen.descripcion,
-              esProblema: !volumen.dentroDelRango,
-            ),
-
-            // Reparto entre partes.
-            for (final desviacion in estado.calculo.repartoDePartes)
-              if (estado.sesion.metros > 0 &&
-                  desviacion.diferencia.abs() > 10)
-                _Linea(
-                  icono: Icons.percent,
-                  texto: '${desviacion.tipo.nombre}: '
-                      '${desviacion.porcentajeReal.toStringAsFixed(0)}% '
-                      'frente al ${desviacion.porcentajePrescrito}% prescrito',
-                  esProblema: true,
-                ),
-
-            // Metros sin zona asignada.
-            if (estado.calculo.metrosSinZona > 0)
-              _Linea(
-                icono: Icons.help_outline,
-                texto: '${estado.calculo.metrosSinZona} m sin zona asignada. '
-                    'La zona la asigna el entrenador, la app no la supone.',
-                esProblema: true,
-              ),
-
-            // Fragmentos pendientes.
-            if (pendientes.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Sin interpretar (${pendientes.length})',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              for (final pendiente in pendientes)
-                _Linea(
-                  icono: _iconoDe(pendiente.motivo),
-                  texto: '"${pendiente.texto}" — '
-                      '${pendiente.motivo.descripcion}'
-                      '${pendiente.detalle.isEmpty ? '' : '. ${pendiente.detalle}'}',
-                  esProblema: true,
-                ),
-            ],
-
-            // Datos obligatorios que faltan.
-            for (final falta in faltas)
-              if (falta.campo != 'pendientes')
-                _Linea(
-                  icono: Icons.edit_note,
-                  texto: falta.descripcion,
-                  esProblema: true,
-                ),
-
-            // Notación en desuso y otros avisos que no bloquean.
-            for (final aviso in estado.avisos)
-              _Linea(icono: Icons.info_outline, texto: aviso, esProblema: false),
-          ],
+    // **Cuidado, no error.**
+    //
+    // Una sesión incompleta no es una avería: es una sesión a medio escribir,
+    // que es el estado normal mientras el entrenador la escribe. Pintar de rojo
+    // el trabajo en curso era decirle que algo se había roto cada vez que
+    // empezaba una sesión nueva.
+    //
+    // Cuando sí está completa, el tono es de éxito, que es lo que es.
+    return Aviso(
+      tono: completa ? TonoDeAviso.exito : TonoDeAviso.cuidado,
+      icono: completa ? Icons.check_circle_outline : Icons.pending_outlined,
+      titulo: completa ? 'Sesión completa' : 'Sesión incompleta',
+      mensaje: completa
+          ? 'No queda nada por resolver.'
+          : 'Lo que falta para darla por completa:',
+      detalles: [
+        // Volumen frente a la categoría.
+        LineaDeAviso(
+          icono: volumen.dentroDelRango
+              ? Icons.check
+              : Icons.report_problem_outlined,
+          texto: volumen.descripcion,
+          destacada: !volumen.dentroDelRango,
         ),
-      ),
+
+        // Reparto entre partes.
+        for (final desviacion in estado.calculo.repartoDePartes)
+          if (estado.sesion.metros > 0 && desviacion.diferencia.abs() > 10)
+            LineaDeAviso(
+              icono: Icons.percent,
+              texto: '${desviacion.tipo.nombre}: '
+                  '${desviacion.porcentajeReal.toStringAsFixed(0)}% '
+                  'frente al ${desviacion.porcentajePrescrito}% prescrito',
+              destacada: true,
+            ),
+
+        // Metros sin zona asignada.
+        if (estado.calculo.metrosSinZona > 0)
+          LineaDeAviso(
+            icono: Icons.help_outline,
+            texto: '${estado.calculo.metrosSinZona} m sin zona asignada. '
+                'La zona la asigna el entrenador, la app no la supone.',
+            destacada: true,
+          ),
+
+        // Fragmentos pendientes.
+        if (pendientes.isNotEmpty) ...[
+          const SizedBox(height: Espaciado.corto),
+          Text(
+            'Sin interpretar (${pendientes.length})',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          for (final pendiente in pendientes)
+            LineaDeAviso(
+              icono: _iconoDe(pendiente.motivo),
+              texto: '"${pendiente.texto}" — '
+                  '${pendiente.motivo.descripcion}'
+                  '${pendiente.detalle.isEmpty ? '' : '. ${pendiente.detalle}'}',
+              destacada: true,
+            ),
+        ],
+
+        // Datos obligatorios que faltan.
+        for (final falta in faltas)
+          if (falta.campo != 'pendientes')
+            LineaDeAviso(
+              icono: Icons.edit_note,
+              texto: falta.descripcion,
+              destacada: true,
+            ),
+
+        // Notación en desuso y otros avisos que no bloquean.
+        for (final aviso in estado.avisos)
+          LineaDeAviso(
+            icono: Icons.info_outline,
+            texto: aviso,
+            destacada: false,
+          ),
+      ],
     );
   }
 
@@ -122,39 +120,5 @@ class PanelAvisos extends StatelessWidget {
       case MotivoPendiente.estructuraNoReconocida:
         return Icons.question_mark;
     }
-  }
-}
-
-class _Linea extends StatelessWidget {
-  const _Linea({
-    required this.icono,
-    required this.texto,
-    required this.esProblema,
-  });
-
-  final IconData icono;
-  final String texto;
-  final bool esProblema;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icono, size: 16),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              texto,
-              style: TextStyle(
-                fontWeight: esProblema ? FontWeight.w500 : FontWeight.normal,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

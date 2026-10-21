@@ -193,6 +193,63 @@ A test watches that `lib/dominio/` imports neither Flutter nor Firebase. That is
 principle II of the constitution, turned into something the system verifies
 instead of something somebody has to remember.
 
+## The visual system
+
+Everything the app looks like is decided in `lib/ui/tema/` and nowhere else.
+
+```text
+lib/ui/tema/
+├── paleta.dart        The raw colours. Light and dark.
+├── tipografia.dart    The type scale, on the system font.
+├── espaciado.dart     Spacings, radii, tap target and icon sizes.
+├── avisos.dart        The four notice tones, as a ThemeExtension.
+├── tema.dart          Builds both ThemeData from the tokens above.
+└── dominio/           Where the methodology meets the screen:
+    ├── escala_de_zonas.dart    the seven intensity zones
+    └── estados_de_plan.dart    draft, approved, published
+
+lib/ui/componentes/    The repeated pieces, decided once.
+```
+
+### Three rules the tests enforce
+
+**`paleta.dart` is the only file in the project allowed a colour literal.**
+`test/ui/tema/frontera_tema_test.dart` reads the source of `lib/` and fails,
+naming file and line, on any `Color(0x…)` or `Colors.whatever` outside it. The
+same test does it for font sizes outside `tipografia.dart`.
+
+This is not purism. A colour written into a screen is a colour that does not
+adapt to dark mode, that nobody checks for contrast, and that you have to go
+hunting for to change. With one place, changing the app's identity is changing
+one file — and dark mode came out right by construction, with no screen touched.
+
+**The error colour belongs to two screens only.** Sign-in and consent
+confirmation. `test/ui/tema/avisos_test.dart` enforces it. Before this system
+the app had 34 uses of the error family out of 54 semantic colour uses: it
+painted everything that asked for attention red, and a red that always shows up
+stops meaning anything. Anything that needs attention without something having
+broken takes the **care** tone; anything that only informs takes **informative**.
+
+**A component takes its measurements, it does not decide them.**
+`test/ui/tema/componentes_test.dart` fails on a literal measurement inside
+`lib/ui/componentes/`. If a component needs a value that is not in the tokens,
+**the token is what is missing** — add it to `espaciado.dart`, not to the
+component.
+
+### Writing a screen
+
+Read colours from `Theme.of(context)`, or from `context.colores` for the ones
+Material does not have (the four tones, the seven zones, the three plan states).
+Reach for `lib/ui/componentes/` before writing a card, a field, a button, a
+notice, a section header or an empty state.
+
+Two measurements run against every screen and will fail your change if you
+break them: the whole app is opened at 200% text scale on a 360×640 phone and
+must not overflow (`tamano_de_letra_test.dart`), and every tappable area must
+reach 48×48 (`area_pulsable_test.dart`). Both read their list of screens from
+`test/ui/tema/ayuda_pantallas.dart` — **add yours there**, with realistic
+content. A bench only measures the paths it builds.
+
 ## Regenerating the exercise Library
 
 The Library is extracted from section 19 of the normative document:

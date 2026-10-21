@@ -6,6 +6,9 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
+import 'package:natacion_app/ui/componentes/aviso.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/generacion/resultado.dart';
 
 class PanelImpedimentos extends StatelessWidget {
@@ -17,61 +20,35 @@ class PanelImpedimentos extends StatelessWidget {
   Widget build(BuildContext context) {
     if (impedimentos.isEmpty) return const SizedBox.shrink();
 
-    final esquema = Theme.of(context).colorScheme;
-
-    return Card(
-      color: esquema.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    // **Cuidado, no error.** La app no ha fallado: se ha negado a inventar.
+    // Faltan datos, y la metodología prohíbe planificar rellenando huecos a
+    // suposición. Es lo contrario de una avería — es la app funcionando como
+    // debe— y pintarlo de rojo le decía al entrenador que algo se había roto.
+    return Aviso(
+      tono: TonoDeAviso.cuidado,
+      icono: Icons.block,
+      titulo: impedimentos.length == 1
+          ? 'No se puede generar'
+          : 'No se puede generar: ${impedimentos.length} motivos',
+      mensaje: 'La metodología prohíbe planificar con datos faltantes. Un plan '
+          'con huecos rellenados a suposición parece válido y no lo es.',
+      detalles: [
+        const Divider(),
+        for (final impedimento in impedimentos)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: Espaciado.minimo),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.block, color: esquema.onErrorContainer),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    impedimentos.length == 1
-                        ? 'No se puede generar'
-                        : 'No se puede generar: ${impedimentos.length} motivos',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: esquema.onErrorContainer,
-                        ),
-                  ),
+                Text(
+                  impedimento.tipo.descripcion,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
+                Text(impedimento.explicacion),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              'La metodología prohíbe planificar con datos faltantes. Un plan '
-              'con huecos rellenados a suposición parece válido y no lo es.',
-              style: TextStyle(color: esquema.onErrorContainer, fontSize: 12),
-            ),
-            const Divider(),
-            for (final impedimento in impedimentos)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      impedimento.tipo.descripcion,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: esquema.onErrorContainer,
-                      ),
-                    ),
-                    Text(
-                      impedimento.explicacion,
-                      style: TextStyle(color: esquema.onErrorContainer),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 }
@@ -93,58 +70,31 @@ class PanelAvisosGeneracion extends StatelessWidget {
 
     if (!hayAlgo) return const SizedBox.shrink();
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Lo que conviene que sepas de este plan',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const Divider(),
+    // Tono **informativo**: nada ha fallado y nadie se ha equivocado. Son
+    // supuestos que el generador tomó y huecos de la biblioteca que no rellenó,
+    // y el entrenador tiene derecho a saberlos antes de aprobar.
+    return Aviso(
+      tono: TonoDeAviso.informativo,
+      mensaje: 'Lo que conviene que sepas de este plan',
+      detalles: [
+        const Divider(),
 
-            for (final aviso in resultado.avisos)
-              _Linea(icono: Icons.healing_outlined, texto: aviso),
+        for (final aviso in resultado.avisos)
+          LineaDeAviso(icono: Icons.healing_outlined, texto: aviso),
 
-            for (final vacio in resultado.vaciosDeBiblioteca)
-              _Linea(
-                icono: Icons.search_off,
-                texto: '$vacio. No se eligió otro ejercicio en su lugar: '
-                    'sustituirlo sería inventar por aproximación.',
-              ),
+        for (final vacio in resultado.vaciosDeBiblioteca)
+          LineaDeAviso(
+            icono: Icons.search_off,
+            texto: '$vacio. No se eligió otro ejercicio en su lugar: '
+                'sustituirlo sería inventar por aproximación.',
+          ),
 
-            for (final supuesto in resultado.supuestos)
-              _Linea(
-                icono: Icons.info_outline,
-                texto: '${supuesto.descripcion}. ${supuesto.motivo}',
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Linea extends StatelessWidget {
-  const _Linea({required this.icono, required this.texto});
-
-  final IconData icono;
-  final String texto;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icono, size: 16),
-          const SizedBox(width: 8),
-          Expanded(child: Text(texto)),
-        ],
-      ),
+        for (final supuesto in resultado.supuestos)
+          LineaDeAviso(
+            icono: Icons.info_outline,
+            texto: '${supuesto.descripcion}. ${supuesto.motivo}',
+          ),
+      ],
     );
   }
 }

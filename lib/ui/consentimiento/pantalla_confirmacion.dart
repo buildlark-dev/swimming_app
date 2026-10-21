@@ -12,6 +12,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/componentes/boton.dart';
 
 /// Lo que el acudiente declara al confirmar.
 class DeclaracionDelAcudiente {
@@ -204,17 +205,11 @@ class _PantallaConfirmacionState extends State<PantallaConfirmacion> {
                     ),
                   ],
                   const SizedBox(height: 24),
-                  FilledButton(
-                    key: const Key('boton-confirmar'),
-                    onPressed:
-                        _enviando || !_puedeConfirmar ? null : _confirmar,
-                    child: _enviando
-                        ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Autorizo'),
+                  BotonPrincipal(
+                    clave: const Key('boton-confirmar'),
+                    etiqueta: 'Autorizo',
+                    trabajando: _enviando,
+                    alPulsar: _puedeConfirmar ? _confirmar : null,
                   ),
                   const SizedBox(height: 8),
                   Text(

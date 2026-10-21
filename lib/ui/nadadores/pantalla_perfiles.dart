@@ -5,10 +5,13 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/metodologia/estilos.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
+import 'package:natacion_app/ui/componentes/campo.dart';
+import 'package:natacion_app/ui/componentes/estado_vacio.dart';
 
 class PantallaPerfiles extends StatefulWidget {
   const PantallaPerfiles({super.key, required this.repositorio});
@@ -64,9 +67,10 @@ class _PantallaPerfilesState extends State<PantallaPerfiles> {
               padding: const EdgeInsets.all(16),
               children: [
                 if (_nadadores.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Center(child: Text('Todavía no hay perfiles')),
+                  const EstadoVacio(
+                    icono: Icons.group_outlined,
+                    titulo: 'Todavía no hay perfiles',
+                    queHacer: 'Crea el primero con el botón «Nuevo perfil».',
                   ),
                 for (final nadador in _nadadores)
                   _TarjetaPerfil(nadador: nadador),
@@ -87,11 +91,12 @@ class _TarjetaPerfil extends StatelessWidget {
 
     return Card(
       child: ListTile(
+        // **Informativo, no error.** Un perfil al que le falta la categoría
+        // no es un fallo: es un perfil a medio llenar, que es como empiezan
+        // todos. Lo que hace falta es que se vea, no que asuste (FR-016).
         leading: Icon(
           nadador.estaCompleto ? Icons.person : Icons.person_outline,
-          color: nadador.estaCompleto
-              ? null
-              : Theme.of(context).colorScheme.error,
+          color: nadador.estaCompleto ? null : context.colores.informativo,
         ),
         title: Text(nadador.nombre.isEmpty ? 'Sin nombre' : nadador.nombre),
         subtitle: Column(
@@ -108,10 +113,9 @@ class _TarjetaPerfil extends StatelessWidget {
             for (final falta in faltas)
               Text(
                 falta.descripcion,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                  fontSize: 12,
-                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: context.colores.informativo,
+                    ),
               ),
           ],
         ),
@@ -158,47 +162,38 @@ class _DialogoPerfilState extends State<_DialogoPerfil> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: _nombre,
-              decoration: const InputDecoration(labelText: 'Nombre'),
-              onChanged: (_) => setState(() {}),
+            Campo(
+              etiqueta: 'Nombre',
+              controlador: _nombre,
+              alCambiar: (_) => setState(() {}),
             ),
             const SizedBox(height: 8),
-            DropdownButtonFormField<Categoria>(
-              initialValue: _categoria,
-              decoration: const InputDecoration(labelText: 'Categoría'),
-              items: [
-                for (final categoria in Categoria.values)
-                  DropdownMenuItem(
-                    value: categoria,
-                    child: Text(categoria.nombre),
-                  ),
+            CampoDeOpciones<Categoria>(
+              etiqueta: 'Categoría',
+              valor: _categoria,
+              opciones: Categoria.values,
+              nombreDe: (c) => c.nombre,
+              alCambiar: (valor) => setState(() => _categoria = valor),
+            ),
+            const SizedBox(height: 8),
+            CampoDeOpciones<Estilo>(
+              etiqueta: 'Estilo objetivo',
+              valor: _estilo,
+              opciones: const [
+                Estilo.libre,
+                Estilo.espalda,
+                Estilo.pecho,
+                Estilo.mariposa,
+                Estilo.combinado,
               ],
-              onChanged: (valor) => setState(() => _categoria = valor),
+              nombreDe: (e) => e.nombre,
+              alCambiar: (valor) => setState(() => _estilo = valor),
             ),
             const SizedBox(height: 8),
-            DropdownButtonFormField<Estilo>(
-              initialValue: _estilo,
-              decoration: const InputDecoration(labelText: 'Estilo objetivo'),
-              items: [
-                for (final estilo in [
-                  Estilo.libre,
-                  Estilo.espalda,
-                  Estilo.pecho,
-                  Estilo.mariposa,
-                  Estilo.combinado,
-                ])
-                  DropdownMenuItem(value: estilo, child: Text(estilo.nombre)),
-              ],
-              onChanged: (valor) => setState(() => _estilo = valor),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _prueba,
-              decoration: const InputDecoration(
-                labelText: 'Prueba objetivo',
-                hintText: '100 Libre',
-              ),
+            Campo(
+              etiqueta: 'Prueba objetivo',
+              controlador: _prueba,
+              pista: '100 Libre',
             ),
             const SizedBox(height: 12),
             for (final falta in faltas)
@@ -206,10 +201,9 @@ class _DialogoPerfilState extends State<_DialogoPerfil> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   falta.descripcion,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                    fontSize: 12,
-                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: context.colores.informativo,
+                      ),
                 ),
               ),
           ],

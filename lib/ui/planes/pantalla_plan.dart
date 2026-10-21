@@ -5,11 +5,14 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/componentes/aviso.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/auditoria/auditoria.dart';
 import 'package:natacion_app/dominio/entidades/ciclo_vida_plan.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/metodologia/validacion_fase.dart';
+import 'package:natacion_app/ui/componentes/etiqueta_de_estado.dart';
 import 'package:natacion_app/ui/planes/dialogo_aprobacion.dart';
 import 'package:natacion_app/ui/planes/panel_distribucion.dart';
 import 'package:natacion_app/ui/planes/tabla_auditoria.dart';
@@ -176,7 +179,10 @@ class _PantallaPlanState extends State<PantallaPlan> {
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Center(child: Chip(label: Text(_plan.estado.nombre))),
+            // Con su color y su icono, no un `Chip` gris igual para los tres.
+            // Aprobar no es entregar, y la barra de arriba es donde el
+            // entrenador mira para saber en qué punto está.
+            child: Center(child: EtiquetaDeEstado(estado: _plan.estado)),
           ),
         ],
       ),
@@ -326,26 +332,14 @@ class _Advertencia extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final esquema = Theme.of(context).colorScheme;
-
-    return Card(
-      color: esquema.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.report_problem_outlined, color: esquema.onErrorContainer),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                texto,
-                style: TextStyle(color: esquema.onErrorContainer),
-              ),
-            ),
-          ],
-        ),
-      ),
+    // **Cuidado, no error.** Lo que la auditoría señala es algo que el
+    // entrenador tiene que mirar antes de aprobar, y que puede justificar: ese
+    // es justamente el mecanismo de las justificaciones. Decirle que está roto
+    // sería la app opinando sobre su criterio (principio IV).
+    return Aviso(
+      tono: TonoDeAviso.cuidado,
+      icono: Icons.report_problem_outlined,
+      mensaje: texto,
     );
   }
 }

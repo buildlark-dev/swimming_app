@@ -12,6 +12,7 @@ import 'package:natacion_app/dominio/generacion/peticion.dart';
 import 'package:natacion_app/dominio/generacion/resultado.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/metodologia/estilos.dart';
+import 'package:natacion_app/ui/componentes/campo.dart';
 import 'package:natacion_app/dominio/metodologia/fases_atr.dart';
 import 'package:natacion_app/ui/generacion/panel_impedimentos.dart';
 
@@ -130,20 +131,13 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
           _Bloque(
             titulo: 'El nadador o el grupo',
             children: [
-              DropdownButtonFormField<Categoria>(
-                initialValue: _categoria,
-                decoration: const InputDecoration(labelText: 'Categoría'),
-                items: [
-                  for (final categoria in Categoria.values)
-                    DropdownMenuItem(
-                      value: categoria,
-                      child: Text(
-                        '${categoria.nombre} · ${categoria.volumenPorSesion} · '
-                        '${categoria.sesionesPorSemana} sesiones',
-                      ),
-                    ),
-                ],
-                onChanged: (valor) => setState(() {
+              CampoDeOpciones<Categoria>(
+                etiqueta: 'Categoría',
+                valor: _categoria,
+                opciones: Categoria.values,
+                nombreDe: (c) => '${c.nombre} · ${c.volumenPorSesion} · '
+                    '${c.sesionesPorSemana} sesiones',
+                alCambiar: (valor) => setState(() {
                   if (valor == null) return;
                   _categoria = valor;
                   _fase = valor.usaAtr ? (_fase ?? FaseAtr.acumulacion) : null;
@@ -152,21 +146,17 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
                       : valor.sesionesPorSemana;
                 }),
               ),
-              DropdownButtonFormField<Estilo>(
-                initialValue: _estilo,
-                decoration:
-                    const InputDecoration(labelText: 'Estilo objetivo'),
-                items: [
-                  for (final estilo in [
-                    Estilo.libre,
-                    Estilo.espalda,
-                    Estilo.pecho,
-                    Estilo.mariposa,
-                  ])
-                    DropdownMenuItem(
-                        value: estilo, child: Text(estilo.nombre)),
+              CampoDeOpciones<Estilo>(
+                etiqueta: 'Estilo objetivo',
+                valor: _estilo,
+                opciones: const [
+                  Estilo.libre,
+                  Estilo.espalda,
+                  Estilo.pecho,
+                  Estilo.mariposa,
                 ],
-                onChanged: (valor) =>
+                nombreDe: (e) => e.nombre,
+                alCambiar: (valor) =>
                     setState(() => _estilo = valor ?? _estilo),
               ),
               TextField(
@@ -183,19 +173,13 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
             titulo: 'La semana',
             children: [
               if (_categoria.usaAtr)
-                DropdownButtonFormField<FaseAtr>(
-                  initialValue: _fase,
-                  decoration: const InputDecoration(labelText: 'Fase ATR'),
-                  items: [
-                    for (final fase in FaseAtr.values)
-                      DropdownMenuItem(
-                        value: fase,
-                        child: Text(
-                          '${fase.nombre} · ${fase.porcentajeTecnico}% técnico',
-                        ),
-                      ),
-                  ],
-                  onChanged: (valor) => setState(() => _fase = valor),
+                CampoDeOpciones<FaseAtr>(
+                  etiqueta: 'Fase ATR',
+                  valor: _fase,
+                  opciones: FaseAtr.values,
+                  nombreDe: (f) =>
+                      '${f.nombre} · ${f.porcentajeTecnico}% técnico',
+                  alCambiar: (valor) => setState(() => _fase = valor),
                 )
               else
                 const ListTile(
@@ -229,15 +213,12 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
                 paso: 15,
                 alCambiar: (v) => setState(() => _duracion = v),
               ),
-              DropdownButtonFormField<int>(
-                initialValue: _piscina,
-                decoration:
-                    const InputDecoration(labelText: 'Longitud de piscina'),
-                items: const [
-                  DropdownMenuItem(value: 25, child: Text('25 m')),
-                  DropdownMenuItem(value: 50, child: Text('50 m')),
-                ],
-                onChanged: (valor) =>
+              CampoDeOpciones<int>(
+                etiqueta: 'Longitud de piscina',
+                valor: _piscina,
+                opciones: const [25, 50],
+                nombreDe: (m) => '$m m',
+                alCambiar: (valor) =>
                     setState(() => _piscina = valor ?? _piscina),
               ),
             ],
