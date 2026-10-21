@@ -8,6 +8,7 @@
 /// entrenador. Ver `spec.md`, sección Assumptions.
 library;
 
+import 'package:natacion_app/dominio/cuentas/edad.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/metodologia/estilos.dart';
 
@@ -80,15 +81,17 @@ class Nadador {
   /// Nada de esto determina la **categoría** del nadador. La categoría se
   /// declara por habilidades y nunca por la edad (sección 11.1 de la
   /// metodología 3.6.0): un niño y un adulto pueden entrenar en Iniciación.
-  bool necesitaAcudienteEn(DateTime referencia) {
-    if (declaraSerMayorDeEdad == true) return false;
-
-    // Si consta la fecha de nacimiento y dice que es mayor, se respeta: es un
-    // dato más fuerte que la ausencia de declaración.
-    if (esMenorEn(referencia) == false) return false;
-
-    return true;
-  }
+  /// Delega en `dominio/cuentas/edad.dart` (garantía A4).
+  ///
+  /// El orden cambió con la feature 006: antes mandaba la declaración y ahora
+  /// manda **la fecha de nacimiento cuando la hay**. Solo se nota en un caso
+  /// —alguien que declaró ser mayor y cuya fecha dice que no— y ahí la
+  /// respuesta nueva es la prudente: se pide el consentimiento.
+  bool necesitaAcudienteEn(DateTime referencia) => necesitaAcudiente(
+        nacimiento: fechaNacimiento,
+        declaraSerMayorDeEdad: declaraSerMayorDeEdad,
+        referencia: referencia,
+      );
 
   /// Obligatoria para dar el perfil por completo: sin ella no se puede validar
   /// el volumen de sus sesiones.
@@ -105,23 +108,18 @@ class Nadador {
   final List<String> diagnosticoTecnico;
 
   /// Edad en años cumplidos, si se conoce la fecha de nacimiento.
-  int? edadEn(DateTime referencia) {
-    final nacimiento = fechaNacimiento;
-    if (nacimiento == null) return null;
-
-    var edad = referencia.year - nacimiento.year;
-    final cumpleEsteAno = DateTime(referencia.year, nacimiento.month, nacimiento.day);
-    if (referencia.isBefore(cumpleEsteAno)) edad--;
-    return edad;
-  }
+  ///
+  /// Delega en `dominio/cuentas/edad.dart`, que es **el único sitio** donde se
+  /// calcula esto (garantía A4). Desde la feature 006 hay dos datos que podrían
+  /// contestar la pregunta, y dos cálculos serían dos sitios donde
+  /// equivocarse.
+  int? edadEn(DateTime referencia) => edadA(fechaNacimiento, referencia);
 
   /// Verdadero si se sabe que es menor de edad.
   ///
   /// Devuelve `null` cuando no hay fecha de nacimiento: no se supone la edad.
-  bool? esMenorEn(DateTime referencia) {
-    final edad = edadEn(referencia);
-    return edad == null ? null : edad < 18;
-  }
+  bool? esMenorEn(DateTime referencia) =>
+      esMenorA(fechaNacimiento, referencia);
 
   List<FaltaEnPerfil> get faltas {
     final faltas = <FaltaEnPerfil>[];

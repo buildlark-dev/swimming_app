@@ -208,6 +208,35 @@ conexión, que es la bandeja de salida de la 003.
 
 ---
 
+## D8 — Dónde se decide hoy la minoría de edad (tarea T002)
+
+Medido sobre `lib/` antes de tocar nada, el 2026-10-21. Es la lista contra la que se comprueba
+al final que **queda un solo sitio** (garantía A4).
+
+| Archivo | Qué hace |
+|---|---|
+| `dominio/entidades/nadador.dart:108` `edadEn` | **Calcula** la edad desde la fecha |
+| `dominio/entidades/nadador.dart:121` `esMenorEn` | **Decide** si es menor. Devuelve `null` si no hay fecha |
+| `dominio/entidades/nadador.dart:83` `necesitaAcudienteEn` | **Decide** si hace falta acudiente, combinando los dos campos |
+| `datos/serializacion.dart:307-334` | Solo guarda y lee los campos. No decide |
+| `dominio/datos_personales/derechos_del_titular.dart:106` | Solo mira si consta la fecha. No decide |
+
+**Ya hay un solo sitio**, y es `Nadador`. Es mejor noticia de la esperada.
+
+**Decisión.** Entonces no se escribe un segundo cálculo en `cuentas/edad.dart`: se **extrae**
+el que ya existe a ese archivo, y `Nadador` pasa a delegarle. Así `Perfil` y `Nadador`
+contestan con el mismo código, no con dos que se parecen.
+
+Escribir un cálculo nuevo «para el perfil» habría sido el camino corto y el que acaba con dos
+respuestas distintas a la misma pregunta. El riesgo que D2 advertía —dos campos, dos sitios—
+se cierra aquí.
+
+**Lo que no se toca**: la firma pública de `Nadador`. `edadEn`, `esMenorEn` y
+`necesitaAcudienteEn` siguen existiendo e hicieron lo mismo, porque `categoria_sin_edad_test`
+de la feature 002 las usa y no se puede modificar.
+
+---
+
 ## D7b — Lo que la app sea internacional deja abierto
 
 Al decidir la Q2 se acordó que el país es **solo informativo**: para que el club sepa de dónde

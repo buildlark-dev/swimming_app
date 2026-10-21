@@ -29,6 +29,7 @@ import 'package:natacion_app/dominio/metodologia/zonas.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
 import 'package:natacion_app/ui/acceso/pantalla_acceso.dart';
+import 'package:natacion_app/ui/consentimiento/pantalla_confirmacion.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/ui/editor/pantalla_editor.dart';
 import 'package:natacion_app/ui/generacion/pantalla_peticion.dart';
@@ -201,6 +202,28 @@ List<PantallaMedible> pantallasDeLaApp() => [
         () => PantallaPeticion(
           biblioteca: _biblioteca(),
           alGenerar: (_) {},
+        ),
+      ),
+      PantallaMedible(
+        'confirmación del acudiente',
+        // La añadió la feature 006, y la encontró el cerrojo A15: llevaba
+        // desde la 004 **sin que nadie la midiera**. Es la pantalla que un
+        // acudiente abre en su teléfono para autorizar los datos de su hijo, y
+        // nadie había comprobado que se lea con la letra grande.
+        //
+        // El texto informativo va largo a propósito: es lo que de verdad lleva
+        // dentro, y un texto corto nunca desborda.
+        () => PantallaConfirmacion(
+          versionDelTexto: 'v1',
+          textoInformativo:
+              'Tratamiento de datos personales de menores de edad. '
+              'La información que registra su hijo o hija —asistencia a las '
+              'sesiones, esfuerzo percibido y molestias— se usa únicamente '
+              'para que su entrenador ajuste el entrenamiento. No se comparte '
+              'con terceros, no se usa con fines publicitarios y no se emplea '
+              'para entrenar modelos. Puede retirar esta autorización cuando '
+              'quiera, desde este mismo enlace y sin pasar por el entrenador.',
+          alConfirmar: (_) async => null,
         ),
       ),
       PantallaMedible(

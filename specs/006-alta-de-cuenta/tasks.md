@@ -45,8 +45,8 @@ dicen lo que queremos.
 
 **Purpose**: dejar el terreno listo. Nada de esto se ve en la app.
 
-- [ ] T001 [P] Crear las carpetas con un archivo `library;` de marcador: `lib/ui/alta/`, `lib/datos/perfil/`, `test/ui/alta/`, `test/dominio/cuentas/`
-- [ ] T002 Inventariar en `research.md`, como decisión D8, **dónde se decide hoy si alguien es menor**: cada sitio que lee `declaraSerMayorDeEdad`, `fechaNacimiento` o `necesitaAcudienteEn`, con archivo y línea. Es la lista contra la que se comprueba al final que quedó **un solo sitio** (garantía A4)
+- [X] T001 [P] Crear las carpetas con un archivo `library;` de marcador: `lib/ui/alta/`, `lib/datos/perfil/`, `test/ui/alta/`, `test/dominio/cuentas/`
+- [X] T002 Inventariar en `research.md`, como decisión D8, **dónde se decide hoy si alguien es menor**: cada sitio que lee `declaraSerMayorDeEdad`, `fechaNacimiento` o `necesitaAcudienteEn`, con archivo y línea. Es la lista contra la que se comprueba al final que quedó **un solo sitio** (garantía A4)
 
 ---
 
@@ -58,21 +58,21 @@ dicen lo que queremos.
 
 ### Los cerrojos primero
 
-- [ ] T003 Escribir en `test/dominio/frontera_edad_test.dart` la garantía A7 **antes de que exista el perfil**: recorre `lib/` y falla si la edad o la fecha de nacimiento se leen dentro de `dominio/generacion/`, `dominio/metodologia/` o en cualquier cálculo de categoría, nombrando archivo y línea
-- [ ] T004 Comprobar que T003 **caza de verdad**: meter una lectura de la edad en el generador, ver fallar la prueba con el archivo y la línea correctos, y quitarla. Una frontera que no caza nada no es una frontera
-- [ ] T005 [P] Escribir en `test/dominio/frontera_pais_test.dart` la garantía A16: el país no aparece en `lib/` fuera de mostrarlo o guardarlo. Comprobar también que caza
-- [ ] T006 [P] Escribir en `test/ui/tema/pantallas_en_el_banco_test.dart` la garantía A15: toda pantalla de `lib/ui/` está en `test/ui/tema/ayuda_pantallas.dart`. **La 005 lo aprendió dos veces**: una pantalla que no está en el banco no se mide al 200% ni en áreas pulsables
+- [X] T003 Escribir en `test/dominio/frontera_edad_test.dart` la garantía A7 **antes de que exista el perfil**: recorre `lib/` y falla si la edad o la fecha de nacimiento se leen dentro de `dominio/generacion/`, `dominio/metodologia/` o en cualquier cálculo de categoría, nombrando archivo y línea
+- [X] T004 Comprobar que T003 **caza de verdad**: meter una lectura de la edad en el generador, ver fallar la prueba con el archivo y la línea correctos, y quitarla. Una frontera que no caza nada no es una frontera
+- [X] T005 [P] Escribir en `test/dominio/frontera_pais_test.dart` la garantía A16: el país no aparece en `lib/` fuera de mostrarlo o guardarlo. Comprobar también que caza
+- [X] T006 [P] Escribir en `test/ui/tema/pantallas_en_el_banco_test.dart` la garantía A15: toda pantalla de `lib/ui/` está en `test/ui/tema/ayuda_pantallas.dart`. **La 005 lo aprendió dos veces**: una pantalla que no está en el banco no se mide al 200% ni en áreas pulsables
 
 ### El dominio
 
-- [ ] T007 Crear `lib/dominio/cuentas/edad.dart` con **el único sitio que decide si alguien es menor**, en el orden de `data-model.md`: fecha de nacimiento, si no declaración, si no **menor**
-- [ ] T008 [P] Escribir en `test/dominio/cuentas/edad_test.dart` las garantías A5 y A6: ante la duda menor, y el mismo perfil da respuestas distintas el día antes y el día después de cumplir 18 **sin que nadie escriba nada**
-- [ ] T009 Crear `lib/dominio/cuentas/perfil.dart`: nombre, fecha de nacimiento, país opcional, aceptación de términos, y `estaCompleto`. El país **nulo es legítimo**, no un perfil incompleto
-- [ ] T010 [P] Escribir en `test/dominio/cuentas/perfil_test.dart` las reglas de `data-model.md`: nombre recortado y no vacío, fecha ni futura ni anterior a 1900, y que el país no cuenta para `estaCompleto`
-- [ ] T011 Crear `lib/dominio/consentimiento/declaracion.dart` con la declaración de acudiente y su `origen`, que **no se puede cambiar después**
-- [ ] T012 [P] Escribir en `test/dominio/consentimiento/declaracion_test.dart` la garantía A12 en el dominio: el correo del acudiente no puede ser el de la cuenta del menor
-- [ ] T013 Reducir el papel de `declaraSerMayorDeEdad` a respaldo (decisión D2), **sin borrarlo**: hay cuentas en producción que solo tienen eso, y borrarlo rompería pruebas de la 004
-- [ ] T014 Comprobar contra el inventario de T002 que **queda un solo sitio** que decide la minoría de edad, y escribir en `test/dominio/cuentas/un_solo_sitio_test.dart` la garantía A4
+- [X] T007 Crear `lib/dominio/cuentas/edad.dart` con **el único sitio que decide si alguien es menor**, en el orden de `data-model.md`: fecha de nacimiento, si no declaración, si no **menor**
+- [X] T008 [P] Escribir en `test/dominio/cuentas/edad_test.dart` las garantías A5 y A6: ante la duda menor, y el mismo perfil da respuestas distintas el día antes y el día después de cumplir 18 **sin que nadie escriba nada**
+- [X] T009 Crear `lib/dominio/cuentas/perfil.dart`: nombre, fecha de nacimiento, país opcional, aceptación de términos, y `estaCompleto`. El país **nulo es legítimo**, no un perfil incompleto
+- [X] T010 [P] Escribir en `test/dominio/cuentas/perfil_test.dart` las reglas de `data-model.md`: nombre recortado y no vacío, fecha ni futura ni anterior a 1900, y que el país no cuenta para `estaCompleto`
+- [X] T011 Crear `lib/dominio/consentimiento/declaracion.dart` con la declaración de acudiente y su `origen`, que **no se puede cambiar después**
+- [X] T012 [P] Escribir en `test/dominio/consentimiento/declaracion_test.dart` la garantía A12 en el dominio: el correo del acudiente no puede ser el de la cuenta del menor
+- [X] T013 Reducir el papel de `declaraSerMayorDeEdad` a respaldo (decisión D2), **sin borrarlo**: hay cuentas en producción que solo tienen eso, y borrarlo rompería pruebas de la 004
+- [X] T014 Comprobar contra el inventario de T002 que **queda un solo sitio** que decide la minoría de edad, y escribir en `test/dominio/cuentas/un_solo_sitio_test.dart` la garantía A4
 
 **Checkpoint**: el dominio sabe quién es menor, y tres cerrojos vigilan que no se tuerza.
 
