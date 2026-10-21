@@ -92,11 +92,15 @@ matrícula del entrenador.
 **Se comprueba**: emitir por los dos caminos y verificar que el origen queda grabado y que
 **no se puede cambiar después**.
 
-**Por qué importa**: es el núcleo de la decisión D1. La feature 004 solo dejaba al entrenador
-aportar el canal porque «un niño poniendo un correo suyo» invalida la cadena entera. Aquí se
-le deja al nadador para que su familia no espere, **a cambio de que se note**. El entrenador
-responde ante las familias y ante la ley, y tiene derecho a distinguir un canal que verificó
-de uno que le dio un niño de doce años.
+**Por qué importa**: la feature 004 solo dejaba al entrenador aportar el canal, dando por hecho
+una matrícula. **La app es para cualquiera, nacional e internacional**, y la mayoría no tendrá
+entrenador: el camino normal es que lo declare quien se registra. El origen se graba porque
+cuesta un campo, sirve a los entrenadores que sí tengan grupo, y deja contestada por escrito
+la pregunta de cómo llegó un consentimiento concreto.
+
+**Dónde está la garantía de verdad**: en el formulario, no en quién escribió la dirección. El
+acudiente se identifica, declara en qué calidad actúa y confirma que oyó al menor. Eso es lo
+que pide el Decreto 1377, y la 004 ya lo construyó.
 
 ### A10 — El consentimiento no bloquea el uso de la app
 

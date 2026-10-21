@@ -97,13 +97,13 @@ persona.
 
 ### Por qué existe `origen`
 
-Es la decisión D1 hecha dato. La feature 004 solo dejaba al entrenador aportar el canal,
-porque «un niño poniendo un correo suyo» invalida toda la cadena. La 006 necesita que la
-familia no espere al entrenador.
+La feature 004 solo dejaba al entrenador aportar el canal, dando por hecho una matrícula.
+**La app es para cualquiera, nacional e internacional**, así que el camino normal es que lo
+declare quien se registra: la mayoría no tendrá entrenador en la app.
 
-La solución es que la solicitud **se emita igual, y que se sepa de dónde vino**. Un
-consentimiento de origen declarado es válido y es visiblemente de segunda mano, y el
-entrenador decide si lo da por bueno o lo vuelve a pedir desde su matrícula.
+`origen` se guarda igualmente porque cuesta un campo y contesta por escrito una pregunta que
+alguien hará: cómo llegó este consentimiento. Al entrenador que sí tenga grupo le sirve para
+distinguir los suyos.
 
 ### Reglas
 

@@ -71,16 +71,21 @@ siempre, y una respuesta equivocada aquí significa no pedir un consentimiento q
 Queda compensado con A6, que exige que la minoría se recalcule, y con A7, que impide que la
 fecha se use para otra cosa.
 
-**2. El canal del consentimiento puede venir del propio menor.** La 004 lo prohibió con un
-modelo de amenaza explícito: un niño que pone una dirección suya se autoriza a sí mismo.
+**2. El canal del consentimiento lo aporta el propio menor.** La 004 lo prohibía, dando por
+hecho que existe una matrícula de la que sacar el contacto de la familia.
 
-No se resuelve prohibiéndolo —eso bloquearía a la familia hasta que el entrenador haga un
-trámite— ni permitiéndolo en silencio —eso borraría la distinción—. Se resuelve **grabando el
-origen** y enseñándoselo al entrenador (A9). El consentimiento declarado es válido y es
-visiblemente de segunda mano.
+**Esa premisa no se sostiene**: la app es para cualquier persona, a nivel nacional e
+internacional, no para un grupo matriculado. Una nadadora que se descarga la app en otro país
+no tiene entrenador que aporte nada. Exigirlo no haría el consentimiento más seguro; haría que
+**no existiera ninguno**.
 
-**Esto es lo que más conviene revisar de toda la feature.** Está en
-[Complexity Tracking](#complexity-tracking).
+La garantía está en el **formulario**, no en quién escribió la dirección: el acudiente se
+identifica, declara en qué calidad actúa y confirma que **ha oído al menor** (Decreto 1377).
+Eso es lo que la ley pide, y la 004 ya lo construyó y lo probó. El correo es solo el camino
+hasta él.
+
+Se graba además el **origen** (A9), que con un camino normal único cuesta un campo y sirve a
+los entrenadores que sí tengan grupo.
 
 ---
 
@@ -189,7 +194,7 @@ banco—, que es la forma que este proyecto ha encontrado de que una regla sobre
 | Violación | Por qué hace falta | Alternativa más simple, y por qué se descartó |
 |---|---|---|
 | Se guarda la **fecha de nacimiento** donde la 004 guardaba un booleano, con más dato personal del mínimo | Un booleano envejece: quien se registra con 17 figura como menor para siempre, y eso significa no pedir un consentimiento que hacía falta | *Seguir con el booleano*: produce respuestas equivocadas todos los días a partir del cumpleaños. *Preguntar de nuevo cada año*: una pantalla que nadie contesta |
-| El **menor puede aportar el canal** del consentimiento, que la 004 prohibía | Si solo emite el entrenador, una familia que se da de alta un sábado espera al lunes, y una solicitud que nadie emite es el estado actual | *Solo el entrenador*: contradice FR-013 y deja el consentimiento colgando de un trámite que se olvida. *Dejar que lo aporte sin marcarlo*: borra la distinción que la 004 construyó y le quita al entrenador la información con la que decide |
+| El **menor aporta el canal** del consentimiento, que la 004 prohibía | La 004 daba por hecho una matrícula. **La app es para cualquiera, nacional e internacional**: la mayoría no tendrá entrenador que aporte nada. La garantía pasa al formulario, que es donde la ley la pone | *Solo el entrenador*: impracticable fuera de un club cerrado, y produciría cero consentimientos. *Verificar el correo con un código*: comprueba que la dirección existe, no que sea de un acudiente. *Pedir documento del acudiente en el alta*: dato personal de un tercero que todavía no ha dicho que sí |
 | **Dos campos** contestan «¿es menor?» mientras queden cuentas sin completar | Hay cuentas en producción que solo tienen el booleano, y borrarlo rompería pruebas de la 004 | *Borrar el booleano ya*: rompe lo que está en uso. Se queda con papel reducido, y A4 exige **un solo sitio** que decida |
 
 ---

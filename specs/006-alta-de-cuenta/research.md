@@ -36,40 +36,68 @@ consentimiento —la identificación del acudiente, la declaración de que oyó 
 teatro. El FR-018 de la 006 (rechazar el mismo correo de la cuenta) tapa el caso ingenuo y
 ninguno de los demás: una segunda dirección cuesta dos minutos.
 
-**La tensión de fondo.** Las dos features tienen razón en lo suyo. La 004 protege la cadena de
-consentimiento. La 006 quiere que una familia no dependa de que el entrenador haga un trámite
-para que su hija pueda empezar. Si el entrenador es el único que puede emitir, una nadadora
-que se da de alta un sábado espera al lunes.
+**Lo que invalida la premisa de la 004.** La regla del entrenador da por hecho que existe una
+matrícula: un grupo cerrado de nadadores que alguien inscribió y de quienes tiene los datos de
+contacto de las familias. **Eso no es lo que esta app es.**
 
-**Decisión.** Las dos cosas, distinguidas:
+El entrenador lo dijo con todas las letras el 2026-10-21:
 
-1. El menor **declara** el correo de su acudiente en el alta. Eso crea una
-   **declaración de acudiente**, no un consentimiento.
-2. El sistema emite la solicitud **inmediatamente** desde esa declaración, para que la
-   familia no espere a nadie.
-3. La solicitud y el consentimiento que produzca llevan grabado su **origen**: `declarado por
-   el nadador` o `matrícula del entrenador`.
-4. El entrenador **ve el origen** en su pantalla de consentimientos, y puede volver a pedirlo
-   desde su matrícula cuando quiera. Un consentimiento de origen declarado es válido y es
-   **visiblemente** de segunda mano.
+> «La app no la utilizará un grupo que yo tengo matriculado, la utilizará cualquier persona a
+> nivel nacional/internacional.»
 
-**Por qué así.** Porque el problema de la 004 no se resuelve escondiéndolo, y el de la 006 no
-se resuelve bloqueando a la familia. Lo que no se puede hacer es dejar que los dos orígenes se
-confundan: el entrenador responde ante las familias y ante la ley, y tiene derecho a saber
-cuál de los consentimientos de su lista llegó por un canal que él verificó y cuál por uno que
-le dio un niño de doce años.
+Una nadadora de catorce años en otro país que se descarga la app **no tiene un entrenador que
+pueda aportar el canal**. No hay matrícula de la que sacarlo. Exigirlo no hace el
+consentimiento más seguro: hace que **no exista ninguno**, que es exactamente el estado de hoy
+y el peor de todos.
+
+La regla de la 004 no era mala: era correcta para un club cerrado, que es lo que se tenía en
+la cabeza al escribirla. Para una app abierta es impracticable.
+
+**Dónde está entonces la garantía.** En el **formulario**, que es lo que el entrenador ya
+había decidido antes de la feature 005 y aquí se confirma. El acudiente que abre el enlace
+tiene que identificarse, declarar **en qué calidad** actúa y confirmar que **ha oído al
+menor** (Decreto 1377 de 2013). Eso es lo que la ley pide y es lo que la 004 ya construyó y
+probó.
+
+Un correo verificado por sí solo no sería consentimiento informado. El formulario sí lo es, y
+el correo es solo el camino hasta él.
+
+**Decisión.** El menor declara el correo del acudiente en el alta y **la solicitud sale en el
+momento**. Además, se graba de dónde vino:
+
+| Origen | Cuándo | Qué significa |
+|---|---|---|
+| `declaradoPorElNadador` | El alta. **El camino normal** | La dirección la dio quien se registró |
+| `matriculaDelEntrenador` | Un entrenador con su grupo | La dirección sale de sus registros |
+
+El entrenador que **sí** tenga un grupo ve el origen y puede volver a pedirlo desde su
+matrícula. Para todos los demás —que serán la mayoría— solo existe el primer camino, y está
+bien que así sea.
+
+**Por qué se graba el origen si el camino normal es uno solo.** Porque son dos cosas distintas
+y cuestan un campo. El día que un entrenador con grupo mire su lista, la diferencia le importa;
+y si algún día alguien pregunta cómo llegó un consentimiento concreto, la respuesta está
+guardada en lugar de deducirse.
 
 **Alternativas descartadas**:
 
-- *Que solo emita el entrenador*, como hoy. Contradice el FR-013 de la 006 —nada impide usar
-  la app— y, peor, hace que el consentimiento dependa de un trámite que el entrenador puede
-  olvidar. Las solicitudes que nadie emite son el estado actual.
-- *Que el nadador emita sin marcar el origen.* Borra la distinción que la 004 construyó y le
-  quita al entrenador la información con la que decide si fiarse. Es el camino que parece más
-  simple y el que deja al entrenador peor.
+- *Que solo emita el entrenador*, como hoy. **Impracticable**: la mayoría de los usuarios no
+  tendrán entrenador en la app. Sería un consentimiento que no se pide nunca, que es el estado
+  actual y el peor posible.
 - *Verificar el correo con un código antes de emitir.* Comprueba que la dirección existe y que
   alguien la lee. No comprueba que ese alguien sea el acudiente, que es lo único que importa.
-  Cuesta una pantalla más y no cierra nada.
+  Cuesta una pantalla más y no cierra nada: quien quiera engañar al sistema lee su propio
+  código igual de bien.
+- *Pedir un documento del acudiente en el alta.* Más dato personal de un tercero que ni
+  siquiera ha dicho que sí todavía, y recogido antes de que nadie lo autorice. Va en contra
+  del principio V, y la identificación ya la hace el formulario en el momento correcto: cuando
+  el acudiente está delante.
+
+**Lo que esta decisión no pretende.** No pretende impedir que un menor decidido engañe al
+sistema. Un adolescente que quiere saltarse esto lo consigue, aquí y en cualquier otra app. Lo
+que sí hace es **que la familia que quiere dar su consentimiento tenga por dónde**, y que
+quede constancia con fecha de quién autorizó qué, que es lo que la Ley 1581 pide y lo que
+protege al entrenador.
 
 ---
 
@@ -177,6 +205,22 @@ servidor no llega un perfil a medias.
 que aparece en las listas del entrenador y que no significa nada. Y lo que se quiere —poder
 cerrar la app y volver— se consigue igual guardándolo donde ya se guardan las respuestas sin
 conexión, que es la bandeja de salida de la 003.
+
+---
+
+## D7b — Lo que la app sea internacional deja abierto
+
+Al decidir la Q2 se acordó que el país es **solo informativo**: para que el club sepa de dónde
+viene cada nadador. Esa respuesta se dio antes de saber que la app es para «cualquier persona
+a nivel nacional/internacional».
+
+**No se cambia nada en esta feature**, y el país sigue siendo informativo. Pero queda anotado
+que la Ley 1581 de 2012 es colombiana, y un usuario de otro país está bajo otra ley. Mientras
+la app no salga de Colombia en la práctica, no es un problema. **El día que lo sea, el país
+deja de ser informativo** y esa será una decisión con consecuencias.
+
+Esto es una nota, no una tarea. Se deja aquí para que dentro de un año haya constancia de
+cuándo se supo.
 
 ---
 
