@@ -266,7 +266,7 @@ el desplegable del editor y el reparto del plan— y la notación se quedó inta
 - [X] T044 Recorrer entero [quickstart.md](quickstart.md) y marcar cada escenario con lo que lo cubre
 - [X] T045 Pasar las cuatro puertas de calidad en orden: `flutter analyze`, `flutter test`, `npm --prefix firebase test` y `dart run tool/verificar_metodologia.dart`
 - [X] T046 Desplegar con la secuencia de `docs/DEVELOPMENT.md` y **comprobar el sitio en vivo**, no dar por bueno un «deploy complete». La app está en uso, y la feature 004 enseñó que un despliegue correcto puede servir un bundle viejo
-- [ ] T047 Verificar el escenario V10 **en un teléfono, al aire libre y con sol**. Es lo único que ninguna prueba automática dice: si de verdad se lee. El contraste calculado es condición necesaria, no suficiente
+- [X] T047 Verificar el escenario V10 **en un teléfono, al aire libre y con sol**. Es lo único que ninguna prueba automática dice: si de verdad se lee. El contraste calculado es condición necesaria, no suficiente
 
 ---
 

@@ -27,10 +27,11 @@ Corrido el 2026-10-20 sobre la rama `005-visual-theme`.
 | — los componentes no deciden | `componentes_test.dart`, 18 pruebas | ✅ |
 | — los estados del plan | `estados_de_plan_test.dart`, 11 pruebas | ✅ |
 | — las cifras no bailan | `cifras_tabulares_test.dart`, 3 pruebas | ✅ |
-| **V10 — mirarlo de verdad** | **Nadie. Es del entrenador, con un teléfono y sol** | ⏳ |
+| **V10 — mirarlo de verdad** | **El entrenador, en un teléfono.** «Se ve muy bien al aire libre con sol y sin sol» (2026-10-21) | ✅ |
 
-**V10 es la única que no puede cerrar ninguna máquina**, y por eso está la última. El
-contraste calculado es condición necesaria, no suficiente.
+**V10 era la única que no podía cerrar ninguna máquina**, y por eso estaba la última. El
+contraste calculado es condición necesaria, no suficiente: una pantalla puede cumplir el
+número y seguir siendo incómoda al sol. **Los trece escenarios están cubiertos.**
 
 ---
 
