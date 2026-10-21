@@ -50,6 +50,17 @@ dependencies:
   # `Rol`, y la prueba de frontera vigila que no se cuele mas adentro.
   firebase_auth: ^5.3.4
 
+  # Llamar a las operaciones del servidor (feature 006, decision D9).
+  #
+  # Hasta ahora el cliente nunca habia llamado a una funcion: las cuatro de la
+  # feature 004 se invocaban desde los scripts de administracion. Hace falta
+  # porque `usuarios/{uid}` es de escritura solo del servidor, y esa regla
+  # protege el vinculo entre cuenta y nadador, no el nombre.
+  #
+  # La alternativa, montar la peticion HTTPS a mano, significa otra dependencia
+  # mas el codigo de firmar y reintentar que esta ya trae.
+  cloud_functions: ^5.1.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

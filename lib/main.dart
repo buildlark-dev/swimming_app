@@ -34,7 +34,10 @@ import 'package:natacion_app/dominio/generacion/resultado.dart';
 import 'package:natacion_app/ui/editor/pantalla_editor.dart';
 import 'package:natacion_app/ui/generacion/pantalla_peticion.dart';
 import 'package:natacion_app/ui/nadadores/pantalla_perfiles.dart';
+import 'package:natacion_app/datos/servidor/operaciones.dart';
 import 'package:natacion_app/ui/componentes/aviso.dart';
+import 'package:natacion_app/ui/consentimiento/enlace_del_acudiente.dart';
+import 'package:natacion_app/ui/consentimiento/pagina_del_acudiente.dart';
 import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:provider/provider.dart';
@@ -60,6 +63,7 @@ class RecursosIniciales {
     required this.red,
     required this.transporte,
     this.identidad,
+    this.operaciones,
     this.firestore,
   });
 
@@ -82,6 +86,13 @@ class RecursosIniciales {
   /// Nula cuando no hay servidor con el que hablar. Entonces la app entra en
   /// **modo local**: ver [PantallaPrincipal.modoLocal].
   final Identidad? identidad;
+
+  /// Las operaciones del servidor (feature 006).
+  ///
+  /// Nulas sin servidor, por lo mismo que [identidad]. Sin ellas el alta no
+  /// puede guardar el perfil y el acudiente no puede canjear su enlace, y las
+  /// dos pantallas lo dicen en lugar de fingir que funcionan.
+  final OperacionesDelServidor? operaciones;
 
   /// La base de datos, si la hay. Nula en modo local.
   ///
@@ -172,12 +183,48 @@ class _PantallaInicioState extends State<PantallaInicio> {
       // levantar los emuladores.
       identidad:
           datos == null ? null : SesionFirebase.porOmision(firestore: datos),
+      // Por lo mismo: sin servidor no hay a quién llamar. El alta lo dice en
+      // lugar de guardar un perfil que no va a ninguna parte.
+      operaciones: datos == null
+          ? null
+          : OperacionesFirebase.porOmision(usarEmuladores: usarEmuladores),
       firestore: datos,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    // **El enlace del acudiente se atiende antes que nada.**
+    //
+    // Si la app arranca en `/consentimiento?t=…`, lo que se ve es el
+    // formulario, no la pantalla de acceso. El acudiente no tiene cuenta y no
+    // va a crearse una para decir que sí: mandarlo a «entra a tu
+    // entrenamiento» sería mandarlo a otra app.
+    //
+    // Esto faltaba desde la feature 004: el formulario existía, el servidor
+    // sabía emitir el enlace, y no había nada que entendiera el enlace al
+    // llegar (decisión D10).
+    final token = tokenDelEnlace();
+    if (token != null) {
+      return FutureBuilder<RecursosIniciales>(
+        future: _recursos,
+        builder: (context, instantanea) {
+          if (!instantanea.hasData && !instantanea.hasError) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          return PaginaDelAcudiente(
+            token: token,
+            // Sin servidor no se puede canjear nada, y la página lo dice en
+            // lugar de enseñar un formulario que no va a funcionar.
+            operaciones: instantanea.data?.operaciones,
+          );
+        },
+      );
+    }
+
     return FutureBuilder<RecursosIniciales>(
       future: _recursos,
       builder: (context, instantanea) {

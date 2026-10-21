@@ -18,6 +18,10 @@ void main() {
       // el dominio habla de `Cuenta` y de `Rol`, no de usuarios de Firebase.
       // Un solo archivo del proyecto puede importar esto, y no está aquí.
       'package:firebase_auth/',
+      // Lo mismo con las llamadas al servidor, que entran en la feature 006:
+      // el dominio habla de perfiles y consentimientos, no de funciones
+      // remotas (decisión D9).
+      'package:cloud_functions/',
       'package:provider/',
       'dart:ui',
     ];
@@ -86,6 +90,36 @@ void main() {
         importadores,
         isEmpty,
         reason: 'Solo $permitido puede importar firebase_auth. Lo importan '
+            'también:\n${importadores.join('\n')}',
+      );
+    });
+
+    test('cloud_functions se importa en un solo archivo de todo lib/', () {
+      // Por lo mismo que firebase_auth. Hasta la feature 006 el cliente nunca
+      // había llamado a una función; al empezar a hacerlo, la llamada concreta
+      // se queda en un sitio y las pantallas siguen hablando del dominio.
+      const permitido = 'lib/datos/servidor/operaciones.dart';
+
+      final importadores = <String>[];
+
+      for (final entrada in Directory('lib').listSync(recursive: true)) {
+        if (entrada is! File || !entrada.path.endsWith('.dart')) continue;
+
+        final ruta = entrada.path.replaceAll(r'\', '/');
+        final importa = entrada
+            .readAsLinesSync()
+            .map((l) => l.trim())
+            .any((l) =>
+                (l.startsWith('import ') || l.startsWith('export ')) &&
+                l.contains('package:cloud_functions/'));
+
+        if (importa && ruta != permitido) importadores.add(ruta);
+      }
+
+      expect(
+        importadores,
+        isEmpty,
+        reason: 'Solo $permitido puede importar cloud_functions. Lo importan '
             'también:\n${importadores.join('\n')}',
       );
     });
