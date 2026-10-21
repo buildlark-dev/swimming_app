@@ -82,7 +82,38 @@ solicitud de consentimiento pendiente a nombre de ese correo.
 
 ---
 
-### User Story 3 - El acudiente autoriza desde su correo (Priority: P2)
+### User Story 3 - Una cuenta que ya existe completa su perfil (Priority: P2)
+
+Hay cuentas reales usando la app desde la feature 004, y ninguna tiene nombre ni fecha de
+nacimiento: la del propio entrenador, la primera. La próxima vez que una de ellas entra, la
+app le pide **una sola vez** los datos que le faltan, con los mismos pasos del alta, y después
+no vuelve a preguntar.
+
+**Why this priority**: sin esto quedan cuentas sin nombre para siempre. Y hay una consecuencia
+que no es cosmética: **si alguna de esas cuentas resulta ser de un menor, su consentimiento no
+se habría pedido nunca**, porque el alta ya pasó. Completar el perfil es lo que cierra ese
+hueco.
+
+**Independent Test**: entrar con una cuenta creada antes de esta feature y comprobar que se
+piden los datos que faltan, que al terminar se entra con normalidad, y que a la siguiente vez
+no se pregunta nada.
+
+**Acceptance Scenarios**:
+
+1. **Given** una cuenta sin nombre ni fecha de nacimiento, **When** entra, **Then** la app le
+   pide lo que falta, con los mismos pasos del alta
+2. **Given** ese perfil completado, **When** vuelve a entrar, **Then** no se le pregunta nada
+3. **Given** una cuenta antigua que al completar el perfil resulta ser de un menor, **When**
+   termina, **Then** se le pide el correo del acudiente y se emite la solicitud, igual que en
+   un alta nueva
+4. **Given** una cuenta antigua a medio completar, **When** cierra la app y vuelve, **Then**
+   sigue donde lo dejó
+5. **Given** una cuenta de entrenador sin perfil, **When** completa el suyo, **Then** sigue
+   siendo entrenador: completar el perfil **no toca el rol**
+
+---
+
+### User Story 4 - El acudiente autoriza desde su correo (Priority: P2)
 
 El acudiente abre el correo, sigue el enlace, y se encuentra el formulario de la feature 004:
 el texto informativo delante, quién es, en qué calidad, y la casilla de que **ha oído al
@@ -107,9 +138,13 @@ lleva al formulario correcto, y que al autorizar la puerta se abre para ese nada
 
 ### Edge Cases
 
-- **El menor cumple 18 años.** Una edad guardada como número se queda vieja: quien se registró
-  con 17 sigue figurando como menor para siempre. Qué se guarda y cómo se recalcula es la
-  **Q3** de abajo.
+- **El menor cumple 18 años.** Se guarda la fecha de nacimiento, no la edad, y la condición de
+  menor se recalcula cada vez: el día que cumple deja de serlo, sin que nadie actualice nada.
+  Lo que no hace la app es celebrarlo ni avisar de ello.
+- **Una cuenta antigua resulta ser de un menor.** Al completar el perfil se le pide el correo
+  del acudiente y se emite la solicitud, como en un alta nueva. Es el hueco que US3 cierra.
+- **Una cuenta antigua de entrenador completa su perfil.** Sigue siendo entrenador: completar
+  el perfil no toca el rol.
 - **El correo del acudiente es el del propio menor.** La app no puede comprobar parentesco,
   pero sí puede ver que son el mismo correo, y eso no es un acudiente.
 - **El acudiente no responde nunca.** La cuenta funciona, la puerta sigue cerrada, y lo que el
@@ -128,8 +163,8 @@ lleva al formulario correcto, y que al autorizar la puerta se abre para ese nada
 
 #### El alta
 
-- **FR-001**: El alta MUST pedir, además del correo y la contraseña que ya pide hoy: **nombre**
-  y **fecha de nacimiento**.
+- **FR-001**: El alta MUST pedir, además del correo y la contraseña que ya pide hoy: **nombre**,
+  **fecha de nacimiento** y **país**.
 - **FR-002**: El alta MUST repartirse en **pasos cortos**, uno por pantalla, con el avance
   visible y la posibilidad de volver atrás sin perder lo escrito.
 - **FR-003**: Cada paso MUST decir qué falta **sin borrar lo que ya se escribió**.
@@ -139,59 +174,83 @@ lleva al formulario correcto, y que al autorizar la puerta se abre para ese nada
   detrás de un enlace**. Es la misma regla que la 004 aplicó al texto de consentimiento.
 - **FR-006**: El alta MUST poder reanudarse si se interrumpe, sin empezar de cero.
 
+#### El país
+
+- **FR-007**: El país MUST pedirse **para que el club sepa de dónde viene cada nadador**, y
+  para nada más. Ese es su uso declarado, y el principio V exige que lo tenga.
+- **FR-008**: El país MUST NOT intervenir en ninguna decisión de la app: ni en planes, ni en
+  categorías, ni en qué puede hacer una cuenta, ni en qué ley se le aplica. Es un dato del
+  perfil, no un interruptor. **Una prueba debe impedir que eso cambie en silencio.**
+- **FR-009**: Decir el país MUST ser opcional. Negarse no impide terminar el alta.
+
 #### La edad
 
-- **FR-007**: La fecha de nacimiento MUST usarse **únicamente** para determinar si la persona
-  es menor de 18 años.
-- **FR-008**: La edad MUST NOT intervenir en la generación de planes, en la categoría, ni en
+- **FR-010**: La **fecha de nacimiento** MUST usarse **únicamente** para determinar si la
+  persona es menor de 18 años. Se guarda la fecha, no la edad.
+- **FR-011**: La edad MUST NOT intervenir en la generación de planes, en la categoría, ni en
   ninguna decisión metodológica. **La categoría se determina por habilidades** (sección 11.1
   de la metodología 3.6.0), y una prueba debe impedir que esto se rompa en el futuro.
-- **FR-009**: La condición de menor MUST recalcularse a partir de la fecha de nacimiento cada
-  vez que se consulta, nunca guardarse como un sí o un no que envejece.
-- **FR-010**: Ser menor MUST NOT impedir entrar, crear la cuenta, ver el plan ni responder a
+- **FR-012**: La condición de menor MUST recalcularse a partir de la fecha de nacimiento cada
+  vez que se consulta, nunca guardarse como un sí o un no que envejece. El día que alguien
+  cumple 18 deja de ser menor sin que nadie actualice nada.
+- **FR-013**: Ser menor MUST NOT impedir entrar, crear la cuenta, ver el plan ni responder a
   las sesiones.
 
 #### El consentimiento
 
-- **FR-011**: Cuando la persona es menor, el alta MUST pedir el **correo del acudiente** y
+- **FR-014**: Cuando la persona es menor, el alta MUST pedir el **correo del acudiente** y
   MUST explicar, en esa misma pantalla, que es para solicitarle su consentimiento.
-- **FR-012**: Al terminar el alta de un menor, el sistema MUST emitir una **solicitud de
+- **FR-015**: Al terminar el alta de un menor, el sistema MUST emitir una **solicitud de
   consentimiento** dirigida a ese correo, usando el mecanismo que ya existe desde la feature
   004.
-- **FR-013**: La solicitud MUST llevar al acudiente al **formulario de consentimiento ya
+- **FR-016**: La solicitud MUST llevar al acudiente al **formulario de consentimiento ya
   construido**, que es donde se identifica, declara en qué calidad actúa y confirma que **ha
   oído al menor** (Decreto 1377 de 2013). Esta feature **no sustituye ese formulario**:
   verificar que el correo existe no es consentimiento informado.
-- **FR-014**: El correo del acudiente MUST poder corregirse y la solicitud reenviarse, sin
+- **FR-017**: El correo del acudiente MUST poder corregirse y la solicitud reenviarse, sin
   rehacer el alta.
-- **FR-015**: El sistema MUST rechazar como acudiente el **mismo correo** de la cuenta del
+- **FR-018**: El sistema MUST rechazar como acudiente el **mismo correo** de la cuenta del
   menor.
-- **FR-016**: Un menor MUST poder terminar el alta **sin dar** el correo de su acudiente, y la
+- **FR-019**: Un menor MUST poder terminar el alta **sin dar** el correo de su acudiente, y la
   app MUST decirle en palabras qué no podrá hacer hasta que lo dé.
-- **FR-017**: Mientras el consentimiento esté pendiente, lo que el nadador guarde MUST
+- **FR-020**: Mientras el consentimiento esté pendiente, lo que el nadador guarde MUST
   conservarse en su dispositivo y enviarse **en cuanto se autorice**, sin que él tenga que
   repetir nada.
 
+#### Las cuentas que ya existen
+
+- **FR-021**: Una cuenta sin perfil completo MUST recibir, al entrar, la petición de completarlo,
+  con los mismos pasos del alta.
+- **FR-022**: Completar el perfil MUST pedirse **una sola vez**: hecho una vez, no se vuelve a
+  preguntar.
+- **FR-023**: Si al completarlo resulta que la cuenta es de un menor, el sistema MUST pedir el
+  correo del acudiente y emitir la solicitud, **igual que en un alta nueva**.
+- **FR-024**: Completar el perfil MUST NOT cambiar el rol de la cuenta. Una cuenta de entrenador
+  sigue siendo de entrenador.
+- **FR-025**: La petición de completar el perfil MUST poder reanudarse si se interrumpe.
+
 #### El rol
 
-- **FR-018**: Toda cuenta nueva MUST crearse como **nadador**.
-- **FR-019**: La elección de rol MUST NOT mostrarse en el alta. El rol de entrenador se asigna
+- **FR-026**: Toda cuenta nueva MUST crearse como **nadador**.
+- **FR-027**: La elección de rol MUST NOT mostrarse en el alta. El rol de entrenador se asigna
   aparte, como ya ocurre desde la feature 004.
 
 #### Lo visible
 
-- **FR-020**: Todo el vocabulario visible MUST estar en español.
-- **FR-021**: Las pantallas nuevas MUST usar el tema y los componentes de la feature 005, **sin
+- **FR-028**: Todo el vocabulario visible MUST estar en español.
+- **FR-029**: Las pantallas nuevas MUST usar el tema y los componentes de la feature 005, **sin
   colores ni medidas propias**. Las fronteras V1, V2 y V3 ya lo hacen cumplir.
-- **FR-022**: Las pantallas nuevas MUST añadirse al banco de pantallas que miden el tamaño de
+- **FR-030**: Las pantallas nuevas MUST añadirse al banco de pantallas que miden el tamaño de
   letra al 200% y las áreas pulsables. Una pantalla que no está en el banco no se mide.
-- **FR-023**: Nada de lo que esta feature introduzca MUST aparecer en registros ni analítica:
-  ni nombres, ni fechas de nacimiento, ni correos (principio V).
+- **FR-031**: Nada de lo que esta feature introduzca MUST aparecer en registros ni analítica:
+  ni nombres, ni fechas de nacimiento, ni países, ni correos (principio V).
 
 ### Key Entities
 
 - **Perfil de la cuenta**: quién es la persona detrás del correo. Nombre, fecha de nacimiento
-  y país. Vive junto a la cuenta que ya existe desde la feature 004, no la sustituye.
+  y país (este último, opcional). Vive junto a la cuenta que ya existe desde la feature 004, no
+  la sustituye. Un perfil puede estar **incompleto**, y eso es un estado con consecuencias: es
+  lo que dispara la petición de completarlo.
 - **Aceptación de términos**: qué versión del texto aceptó quién, y cuándo. Es un hecho con
   fecha, no una casilla.
 - **Solicitud de consentimiento**: ya existe desde la feature 004. Esta feature la **emite**;
@@ -215,6 +274,8 @@ lleva al formulario correcto, y que al autorizar la puerta se abre para ese nada
   especificación (principio V, minimización).
 - **SC-007**: Un acudiente que recibe la solicitud llega al formulario y autoriza **sin crear
   ninguna cuenta**.
+- **SC-008**: Después de esta feature, **ninguna cuenta de la app queda sin nombre**: las
+  nuevas lo dan al darse de alta y las antiguas al entrar la primera vez.
 
 ## Assumptions
 
@@ -227,13 +288,29 @@ lleva al formulario correcto, y que al autorizar la puerta se abre para ese nada
 - Los términos y condiciones **todavía no existen**: hay que escribirlos. Como el texto de
   consentimiento de la 004, necesitan **revisión legal antes de que los vea una familia
   real**, y eso queda fuera de lo que esta feature puede cerrar por sí sola.
-- El país se pide porque el entrenador lo pidió; su **uso declarado** está pendiente de la Q2
-  de abajo.
 - La app sigue sin distinguir edades para nada que no sea la mayoría de edad: no hay
   categorías por edad y no las habrá.
+- Las cuentas que hay hoy en producción son pocas y conocidas. Si fueran muchas, pedirles
+  completar el perfil al entrar sería más delicado de lo que esta especificación supone.
 
-## Clarifications pendientes
+## Clarifications
 
-- **Q1**: Qué pasa con las cuentas que ya existen y no tienen estos datos.
-- **Q2**: Para qué se usa el país.
-- **Q3**: Qué se guarda exactamente de la edad.
+Resueltas con el entrenador el 2026-10-21.
+
+- **Q1 — Las cuentas que ya existen**: se les pide completar el perfil **la próxima vez que
+  entren**, una sola vez, con los mismos pasos del alta. Es la historia de usuario 3.
+
+  La razón de peso no es la cosmética de tener nombres: es que **si una de esas cuentas es de
+  un menor, su consentimiento no se habría pedido nunca**, porque su alta ya pasó. Dejarlas
+  como estaban habría dejado ese hueco abierto para siempre.
+
+- **Q2 — Para qué se usa el país**: para que **el club sepa de dónde viene cada nadador**, sin
+  ningún otro efecto en la app. Queda escrito así en FR-007 y FR-008 precisamente para que
+  nadie lo convierta después en otra cosa —un interruptor de ley aplicable, un filtro, una
+  categoría— sin que se note. Y por eso es opcional: un dato que solo informa no bloquea a
+  nadie.
+
+- **Q3 — Qué se guarda de la edad**: la **fecha de nacimiento**, y la condición de menor se
+  recalcula cada vez que se consulta. Un número envejece: quien se registra con 17 figuraría
+  como menor para siempre. Es algo más de dato personal del que hace falta para una pregunta
+  de sí o no, y se acepta a cambio de que la respuesta sea correcta todos los días.
