@@ -15,6 +15,8 @@
 /// verdad, nadie lo mirará.
 library;
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:natacion_app/dominio/entidades/envio_pendiente.dart';
@@ -144,6 +146,77 @@ void main() {
         expect(
           TonoDeAviso.values.map(colores.deTono).toSet(),
           hasLength(TonoDeAviso.values.length),
+        );
+      }
+    });
+  });
+
+  group('FR-016 — el rojo solo sale donde algo falló de verdad', () {
+    // Este es el cerrojo que evita que la feature se deshaga sola.
+    //
+    // El inventario de partida (research.md, D6) contó **treinta y cuatro de
+    // cincuenta y cuatro** usos de color semántico en la familia de error, y
+    // encontró que solo dos sitios eran errores de verdad: no se pudo entrar, y
+    // no se pudo confirmar el consentimiento.
+    //
+    // Sin una prueba, el primero que necesite «que se note» volverá a escribir
+    // `colorScheme.error`, y en seis meses estaremos otra vez en treinta y
+    // cuatro. Con ella, quien lo intente tiene que leer por qué no.
+
+    /// Los dos sitios donde un rojo es correcto.
+    const permitidos = <String>[
+      'lib/ui/acceso/pantalla_acceso.dart',
+      'lib/ui/consentimiento/pantalla_confirmacion.dart',
+      // Los tokens y el tema definen el color; no lo aplican a nada.
+      'lib/ui/tema/',
+    ];
+
+    test('solo dos pantallas usan el color de error', () {
+      final patron = RegExp(r'\.(error|errorContainer|onErrorContainer)\b');
+      final infracciones = <String>[];
+
+      for (final archivo in Directory('lib')
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.dart'))) {
+        final ruta = archivo.path.replaceAll(r'\', '/');
+        if (permitidos.any(ruta.contains)) continue;
+
+        final lineas = archivo.readAsLinesSync();
+        for (var i = 0; i < lineas.length; i++) {
+          final limpia = lineas[i].trimLeft();
+          if (limpia.startsWith('//')) continue;
+
+          // `instantanea.error` es el fallo de un `Future`, no un color.
+          if (lineas[i].contains('instantanea.error')) continue;
+
+          if (patron.hasMatch(lineas[i])) {
+            infracciones.add('$ruta:${i + 1}  ${lineas[i].trim()}');
+          }
+        }
+      }
+
+      expect(
+        infracciones,
+        isEmpty,
+        reason: 'Un rojo que sale siempre deja de significar nada, y cuando '
+            'aparezca uno de verdad nadie lo mirará. Si esto que marcas pide '
+            'atención sin que nada haya fallado, su tono es **cuidado**; si '
+            'solo informa, es **informativo**.\n\n'
+            '${infracciones.join('\n')}',
+      );
+    });
+
+    test('la prueba no pasa por vacía', () {
+      // Los dos sitios permitidos tienen que seguir usándolo: si dejaran de
+      // hacerlo, la lista de permitidos estaría de adorno y esta prueba
+      // aprobaría un proyecto sin ningún rojo, que tampoco es lo que queremos.
+      for (final ruta in permitidos.where((p) => p.endsWith('.dart'))) {
+        expect(
+          File(ruta).readAsStringSync(),
+          contains('colorScheme.error'),
+          reason: '$ruta ya no usa el color de error. Si el cambio es bueno, '
+              'quítalo de la lista de permitidos',
         );
       }
     });

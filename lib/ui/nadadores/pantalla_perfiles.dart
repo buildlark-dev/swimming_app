@@ -5,6 +5,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/metodologia/estilos.dart';
@@ -90,11 +91,12 @@ class _TarjetaPerfil extends StatelessWidget {
 
     return Card(
       child: ListTile(
+        // **Informativo, no error.** Un perfil al que le falta la categoría
+        // no es un fallo: es un perfil a medio llenar, que es como empiezan
+        // todos. Lo que hace falta es que se vea, no que asuste (FR-016).
         leading: Icon(
           nadador.estaCompleto ? Icons.person : Icons.person_outline,
-          color: nadador.estaCompleto
-              ? null
-              : Theme.of(context).colorScheme.error,
+          color: nadador.estaCompleto ? null : context.colores.informativo,
         ),
         title: Text(nadador.nombre.isEmpty ? 'Sin nombre' : nadador.nombre),
         subtitle: Column(
@@ -112,7 +114,7 @@ class _TarjetaPerfil extends StatelessWidget {
               Text(
                 falta.descripcion,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.error,
+                      color: context.colores.informativo,
                     ),
               ),
           ],
@@ -200,7 +202,7 @@ class _DialogoPerfilState extends State<_DialogoPerfil> {
                 child: Text(
                   falta.descripcion,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.error,
+                        color: context.colores.informativo,
                       ),
                 ),
               ),

@@ -143,14 +143,18 @@ class _Fila extends StatelessWidget {
                     children: [
                       Row(
                         children: [
+                          // «No la hizo» **no es un error**: también es
+                          // información, y el nadador pudo tener un buen
+                          // motivo. El icono ya lo distingue; el color solo
+                          // tiene que hacerlo visible.
                           Icon(
                             registro.realizada
                                 ? Icons.check_circle_outline
                                 : Icons.cancel_outlined,
-                            size: 16,
+                            size: Espaciado.iconoEnLinea,
                             color: registro.realizada
                                 ? esquema.primary
-                                : esquema.error,
+                                : context.colores.cuidado,
                           ),
                           const SizedBox(width: 6),
                           Text(

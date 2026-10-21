@@ -12,6 +12,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/calculo/progreso_nadador.dart';
 import 'package:natacion_app/ui/componentes/estado_vacio.dart';
 import 'package:natacion_app/ui/nadador/aviso_sincronizacion.dart';
@@ -166,13 +167,13 @@ class _Entrada extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(Icons.healing_outlined,
-                        size: 16, color: esquema.error),
+                        size: 16, color: context.colores.cuidado),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         registro!.molestia!.descripcion,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: esquema.error,
+                          color: context.colores.cuidado,
                         ),
                       ),
                     ),

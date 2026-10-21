@@ -5,6 +5,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/ui/componentes/tarjeta.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/dominio/auditoria/auditoria.dart';
@@ -71,8 +72,8 @@ class _FilaCriterio extends StatelessWidget {
     final color = criterio.cumple
         ? null
         : (criterio.severidad == Severidad.bloqueante
-            ? esquema.error
-            : esquema.tertiary);
+            ? context.colores.cuidado
+            : context.colores.informativo);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),

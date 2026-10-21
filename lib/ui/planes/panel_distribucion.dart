@@ -5,6 +5,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/auditoria/tolerancia.dart';
 import 'package:natacion_app/dominio/calculo/agregacion_plan.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
@@ -49,7 +50,10 @@ class PanelDistribucion extends StatelessWidget {
                 child: Text(
                   '${agregacion.metrosSinZona} m sin zona asignada: la '
                   'distribución no es fiable mientras queden series sin zona.',
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  // **Cuidado, no error.** Que falten metros por zonificar
+                  // no es un fallo de la app: es trabajo del entrenador que
+                  // está a medio hacer, y la frase ya lo dice.
+                  style: TextStyle(color: context.colores.cuidado),
                 ),
               ),
 
@@ -117,7 +121,12 @@ class _FilaReparto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dentro = tolerancia.admite(reparto.diferencia);
-    final color = dentro ? null : Theme.of(context).colorScheme.error;
+
+    // **Cuidado, no error.** Una desviación de la distribución prescrita es
+    // una decisión del entrenador que puede estar justificada: la auditoría la
+    // marca para que la mire, no para decirle que se equivocó. Pintarla de
+    // rojo opinaba por él (FR-016).
+    final color = dentro ? null : context.colores.cuidado;
 
     // Los anchos de la tabla son fijos, así que **no crecen con la letra**: lo
     // que crece es el texto que va dentro. Se escalan a mano para que siga
@@ -293,10 +302,13 @@ class _FilaTid extends StatelessWidget {
                 rango.toString(),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+              // Fuera de banda es **cuidado**, no error: la envolvente de la
+              // fase es una referencia, y salirse de ella es una decisión que
+              // el entrenador puede justificar.
               Icon(
                 dentro ? Icons.check_circle_outline : Icons.error_outline,
                 size: Espaciado.iconoEnLinea,
-                color: dentro ? esquema.primary : esquema.error,
+                color: dentro ? esquema.primary : context.colores.cuidado,
               ),
               if (!dentro)
                 Text(
@@ -305,7 +317,7 @@ class _FilaTid extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall
-                      ?.copyWith(color: esquema.error),
+                      ?.copyWith(color: context.colores.cuidado),
                 ),
             ],
           ),

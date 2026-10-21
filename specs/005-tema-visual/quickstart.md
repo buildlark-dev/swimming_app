@@ -8,6 +8,32 @@ como roto, no solo qué mirar.
 
 ---
 
+## Recorrido completo (tarea T044)
+
+Corrido el 2026-10-20 sobre la rama `005-visual-theme`.
+
+| Escenario | Qué lo cubre | Estado |
+|---|---|---|
+| C1 — las pantallas hacen lo mismo | `flutter test` entero: **1130 pruebas**, de las que 1056 son de las features 001 a 004 y **ninguna se modificó** | ✅ |
+| C2 — ningún color a mano | `frontera_tema_test.dart`, 4 pruebas. Se comprobó metiendo un `Color(0xFF123456)` y viéndola fallar con archivo y línea | ✅ |
+| C3 — el contraste se mide | `contraste_test.dart`, 14 pruebas. Mide contra los **fondos reales** del tema, no contra un blanco supuesto | ✅ |
+| C4 — las zonas sin color | `escala_de_zonas_test.dart`, 11 pruebas. Separación en **L\***, no en luminancia cruda | ✅ |
+| C5 — la letra al 200% | `tamano_de_letra_test.dart`, 16 pruebas, sobre las siete pantallas en un teléfono de 360×640 | ✅ |
+| C6 — «guardado» deja de ser rojo | `avisos_test.dart`, 10 pruebas, incluido el cerrojo de FR-016 | ✅ |
+| C7 — la molestia no alarma | `molestia_test.dart`, 6 pruebas, en los dos modos | ✅ |
+| C8 — claro y oscuro | `modo_oscuro_test.dart`, 26 pruebas | ✅ |
+| C9 — la app abre aunque el tema falle | `arranque_sin_tema_test.dart`, 6 pruebas | ✅ |
+| — áreas pulsables | `area_pulsable_test.dart`, 12 pruebas, contra el árbol de semántica | ✅ |
+| — los componentes no deciden | `componentes_test.dart`, 18 pruebas | ✅ |
+| — los estados del plan | `estados_de_plan_test.dart`, 11 pruebas | ✅ |
+| — las cifras no bailan | `cifras_tabulares_test.dart`, 3 pruebas | ✅ |
+| **V10 — mirarlo de verdad** | **Nadie. Es del entrenador, con un teléfono y sol** | ⏳ |
+
+**V10 es la única que no puede cerrar ninguna máquina**, y por eso está la última. El
+contraste calculado es condición necesaria, no suficiente.
+
+---
+
 ## Preparación
 
 ```bash

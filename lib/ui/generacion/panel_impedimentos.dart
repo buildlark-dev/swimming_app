@@ -6,6 +6,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/generacion/resultado.dart';
@@ -19,63 +20,35 @@ class PanelImpedimentos extends StatelessWidget {
   Widget build(BuildContext context) {
     if (impedimentos.isEmpty) return const SizedBox.shrink();
 
-    final esquema = Theme.of(context).colorScheme;
-
-    return Card(
-      color: esquema.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    // **Cuidado, no error.** La app no ha fallado: se ha negado a inventar.
+    // Faltan datos, y la metodología prohíbe planificar rellenando huecos a
+    // suposición. Es lo contrario de una avería — es la app funcionando como
+    // debe— y pintarlo de rojo le decía al entrenador que algo se había roto.
+    return Aviso(
+      tono: TonoDeAviso.cuidado,
+      icono: Icons.block,
+      titulo: impedimentos.length == 1
+          ? 'No se puede generar'
+          : 'No se puede generar: ${impedimentos.length} motivos',
+      mensaje: 'La metodología prohíbe planificar con datos faltantes. Un plan '
+          'con huecos rellenados a suposición parece válido y no lo es.',
+      detalles: [
+        const Divider(),
+        for (final impedimento in impedimentos)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: Espaciado.minimo),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.block, color: esquema.onErrorContainer),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    impedimentos.length == 1
-                        ? 'No se puede generar'
-                        : 'No se puede generar: ${impedimentos.length} motivos',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: esquema.onErrorContainer,
-                        ),
-                  ),
+                Text(
+                  impedimento.tipo.descripcion,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
+                Text(impedimento.explicacion),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              'La metodología prohíbe planificar con datos faltantes. Un plan '
-              'con huecos rellenados a suposición parece válido y no lo es.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: esquema.onErrorContainer,
-              ),
-            ),
-            const Divider(),
-            for (final impedimento in impedimentos)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      impedimento.tipo.descripcion,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: esquema.onErrorContainer,
-                      ),
-                    ),
-                    Text(
-                      impedimento.explicacion,
-                      style: TextStyle(color: esquema.onErrorContainer),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 }

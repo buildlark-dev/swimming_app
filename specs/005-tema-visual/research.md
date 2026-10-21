@@ -191,3 +191,36 @@ ahí sale FR-016.
 `ui/nadador/aviso_sincronizacion.dart` **no usa el color de error**. El aviso de «guardado,
 se enviará cuando tengas internet» ya es neutro, así que lo que la tarea T028 hace con él no
 es quitarle el rojo sino **darle el tono de éxito**, que es lo que de verdad significa.
+
+---
+
+### Cómo quedó (tarea T042, al cerrar la feature)
+
+**De treinta y cuatro usos de la familia de error quedan dos.** Son exactamente los dos que
+el inventario había marcado como errores de verdad:
+
+| Archivo | Qué es |
+|---|---|
+| `ui/acceso/pantalla_acceso.dart` | No se pudo entrar |
+| `ui/consentimiento/pantalla_confirmacion.dart` | No se pudo confirmar el consentimiento |
+
+Los otros once se repartieron según la columna «qué dice de verdad» de la tabla de arriba:
+nueve a **cuidado** y cinco a **informativo** (algunos archivos tenían varios usos). Los que
+siguen apareciendo en `ui/tema/` son las definiciones del token y el esquema, que declaran
+el color pero no lo aplican a nada.
+
+**Y hay un cerrojo.** `test/ui/tema/avisos_test.dart` recorre `lib/` y falla, nombrando
+archivo y línea, si alguien vuelve a usar el color de error fuera de esas dos pantallas. Sin
+él, el primero que necesite «que se note» escribiría `colorScheme.error`, y en seis meses
+estaríamos otra vez en treinta y cuatro. Se comprobó que caza de verdad, metiendo una
+infracción y viéndola fallar.
+
+### V13 — ninguna pantalla cambió lo que hace
+
+Las **1056 pruebas de las features 001 a 004 pasan sin que se haya modificado una sola**, y
+eso es la comprobación, no una declaración. Donde una de ellas falló —la clave del botón de
+confirmación, que dejó de estar en el `FilledButton`— se arregló el componente.
+
+Lo que sí cambió, a propósito y siempre sin alterar comportamiento: cinco textos de estado
+se movieron de la barra superior al cuerpo (no cabían con la letra al 200%), y los estados
+vacíos ganaron una frase que dice qué hacer a continuación.

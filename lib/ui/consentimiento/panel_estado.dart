@@ -6,6 +6,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/consentimiento/consentimiento.dart';
 
 /// En qué punto va cada nadador.
@@ -80,7 +81,7 @@ class PanelEstadoConsentimiento extends StatelessWidget {
           key: Key('consentimiento-${nadador.nadadorId}'),
           leading: Icon(
             nadador.estado.icono,
-            color: nadador.puedeRecibirUnPlan ? esquema.primary : esquema.error,
+            color: nadador.puedeRecibirUnPlan ? esquema.primary : context.colores.informativo,
           ),
           title: Text(nadador.nombre),
           subtitle: Text(
