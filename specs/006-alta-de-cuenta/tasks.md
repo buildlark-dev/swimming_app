@@ -94,7 +94,7 @@ app le saluda por su nombre y no vuelve a preguntarle nada (escenario C1).
 ### Lo que se escribe
 
 - [X] T018 [P] [US1] Escribir `assets/terminos/texto_v1.md`, **marcado como borrador pendiente de revisión legal**, igual que el texto de consentimiento de la 004
-- [ ] T019 [P] [US1] Crear `lib/datos/perfil/repositorio_perfil.dart` para **leer** si el perfil está completo. La escritura ya la hace `OperacionesDelServidor`; lo que falta es la lectura, y de ella depende T026 y toda la historia 3
+- [X] T019 [P] [US1] Crear `lib/datos/perfil/repositorio_perfil.dart` para **leer** si el perfil está completo. La escritura ya la hace `OperacionesDelServidor`; lo que falta es la lectura, y de ella depende T026 y toda la historia 3
 
 ### Las pantallas
 
@@ -104,13 +104,13 @@ app le saluda por su nombre y no vuelve a preguntarle nada (escenario C1).
 - [X] T023 [P] [US1] Crear `lib/ui/alta/paso_nacimiento.dart`
 - [X] T024 [P] [US1] Crear `lib/ui/alta/paso_pais.dart` con `CampoDeOpciones`, y **la opción de no decirlo** (FR-009)
 - [X] T025 [US1] Crear `lib/ui/alta/paso_terminos.dart` con el texto **delante, legible en la pantalla, no detrás de un enlace** (FR-005). Es la misma regla que la 004 aplicó al consentimiento
-- [ ] T026 [US1] Enganchar el alta **al arranque, no al botón**: tras entrar, si el perfil está incompleto se recorren los pasos. Así la historia 1 y la 3 son el mismo camino, que es lo que pide T040. Depende de T019
+- [X] T026 [US1] Enganchar el alta **al arranque, no al botón**: tras entrar, si el perfil está incompleto se recorren los pasos. Así la historia 1 y la 3 son el mismo camino, que es lo que pide T040. Depende de T019
 - [X] T027 [US1] Añadir las pantallas del alta a `test/ui/tema/ayuda_pantallas.dart`, **con contenido realista**. Si no, T006 falla, que es justo para lo que está
 
 ### Las pruebas que miden
 
 - [X] T028 [P] [US1] Escribir en `test/ui/alta/recorrido_test.dart` los escenarios C1 y C2: los pasos se recorren, y **volver atrás no borra nada**
-- [ ] T029 [P] [US1] Escribir en `test/ui/alta/interrupcion_test.dart` la garantía A2 y el escenario C3: se cierra a mitad, se vuelve, sigue donde estaba, y **en el servidor no hay nada escrito**
+- [X] T029 [P] [US1] Escribir en `test/ui/alta/interrupcion_test.dart` la garantía A2 y el escenario C3: se cierra a mitad, se vuelve, sigue donde estaba, y **en el servidor no hay nada escrito**
 - [ ] T030 [P] [US1] Escribir en `test/ui/alta/sin_consentimiento_test.dart` que a un adulto **nunca se le menciona** acudiente ni consentimiento
 
 **Checkpoint**: la app sabe el nombre de quien entra. Es desplegable por sí solo.
@@ -125,13 +125,13 @@ app le saluda por su nombre y no vuelve a preguntarle nada (escenario C1).
 correo del acudiente, que la nadadora **entra igual**, y que queda una solicitud pendiente
 (escenario C4).
 
-- [ ] T031 [US2] Añadir `origen` a la solicitud en `firebase/functions/src/consentimiento.ts` y permitir emitirla **desde una declaración del propio nadador**, no solo desde el entrenador
+- [X] T031 [US2] Añadir `origen` a la solicitud en `firebase/functions/src/consentimiento.ts` y permitir emitirla **desde una declaración del propio nadador**, no solo desde el entrenador
 - [ ] T032 [US2] Escribir en `firebase/test/origen.test.js` la garantía A9: se emite por los dos caminos, el origen queda grabado, y **no se puede cambiar después**
-- [ ] T033 [US2] Hacer que el servidor rechace como acudiente el correo de la propia cuenta (garantía A12, lado servidor). El cliente también lo comprueba, pero el cliente no es la frontera
-- [ ] T034 [US2] Crear `lib/ui/alta/paso_acudiente.dart`, que aparece **solo si es menor** y que **explica para qué es** en esa misma pantalla (FR-014)
-- [ ] T035 [US2] Hacer que terminar el alta de un menor emita la solicitud, y que terminarla **sin correo** deje constancia de que se ofreció y no se quiso (garantía A8)
-- [ ] T036 [US2] Decir en palabras, a quien no da el correo, **qué no podrá hacer hasta que lo dé** (FR-019)
-- [ ] T037 [P] [US2] Escribir en `test/ui/alta/menor_test.dart` los escenarios C4, C5 y C6
+- [X] T033 [US2] Hacer que el servidor rechace como acudiente el correo de la propia cuenta (garantía A12, lado servidor). El cliente también lo comprueba, pero el cliente no es la frontera
+- [X] T034 [US2] Crear `lib/ui/alta/paso_acudiente.dart`, que aparece **solo si es menor** y que **explica para qué es** en esa misma pantalla (FR-014)
+- [X] T035 [US2] Hacer que terminar el alta de un menor emita la solicitud, y que terminarla **sin correo** deje constancia de que se ofreció y no se quiso (garantía A8)
+- [X] T036 [US2] Decir en palabras, a quien no da el correo, **qué no podrá hacer hasta que lo dé** (FR-019)
+- [X] T037 [P] [US2] Escribir en `test/ui/alta/menor_test.dart` los escenarios C4, C5 y C6
 - [ ] T038 [P] [US2] Escribir en `test/ui/alta/nada_bloquea_test.dart` la garantía A10: una cuenta de menor con el consentimiento pendiente **entra, ve su plan y responde sin una sola traba**, y lo que responde **no sale del dispositivo**
 - [ ] T039 [US2] Permitir corregir el correo del acudiente y reenviar, sin rehacer el alta (FR-017)
 
@@ -148,10 +148,10 @@ piden los datos que faltan, y que a la siguiente vez no se pregunta (escenario C
 
 ⚠️ **Es la única parte de esta feature que toca cuentas en producción.**
 
-- [ ] T040 [US3] Detectar al entrar que el perfil está incompleto y llevar a los mismos pasos del alta, **sin crear una segunda pantalla parecida**
-- [ ] T041 [US3] Garantizar que completar el perfil **no toca el rol** (FR-024). Una cuenta de entrenador sigue siéndolo
+- [X] T040 [US3] Detectar al entrar que el perfil está incompleto y llevar a los mismos pasos del alta, **sin crear una segunda pantalla parecida**
+- [X] T041 [US3] Garantizar que completar el perfil **no toca el rol** (FR-024). Una cuenta de entrenador sigue siéndolo
 - [ ] T042 [US3] Hacer que, si al completarlo resulta ser de un menor, se pida el correo del acudiente y se emita la solicitud **igual que en un alta nueva** (FR-023)
-- [ ] T043 [P] [US3] Escribir en `test/ui/alta/perfil_incompleto_test.dart` los escenarios C9 y C10, incluido que **no se pregunta dos veces**
+- [X] T043 [P] [US3] Escribir en `test/ui/alta/perfil_incompleto_test.dart` los escenarios C9 y C10, incluido que **no se pregunta dos veces**
 - [ ] T044 [P] [US3] Escribir en `test/ui/alta/perfil_no_toca_el_rol_test.dart` que una cuenta de entrenador que completa su perfil **sigue siendo entrenador**. Es el fallo que más caro saldría
 
 **Checkpoint**: ninguna cuenta de la app queda sin nombre, y ningún menor ya registrado se

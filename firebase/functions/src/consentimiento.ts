@@ -75,11 +75,21 @@ function esEntrenador(peticion: { auth?: { token?: Record<string, unknown> } }) 
  * of the chain mean anything.
  */
 export const emitirSolicitud = onCall(async (peticion) => {
-  if (!esEntrenador(peticion)) {
-    throw new HttpsError(
-      'permission-denied',
-      'Solo el entrenador pide un consentimiento, y el canal sale de su matrícula.'
-    );
+  // Feature 004 let only the coach do this, assuming an enrolment to take the
+  // family's contact from. **This app is not a closed roster**: anyone signs
+  // up, nationally and internationally, and most will have no coach inside the
+  // app at all. A fourteen-year-old who downloads it in another country has
+  // nobody who could supply anything, and requiring it would not make consent
+  // safer - it would mean no consent exists.
+  //
+  // The guarantee is in the form, where the law puts it: the guardian
+  // identifies themselves, states in what capacity they act, and confirms they
+  // have heard the minor (Decreto 1377). The email is only the path to it.
+  //
+  // What is kept is the distinction, as `origen` (decision D1 of feature 006).
+  const esDelEntrenador = esEntrenador(peticion);
+  if (!esDelEntrenador && !peticion.auth) {
+    throw new HttpsError('unauthenticated', 'Hay que haber entrado.');
   }
 
   const { nadadorId, canal, alcances } = (peticion.data ?? {}) as {
@@ -90,6 +100,27 @@ export const emitirSolicitud = onCall(async (peticion) => {
 
   if (!nadadorId || !canal) {
     throw new HttpsError('invalid-argument', 'Faltan el nadador o el canal.');
+  }
+
+  // **The real frontier for "that is your own email".**
+  //
+  // The client checks it too, but the client is not a frontier: it does not
+  // always know the account's address, and anybody can call this directly.
+  // Here the address comes from the signed token, so it cannot be faked.
+  //
+  // What this does NOT check is that the address really belongs to a guardian.
+  // The app cannot know that, and pretending otherwise would be worse than not
+  // checking: it would give a confidence that does not exist.
+  const correoDeQuienLlama = peticion.auth?.token?.email;
+  if (
+    !esDelEntrenador &&
+    correoDeQuienLlama &&
+    canal.trim().toLowerCase() === correoDeQuienLlama.trim().toLowerCase()
+  ) {
+    throw new HttpsError(
+      'invalid-argument',
+      'Ese es tu propio correo. Hace falta el de tu padre, madre o acudiente.'
+    );
   }
 
   const pedidos = alcances ?? ['datosDeEntrenamiento'];
@@ -117,6 +148,13 @@ export const emitirSolicitud = onCall(async (peticion) => {
   const documento = await getFirestore().collection(COL_SOLICITUDES).add({
     nadadorId,
     canal,
+    // Where the address came from. It costs one field, it answers in writing a
+    // question somebody will ask - how did this consent arrive - and a coach
+    // who does have a group can tell their own apart (guarantee A9).
+    //
+    // It is written once and never updated: a declaration does not become
+    // verified because somebody looked at it.
+    origen: esDelEntrenador ? 'matriculaDelEntrenador' : 'declaradoPorElNadador',
     alcances: pedidos,
     // The plaintext token is never written. Anyone who can read this
     // collection still cannot forge a valid link (guarantee C4).

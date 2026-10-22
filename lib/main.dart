@@ -34,7 +34,9 @@ import 'package:natacion_app/dominio/generacion/resultado.dart';
 import 'package:natacion_app/ui/editor/pantalla_editor.dart';
 import 'package:natacion_app/ui/generacion/pantalla_peticion.dart';
 import 'package:natacion_app/ui/nadadores/pantalla_perfiles.dart';
+import 'package:natacion_app/datos/perfil/repositorio_perfil.dart';
 import 'package:natacion_app/datos/servidor/operaciones.dart';
+import 'package:natacion_app/ui/alta/puerta_del_perfil.dart';
 import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/consentimiento/enlace_del_acudiente.dart';
 import 'package:natacion_app/ui/consentimiento/pagina_del_acudiente.dart';
@@ -322,14 +324,41 @@ class _Acceso extends StatelessWidget {
               );
 
             case EstadoDeSesion.dentro:
-              return PantallaPrincipal(
+              // **Antes de entrar, saber quién es.**
+              //
+              // Una cuenta recién creada y una de las que ya existían desde la
+              // feature 004 están en el mismo estado: sin nombre y sin fecha
+              // de nacimiento. Las dos recorren los mismos pasos, que es lo
+              // que evita tener dos pantallas parecidas.
+              //
+              // Y es donde se cierra el hueco que importa: si una cuenta
+              // antigua resulta ser de un menor, su consentimiento no se
+              // habría pedido nunca, porque su alta ya pasó.
+              return PuertaDelPerfil(
                 // La clave fuerza a reconstruir el estado entero al cambiar de
                 // cuenta. Sin esto, el editor, la bandeja y el recorrido del
                 // nadador sobrevivirían al cambio y el segundo hermano vería
                 // lo del primero.
                 key: ValueKey(sesion.cuenta!.id),
-                recursos: recursos,
-                cuenta: sesion.cuenta,
+                uid: sesion.cuenta!.id,
+                // **El correo de la cuenta no viaja en `Cuenta`**, y es a
+                // propósito: el dominio guarda lo mínimo (principio V). Sin él
+                // la comprobación de «ese es tu propio correo» no puede
+                // hacerse en el cliente.
+                //
+                // No se pierde: **la frontera es el servidor**, que sí conoce
+                // el correo del token y rechaza la solicitud. El cliente solo
+                // adelantaba el aviso.
+                correo: '',
+                repositorio: recursos.firestore == null
+                    ? RepositorioPerfilEnMemoria()
+                    : RepositorioPerfilFirestore(recursos.firestore!),
+                operaciones: recursos.operaciones,
+                nadadorId: sesion.cuenta!.nadadorId,
+                dentro: PantallaPrincipal(
+                  recursos: recursos,
+                  cuenta: sesion.cuenta,
+                ),
               );
           }
         },
