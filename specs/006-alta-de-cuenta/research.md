@@ -330,3 +330,56 @@ escribió justo por eso.
 - **La puerta de publicación**: lo que impide que los datos salgan sin consentimiento. Es de
   la 004 y sigue siendo quien manda.
 - **El rol**: toda cuenta nace nadador; el entrenador se promueve con el comando de la 004.
+
+---
+
+## D11 — Lo que destapó el despliegue (tarea T053)
+
+### Las funciones nunca fueron invocables
+
+El despliegue falló al crear `guardarPerfil`:
+
+```
+Failed to set the IAM Policy on the Service .../guardarperfil
+FAILED_PRECONDITION: One or more users named in the policy do not belong to a
+permitted customer, perhaps due to an organization policy.
+```
+
+La organización `buildlark.com` tenía activada la restricción de dominio que trae Google
+Workspace por omisión, y `allUsers` no pertenece a ningún dominio.
+
+**Y lo importante no era la función nueva.** Al consultar `canjear` —de la feature 004— la
+política IAM devolvió `etag: ACAB` y **ninguna vinculación**. Las tres funciones invocables
+del proyecto llevaban desde la 004 sin poder llamarse desde fuera.
+
+Nadie lo notó porque el cliente nunca las llamaba (decisión D10). Al enchufar la cadena
+salió a la luz el **segundo** motivo por el que no funcionaba: no solo faltaba el camino,
+faltaba el permiso.
+
+Se resolvió excluyendo **solo este proyecto** de la restricción, no la organización entera, y
+abriendo las tres funciones a `allUsers` con `run.invoker`. Es lo correcto aquí: quién eres
+lo comprueba la propia función, no el permiso, y `canjear` es pública a propósito porque el
+acudiente no tiene cuenta.
+
+### Un padre estaba leyendo asteriscos
+
+El texto de consentimiento se muestra tal cual en un `SelectableText`, y estaba escrito en
+Markdown. En pantalla se leía `**representante legal**` y `## Quién pide la autorización`.
+
+Es el texto que una familia tiene que leer **antes de autorizar los datos de un menor**, así
+que la legibilidad no es cosmética. Los dos textos legales pasan a texto plano, con las
+mismas palabras. No se añadió ninguna dependencia para renderizar Markdown: un texto legal
+se escribe para leerse, no necesita estructura que renderizar.
+
+La versión sigue siendo `v1` porque **no hay ningún consentimiento otorgado contra ella**: la
+cadena nunca fue invocable, así que no hay nada que invalidar.
+
+### Los textos legales no pueden servirse viejos
+
+Salían con `max-age=3600`. Un consentimiento queda registrado **contra una versión de
+texto**, y si alguien autoriza mientras su navegador enseña la anterior, el registro dice una
+cosa y la persona leyó otra.
+
+Pasan a `no-cache`, como los puntos de entrada. Es la tercera vez que esta app tropieza con
+la misma piedra: la 004 lo arregló para los cinco archivos de arranque, la 005 para la raíz,
+y aquí para los textos legales.

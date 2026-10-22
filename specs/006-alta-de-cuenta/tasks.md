@@ -182,7 +182,7 @@ registrado.
 - [X] T050 [P] Documentar en `docs/DEVELOPMENT.md`, **en inglés**, dónde se decide la minoría de edad y por qué hay un solo sitio
 - [X] T051 Recorrer entero [quickstart.md](quickstart.md) y marcar cada escenario con lo que lo cubre
 - [X] T052 Pasar las cuatro puertas de calidad en orden: `flutter analyze`, `flutter test`, `npm --prefix firebase test` y `dart run tool/verificar_metodologia.dart`
-- [ ] T053 Desplegar con la secuencia de `docs/DEVELOPMENT.md` y **comprobar el sitio en vivo**. Esta vez el despliegue cambia reglas y servidor, no solo hosting: la secuencia es reglas y funciones **antes** que hosting
+- [X] T053 Desplegar con la secuencia de `docs/DEVELOPMENT.md` y **comprobar el sitio en vivo**. Esta vez el despliegue cambia reglas y servidor, no solo hosting: la secuencia es reglas y funciones **antes** que hosting
 - [ ] T054 Probar la historia 3 **contra una cuenta de verdad** antes de darla por buena. Es lo único de esta feature que afecta a gente que ya está usando la app
 - [ ] T055 Verificar que un nadador de nueve años completa el alta **sin preguntarle a nadie qué significa un campo** (SC-002). Eso se prueba sentándose al lado de uno
 
