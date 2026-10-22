@@ -250,6 +250,44 @@ reach 48×48 (`area_pulsable_test.dart`). Both read their list of screens from
 `test/ui/tema/ayuda_pantallas.dart` — **add yours there**, with realistic
 content. A bench only measures the paths it builds.
 
+## Who is a minor
+
+One place decides it: `lib/dominio/cuentas/edad.dart`. Everything else asks.
+
+That sounds like tidiness and is not. Two things could answer the question —
+the birth date, which feature 006 introduced, and the declaration feature 004
+stored — and two answers eventually disagree. Disagreeing here means **not
+asking for a consent that was needed**, which a family pays for, not us.
+
+The order is: birth date if there is one, declaration if there is not, and
+**minor if there is neither**. That last step is not decoration. The mistake of
+asking for a consent that was not needed can be undone; the other one cannot.
+
+A boundary test (`test/dominio/cuentas/un_solo_sitio_test.dart`) fails if any
+other file calculates it, and a second one
+(`test/dominio/frontera_edad_test.dart`) fails if age reaches
+`dominio/generacion/`, `metodologia/`, `auditoria/` or `calculo/` at all.
+**The category is declared by skills, never by age** (methodology section 11.1):
+a nine-year-old and an adult can both train in Iniciación, and the app is not
+there to contradict that.
+
+### The guardian's path
+
+A guardian has no account and is not going to make one to say yes. So:
+
+- the server emails a link carrying a single-use token;
+- `/consentimiento?t=…` opens the consent form **without a session** —
+  `tokenDelEnlace` reads it before anything else in `main.dart`;
+- the form calls `canjear`, which records the consent.
+
+Two refusals are deliberate. Without a server, the page says so instead of
+showing a form that would do nothing. Without the informative text, it refuses
+too: authorising without reading what you authorise is not informed consent.
+
+**Never log the notice body.** It carries the token, which is the credential
+that authorises processing a minor's data. Writing only its hash to Firestore
+protects the database; logging the plaintext hands it back.
+
 ## Regenerating the exercise Library
 
 The Library is extracted from section 19 of the normative document:

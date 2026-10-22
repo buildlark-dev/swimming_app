@@ -49,10 +49,28 @@ export interface EnviadorDeAvisos {
   enviar(destino: string, asunto: string, cuerpo: string): Promise<void>;
 }
 
-/** Until a channel is chosen, notices are logged rather than silently dropped. */
+/**
+ * Until a channel is chosen, notices are recorded rather than silently dropped
+ * - but **without the address and without the body**.
+ *
+ * It used to log all three. Feature 006's guarantee A17 caught it, and it was
+ * worse than a privacy slip:
+ *
+ * - `destino` is a guardian's email address. Principle V: "Registros y
+ *   analítica NO DEBEN contener nombres, marcas, videos ni identificadores del
+ *   nadador." A parent's address identifies the child.
+ * - `cuerpo` carries **the token**, which is the credential that authorises
+ *   processing a minor's data. Anyone who could read these logs could consent
+ *   in a guardian's name - exactly what writing only the token's hash to
+ *   Firestore was meant to prevent (guarantee C4). The hash protected the
+ *   database and the log gave it away.
+ *
+ * What is left is enough to know a notice was due: that it happened, and for
+ * which request.
+ */
 export const enviadorPorOmision: EnviadorDeAvisos = {
-  async enviar(destino, asunto, cuerpo) {
-    logger.info('aviso pendiente de canal', { destino, asunto, cuerpo });
+  async enviar(_destino, asunto, _cuerpo) {
+    logger.info('aviso pendiente de canal', { asunto });
   },
 };
 

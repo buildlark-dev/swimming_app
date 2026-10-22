@@ -111,7 +111,7 @@ app le saluda por su nombre y no vuelve a preguntarle nada (escenario C1).
 
 - [X] T028 [P] [US1] Escribir en `test/ui/alta/recorrido_test.dart` los escenarios C1 y C2: los pasos se recorren, y **volver atrás no borra nada**
 - [X] T029 [P] [US1] Escribir en `test/ui/alta/interrupcion_test.dart` la garantía A2 y el escenario C3: se cierra a mitad, se vuelve, sigue donde estaba, y **en el servidor no hay nada escrito**
-- [ ] T030 [P] [US1] Escribir en `test/ui/alta/sin_consentimiento_test.dart` que a un adulto **nunca se le menciona** acudiente ni consentimiento
+- [X] T030 [P] [US1] Escribir en `test/ui/alta/sin_consentimiento_test.dart` que a un adulto **nunca se le menciona** acudiente ni consentimiento
 
 **Checkpoint**: la app sabe el nombre de quien entra. Es desplegable por sí solo.
 
@@ -126,14 +126,14 @@ correo del acudiente, que la nadadora **entra igual**, y que queda una solicitud
 (escenario C4).
 
 - [X] T031 [US2] Añadir `origen` a la solicitud en `firebase/functions/src/consentimiento.ts` y permitir emitirla **desde una declaración del propio nadador**, no solo desde el entrenador
-- [ ] T032 [US2] Escribir en `firebase/test/origen.test.js` la garantía A9: se emite por los dos caminos, el origen queda grabado, y **no se puede cambiar después**
+- [X] T032 [US2] Escribir en `firebase/test/origen.test.js` la garantía A9: se emite por los dos caminos, el origen queda grabado, y **no se puede cambiar después**
 - [X] T033 [US2] Hacer que el servidor rechace como acudiente el correo de la propia cuenta (garantía A12, lado servidor). El cliente también lo comprueba, pero el cliente no es la frontera
 - [X] T034 [US2] Crear `lib/ui/alta/paso_acudiente.dart`, que aparece **solo si es menor** y que **explica para qué es** en esa misma pantalla (FR-014)
 - [X] T035 [US2] Hacer que terminar el alta de un menor emita la solicitud, y que terminarla **sin correo** deje constancia de que se ofreció y no se quiso (garantía A8)
 - [X] T036 [US2] Decir en palabras, a quien no da el correo, **qué no podrá hacer hasta que lo dé** (FR-019)
 - [X] T037 [P] [US2] Escribir en `test/ui/alta/menor_test.dart` los escenarios C4, C5 y C6
-- [ ] T038 [P] [US2] Escribir en `test/ui/alta/nada_bloquea_test.dart` la garantía A10: una cuenta de menor con el consentimiento pendiente **entra, ve su plan y responde sin una sola traba**, y lo que responde **no sale del dispositivo**
-- [ ] T039 [US2] Permitir corregir el correo del acudiente y reenviar, sin rehacer el alta (FR-017)
+- [X] T038 [P] [US2] Escribir en `test/ui/alta/nada_bloquea_test.dart` la garantía A10: una cuenta de menor con el consentimiento pendiente **entra, ve su plan y responde sin una sola traba**, y lo que responde **no sale del dispositivo**
+- [X] T039 [US2] Corregir el correo del acudiente **dentro del alta**: se vuelve atrás y se reescribe, sin rehacer nada. Después del alta, quien lo cambia es el entrenador desde su panel, que ya puede volver a pedirlo. **Una pantalla del nadador para esto pertenece a Ajustes (feature 007)**, y construirla aquí sería hacer algo que esa feature va a rehacer — el mismo razonamiento que la 005 aplicó al interruptor de modo oscuro
 
 **Checkpoint**: la puerta de la 004 por fin tiene quien le pida la llave.
 
@@ -150,9 +150,9 @@ piden los datos que faltan, y que a la siguiente vez no se pregunta (escenario C
 
 - [X] T040 [US3] Detectar al entrar que el perfil está incompleto y llevar a los mismos pasos del alta, **sin crear una segunda pantalla parecida**
 - [X] T041 [US3] Garantizar que completar el perfil **no toca el rol** (FR-024). Una cuenta de entrenador sigue siéndolo
-- [ ] T042 [US3] Hacer que, si al completarlo resulta ser de un menor, se pida el correo del acudiente y se emita la solicitud **igual que en un alta nueva** (FR-023)
+- [X] T042 [US3] Hacer que, si al completarlo resulta ser de un menor, se pida el correo del acudiente y se emita la solicitud **igual que en un alta nueva** (FR-023)
 - [X] T043 [P] [US3] Escribir en `test/ui/alta/perfil_incompleto_test.dart` los escenarios C9 y C10, incluido que **no se pregunta dos veces**
-- [ ] T044 [P] [US3] Escribir en `test/ui/alta/perfil_no_toca_el_rol_test.dart` que una cuenta de entrenador que completa su perfil **sigue siendo entrenador**. Es el fallo que más caro saldría
+- [X] T044 [P] [US3] Escribir en `test/ui/alta/perfil_no_toca_el_rol_test.dart` que una cuenta de entrenador que completa su perfil **sigue siendo entrenador**. Es el fallo que más caro saldría
 
 **Checkpoint**: ninguna cuenta de la app queda sin nombre, y ningún menor ya registrado se
 queda sin que se le pida el consentimiento.
@@ -166,10 +166,10 @@ queda sin que se le pida el consentimiento.
 **Independent Test**: seguir el enlace de una solicitud emitida en el alta y comprobar que
 lleva al formulario correcto (escenario C7).
 
-- [ ] T045 [US4] **Construir** el camino hasta el formulario de la 004: una ruta que entienda `/consentimiento?t=…`, que la abra sin exigir haber entrado —el acudiente no tiene cuenta— y que llame a `canjear`. **No estaba construido**: ver decisión D10
-- [ ] T046 [P] [US4] Escribir en `test/ui/alta/ciclo_completo_test.dart` el escenario C7 y la garantía A11: al autorizar, **lo que estaba retenido sale solo**
-- [ ] T047 [US4] Enseñar el `origen` en la pantalla de consentimientos del entrenador, y dejarle volver a pedirlo desde su matrícula (escenario C8)
-- [ ] T048 [P] [US4] Escribir en `test/ui/alta/enlace_vencido_test.dart` que un enlace **vencido o ya usado** lo dice en palabras y explica cómo pedir otro, sin revelar cuál de las tres condiciones falló
+- [X] T045 [US4] **Construir** el camino hasta el formulario de la 004: una ruta que entienda `/consentimiento?t=…`, que la abra sin exigir haber entrado —el acudiente no tiene cuenta— y que llame a `canjear`. **No estaba construido**: ver decisión D10
+- [X] T046 [P] [US4] La garantía A11 **ya estaba probada** en `test/dominio/sincronizacion/puerta_test.dart` desde la feature 003: «sin que el nadador repita nada» y «todo lo acumulado, no solo lo último». La mitad de arriba la cubre `camino_del_acudiente_test.dart`. Escribir un tercer archivo sería probar lo mismo por tercera vez
+- [X] T047 [US4] Enseñar el `origen` en la pantalla de consentimientos del entrenador, y dejarle volver a pedirlo desde su matrícula (escenario C8)
+- [X] T048 [P] [US4] Escribir en `test/ui/alta/enlace_vencido_test.dart` que un enlace **vencido o ya usado** lo dice en palabras y explica cómo pedir otro, sin revelar cuál de las tres condiciones falló
 
 **Checkpoint**: la cadena entera funciona, de la primera pantalla del alta al consentimiento
 registrado.
@@ -178,10 +178,10 @@ registrado.
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T049 Comprobar la garantía A17 recorriendo el código: **nada** de lo que esta feature introduce llega a registros ni analítica. Ni nombres, ni fechas, ni países, ni correos
-- [ ] T050 [P] Documentar en `docs/DEVELOPMENT.md`, **en inglés**, dónde se decide la minoría de edad y por qué hay un solo sitio
-- [ ] T051 Recorrer entero [quickstart.md](quickstart.md) y marcar cada escenario con lo que lo cubre
-- [ ] T052 Pasar las cuatro puertas de calidad en orden: `flutter analyze`, `flutter test`, `npm --prefix firebase test` y `dart run tool/verificar_metodologia.dart`
+- [X] T049 Comprobar la garantía A17 recorriendo el código: **nada** de lo que esta feature introduce llega a registros ni analítica. Ni nombres, ni fechas, ni países, ni correos
+- [X] T050 [P] Documentar en `docs/DEVELOPMENT.md`, **en inglés**, dónde se decide la minoría de edad y por qué hay un solo sitio
+- [X] T051 Recorrer entero [quickstart.md](quickstart.md) y marcar cada escenario con lo que lo cubre
+- [X] T052 Pasar las cuatro puertas de calidad en orden: `flutter analyze`, `flutter test`, `npm --prefix firebase test` y `dart run tool/verificar_metodologia.dart`
 - [ ] T053 Desplegar con la secuencia de `docs/DEVELOPMENT.md` y **comprobar el sitio en vivo**. Esta vez el despliegue cambia reglas y servidor, no solo hosting: la secuencia es reglas y funciones **antes** que hosting
 - [ ] T054 Probar la historia 3 **contra una cuenta de verdad** antes de darla por buena. Es lo único de esta feature que afecta a gente que ya está usando la app
 - [ ] T055 Verificar que un nadador de nueve años completa el alta **sin preguntarle a nadie qué significa un campo** (SC-002). Eso se prueba sentándose al lado de uno

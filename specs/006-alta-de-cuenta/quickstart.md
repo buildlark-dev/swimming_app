@@ -8,6 +8,37 @@ roto, no solo qué mirar.
 
 ---
 
+## Recorrido completo (tarea T051)
+
+Corrido el 2026-10-21 sobre la rama `006-alta-de-cuenta`.
+
+| Escenario | Qué lo cubre | Estado |
+|---|---|---|
+| C1 — un adulto se da de alta | `test/ui/alta/recorrido_test.dart` | ✅ |
+| C2 — volver atrás no borra nada | el mismo. **Cazó un fallo real**: el campo se reconstruía vacío | ✅ |
+| C3 — el alta se interrumpe | `estado_alta.dart` guarda en el dispositivo; nada llega al servidor a medias | ✅ |
+| C4 — un menor se da de alta | `recorrido_test.dart`, el paso aparece al poner una fecha de menor | ✅ |
+| C5 — el menor no da el correo | `recorrido_test.dart`: entra igual, y queda constancia | ✅ |
+| C6 — el correo es el suyo | `declaracion_test.dart` y el servidor, que es la frontera | ✅ |
+| C7 — el acudiente autoriza | `camino_del_acudiente_test.dart`, el camino entero | ✅ |
+| C8 — el entrenador ve de dónde vino | `origen_visible_test.dart` y `firebase/test/origen.test.js` | ✅ |
+| C9 — una cuenta vieja completa su perfil | `perfil_incompleto_test.dart` | ✅ |
+| C10 — y resulta ser de un menor | el mismo, parcialmente: el camino completo lo cierra T054 | ⚠️ |
+| C11 — nadie se queda menor para siempre | `test/dominio/cuentas/edad_test.dart` | ✅ |
+| C12 — la edad no toca la metodología | `frontera_edad_test.dart`, comprobada metiendo una infracción | ✅ |
+| C13 — el país no decide nada | `frontera_pais_test.dart` | ✅ |
+| C14 — las pantallas nuevas se miden | `pantallas_en_el_banco_test.dart`. **Cazó que la del acudiente nunca se había medido** | ✅ |
+| C15 — nada de lo anterior cambia | 1249 pruebas, ninguna de las features 001 a 005 modificada | ✅ |
+
+**Las cuatro puertas**: analizador limpio, 1249 pruebas Flutter, 78 de reglas, huellas de
+metodología coincidiendo.
+
+**Lo que falta es del entrenador y del despliegue**: T053 (desplegar y comprobar en vivo),
+T054 (probar la historia 3 contra una cuenta de verdad) y T055 (que un nadador de nueve años
+complete el alta sin preguntar).
+
+---
+
 ## Preparación
 
 ```bash
