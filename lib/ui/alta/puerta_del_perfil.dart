@@ -55,6 +55,10 @@ class _PuertaDelPerfilState extends State<PuertaDelPerfil> {
   late Future<Perfil> _perfil = widget.repositorio.obtener(widget.uid);
   ResultadoDelAlta? _altaRecienTerminada;
 
+  /// Entró sin haber podido guardar el perfil. Se le vuelve a preguntar la
+  /// próxima vez que abra la app.
+  bool _entroSinPerfil = false;
+
   @override
   Widget build(BuildContext context) {
     if (_altaRecienTerminada != null) {
@@ -63,6 +67,8 @@ class _PuertaDelPerfilState extends State<PuertaDelPerfil> {
         alContinuar: () => setState(() => _altaRecienTerminada = null),
       );
     }
+
+    if (_entroSinPerfil) return widget.dentro;
 
     return FutureBuilder<Perfil>(
       future: _perfil,
@@ -94,6 +100,11 @@ class _PuertaDelPerfilState extends State<PuertaDelPerfil> {
               _altaRecienTerminada = resultado;
               _perfil = widget.repositorio.obtener(widget.uid);
             }),
+            // Si el perfil no se pudo guardar, se entra igual. Sin fecha de
+            // nacimiento la app trata a quien entra como menor, así que la
+            // puerta sigue cerrada y nada sale del dispositivo: lo único que
+            // se pierde es saber quién es, y se vuelve a preguntar mañana.
+            alEntrarIgual: () => setState(() => _entroSinPerfil = true),
           ),
         );
       },

@@ -22,10 +22,29 @@ import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:provider/provider.dart';
 
 class PantallaAlta extends StatelessWidget {
-  const PantallaAlta({super.key, required this.alTerminar});
+  const PantallaAlta({
+    super.key,
+    required this.alTerminar,
+    this.alEntrarIgual,
+  });
 
   /// Qué hacer cuando el alta acaba. Lo decide quien monta la pantalla.
   final void Function(ResultadoDelAlta) alTerminar;
+
+  /// Dejar pasar aunque el perfil no se haya podido guardar.
+  ///
+  /// **Sin esto, un servidor caído deja a todo el mundo fuera de la app.** Y no
+  /// de una pantalla: de la app entera, porque todas las cuentas creadas antes
+  /// de esta feature tienen el perfil incompleto y pasan por aquí.
+  ///
+  /// Dejar pasar es seguro: sin fecha de nacimiento, el único sitio que decide
+  /// la minoría de edad contesta **menor**, así que la puerta sigue cerrada y
+  /// los datos se quedan en el dispositivo. Lo que se pierde es saber quién es,
+  /// y eso se vuelve a preguntar la próxima vez.
+  ///
+  /// Es la misma lección del arranque sin Firebase del PR #5: lo que debe
+  /// degradar, degrada.
+  final VoidCallback? alEntrarIgual;
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +97,14 @@ class PantallaAlta extends StatelessWidget {
                   tono: TonoDeAviso.cuidado,
                   mensaje: estado.fallo!,
                   claveDelMensaje: const Key('alta-fallo'),
+                  acciones: [
+                    if (alEntrarIgual != null)
+                      TextButton(
+                        key: const Key('alta-entrar-igual'),
+                        onPressed: alEntrarIgual,
+                        child: const Text('Entrar de todos modos'),
+                      ),
+                  ],
                 ),
               ],
 
