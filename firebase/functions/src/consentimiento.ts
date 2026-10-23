@@ -21,6 +21,11 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
+import {
+  BASE_DE_LA_APP,
+  CLAVE_DE_RESEND,
+  enviadorResend,
+} from './correo';
 import { logger } from 'firebase-functions';
 
 const COL_SOLICITUDES = 'solicitudes';
@@ -74,10 +79,21 @@ export const enviadorPorOmision: EnviadorDeAvisos = {
   },
 };
 
-let enviador: EnviadorDeAvisos = enviadorPorOmision;
+/**
+ * In production, email. Without a key, the log-only one.
+ *
+ * The choice is made at call time, not at load time, because the secret is not
+ * available while the module is being loaded.
+ */
+let enviador: EnviadorDeAvisos | null = null;
 
-/** Swap the notifier. Used by the tests; production keeps the default. */
-export function usarEnviador(nuevo: EnviadorDeAvisos): void {
+function elEnviador(): EnviadorDeAvisos {
+  if (enviador) return enviador;
+  return CLAVE_DE_RESEND.value() ? enviadorResend : enviadorPorOmision;
+}
+
+/** Swap the notifier. Used by the tests; production decides on its own. */
+export function usarEnviador(nuevo: EnviadorDeAvisos | null): void {
   enviador = nuevo;
 }
 
@@ -92,7 +108,9 @@ function esEntrenador(peticion: { auth?: { token?: Record<string, unknown> } }) 
  * edit or add it — that is the hole this closes, and it is what makes the rest
  * of the chain mean anything.
  */
-export const emitirSolicitud = onCall(async (peticion) => {
+export const emitirSolicitud = onCall(
+  { secrets: [CLAVE_DE_RESEND] },
+  async (peticion) => {
   // Feature 004 let only the coach do this, assuming an enrolment to take the
   // family's contact from. **This app is not a closed roster**: anyone signs
   // up, nationally and internationally, and most will have no coach inside the
@@ -182,16 +200,25 @@ export const emitirSolicitud = onCall(async (peticion) => {
     canjeadaEn: null,
   });
 
-  await enviador.enviar(
+  // **The link has to be absolute.** It used to be `/consentimiento?t=...`,
+  // which is a path: fine inside a page, useless in an inbox. Nobody noticed
+  // because until feature 006 no email was ever actually sent.
+  await elEnviador().enviar(
     canal,
     'Autorización para el entrenamiento de su hijo o hija',
-    `Para leer la información y responder, abra este enlace:\n\n` +
-      `/consentimiento?t=${token}\n\n` +
-      `El enlace sirve una sola vez y vence en ${DIAS_DE_VIGENCIA} días.`
+    `Su hijo o hija se registró en una app de planificación de entrenamiento ` +
+      `de natación, y para guardar sus datos hace falta su permiso.\n\n` +
+      `Para leer la información y responder, abra este enlace:\n\n` +
+      `${BASE_DE_LA_APP.value()}/consentimiento?t=${token}\n\n` +
+      `El enlace sirve una sola vez y vence en ${DIAS_DE_VIGENCIA} días. ` +
+      `No hace falta que cree ninguna cuenta.\n\n` +
+      `Si no esperaba este mensaje, no haga nada: sin su confirmación no se ` +
+      `guarda nada.`
   );
 
-  return { solicitudId: documento.id };
-});
+    return { solicitudId: documento.id };
+  }
+);
 
 /**
  * 2. Redeem a confirmation. Public, because the guardian has no account.
@@ -199,7 +226,9 @@ export const emitirSolicitud = onCall(async (peticion) => {
  * Rejects without saying WHICH of the three conditions failed. Telling them
  * apart would let someone probing links learn which ones ever existed.
  */
-export const canjear = onCall(async (peticion) => {
+export const canjear = onCall(
+  { secrets: [CLAVE_DE_RESEND] },
+  async (peticion) => {
   const { token, declaracion } = (peticion.data ?? {}) as {
     token?: string;
     declaracion?: {
@@ -301,14 +330,15 @@ export const canjear = onCall(async (peticion) => {
   // The guardian is told what was registered. This does not stop a misdirected
   // link from being redeemed; it makes it DISCOVERABLE by them, which is the
   // most a digital mechanism without document checks can offer (C9).
-  await enviador.enviar(
+  await elEnviador().enviar(
     datos['canal'],
     'Quedó registrada su autorización',
     'Si no fue usted quien la dio, avise al entrenador ahora mismo.'
   );
 
-  return { registrado: true };
-});
+    return { registrado: true };
+  }
+);
 
 /**
  * 3. Revoke. Reachable from the guardian's own link, with no coach involved

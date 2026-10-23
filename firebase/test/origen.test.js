@@ -180,3 +180,57 @@ test('A17 — ni el correo ni el token llegan a los registros', () => {
     'El cuerpo del aviso lleva el token: registrarlo es regalar la credencial',
   );
 });
+
+test('ninguna credencial de correo esta escrita en el repositorio', () => {
+  // El repositorio es publico a proposito. Una clave en git es una clave en
+  // cada copia que alguien haya hecho, y rotarla no borra las copias.
+  //
+  // La de Resend vive en los secretos de Firebase, que por debajo es Secret
+  // Manager, y la funcion la recibe en tiempo de ejecucion.
+  const raiz = path.join(__dirname, '..', '..');
+  const sospechosos = [];
+
+  const patrones = [
+    /\bre_[A-Za-z0-9_-]{20,}/, // claves de Resend
+    /\bSG\.[A-Za-z0-9_-]{20,}/, // SendGrid, por si acaso
+    /\bsk_live_[A-Za-z0-9]{20,}/, // claves secretas en general
+  ];
+
+  function mirar(carpeta) {
+    for (const entrada of fs.readdirSync(carpeta, { withFileTypes: true })) {
+      const ruta = path.join(carpeta, entrada.name);
+
+      if (entrada.isDirectory()) {
+        if (
+          ['node_modules', '.git', 'build', '.dart_tool', 'lib'].includes(
+            entrada.name,
+          )
+        ) {
+          continue;
+        }
+        mirar(ruta);
+        continue;
+      }
+
+      if (!/\.(ts|js|dart|json|yaml|yml|md|env)$/.test(entrada.name)) continue;
+      if (entrada.name.endsWith('.test.js')) continue;
+
+      const contenido = fs.readFileSync(ruta, 'utf8');
+      for (const patron of patrones) {
+        if (patron.test(contenido)) {
+          sospechosos.push(path.relative(raiz, ruta));
+          break;
+        }
+      }
+    }
+  }
+
+  mirar(raiz);
+
+  assert.deepEqual(
+    sospechosos,
+    [],
+    'Hay algo con forma de credencial en el repositorio:\n' +
+      sospechosos.join('\n'),
+  );
+});
