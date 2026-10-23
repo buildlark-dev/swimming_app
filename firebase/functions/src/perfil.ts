@@ -113,16 +113,24 @@ export const guardarPerfil = onCall(async (peticion) => {
   //
   // The id is the account's uid: one person, one id, and the consent key is
   // stable without an extra lookup.
+  // **Salvo si quien se da de alta es el entrenador.**
+  //
+  // `Cuenta` lo dice desde la feature 004: «el entrenador no es un nadador de
+  // su propia comunidad. Si alguna vez quiere entrenarse a sí mismo, es una
+  // segunda cuenta, no un campo». Crearle ficha le haría aparecer en su propia
+  // lista de nadadores.
+  const esEntrenador = peticion.auth?.token?.['rol'] === 'entrenador';
+
   const usuario = getFirestore().collection(COL_USUARIOS).doc(uid);
   const yaExiste = (await usuario.get()).data()?.['nadadorId'] as
     | string
     | undefined;
-  const nadadorId = yaExiste ?? uid;
+  const nadadorId = esEntrenador ? null : (yaExiste ?? uid);
 
-  if (!yaExiste) {
+  if (!esEntrenador && !yaExiste) {
     await getFirestore()
       .collection(COL_NADADORES)
-      .doc(nadadorId)
+      .doc(nadadorId!)
       // Merge, so re-running sign-up never wipes the category a coach set.
       .set({ nombre: limpio, fechaNacimiento }, { merge: true });
   }
@@ -136,7 +144,7 @@ export const guardarPerfil = onCall(async (peticion) => {
           version: versionDeTerminos,
           aceptadaEn: FieldValue.serverTimestamp(),
         },
-        nadadorId,
+        ...(nadadorId ? { nadadorId } : {}),
         perfilCompletadoEn: FieldValue.serverTimestamp(),
       },
       // Merge, so writing the profile never wipes the `nadadorId` the server
@@ -150,5 +158,5 @@ export const guardarPerfil = onCall(async (peticion) => {
   // server computed.
   // El cliente necesita el id para pedir el consentimiento: al arrancar el
   // alta todavía no existía.
-  return { esMenor, nadadorId };
+  return { esMenor, nadadorId: nadadorId ?? '' };
 });

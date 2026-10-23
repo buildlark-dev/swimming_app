@@ -77,12 +77,31 @@ export const enviadorResend: EnviadorDeAvisos = {
       }),
     });
 
-    if (!respuesta.ok) {
+    if (respuesta.ok) {
+      // **Sin la dirección y sin el cuerpo** (garantía A17): el cuerpo lleva
+      // el token y la dirección identifica a la familia. Lo que queda es lo
+      // único que hace falta para saber que salió, y con qué id reclamarlo al
+      // proveedor si no llegó.
+      const cuerpoDeLaRespuesta = (await respuesta.json().catch(() => null)) as
+        | { id?: string }
+        | null;
+
+      logger.info('aviso enviado', { id: cuerpoDeLaRespuesta?.id ?? null });
+      return;
+    }
+
+    {
       // **Neither the address nor the body is logged.** The body carries the
       // token, which is the credential that authorises processing a minor's
       // data; the address identifies the child's family. Guarantee A17.
+      // El motivo que da el proveedor, que es lo que hace falta para
+      // arreglarlo: un dominio sin verificar y una clave caducada dan errores
+      // distintos y se parecen desde fuera.
+      const motivo = await respuesta.text().catch(() => '');
+
       logger.error('el servicio de correo rechazó el aviso', {
         estado: respuesta.status,
+        motivo: motivo.slice(0, 500),
       });
       throw new Error('No se pudo enviar el aviso al acudiente.');
     }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:natacion_app/datos/memoria/repositorios_memoria.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:natacion_app/datos/auth/sesion_firebase.dart';
@@ -116,6 +117,17 @@ class AppNatacion extends StatelessWidget {
       // pertenece a la pantalla de Ajustes de la feature 007, y construirlo
       // aquí sería hacer algo que esa feature va a rehacer.
       themeMode: ThemeMode.system,
+
+      // **Todo en español, el calendario incluido.**
+      //
+      // Sin esto el selector de fecha sale en inglés y con formato mm/dd/aaaa.
+      // Para quien escribe su fecha de nacimiento eso no es un detalle de
+      // estilo: 03/05 significa cosas distintas a los dos lados del Atlántico,
+      // y de esa fecha depende si se le pide el consentimiento a un acudiente.
+      locale: const Locale('es'),
+      supportedLocales: const [Locale('es')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+
       home: const PantallaInicio(),
     );
   }
