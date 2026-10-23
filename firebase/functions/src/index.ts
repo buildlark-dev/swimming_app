@@ -19,3 +19,4 @@ initializeApp();
 
 export { alCrearseUnaCuenta, asignarRol } from './roles';
 export { emitirSolicitud, canjear, revocar } from './consentimiento';
+export { guardarPerfil } from './perfil';

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:natacion_app/datos/memoria/repositorios_memoria.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:natacion_app/datos/auth/sesion_firebase.dart';
@@ -34,7 +35,12 @@ import 'package:natacion_app/dominio/generacion/resultado.dart';
 import 'package:natacion_app/ui/editor/pantalla_editor.dart';
 import 'package:natacion_app/ui/generacion/pantalla_peticion.dart';
 import 'package:natacion_app/ui/nadadores/pantalla_perfiles.dart';
+import 'package:natacion_app/datos/perfil/repositorio_perfil.dart';
+import 'package:natacion_app/datos/servidor/operaciones.dart';
+import 'package:natacion_app/ui/alta/puerta_del_perfil.dart';
 import 'package:natacion_app/ui/componentes/aviso.dart';
+import 'package:natacion_app/ui/consentimiento/enlace_del_acudiente.dart';
+import 'package:natacion_app/ui/consentimiento/pagina_del_acudiente.dart';
 import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:provider/provider.dart';
@@ -60,6 +66,7 @@ class RecursosIniciales {
     required this.red,
     required this.transporte,
     this.identidad,
+    this.operaciones,
     this.firestore,
   });
 
@@ -83,6 +90,13 @@ class RecursosIniciales {
   /// **modo local**: ver [PantallaPrincipal.modoLocal].
   final Identidad? identidad;
 
+  /// Las operaciones del servidor (feature 006).
+  ///
+  /// Nulas sin servidor, por lo mismo que [identidad]. Sin ellas el alta no
+  /// puede guardar el perfil y el acudiente no puede canjear su enlace, y las
+  /// dos pantallas lo dicen en lugar de fingir que funcionan.
+  final OperacionesDelServidor? operaciones;
+
   /// La base de datos, si la hay. Nula en modo local.
   ///
   /// Es lo que decide si el trabajo del entrenador sobrevive al cierre de la
@@ -103,6 +117,17 @@ class AppNatacion extends StatelessWidget {
       // pertenece a la pantalla de Ajustes de la feature 007, y construirlo
       // aquí sería hacer algo que esa feature va a rehacer.
       themeMode: ThemeMode.system,
+
+      // **Todo en español, el calendario incluido.**
+      //
+      // Sin esto el selector de fecha sale en inglés y con formato mm/dd/aaaa.
+      // Para quien escribe su fecha de nacimiento eso no es un detalle de
+      // estilo: 03/05 significa cosas distintas a los dos lados del Atlántico,
+      // y de esa fecha depende si se le pide el consentimiento a un acudiente.
+      locale: const Locale('es'),
+      supportedLocales: const [Locale('es')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+
       home: const PantallaInicio(),
     );
   }
@@ -172,12 +197,48 @@ class _PantallaInicioState extends State<PantallaInicio> {
       // levantar los emuladores.
       identidad:
           datos == null ? null : SesionFirebase.porOmision(firestore: datos),
+      // Por lo mismo: sin servidor no hay a quién llamar. El alta lo dice en
+      // lugar de guardar un perfil que no va a ninguna parte.
+      operaciones: datos == null
+          ? null
+          : OperacionesFirebase.porOmision(usarEmuladores: usarEmuladores),
       firestore: datos,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    // **El enlace del acudiente se atiende antes que nada.**
+    //
+    // Si la app arranca en `/consentimiento?t=…`, lo que se ve es el
+    // formulario, no la pantalla de acceso. El acudiente no tiene cuenta y no
+    // va a crearse una para decir que sí: mandarlo a «entra a tu
+    // entrenamiento» sería mandarlo a otra app.
+    //
+    // Esto faltaba desde la feature 004: el formulario existía, el servidor
+    // sabía emitir el enlace, y no había nada que entendiera el enlace al
+    // llegar (decisión D10).
+    final token = tokenDelEnlace();
+    if (token != null) {
+      return FutureBuilder<RecursosIniciales>(
+        future: _recursos,
+        builder: (context, instantanea) {
+          if (!instantanea.hasData && !instantanea.hasError) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          return PaginaDelAcudiente(
+            token: token,
+            // Sin servidor no se puede canjear nada, y la página lo dice en
+            // lugar de enseñar un formulario que no va a funcionar.
+            operaciones: instantanea.data?.operaciones,
+          );
+        },
+      );
+    }
+
     return FutureBuilder<RecursosIniciales>(
       future: _recursos,
       builder: (context, instantanea) {
@@ -275,14 +336,46 @@ class _Acceso extends StatelessWidget {
               );
 
             case EstadoDeSesion.dentro:
-              return PantallaPrincipal(
+              // **Antes de entrar, saber quién es.**
+              //
+              // Una cuenta recién creada y una de las que ya existían desde la
+              // feature 004 están en el mismo estado: sin nombre y sin fecha
+              // de nacimiento. Las dos recorren los mismos pasos, que es lo
+              // que evita tener dos pantallas parecidas.
+              //
+              // Y es donde se cierra el hueco que importa: si una cuenta
+              // antigua resulta ser de un menor, su consentimiento no se
+              // habría pedido nunca, porque su alta ya pasó.
+              return PuertaDelPerfil(
                 // La clave fuerza a reconstruir el estado entero al cambiar de
                 // cuenta. Sin esto, el editor, la bandeja y el recorrido del
                 // nadador sobrevivirían al cambio y el segundo hermano vería
                 // lo del primero.
                 key: ValueKey(sesion.cuenta!.id),
-                recursos: recursos,
-                cuenta: sesion.cuenta,
+                uid: sesion.cuenta!.id,
+                // **El correo de la cuenta no viaja en `Cuenta`**, y es a
+                // propósito: el dominio guarda lo mínimo (principio V). Sin él
+                // la comprobación de «ese es tu propio correo» no puede
+                // hacerse en el cliente.
+                //
+                // No se pierde: **la frontera es el servidor**, que sí conoce
+                // el correo del token y rechaza la solicitud. El cliente solo
+                // adelantaba el aviso.
+                correo: '',
+                // Con reintentos: recién iniciada la sesión, la lectura puede
+                // fallar porque el cliente todavía no lleva el token nuevo, y
+                // ese fallo mandaba al alta a quien ya tenía perfil.
+                repositorio: recursos.firestore == null
+                    ? RepositorioPerfilEnMemoria()
+                    : RepositorioPerfilConReintentos(
+                        RepositorioPerfilFirestore(recursos.firestore!),
+                      ),
+                operaciones: recursos.operaciones,
+                nadadorId: sesion.cuenta!.nadadorId,
+                dentro: PantallaPrincipal(
+                  recursos: recursos,
+                  cuenta: sesion.cuenta,
+                ),
               );
           }
         },

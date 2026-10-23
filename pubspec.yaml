@@ -31,6 +31,16 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # El calendario y los textos de Material, en espanol.
+  #
+  # Sin esto el selector de fecha sale en ingles y con formato mm/dd/aaaa, que
+  # para quien escribe su fecha de nacimiento no es un detalle: 03/05 significa
+  # cosas distintas a los dos lados del Atlantico.
+  #
+  # Viene con el SDK de Flutter: no es una dependencia de terceros.
+  flutter_localizations:
+    sdk: flutter
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -49,6 +59,29 @@ dependencies:
   # `lib/datos/auth/sesion_firebase.dart`: el dominio habla de `Cuenta` y
   # `Rol`, y la prueba de frontera vigila que no se cuele mas adentro.
   firebase_auth: ^5.3.4
+
+  # Recargar la pagina al cerrar sesion (feature 006).
+  #
+  # Se importa en UN SOLO archivo, `lib/datos/auth/reinicio_web.dart`, y solo
+  # se compila en la web por import condicional. Hace falta porque vaciar la
+  # cache de Firestore obliga a terminar el cliente y el plugin no vuelve a
+  # crearlo: sin recargar, cerrar sesion deja la app sin base de datos.
+  #
+  # Es la libreria de interop web del propio equipo de Dart, ya venia como
+  # dependencia transitiva de `firebase_core_web`, y la alternativa —la
+  # `dart:html` antigua— esta descontinuada.
+  web: ^1.1.1
+
+  # Llamar a las operaciones del servidor (feature 006, decision D9).
+  #
+  # Hasta ahora el cliente nunca habia llamado a una funcion: las cuatro de la
+  # feature 004 se invocaban desde los scripts de administracion. Hace falta
+  # porque `usuarios/{uid}` es de escritura solo del servidor, y esa regla
+  # protege el vinculo entre cuenta y nadador, no el nombre.
+  #
+  # La alternativa, montar la peticion HTTPS a mano, significa otra dependencia
+  # mas el codigo de firmar y reintentar que esta ya trae.
+  cloud_functions: ^5.1.3
 
 dev_dependencies:
   flutter_test:
@@ -84,6 +117,10 @@ flutter:
     # consentimiento consta bajo la version que su otorgante leyo, y cambiar
     # el texto no reescribe lo que alguien ya acepto (FR-018).
     - assets/consentimiento/
+    # Los terminos y condiciones, por la misma razon: queda guardado que
+    # version acepto cada quien y cuando, y cambiar el texto no reescribe lo
+    # que alguien ya acepto.
+    - assets/terminos/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

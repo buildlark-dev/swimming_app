@@ -11,6 +11,7 @@ library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:natacion_app/datos/auth/reinicio.dart';
 import 'package:natacion_app/datos/local/almacen_local.dart';
 import 'package:natacion_app/dominio/cuentas/cuenta.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
@@ -135,6 +136,23 @@ class SesionFirebase implements Identidad {
     }
 
     await auth.signOut();
+
+    // **Y la app arranca de nuevo, porque el vaciado de arriba no es gratis.**
+    //
+    // `terminate()` es obligatorio para poder llamar a `clearPersistence()`, y
+    // deja el cliente de Firestore muerto para toda la vida de la página: el
+    // plugin guarda la instancia de JavaScript en un campo que nadie vuelve a
+    // limpiar, así que cualquier lectura posterior falla con «el cliente ya se
+    // ha terminado». Definitivo, no una carrera: ningún reintento lo arregla.
+    //
+    // Lo que se veía era el alta —al volver a entrar, la app pedía otra vez
+    // los datos de quien ya tenía perfil, porque la lectura fallaba—, pero lo
+    // roto era todo: después de cerrar sesión nada podía leer ni escribir.
+    //
+    // Esto es lo que el entrenador hacía a mano cerrando la PWA, hecho por la
+    // app. Va al final a propósito: recargar antes de `signOut()` traería de
+    // vuelta la sesión anterior.
+    await reiniciarLaApp();
   }
 
   /// Traduce un usuario de Firebase al estado de identidad del dominio.

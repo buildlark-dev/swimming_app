@@ -8,6 +8,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/consentimiento/consentimiento.dart';
+import 'package:natacion_app/dominio/consentimiento/declaracion.dart';
 
 /// En qué punto va cada nadador.
 enum EstadoDeConsentimiento {
@@ -29,12 +30,20 @@ class EstadoDelNadador {
     required this.nombre,
     required this.estado,
     this.alcances = const <Alcance>{},
+    this.origen,
   });
 
   final String nadadorId;
   final String nombre;
   final EstadoDeConsentimiento estado;
   final Set<Alcance> alcances;
+
+  /// De dónde salió la dirección a la que se pidió.
+  ///
+  /// Nulo mientras no se ha pedido nada. El entrenador responde ante las
+  /// familias y ante la ley, y tiene derecho a distinguir un canal que
+  /// verificó él de uno que declaró el propio nadador (garantía A9).
+  final OrigenDeLaDeclaracion? origen;
 
   /// Si se le puede publicar un plan. Es la puerta, vista desde la pantalla.
   ///
@@ -84,19 +93,38 @@ class PanelEstadoConsentimiento extends StatelessWidget {
             color: nadador.puedeRecibirUnPlan ? esquema.primary : context.colores.informativo,
           ),
           title: Text(nadador.nombre),
-          subtitle: Text(
-            nadador.puedeRecibirUnPlan
-                ? '${nadador.estado.etiqueta} · '
-                    '${nadador.alcances.map((a) => a.clave).join(', ')}'
-                : '${nadador.estado.etiqueta} · no se le puede publicar un plan',
-          ),
-          trailing: nadador.puedeRecibirUnPlan
-              ? null
-              : TextButton(
-                  key: Key('pedir-${nadador.nadadorId}'),
-                  onPressed: () => _pedir(context, nadador),
-                  child: const Text('Pedir'),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                nadador.puedeRecibirUnPlan
+                    ? '${nadador.estado.etiqueta} · '
+                        '${nadador.alcances.map((a) => a.clave).join(', ')}'
+                    : '${nadador.estado.etiqueta} · no se le puede publicar '
+                        'un plan',
+              ),
+              // **De dónde vino.** Un consentimiento declarado por el propio
+              // nadador es válido: el formulario sigue exigiendo que el
+              // acudiente se identifique y confirme que oyó al menor. Pero el
+              // entrenador tiene derecho a saber cuál verificó él.
+              if (nadador.origen != null)
+                Text(
+                  nadador.origen!.descripcion,
+                  key: Key('origen-${nadador.nadadorId}'),
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
+            ],
+          ),
+          isThreeLine: nadador.origen != null,
+          // **Se puede volver a pedir aunque ya esté vigente.** Si el canal lo
+          // declaró el nadador y el entrenador quiere pedirlo desde su propia
+          // matrícula, ese es exactamente el caso que el campo `origen`
+          // existe para hacer visible.
+          trailing: TextButton(
+            key: Key('pedir-${nadador.nadadorId}'),
+            onPressed: () => _pedir(context, nadador),
+            child: Text(nadador.puedeRecibirUnPlan ? 'Volver a pedir' : 'Pedir'),
+          ),
         );
       },
     );
