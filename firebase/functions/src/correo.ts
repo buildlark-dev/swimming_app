@@ -24,13 +24,21 @@ export const CLAVE_DE_RESEND = defineSecret('RESEND_API_KEY');
 /**
  * Who the email comes from.
  *
- * Must be an address on a domain verified in Resend. Until one is, Resend only
- * accepts `onboarding@resend.dev`, which works for testing and will land in
- * spam for real families - so verifying the domain is not optional before this
- * is offered to anybody.
+ * Must be an address on a domain verified in Resend - buildlark.com is. The
+ * alternative Resend offers before verification, `onboarding@resend.dev`,
+ * lands in spam, and for a guardian a link in spam and a link never sent are
+ * the same thing.
+ *
+ * **Temporary**: this is a BuildLark address because the app has no name of
+ * its own yet. It changes when it has one, and it is a parameter rather than a
+ * literal precisely so that change is a deploy and not an edit.
+ *
+ * The display name is not decoration. An email asking a parent to authorise
+ * something about their child, arriving from a bare address, reads like
+ * phishing.
  */
 export const REMITENTE = defineString('REMITENTE_DE_AVISOS', {
-  default: 'onboarding@resend.dev',
+  default: 'Natación <natacion@buildlark.com>',
 });
 
 /**
