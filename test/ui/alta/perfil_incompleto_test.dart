@@ -165,13 +165,13 @@ class _Servidor implements OperacionesDelServidor {
   final solicitudes = <String>[];
 
   @override
-  Future<bool> guardarPerfil({
+  Future<PerfilGuardado> guardarPerfil({
     required String nombre,
     required DateTime fechaNacimiento,
     String? pais,
     required String versionDeTerminos,
   }) async =>
-      esMenor;
+      PerfilGuardado(esMenor: esMenor, nadadorId: 'n1');
 
   @override
   Future<void> pedirConsentimiento({

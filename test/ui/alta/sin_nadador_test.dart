@@ -1,18 +1,22 @@
-/// Reproduce lo que el entrenador encontró: **el correo no se envía nunca**.
+/// El correo sale aunque la cuenta no estuviera matriculada.
+///
+/// Esta prueba nació reproduciendo un fallo que el entrenador encontró en la
+/// app desplegada: **el correo no se enviaba nunca**.
 ///
 /// El mecanismo de consentimiento de la feature 004 está indexado por
-/// `nadadorId`: la solicitud, el consentimiento y la puerta hablan todos de un
-/// nadador de la matrícula. Pero **una cuenta recién creada no tiene
-/// `nadadorId`**: ese vínculo lo escribe el servidor cuando el entrenador
-/// asocia la cuenta a un perfil de su matrícula, y en el alta eso no ha pasado.
+/// `nadadorId`, y una cuenta recién creada no tenía ninguno: ese vínculo lo
+/// escribía el entrenador al asociar la cuenta a un perfil de su matrícula. Así
+/// que el alta pedía el correo del acudiente, se pulsaba «Terminar», y el
+/// servidor rechazaba la solicitud con «Faltan el nadador o el canal».
 ///
-/// Así que el alta pide el correo del acudiente, la nadadora pulsa «Terminar»,
-/// y el servidor rechaza la solicitud porque le falta el nadador. No sale
-/// ningún correo.
-///
-/// Es la tercera vez que asoma el mismo supuesto: la 004 se escribió para un
+/// Era la tercera vez que asomaba el mismo supuesto. La 004 se escribió para un
 /// club cerrado donde el entrenador matricula primero y pide el consentimiento
-/// después. Aquí la persona llega antes que la matrícula.
+/// después. **Esta app está abierta a cualquiera, pertenezca a un club o no**,
+/// así que la persona llega antes que la matrícula.
+///
+/// La corrección: quien se da de alta **es** un nadador desde ese momento. El
+/// servidor crea su ficha y devuelve su id, y lo que el entrenador sigue
+/// decidiendo es su categoría y su estilo objetivo.
 library;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -34,51 +38,74 @@ void main() {
         ..aceptarTerminos(aceptados: true)
         ..escribirCorreoDelAcudiente('madre@ejemplo.com');
 
-  test('con nadadorId, la solicitud sale', () {
-    // El caso que las pruebas cubrían: una cuenta ya asociada a un perfil.
-    final servidor = _Servidor();
-    final estado = deUnaMenor(servidor, nadadorId: 'n1');
-
-    return estado.terminar().then((resultado) {
-      expect(resultado, ResultadoDelAlta.listoConSolicitud);
-      expect(servidor.solicitudes, ['madre@ejemplo.com']);
-    });
-  });
-
-  test('SIN nadadorId —una cuenta nueva— el servidor la rechaza', () async {
-    // **Esto es lo que le pasa a todo el que se da de alta hoy.**
+  test('una cuenta nueva, sin matricular, también recibe su solicitud',
+      () async {
+    // **Este es el caso que fallaba**, y es el de todo el que se da de alta.
     final servidor = _Servidor();
     final estado = deUnaMenor(servidor, nadadorId: null);
 
     final resultado = await estado.terminar();
 
-    expect(
-      servidor.nadadoresPedidos,
-      [''],
-      reason: 'Se manda una cadena vacía, que es lo que el servidor rechaza '
-          'con «Faltan el nadador o el canal»',
-    );
-    expect(
-      resultado,
-      isNull,
-      reason: 'El alta no termina: la nadadora se queda con un error y sin '
-          'que su acudiente reciba nada',
-    );
+    expect(resultado, ResultadoDelAlta.listoConSolicitud);
+    expect(servidor.solicitudes, ['madre@ejemplo.com']);
+  });
+
+  test('el id sale de lo que contesta el servidor, no de la cuenta', () async {
+    // Al arrancar el alta no existía ningún nadador. Usar el id que la cuenta
+    // tenía entonces es mandar una cadena vacía, que es lo que el servidor
+    // rechazaba.
+    final servidor = _Servidor(nadadorIdCreado: 'el-recien-creado');
+    final estado = deUnaMenor(servidor, nadadorId: null);
+
+    await estado.terminar();
+
+    expect(servidor.nadadoresPedidos, ['el-recien-creado']);
+  });
+
+  test('una cuenta que ya estaba matriculada conserva su id', () async {
+    // El servidor devuelve el que ya existía: completar el perfil no reescribe
+    // a quién pertenece una ficha que el entrenador ya había creado.
+    final servidor = _Servidor(nadadorIdCreado: 'el-que-ya-tenia');
+    final estado = deUnaMenor(servidor, nadadorId: 'el-que-ya-tenia');
+
+    await estado.terminar();
+
+    expect(servidor.nadadoresPedidos, ['el-que-ya-tenia']);
+  });
+
+  test('a un adulto no se le pide nada, con id o sin él', () async {
+    final servidor = _Servidor(esMenor: false);
+    final estado = EstadoAlta(
+      operaciones: servidor,
+      correoDeLaCuenta: 'adulto@ejemplo.com',
+      reloj: () => hoy,
+    )
+      ..escribirNombre('Juan')
+      ..escribirNacimiento(DateTime(1990, 1, 1))
+      ..aceptarTerminos(aceptados: true);
+
+    expect(await estado.terminar(), ResultadoDelAlta.listo);
+    expect(servidor.solicitudes, isEmpty);
   });
 }
 
 class _Servidor implements OperacionesDelServidor {
+  _Servidor({this.esMenor = true, this.nadadorIdCreado = 'n1'});
+
+  final bool esMenor;
+  final String nadadorIdCreado;
+
   final solicitudes = <String>[];
   final nadadoresPedidos = <String>[];
 
   @override
-  Future<bool> guardarPerfil({
+  Future<PerfilGuardado> guardarPerfil({
     required String nombre,
     required DateTime fechaNacimiento,
     String? pais,
     required String versionDeTerminos,
   }) async =>
-      true;
+      PerfilGuardado(esMenor: esMenor, nadadorId: nadadorIdCreado);
 
   @override
   Future<void> pedirConsentimiento({
@@ -87,7 +114,8 @@ class _Servidor implements OperacionesDelServidor {
     Set<Alcance> alcances = const {Alcance.datosDeEntrenamiento},
   }) async {
     nadadoresPedidos.add(nadadorId);
-    // Lo que hace el servidor de verdad.
+
+    // Lo que hace el servidor de verdad, y lo que hacía fallar todo.
     if (nadadorId.isEmpty) {
       throw const FalloDelServidor('Faltan el nadador o el canal.');
     }

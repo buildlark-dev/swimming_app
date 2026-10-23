@@ -16,6 +16,7 @@ import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 
 const COL_USUARIOS = 'usuarios';
+const COL_NADADORES = 'nadadores';
 
 /** Oldest birth date we accept. Anything before this is a typo, not a person. */
 const ANO_MINIMO = 1900;
@@ -98,10 +99,35 @@ export const guardarPerfil = onCall(async (peticion) => {
 
   const esMenor = edadA(nacimiento, ahora) < MAYORIA_DE_EDAD;
 
-  await getFirestore()
-    .collection(COL_USUARIOS)
-    .doc(uid)
-    .set(
+  // **Signing up creates the swimmer too.**
+  //
+  // Feature 004 assumed a closed club: the coach enrols somebody and then asks
+  // for their guardian's consent. This app is open to anyone, in or out of a
+  // club, so the person arrives before any enrolment - and the whole consent
+  // mechanism is keyed by nadadorId. Without one, the request was rejected and
+  // no email was ever sent.
+  //
+  // So whoever signs up is a swimmer from that moment. What the coach still
+  // decides is their category and target stroke, which `Nadador.faltas`
+  // already models as an incomplete profile.
+  //
+  // The id is the account's uid: one person, one id, and the consent key is
+  // stable without an extra lookup.
+  const usuario = getFirestore().collection(COL_USUARIOS).doc(uid);
+  const yaExiste = (await usuario.get()).data()?.['nadadorId'] as
+    | string
+    | undefined;
+  const nadadorId = yaExiste ?? uid;
+
+  if (!yaExiste) {
+    await getFirestore()
+      .collection(COL_NADADORES)
+      .doc(nadadorId)
+      // Merge, so re-running sign-up never wipes the category a coach set.
+      .set({ nombre: limpio, fechaNacimiento }, { merge: true });
+  }
+
+  await usuario.set(
       {
         nombre: limpio,
         fechaNacimiento,
@@ -110,6 +136,7 @@ export const guardarPerfil = onCall(async (peticion) => {
           version: versionDeTerminos,
           aceptadaEn: FieldValue.serverTimestamp(),
         },
+        nadadorId,
         perfilCompletadoEn: FieldValue.serverTimestamp(),
       },
       // Merge, so writing the profile never wipes the `nadadorId` the server
@@ -121,5 +148,7 @@ export const guardarPerfil = onCall(async (peticion) => {
   // The birth date is the server's business too: the client could lie about
   // being an adult, and the gate that follows has to work off something the
   // server computed.
-  return { esMenor };
+  // El cliente necesita el id para pedir el consentimiento: al arrancar el
+  // alta todavía no existía.
+  return { esMenor, nadadorId };
 });

@@ -92,7 +92,7 @@ void main() {
 
 class _ServidorCaido implements OperacionesDelServidor {
   @override
-  Future<bool> guardarPerfil({
+  Future<PerfilGuardado> guardarPerfil({
     required String nombre,
     required DateTime fechaNacimiento,
     String? pais,

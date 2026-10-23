@@ -244,7 +244,7 @@ class EstadoAlta extends ChangeNotifier {
     try {
       // El servidor recalcula la minoría de edad: el cliente podría mentir, y
       // la puerta que viene después trabaja sobre lo que el servidor comprobó.
-      final esMenorSegunElServidor = await servidor.guardarPerfil(
+      final guardado = await servidor.guardarPerfil(
         nombre: _perfil.nombre.trim(),
         fechaNacimiento: _perfil.fechaNacimiento!,
         pais: _perfil.pais,
@@ -253,7 +253,7 @@ class EstadoAlta extends ChangeNotifier {
 
       final correo = _perfil.correoDelAcudiente?.trim();
 
-      if (!esMenorSegunElServidor) {
+      if (!guardado.esMenor) {
         await _olvidarLoQueVa();
         return ResultadoDelAlta.listo;
       }
@@ -265,8 +265,12 @@ class EstadoAlta extends ChangeNotifier {
         return ResultadoDelAlta.listoSinAcudiente;
       }
 
+      // **El id sale de lo que acaba de contestar el servidor**, no del que
+      // tenía la cuenta al arrancar el alta: antes de guardar el perfil no
+      // existía ningún nadador al que pedirle el consentimiento, y mandar una
+      // cadena vacía es lo que hacía que no se enviara ningún correo.
       await servidor.pedirConsentimiento(
-        nadadorId: nadadorId ?? '',
+        nadadorId: guardado.nadadorId,
         canal: correo,
       );
 

@@ -280,14 +280,14 @@ class _ServidorQueAcepta implements OperacionesDelServidor {
   final solicitudes = <String>[];
 
   @override
-  Future<bool> guardarPerfil({
+  Future<PerfilGuardado> guardarPerfil({
     required String nombre,
     required DateTime fechaNacimiento,
     String? pais,
     required String versionDeTerminos,
   }) async {
     perfilesGuardados++;
-    return esMenor;
+    return PerfilGuardado(esMenor: esMenor, nadadorId: 'n1');
   }
 
   @override

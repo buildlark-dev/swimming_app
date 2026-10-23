@@ -34,13 +34,31 @@ class FalloDelServidor implements Exception {
 ///
 /// Es una interfaz para que las pruebas puedan montar las pantallas sin
 /// servidor, igual que el resto de repositorios del proyecto.
+/// Lo que el servidor contesta al guardar un perfil.
+class PerfilGuardado {
+  const PerfilGuardado({required this.esMenor, required this.nadadorId});
+
+  final bool esMenor;
+
+  /// Quién es, para la matrícula y para el consentimiento.
+  ///
+  /// Lo crea el alta si no existía: la feature 004 daba por hecho que el
+  /// entrenador matricula primero, y en una app abierta la persona llega
+  /// antes que la matrícula.
+  final String nadadorId;
+}
+
 abstract class OperacionesDelServidor {
-  /// Guarda el perfil de quien llama. Devuelve si resultó ser menor.
+  /// Guarda el perfil de quien llama.
   ///
   /// **El servidor recalcula la minoría de edad**: el cliente podría mentir, y
   /// la puerta que viene después tiene que trabajar sobre algo que el servidor
   /// comprobó.
-  Future<bool> guardarPerfil({
+  ///
+  /// Y devuelve el `nadadorId`, que **puede no haber existido hasta ahora**:
+  /// quien se da de alta es un nadador desde ese momento, y antes de guardar
+  /// el perfil no había a quién pedirle el consentimiento.
+  Future<PerfilGuardado> guardarPerfil({
     required String nombre,
     required DateTime fechaNacimiento,
     String? pais,
@@ -90,7 +108,7 @@ class OperacionesFirebase implements OperacionesDelServidor {
   }
 
   @override
-  Future<bool> guardarPerfil({
+  Future<PerfilGuardado> guardarPerfil({
     required String nombre,
     required DateTime fechaNacimiento,
     String? pais,
@@ -105,7 +123,12 @@ class OperacionesFirebase implements OperacionesDelServidor {
       'versionDeTerminos': versionDeTerminos,
     });
 
-    return (respuesta?['esMenor'] as bool?) ?? true;
+    return PerfilGuardado(
+      // Ante la duda, menor: el error de pedir un consentimiento que no hacía
+      // falta se arregla; el de no pedirlo, no.
+      esMenor: (respuesta?['esMenor'] as bool?) ?? true,
+      nadadorId: (respuesta?['nadadorId'] as String?) ?? '',
+    );
   }
 
   @override
