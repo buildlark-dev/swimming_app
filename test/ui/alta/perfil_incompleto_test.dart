@@ -121,10 +121,11 @@ void main() {
   });
 
   group('lo que no se bloquea', () {
-    testWidgets('si no se puede leer el perfil, se entra igual',
-        (tester) async {
-      // **No se bloquea la app por no poder leer el perfil.** Es la lección
-      // del arranque sin Firebase del PR #5: lo que debe degradar, degrada.
+    testWidgets('si no se puede leer el perfil, se pregunta', (tester) async {
+      // **No se deja pasar.** Dejar pasar equivale a suponer que el perfil
+      // está completo, y esa es la suposición que hace que a un menor no se le
+      // pida nunca el consentimiento. Preguntar de más cuesta reescribir un
+      // nombre; suponer de más cuesta un consentimiento que nadie pidió.
       tester.view.physicalSize = const Size(400, 900);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
@@ -144,7 +145,8 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(find.text('La app'), findsOneWidget);
+      expect(find.text('¿Cómo te llamas?'), findsOneWidget);
+      expect(find.text('La app'), findsNothing);
     });
   });
 }

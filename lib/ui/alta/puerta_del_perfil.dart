@@ -74,10 +74,20 @@ class _PuertaDelPerfilState extends State<PuertaDelPerfil> {
       future: _perfil,
       builder: (context, instantanea) {
         if (instantanea.hasError) {
-          // **No se bloquea la app por no poder leer el perfil.** Es la misma
-          // lección del arranque sin Firebase del PR #5: lo que debe degradar,
-          // degrada. Se entra, y los pasos se piden la próxima vez.
-          return widget.dentro;
+          // **Si no se puede leer el perfil, se pregunta.** No se deja pasar.
+          //
+          // Al revés parece más amable y es peor: dejar pasar equivale a
+          // suponer que el perfil está completo, y esa es justo la suposición
+          // que hace que a un menor **no se le pida nunca el consentimiento**.
+          // Preguntar de más cuesta que alguien reescriba su nombre una vez;
+          // suponer de más cuesta un consentimiento que nadie pidió.
+          //
+          // No encierra a nadie: si además falla guardar, el alta ofrece
+          // «Entrar de todos modos».
+          //
+          // Y de paso quita un camino silencioso. Un fallo que te mete en la
+          // app sin decir nada es un fallo que nadie puede explicar después.
+          return _pedirElPerfil();
         }
 
         if (!instantanea.hasData) {
@@ -88,26 +98,30 @@ class _PuertaDelPerfilState extends State<PuertaDelPerfil> {
 
         if (instantanea.data!.estaCompleto) return widget.dentro;
 
-        return ChangeNotifierProvider<EstadoAlta>(
-          create: (_) => EstadoAlta(
-            operaciones: widget.operaciones,
-            correoDeLaCuenta: widget.correo,
-            almacen: widget.almacen,
-            nadadorId: widget.nadadorId,
-          )..recuperar(),
-          child: PantallaAlta(
-            alTerminar: (resultado) => setState(() {
-              _altaRecienTerminada = resultado;
-              _perfil = widget.repositorio.obtener(widget.uid);
-            }),
-            // Si el perfil no se pudo guardar, se entra igual. Sin fecha de
-            // nacimiento la app trata a quien entra como menor, así que la
-            // puerta sigue cerrada y nada sale del dispositivo: lo único que
-            // se pierde es saber quién es, y se vuelve a preguntar mañana.
-            alEntrarIgual: () => setState(() => _entroSinPerfil = true),
-          ),
-        );
+        return _pedirElPerfil();
       },
+    );
+  }
+
+  Widget _pedirElPerfil() {
+    return ChangeNotifierProvider<EstadoAlta>(
+      create: (_) => EstadoAlta(
+        operaciones: widget.operaciones,
+        correoDeLaCuenta: widget.correo,
+        almacen: widget.almacen,
+        nadadorId: widget.nadadorId,
+      )..recuperar(),
+      child: PantallaAlta(
+        alTerminar: (resultado) => setState(() {
+          _altaRecienTerminada = resultado;
+          _perfil = widget.repositorio.obtener(widget.uid);
+        }),
+        // Si el perfil no se pudo guardar, se entra igual. Sin fecha de
+        // nacimiento la app trata a quien entra como menor, así que la puerta
+        // sigue cerrada y nada sale del dispositivo: lo único que se pierde es
+        // saber quién es, y se vuelve a preguntar mañana.
+        alEntrarIgual: () => setState(() => _entroSinPerfil = true),
+      ),
     );
   }
 }
