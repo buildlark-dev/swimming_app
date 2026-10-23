@@ -60,6 +60,18 @@ dependencies:
   # `Rol`, y la prueba de frontera vigila que no se cuele mas adentro.
   firebase_auth: ^5.3.4
 
+  # Recargar la pagina al cerrar sesion (feature 006).
+  #
+  # Se importa en UN SOLO archivo, `lib/datos/auth/reinicio_web.dart`, y solo
+  # se compila en la web por import condicional. Hace falta porque vaciar la
+  # cache de Firestore obliga a terminar el cliente y el plugin no vuelve a
+  # crearlo: sin recargar, cerrar sesion deja la app sin base de datos.
+  #
+  # Es la libreria de interop web del propio equipo de Dart, ya venia como
+  # dependencia transitiva de `firebase_core_web`, y la alternativa —la
+  # `dart:html` antigua— esta descontinuada.
+  web: ^1.1.1
+
   # Llamar a las operaciones del servidor (feature 006, decision D9).
   #
   # Hasta ahora el cliente nunca habia llamado a una funcion: las cuatro de la
