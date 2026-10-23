@@ -183,7 +183,7 @@ registrado.
 - [X] T051 Recorrer entero [quickstart.md](quickstart.md) y marcar cada escenario con lo que lo cubre
 - [X] T052 Pasar las cuatro puertas de calidad en orden: `flutter analyze`, `flutter test`, `npm --prefix firebase test` y `dart run tool/verificar_metodologia.dart`
 - [X] T053 Desplegar con la secuencia de `docs/DEVELOPMENT.md` y **comprobar el sitio en vivo**. Esta vez el despliegue cambia reglas y servidor, no solo hosting: la secuencia es reglas y funciones **antes** que hosting
-- [ ] T054 Probar la historia 3 **contra una cuenta de verdad** antes de darla por buena. Es lo único de esta feature que afecta a gente que ya está usando la app
+- [X] T054 Probar la historia 3 **contra una cuenta de verdad** antes de darla por buena. Es lo único de esta feature que afecta a gente que ya está usando la app
 - [X] T055 Verificar que un nadador de nueve años completa el alta **sin preguntarle a nadie qué significa un campo** (SC-002). Eso se prueba sentándose al lado de uno
 
 ---
@@ -257,3 +257,31 @@ solo, y no cambia nada de lo que hoy funciona.
   el campo `origen`.
 - Ante la duda sobre si alguien es menor, **menor**. El error de pedir un consentimiento que
   no hacía falta se arregla; el de no pedirlo, no.
+
+---
+
+## Lo que dijo la app en vivo
+
+Las 55 tareas quedan cerradas, y lo que cerró las últimas no fueron las pruebas:
+fue el entrenador usando la app desplegada. Lo que encontró ahí y ninguna prueba
+veía queda anotado porque es lo que hay que recordar en la siguiente feature.
+
+- **T053/T054** — la historia 3 contra la cuenta de entrenador que ya existía. Pidió
+  los datos, los guardó, y luego salieron cuatro fallos de entorno y de cable, en
+  este orden: las funciones **nunca habían tenido permiso de invocación** desde la
+  004 (D11); la cuenta de servicio no tenía `roles/datastore.user`, así que el
+  Admin SDK no podía escribir y un solo `PERMISSION_DENIED` explicaba cinco
+  síntomas distintos; el cliente mandaba la declaración del acudiente **plana** y
+  el servidor la lee anidada; y cerrar sesión **terminaba el cliente de Firestore
+  para toda la vida de la página**.
+- **T055** — el alta se completó sin preguntar qué significaba ningún campo.
+
+Las dos lecciones, para la próxima:
+
+1. **Los dobles prueban la interfaz, no el cable.** Diez pruebas recorrían el camino
+   del acudiente y las diez pasaban con el cuerpo mal formado. De ahí sale
+   `test/datos/servidor/contrato_con_el_servidor_test.dart`, que lee el código del
+   servidor.
+2. **Un aviso genérico esconde el fallo que lo causó.** Las tres rondas de despliegue
+   que costó el `PERMISSION_DENIED` se habrían ahorrado si la función hubiera dicho
+   qué no pudo hacer.
