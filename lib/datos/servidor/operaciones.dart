@@ -48,6 +48,37 @@ class PerfilGuardado {
   final String nadadorId;
 }
 
+/// El cuerpo que espera `canjear` en el servidor.
+///
+/// **Los datos del acudiente van anidados en `declaracion`**, no sueltos. Esto
+/// es una función con nombre y con prueba porque ya se escribió mal una vez:
+/// se mandaron planos, el servidor leyó `declaracion` como indefinida, y un
+/// acudiente con el formulario entero relleno veía «Hace falta quién es usted
+/// y en qué calidad actúa».
+///
+/// Los dobles de las pruebas implementan la interfaz, no el cable, así que
+/// ninguna de las diez pruebas del camino del acudiente podía verlo. Esta sí.
+Map<String, dynamic> cuerpoDeCanje({
+  required String token,
+  required String nombre,
+  required String documento,
+  required String calidad,
+  required bool esRepresentanteLegal,
+  required bool menorFueOido,
+  required String versionDelTexto,
+}) =>
+    {
+      'token': token,
+      'declaracion': {
+        'nombre': nombre,
+        'documento': documento,
+        'calidad': calidad,
+        'esRepresentanteLegal': esRepresentanteLegal,
+        'menorFueOido': menorFueOido,
+        'versionDelTexto': versionDelTexto,
+      },
+    };
+
 abstract class OperacionesDelServidor {
   /// Guarda el perfil de quien llama.
   ///
@@ -154,15 +185,15 @@ class OperacionesFirebase implements OperacionesDelServidor {
     required bool menorFueOido,
     required String versionDelTexto,
   }) async {
-    await _llamar('canjear', {
-      'token': token,
-      'nombre': nombre,
-      'documento': documento,
-      'calidad': calidad,
-      'esRepresentanteLegal': esRepresentanteLegal,
-      'menorFueOido': menorFueOido,
-      'versionDelTexto': versionDelTexto,
-    });
+    await _llamar('canjear', cuerpoDeCanje(
+      token: token,
+      nombre: nombre,
+      documento: documento,
+      calidad: calidad,
+      esRepresentanteLegal: esRepresentanteLegal,
+      menorFueOido: menorFueOido,
+      versionDelTexto: versionDelTexto,
+    ));
   }
 
   Future<Map<String, dynamic>?> _llamar(

@@ -62,6 +62,56 @@ class RepositorioPerfilFirestore implements RepositorioPerfil {
   }
 }
 
+/// Reintenta la lectura antes de darla por perdida.
+///
+/// **Una lectura que falla no significa que no haya perfil.** Recién iniciada
+/// la sesión, el cliente de Firestore puede no llevar todavía el token nuevo, y
+/// la lectura se rechaza por reglas. La puerta del perfil interpretaba ese
+/// fallo como «no sabemos quién eres» y mandaba al alta a alguien que acababa
+/// de entrar; cerrar la PWA y abrirla de nuevo lo arreglaba, que es justo la
+/// firma de una carrera entre el token y la lectura.
+///
+/// **Un perfil vacío no se reintenta.** Es el estado legítimo de toda cuenta
+/// creada antes de la feature 006, y reintentarlo retrasaría el alta de quien
+/// sí tiene que recorrerla.
+///
+/// Y no insiste para siempre: con el servidor caído el fallo tiene que llegar,
+/// porque es lo que deja ver la salida «Entrar de todos modos».
+class RepositorioPerfilConReintentos implements RepositorioPerfil {
+  const RepositorioPerfilConReintentos(
+    this._debajo, {
+    this.intentos = 3,
+    Future<void> Function(Duration)? espera,
+  }) : _espera = espera ?? Future.delayed;
+
+  final RepositorioPerfil _debajo;
+
+  /// Contando el primero. Tres intentos en poco más de un segundo y medio: lo
+  /// que tarda un token en propagarse, no lo que tarda alguien en rendirse.
+  final int intentos;
+
+  final Future<void> Function(Duration) _espera;
+
+  static const _pausas = [
+    Duration(milliseconds: 400),
+    Duration(milliseconds: 1200),
+  ];
+
+  @override
+  Future<Perfil> obtener(String uid) async {
+    for (var intento = 1; intento <= intentos; intento++) {
+      try {
+        return await _debajo.obtener(uid);
+      } catch (_) {
+        if (intento == intentos) rethrow;
+        await _espera(_pausas[(intento - 1).clamp(0, _pausas.length - 1)]);
+      }
+    }
+    // Inalcanzable: el último intento o devuelve o relanza.
+    throw StateError('sin intentos');
+  }
+}
+
 /// El de las pruebas y el del modo local.
 ///
 /// En modo local no hay servidor que guarde nada, así que el perfil se queda

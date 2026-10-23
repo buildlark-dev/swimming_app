@@ -362,9 +362,14 @@ class _Acceso extends StatelessWidget {
                 // el correo del token y rechaza la solicitud. El cliente solo
                 // adelantaba el aviso.
                 correo: '',
+                // Con reintentos: recién iniciada la sesión, la lectura puede
+                // fallar porque el cliente todavía no lleva el token nuevo, y
+                // ese fallo mandaba al alta a quien ya tenía perfil.
                 repositorio: recursos.firestore == null
                     ? RepositorioPerfilEnMemoria()
-                    : RepositorioPerfilFirestore(recursos.firestore!),
+                    : RepositorioPerfilConReintentos(
+                        RepositorioPerfilFirestore(recursos.firestore!),
+                      ),
                 operaciones: recursos.operaciones,
                 nadadorId: sesion.cuenta!.nadadorId,
                 dentro: PantallaPrincipal(

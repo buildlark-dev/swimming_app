@@ -52,12 +52,27 @@ class PuertaDelPerfil extends StatefulWidget {
 }
 
 class _PuertaDelPerfilState extends State<PuertaDelPerfil> {
-  late Future<Perfil> _perfil = widget.repositorio.obtener(widget.uid);
+  late final Future<Perfil> _perfil = widget.repositorio.obtener(widget.uid);
   ResultadoDelAlta? _altaRecienTerminada;
 
   /// Entró sin haber podido guardar el perfil. Se le vuelve a preguntar la
   /// próxima vez que abra la app.
   bool _entroSinPerfil = false;
+
+  /// El alta terminó aquí mismo, y el servidor contestó que guardó.
+  ///
+  /// **Entonces no se vuelve a leer para decidir si entra.** El perfil lo
+  /// escribe el servidor y el cliente lee por su cuenta: leer justo después no
+  /// garantiza ver lo que se acaba de guardar. Dar por hecho que sí costó el
+  /// fallo que se vio en la app —terminar el alta, pulsar «Entrar» y volver a
+  /// «¿Cómo te llamas?»— y no lo veía ninguna prueba, porque el doble del
+  /// repositorio sí devolvía lo guardado.
+  ///
+  /// No se afloja nada: esto solo pasa por `alTerminar`, que es el camino en
+  /// que `guardarPerfil` devolvió sin error. Si guardar falla, el alta no
+  /// termina: ofrece «Entrar de todos modos», que es otro camino y deja el
+  /// perfil incompleto a propósito.
+  bool _altaGuardada = false;
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +83,7 @@ class _PuertaDelPerfilState extends State<PuertaDelPerfil> {
       );
     }
 
-    if (_entroSinPerfil) return widget.dentro;
+    if (_entroSinPerfil || _altaGuardada) return widget.dentro;
 
     return FutureBuilder<Perfil>(
       future: _perfil,
@@ -114,7 +129,7 @@ class _PuertaDelPerfilState extends State<PuertaDelPerfil> {
       child: PantallaAlta(
         alTerminar: (resultado) => setState(() {
           _altaRecienTerminada = resultado;
-          _perfil = widget.repositorio.obtener(widget.uid);
+          _altaGuardada = true;
         }),
         // Si el perfil no se pudo guardar, se entra igual. Sin fecha de
         // nacimiento la app trata a quien entra como menor, así que la puerta
