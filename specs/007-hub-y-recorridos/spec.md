@@ -128,14 +128,14 @@ solicitud de supresión con el aviso de qué se borra y qué sobrevive.
 ### User Story 4 - Una pestaña que todavía no tiene contenido lo dice (Priority: P2)
 
 El nadador toca `Generar` y la app le dice, en una frase, que desde ahí pedirá su
-entrenamiento y que eso todavía no está. Cualquiera de los dos toca `Análisis` y encuentra lo
-mismo. **Lo que no encuentra es un botón que no hace nada.**
+entrenamiento y que eso todavía no está. El entrenador toca `Análisis` y encuentra lo mismo.
+**Lo que no encuentran es un botón que no hace nada.**
 
 **Why this priority**: la barra debe estar completa desde el principio para que nadie
 aprenda una disposición que va a cambiar. Pero una pestaña que promete lo que no hay es peor
 que una pestaña ausente, y el proyecto ya decidió que no se promete.
 
-**Independent Test**: recorrer `Análisis` con los dos roles y `Generar` como nadador, y
+**Independent Test**: recorrer `Análisis` como entrenador y `Generar` como nadador, y
 comprobar que cada una explica qué llegará y que no hay ni un control pulsable que no
 responda.
 
@@ -143,8 +143,11 @@ responda.
 
 1. **Given** una cuenta de nadador, **When** toca `Generar`, **Then** lee qué hará ahí y por
    qué todavía no
-2. **Given** cualquier rol, **When** toca `Análisis`, **Then** lee lo mismo para esa pestaña
-3. **Given** una pestaña sin contenido, **When** la recorre entera, **Then** no hay ningún
+2. **Given** una cuenta de entrenador, **When** toca `Análisis`, **Then** lee lo mismo para
+   esa pestaña
+3. **Given** una cuenta de nadador, **When** toca `Análisis`, **Then** **sí** hay contenido:
+   su recorrido, el que la feature 003 entregó como «Mi progreso»
+4. **Given** una pestaña sin contenido, **When** la recorre entera, **Then** no hay ningún
    control que no haga nada, ni deshabilitado como señuelo
 
 ---
@@ -256,9 +259,11 @@ salvo las que afirman la navegación anterior, que son el objeto de esta feature
 - **FR-022**: Antes de ejecutar una supresión, la app DEBE decir qué se borra y qué
   sobrevive: el registro de que hubo consentimiento, con su fecha, no se borra, porque es la
   prueba de que el tratamiento anterior estuvo amparado.
-- **FR-023**: En una cuenta de una persona menor de edad, la supresión [NEEDS CLARIFICATION:
-  ¿la ejecuta el propio menor desde Ajustes, o queda como solicitud que su acudiente debe
-  confirmar por el mismo medio verificado con el que dio el consentimiento?]
+- **FR-023**: En una cuenta de una persona menor de edad, la supresión la ejecuta **ella
+  misma** desde Ajustes, igual que un adulto: el derecho es del titular y la titular es
+  ella. No hay un paso de confirmación del acudiente. Dado que el borrado no se deshace, la
+  app DEBE pedir una confirmación explícita en un segundo paso —no basta pulsar una vez— y
+  esa confirmación DEBE mostrar lo de FR-022: qué se borra y qué sobrevive.
 - **FR-024**: `Ajustes` NO DEBE permitir ver ni modificar los datos de otra persona.
 - **FR-025**: `Ajustes` DEBE permitir elegir entre apariencia clara, oscura o la del sistema,
   y la elección DEBE sobrevivir al cierre de la app.
@@ -273,11 +278,11 @@ salvo las que afirman la navegación anterior, que son el objeto de esta feature
 - **FR-028**: Un destino sin contenido para un rol DEBE decir en una frase qué llegará ahí.
 - **FR-029**: Un destino sin contenido NO DEBE ofrecer ningún control pulsable que no haga
   nada, ni deshabilitado como señuelo de algo futuro.
-- **FR-030**: En esta feature esos destinos son `Análisis` para los dos roles y `Generar`
-  para el nadador.
-- **FR-031**: El destino de la pantalla «Mi progreso» que la feature 003 entregó [NEEDS
-  CLARIFICATION: ¿se convierte en el `Home` del nadador, o pasa a `Análisis` y `Home` muestra
-  un resumen más corto construido de los mismos datos?]
+- **FR-030**: En esta feature esos destinos son `Análisis` **del entrenador** y `Generar` del
+  nadador. El `Análisis` del nadador **no** es uno de ellos.
+- **FR-031**: La pantalla «Mi progreso» que la feature 003 entregó DEBE pasar a ser el
+  `Análisis` del nadador, sin cambiar lo que hace. El `Home` del nadador DEBE ser un resumen
+  más corto, construido de los mismos datos, y NO DEBE repetir la pantalla completa.
 
 **Lo que no se puede romper**
 
@@ -327,6 +332,8 @@ salvo las que afirman la navegación anterior, que son el objeto de esta feature
   medio editar y una respuesta del nadador a medio escribir.
 - **SC-010**: El entrenador encuentra el plan de un nadador concreto, entre al menos veinte
   planes, en menos de quince segundos usando la búsqueda o el filtro.
+- **SC-011**: Nadie borra sus datos con un solo toque: la supresión exige **dos** acciones
+  deliberadas, y la segunda muestra qué se borra y qué sobrevive.
 
 ## Assumptions
 
@@ -347,14 +354,16 @@ salvo las que afirman la navegación anterior, que son el objeto de esta feature
 - **Los iconos salen del juego que ya usa la app**; esta feature no introduce un sistema de
   iconos nuevo.
 - **La preferencia de apariencia es por dispositivo**, no por cuenta: no viaja al servidor.
-- **El contenido de `Análisis` llega en la feature 010** y el de `Generar` del nadador en la
-  **008**, según el roadmap.
+- **El `Análisis` del entrenador llega en la feature 010** y el `Generar` del nadador en la
+  **008**, según el roadmap. El `Análisis` del nadador nace con «Mi progreso» dentro, y la
+  010 lo extiende en lugar de inventarlo.
 
 ## Dependencies
 
 - **Feature 004**: los roles y los permisos que deciden el recorrido, y el dominio
   `DerechosDelTitular` que Ajustes alcanza por primera vez.
-- **Feature 003**: la sesión del día y «Mi progreso», que se reubican sin cambiar.
+- **Feature 003**: la sesión del día, que pasa a `Ver Plan`, y «Mi progreso», que pasa a
+  `Análisis`. Ninguna de las dos cambia lo que hace.
 - **Feature 005**: el tema, los componentes y el espaciado. Esta feature no define ninguno.
 - **Feature 006**: el perfil —nombre, fecha de nacimiento, país— y las constancias de
   aceptación que Ajustes muestra.
@@ -363,8 +372,10 @@ salvo las que afirman la navegación anterior, que son el objeto de esta feature
 
 ## Out of Scope
 
-- El contenido de `Análisis`: el recorrido detallado y la petición de feedback son la
-  feature **010**, y el video sigue fuera de alcance con su propio ámbito de consentimiento.
+- El `Análisis` del entrenador, y lo que al nadador le falta en el suyo: el recorrido
+  detallado y la petición de feedback son la feature **010**, y el video sigue fuera de
+  alcance con su propio ámbito de consentimiento. Lo que esta feature pone en `Análisis` del
+  nadador es lo que ya existía, movido de sitio.
 - La solicitud de entrenamiento del nadador, que es la feature **008**.
 - El macrociclo, el mesociclo y el revelado progresivo, que son la feature **009**: el
   dominio hoy solo tiene `Microciclo`.
@@ -372,3 +383,34 @@ salvo las que afirman la navegación anterior, que son el objeto de esta feature
 - Cambiar el correo de la cuenta.
 - Las verificaciones manuales aplazadas —T088 y T089 de la 004, C1 y C2 de la 003—, que se
   cierran después de la 010.
+
+## Clarifications
+
+### Sesión 2026-10-25
+
+**¿Quién ejecuta la supresión en la cuenta de un menor?** (FR-023)
+
+Decisión del entrenador: **la ejecuta el propio menor**, igual que un adulto. El derecho es
+del titular, y el titular es el menor.
+
+Yo había recomendado lo contrario —que quedara como solicitud a confirmar por el acudiente,
+por coherencia con la feature 004, donde es él quien autoriza que los datos se guarden— y el
+entrenador mantuvo su decisión después de leerlo. Queda escrito aquí porque es una decisión
+con peso legal y conviene que se sepa que fue deliberada: la Ley 1581 reconoce el derecho al
+titular, y el Decreto 1377 exige que el menor sea oído. Lo que esta decisión acepta es que
+un nadador de nueve años puede borrar su propio historial sin que nadie lo revise, y que eso
+no se deshace.
+
+Lo único que se añadió por esa irreversibilidad es la confirmación en dos pasos (FR-023,
+SC-011), que es lo habitual en cualquier acción que no se puede deshacer y no le quita el
+derecho a nadie.
+
+**¿Dónde queda la pantalla «Mi progreso» de la feature 003?** (FR-031)
+
+Decisión: **pasa a ser el `Análisis` del nadador**, y su `Home` es un resumen más corto
+construido de los mismos datos.
+
+Consecuencias que esto arrastró por la spec: el `Análisis` del nadador **ya no** es una
+pestaña sin contenido —solo lo es el del entrenador—, la feature 010 extiende lo que
+encuentre ahí en lugar de partir de cero, y `Home` tiene que construirse: es la única
+pantalla verdaderamente nueva del recorrido del nadador en esta feature.
