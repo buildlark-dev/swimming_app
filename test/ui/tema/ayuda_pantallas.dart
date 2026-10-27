@@ -14,7 +14,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:natacion_app/datos/memoria/repositorios_memoria.dart';
+import 'package:natacion_app/datos/recursos/recursos_iniciales.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
+import 'package:natacion_app/dominio/biblioteca/indice_terminos.dart';
+import 'package:natacion_app/dominio/cuentas/cuenta.dart';
+import 'package:natacion_app/ui/hub/hub.dart';
 import 'package:natacion_app/dominio/entidades/envio_pendiente.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/parte.dart';
@@ -175,11 +179,41 @@ EstadoNadador _estadoNadador() {
   return estado;
 }
 
+/// Lo que la app carga al arrancar, con los dobles de este banco.
+///
+/// Sin Firestore a propósito: la pantalla principal cae entonces en los
+/// repositorios de memoria, que es lo que permite medirla sin servidor.
+RecursosIniciales _recursos() => RecursosIniciales(
+      biblioteca: _biblioteca(),
+      versionMetodologia: '3.6.0',
+      indiceTerminos: IndiceTerminos.vacio(),
+      red: _SinRed(),
+      transporte: _TransporteQuieto(),
+    );
+
 /// Las pantallas que se miden.
 ///
 /// No están todas las de `lib/ui/`: están las que alguien abre y recorre. Los
 /// paneles sueltos viajan dentro de ellas.
 List<PantallaMedible> pantallasDeLaApp() => [
+      // **La pantalla que todo el mundo ve, y que nadie había medido.**
+      //
+      // `PantallaPrincipal` vivía en `main.dart`, fuera de `lib/ui/`, así que
+      // el cerrojo A15 no la alcanzaba: la barra de pestañas no se había
+      // comprobado ni al 200% de letra, ni en áreas pulsables, ni en oscuro.
+      // Al mudarla a `lib/ui/hub/` en la feature 007, el cerrojo la encontró
+      // en el primer `flutter test`.
+      //
+      // El recorrido del nadador entra en cuanto deje de montar el selector de
+      // perfil del entrenador: montado hoy, desborda 82 píxeles a 360 puntos y
+      // le habla al nadador de una pestaña que no tiene.
+      PantallaMedible(
+        'hub — entrenador',
+        () => PantallaPrincipal(
+          recursos: _recursos(),
+          cuenta: Cuenta(id: 'u1', rol: Rol.entrenador),
+        ),
+      ),
       PantallaMedible(
         'acceso',
         () => PantallaAcceso(

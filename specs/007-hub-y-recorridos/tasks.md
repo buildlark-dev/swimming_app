@@ -39,8 +39,8 @@ las salta, así que lo que las vigila son pruebas de servidor: qué borran y qu�
 
 ## Phase 1: Setup
 
-- [ ] T001 Extraer `PantallaPrincipal` y `_BarraDeSesion` de `lib/main.dart` (líneas 474–888) a `lib/ui/hub/hub.dart` **sin cambiar una sola etiqueta ni comportamiento**, dejando en `main.dart` el arranque, `RecursosIniciales` y la puerta de acceso (decisión D1)
-- [ ] T002 Comprobar que tras T001 `flutter test` sigue dando 1283 en verde y `flutter analyze` limpio: la extracción es una mudanza, y si algo falla aquí es que no lo fue
+- [X] T001 Extraer `PantallaPrincipal` y `_BarraDeSesion` de `lib/main.dart` (líneas 474–888) a `lib/ui/hub/hub.dart` **sin cambiar una sola etiqueta ni comportamiento**, dejando en `main.dart` el arranque, `RecursosIniciales` y la puerta de acceso (decisión D1)
+- [X] T002 Comprobar que tras T001 `flutter test` sigue dando 1283 en verde y `flutter analyze` limpio: la extracción es una mudanza, y si algo falla aquí es que no lo fue
 
 ---
 
@@ -280,3 +280,32 @@ detrás; cambiarla de sitio no puede cambiar lo que hace.
 - Cero dependencias nuevas en `pubspec.yaml`. Si alguna tarea parece necesitar una, es que la
   tarea está mal planteada.
 - Ninguna regla de `firebase/firestore.rules` cambia en esta feature.
+
+---
+
+## Lo que destapó la mudanza (T001)
+
+Al mover `PantallaPrincipal` a `lib/ui/hub/`, el cerrojo **A15 de la feature 005** —toda
+pantalla de `lib/ui/` está en el banco que se mide— la alcanzó por primera vez. Vivía en
+`main.dart`, fuera de `lib/ui/`, así que **la pantalla que todo el mundo ve no se había medido
+nunca**: ni al 200% de letra, ni en áreas pulsables, ni en oscuro.
+
+Al montarla en el banco salieron dos cosas, **ninguna de la mudanza**:
+
+**1. Con una cuenta real, un nadador no puede llegar a su sesión.** El recorrido del nadador
+monta el selector de perfil del entrenador, y `EstadoNadador` solo recibe un perfil cuando
+alguien elige un chip de esa lista. Para un nadador, `RepositorioNadadoresFirestore.listar()`
+lanza `FalloDeDatos` —las reglas le deniegan leer la colección entera— y el `FutureBuilder` lo
+convierte en lista vacía. Lo que ve es «Todavía no hay perfiles. Crea uno en la pestaña
+Nadadores», un mensaje escrito para el entrenador, sobre una pestaña que él no tiene. Funciona
+en modo local y en las pruebas, donde el selector sí lista perfiles: por eso nadie lo había
+visto.
+
+**2. El selector desborda 82 píxeles a 360 puntos.** La fila del encabezado lleva un texto sin
+restringir dentro de un `Row`. No se había visto porque la entrada «sesión del día» del banco
+se monta **sin** selector: un banco solo mide los caminos que monta, que es justo la lección
+que ese cerrojo lleva escrita.
+
+- [ ] T067 [US1] En `lib/ui/hub/hub.dart`, abrir el perfil del nadador desde `cuenta.nadadorId` en lugar de esperar a que elija un chip, con su cerrojo escrito antes en `test/ui/hub/el_nadador_llega_a_lo_suyo_test.dart`: un nadador con `nadadorId` ve su sesión **sin tocar nada**, y no ve ningún selector. Control negativo: dejar el selector en su recorrido y ver fallar
+- [ ] T068 [US1] Dejar `SelectorDePerfil` solo en el recorrido del entrenador y en modo local —es su herramienta para abrir la app como uno de sus nadadores—, y arreglar el desborde de 82 px de la fila del encabezado en `lib/ui/nadador/perfil_activo.dart`
+- [ ] T069 [US1] Añadir `hub — nadador` al banco de `test/ui/tema/ayuda_pantallas.dart` una vez hechas T067 y T068, para que el recorrido del nadador se mida al 200%, en áreas pulsables y en oscuro
