@@ -51,18 +51,18 @@ recorridos.
 
 ### Los cerrojos primero
 
-- [ ] T003 [P] Extender `test/dominio/arquitectura_test.dart` para que `lib/dominio/hub/` no pueda importar Flutter ni Firebase. Control negativo: añadir `import 'package:flutter/material.dart'` en un archivo del directorio y ver fallar la prueba
-- [ ] T004 [P] Escribir `test/dominio/hub/destinos_test.dart`: hay **exactamente cinco** destinos, en el orden `Generar, Ver Plan, Home, Análisis, Ajustes`, y `Home` ocupa la **posición 2** para los dos roles (H1, H2, H3). Control negativo: mover `Home` de posición y ver fallar
-- [ ] T005 [P] Escribir `test/dominio/hub/reparto_test.dart`: para cada destino y cada rol hay **exactamente una** respuesta —un contenido o «todavía no»— (H4); **ningún contenido aparece en los dos recorridos salvo `Ajustes`** (H5); los «todavía no» son exactamente dos, `Generar` del nadador y `Análisis` del entrenador (H13). Control negativo: poner el editor también en el recorrido del nadador y ver fallar
-- [ ] T006 [P] Escribir `test/dominio/hub/resumen_del_entrenador_test.dart` fijando las definiciones literales de data-model.md: «en uso» es `publicado`, con asignación, y cuyo nadador tiene **algún** registro; «esperando aprobación» es `borrador` **sin bloqueos en la auditoría**; «aprobados sin asignar» es `aprobado` sin ninguna asignación. Control negativo: contar como «en uso» un plan asignado y sin tocar, y ver fallar
-- [ ] T007 [P] Escribir `test/dominio/hub/resumen_del_nadador_test.dart`: cumplidas nunca mayor que entregadas; `hoy` nunca vacío sin explicación; **no hay metas, logros, rachas ni proyecciones** (FR-015, H16). Control negativo: añadir un campo `racha` y ver fallar
+- [X] T003 [P] Extender `test/dominio/arquitectura_test.dart` para que `lib/dominio/hub/` no pueda importar Flutter ni Firebase. Control negativo: añadir `import 'package:flutter/material.dart'` en un archivo del directorio y ver fallar la prueba
+- [X] T004 [P] Escribir `test/dominio/hub/destinos_test.dart`: hay **exactamente cinco** destinos, en el orden `Generar, Ver Plan, Home, Análisis, Ajustes`, y `Home` ocupa la **posición 2** para los dos roles (H1, H2, H3). Control negativo: mover `Home` de posición y ver fallar
+- [X] T005 [P] Escribir `test/dominio/hub/reparto_test.dart`: para cada destino y cada rol hay **exactamente una** respuesta —un contenido o «todavía no»— (H4); **ningún contenido aparece en los dos recorridos salvo `Ajustes`** (H5); los «todavía no» son exactamente dos, `Generar` del nadador y `Análisis` del entrenador (H13). Control negativo: poner el editor también en el recorrido del nadador y ver fallar
+- [X] T006 [P] Escribir `test/dominio/hub/resumen_del_entrenador_test.dart` fijando las definiciones literales de data-model.md: «en uso» es `publicado`, con asignación, y cuyo nadador tiene **algún** registro; «esperando aprobación» es `borrador` **sin bloqueos en la auditoría**; «aprobados sin asignar» es `aprobado` sin ninguna asignación. Control negativo: contar como «en uso» un plan asignado y sin tocar, y ver fallar
+- [X] T007 [P] Escribir `test/dominio/hub/resumen_del_nadador_test.dart`: cumplidas nunca mayor que entregadas; `hoy` nunca vacío sin explicación; **no hay metas, logros, rachas ni proyecciones** (FR-015, H16). Control negativo: añadir un campo `racha` y ver fallar
 
 ### El dominio
 
-- [ ] T008 Crear `lib/dominio/hub/destino.dart`: los cinco destinos con `posicion` (0 a 4, sin huecos ni repetidos), `etiqueta` en español e `icono` del juego que la app ya usa, y la **tabla declarativa** destino × rol → contenido o «todavía no» (decisión D2, reemplaza las dos listas paralelas con índice compartido de `main.dart`)
-- [ ] T009 [P] Crear `lib/dominio/hub/resumen_del_nadador.dart` con `sesionesEntregadas`, `sesionesCumplidas`, `hoy`, `ultimaRespuesta` (puede faltar), `ultimaSincronizacion` (puede faltar) y `hayPendientes`, derivados de lo que `EstadoNadador` ya mantiene (decisión D11, cero consultas nuevas)
-- [ ] T010 [P] Crear `lib/dominio/hub/resumen_del_entrenador.dart` con `planesGenerados`, `esperandoAprobacion`, `aprobadosSinAsignar` y `enUso`, con las definiciones de T006
-- [ ] T011 Añadir `nadadoresConRegistros()` al puerto `RepositorioRegistros` en `lib/dominio/repositorios/repositorios.dart` y a sus tres implementaciones —`lib/datos/firestore/repositorios_firestore.dart`, `lib/datos/local/repositorios_locales.dart`, `lib/datos/memoria/repositorios_memoria.dart`— para que «en uso» cueste una consulta y no una por nadador (decisión D10)
+- [X] T008 Crear `lib/dominio/hub/destino.dart`: los cinco destinos con `posicion` (0 a 4, sin huecos ni repetidos), `etiqueta` en español e `icono` del juego que la app ya usa, y la **tabla declarativa** destino × rol → contenido o «todavía no» (decisión D2, reemplaza las dos listas paralelas con índice compartido de `main.dart`)
+- [X] T009 [P] Crear `lib/dominio/hub/resumen_del_nadador.dart` con `sesionesEntregadas`, `sesionesCumplidas`, `hoy`, `ultimaRespuesta` (puede faltar), `ultimaSincronizacion` (puede faltar) y `hayPendientes`, derivados de lo que `EstadoNadador` ya mantiene (decisión D11, cero consultas nuevas)
+- [X] T010 [P] Crear `lib/dominio/hub/resumen_del_entrenador.dart` con `planesGenerados`, `esperandoAprobacion`, `aprobadosSinAsignar` y `enUso`, con las definiciones de T006
+- [X] T011 Añadir `nadadoresConRegistros()` al puerto `RepositorioRegistros` en `lib/dominio/repositorios/repositorios.dart` y a sus tres implementaciones —`lib/datos/firestore/repositorios_firestore.dart`, `lib/datos/local/repositorios_locales.dart`, `lib/datos/memoria/repositorios_memoria.dart`— para que «en uso» cueste una consulta y no una por nadador (decisión D10)
 
 ---
 
@@ -309,3 +309,21 @@ que ese cerrojo lleva escrita.
 - [ ] T067 [US1] En `lib/ui/hub/hub.dart`, abrir el perfil del nadador desde `cuenta.nadadorId` en lugar de esperar a que elija un chip, con su cerrojo escrito antes en `test/ui/hub/el_nadador_llega_a_lo_suyo_test.dart`: un nadador con `nadadorId` ve su sesión **sin tocar nada**, y no ve ningún selector. Control negativo: dejar el selector en su recorrido y ver fallar
 - [ ] T068 [US1] Dejar `SelectorDePerfil` solo en el recorrido del entrenador y en modo local —es su herramienta para abrir la app como uno de sus nadadores—, y arreglar el desborde de 82 px de la fila del encabezado en `lib/ui/nadador/perfil_activo.dart`
 - [ ] T069 [US1] Añadir `hub — nadador` al banco de `test/ui/tema/ayuda_pantallas.dart` una vez hechas T067 y T068, para que el recorrido del nadador se mida al 200%, en áreas pulsables y en oscuro
+
+## Y lo que destapó la fase 2 (T011)
+
+Para contar los planes «en uso» hacía falta saber qué nadadores han respondido algo. Al ir a
+leerlo apareció que **no existía ningún lector de `registros` en Firestore**: desde la feature
+003 los registros se *escriben* en el servidor —`EnvioAFirestore` los manda— y lo único que
+los *lee* es `RegistrosLocales`, del almacén del dispositivo.
+
+Así que hoy el entrenador solo ve las respuestas que **su propio teléfono** escribió. La
+promesa de la 003 —«el entrenador lo lee junto a la sesión que lo produjo»— se cumple cuando
+entrenador y nadador comparten dispositivo, que es exactamente cómo se probó: él haciendo de su
+propio nadador.
+
+Esta feature construye el lector porque lo necesita para un número. Lo que **no** resuelve es
+darle la lectura completa de lo que sus nadadores responden: eso es su `Análisis`, feature 010.
+
+- [X] T070 Crear `lib/datos/firestore/registros_firestore.dart` con las lecturas que faltaban —`obtener`, `obtenerDePlan`, `exportar` y `nadadoresConRegistros`— y con `guardar` y `eliminarDe` negándose en voz alta, porque las reglas los reservan al dispositivo y al servidor
+- [ ] T071 Anotar en el `spec.md` de la feature 010 que el `Análisis` del entrenador necesita este lector, y que hasta entonces lo que él ve de sus nadadores sale de su propio dispositivo

@@ -111,6 +111,13 @@ abstract class RepositorioRegistros {
 
   /// Borra todos los registros de un nadador (FR-024, principio V).
   Future<void> eliminarDe(String nadadorId);
+
+  /// Quiénes han respondido algo. **Una consulta, no una por nadador.**
+  ///
+  /// Entra en la feature 007 para que el resumen del entrenador pueda contar
+  /// los planes «en uso» —publicados, asignados, y con algún registro de su
+  /// nadador— sin preguntar nadador por nadador (decisión D10).
+  Future<Set<String>> nadadoresConRegistros();
 }
 
 /// La bandeja de salida: lo que sostiene la promesa de que nada se pierde.

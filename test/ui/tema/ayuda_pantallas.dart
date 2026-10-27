@@ -350,6 +350,10 @@ List<PantallaMedible> pantallasDeLaApp() => [
 // ---------------------------------------------------------------------------
 
 class _RegistrosEnMemoria implements RepositorioRegistros {
+  @override
+  Future<Set<String>> nadadoresConRegistros() async =>
+      _guardados.values.map((r) => r.nadadorId).toSet();
+
   final Map<String, RegistroDeSesion> _guardados = {};
 
   @override

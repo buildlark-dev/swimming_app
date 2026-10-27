@@ -259,6 +259,10 @@ class _TransporteQueAnota implements EnvioDeRegistros {
 }
 
 class _RegistrosEnMemoria implements RepositorioRegistros {
+  @override
+  Future<Set<String>> nadadoresConRegistros() async =>
+      _guardados.values.map((r) => r.nadadorId).toSet();
+
   final _guardados = <String, RegistroDeSesion>{};
 
   @override

@@ -269,6 +269,10 @@ class _Bandeja implements BandejaDeSalida {
 }
 
 class _Registros implements RepositorioRegistros {
+  @override
+  Future<Set<String>> nadadoresConRegistros() async =>
+      _guardados.values.map((r) => r.nadadorId).toSet();
+
   final Map<String, RegistroDeSesion> _guardados = {};
 
   @override

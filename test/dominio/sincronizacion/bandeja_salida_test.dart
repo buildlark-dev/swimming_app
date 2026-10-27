@@ -355,6 +355,10 @@ void main() {
 // ---------------------------------------------------------------------------
 
 class _RegistrosEnMemoria implements RepositorioRegistros {
+  @override
+  Future<Set<String>> nadadoresConRegistros() async =>
+      guardados.values.map((r) => r.nadadorId).toSet();
+
   final Map<String, RegistroDeSesion> guardados = {};
   bool fallaAlGuardar = false;
 
