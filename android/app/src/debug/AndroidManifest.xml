@@ -4,4 +4,17 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Cleartext HTTP, **only in debug builds**.
+
+         The Firebase emulators speak plain HTTP, and Android has blocked
+         cleartext traffic by default since Android 9. Without this, running
+         against the emulators on a phone or on the Android emulator fails
+         with a connection error that looks like a Firebase problem and is
+         not one.
+
+         This file is the debug manifest: release builds never see it, so the
+         app that reaches a swimmer keeps cleartext blocked.
+    -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>

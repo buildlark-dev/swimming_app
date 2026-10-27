@@ -6,6 +6,7 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:natacion_app/firebase_options.dart';
 
@@ -13,7 +14,20 @@ import 'package:natacion_app/firebase_options.dart';
 /// nube, y así no hay riesgo de tocar un proyecto real por descuido.
 const String proyectoLocal = 'demo-natacion';
 
-const String hostEmulador = 'localhost';
+/// Dónde están los emuladores, **visto desde donde corre la app**.
+///
+/// En el emulador de Android, `localhost` es el propio teléfono emulado: la
+/// máquina que ejecuta los emuladores de Firebase es `10.0.2.2`. Sin esta
+/// distinción, probar en Android contra los emuladores falla con un error de
+/// conexión que parece un problema de Firebase y no lo es.
+///
+/// En un teléfono de verdad conectado por cable no vale ninguno de los dos:
+/// hay que poner la IP del portátil en la red local. Eso se hace a mano, y
+/// está escrito en `docs/DEVELOPMENT.md`.
+String get hostEmulador =>
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+    ? '10.0.2.2'
+    : 'localhost';
 const int puertoFirestore = 8080;
 
 /// Cómo se arranca Firebase. Se inyecta para poder comprobar en pruebas que un

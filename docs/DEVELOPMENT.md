@@ -215,6 +215,37 @@ A test watches that `lib/dominio/` imports neither Flutter nor Firebase. That is
 principle II of the constitution, turned into something the system verifies
 instead of something somebody has to remember.
 
+## Running against the emulators
+
+```bash
+firebase emulators:start --project demo-natacion
+```
+
+```bash
+flutter run -d chrome --dart-define=USAR_EMULADORES=true
+```
+
+On the Android emulator, launch the device first (`flutter emulators --launch Pixel_7`) and
+run with the same define.
+
+**This did not work until feature 007**, and it is worth knowing why: only Firestore was ever
+pointed at the emulator. The identity was not, so signing in went to the real project with
+the emulator's dummy options and failed with `api-key-not-valid` every time. Since accounts
+exist — feature 004 — anything involving a session had to be verified by deploying.
+
+Three things make it work, and each is a trap on its own:
+
+- **The host depends on where the app runs.** On the Android emulator, `localhost` is the
+  emulated phone itself; the machine running the emulators is `10.0.2.2`. `hostEmulador` in
+  `lib/datos/firestore/configuracion.dart` decides it. On a real phone over cable neither
+  works: put the laptop's address on the local network.
+- **The emulators listen on `0.0.0.0`** (`firebase.json`), or the emulated phone cannot reach
+  them. They are reachable on the local network while they run; the data is a fake project's,
+  but do not leave them up on somebody else's network.
+- **Android has blocked cleartext HTTP since Android 9**, and the emulators speak HTTP. It is
+  allowed in `android/app/src/debug/AndroidManifest.xml` only, so the build that reaches a
+  swimmer still blocks it.
+
 ## The HUB and the two journeys
 
 Five destinations, in this order, with `Home` in the centre: `Generar`,

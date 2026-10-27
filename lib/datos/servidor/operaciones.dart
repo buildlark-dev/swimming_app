@@ -14,6 +14,7 @@
 library;
 
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:natacion_app/datos/firestore/configuracion.dart';
 import 'package:natacion_app/dominio/consentimiento/consentimiento.dart';
 
 /// Lo que puede salir mal al llamar al servidor, dicho en español.
@@ -204,12 +205,15 @@ class OperacionesFirebase implements OperacionesDelServidor {
   /// `cloud_functions`.
   factory OperacionesFirebase.porOmision({
     bool usarEmuladores = false,
-    String hostEmulador = 'localhost',
+    String? host,
     int puertoEmulador = 5001,
   }) {
     final funciones = FirebaseFunctions.instance;
     if (usarEmuladores) {
-      funciones.useFunctionsEmulator(hostEmulador, puertoEmulador);
+      // El host lo decide `hostEmulador`: en el emulador de Android,
+      // `localhost` es el propio teléfono emulado y no la máquina que corre
+      // los emuladores.
+      funciones.useFunctionsEmulator(host ?? hostEmulador, puertoEmulador);
     }
     return OperacionesFirebase(funciones: funciones);
   }

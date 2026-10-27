@@ -12,6 +12,7 @@ library;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:natacion_app/datos/auth/reinicio.dart';
+import 'package:natacion_app/datos/firestore/configuracion.dart';
 import 'package:natacion_app/datos/local/almacen_local.dart';
 import 'package:natacion_app/dominio/cuentas/cuenta.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
@@ -43,8 +44,10 @@ const String coleccionUsuarios = 'usuarios';
 ///
 /// Vive aquí porque este es el único archivo del proyecto que puede importar
 /// `firebase_auth`, y la prueba de frontera lo vigila.
-void usarEmuladorDeAuth({String host = 'localhost', int puerto = 9099}) {
-  fb.FirebaseAuth.instance.useAuthEmulator(host, puerto);
+void usarEmuladorDeAuth({String? host, int puerto = 9099}) {
+  // El host lo decide `hostEmulador`: en el emulador de Android, `localhost`
+  // es el propio teléfono emulado y no la máquina que corre los emuladores.
+  fb.FirebaseAuth.instance.useAuthEmulator(host ?? hostEmulador, puerto);
 }
 
 class SesionFirebase implements Identidad {
