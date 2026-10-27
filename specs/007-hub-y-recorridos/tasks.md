@@ -326,4 +326,27 @@ Esta feature construye el lector porque lo necesita para un número. Lo que **no
 darle la lectura completa de lo que sus nadadores responden: eso es su `Análisis`, feature 010.
 
 - [X] T070 Crear `lib/datos/firestore/registros_firestore.dart` con las lecturas que faltaban —`obtener`, `obtenerDePlan`, `exportar` y `nadadoresConRegistros`— y con `guardar` y `eliminarDe` negándose en voz alta, porque las reglas los reservan al dispositivo y al servidor
-- [ ] T071 Anotar en el `spec.md` de la feature 010 que el `Análisis` del entrenador necesita este lector, y que hasta entonces lo que él ve de sus nadadores sale de su propio dispositivo
+- [X] T071 Anotar en el `spec.md` de la feature 010 que el `Análisis` del entrenador necesita este lector, y que hasta entonces lo que él ve de sus nadadores sale de su propio dispositivo
+
+---
+
+## Y lo que dijo la app al verla por primera vez
+
+Antes de dar por hecha la feature la abrí en el navegador, contra los emuladores, con una
+cuenta de prueba. Salieron dos cosas que **ninguna de las 1414 pruebas podía ver**, y una de
+ellas llevaba rota desde la feature 004.
+
+**1. No se podía desarrollar contra los emuladores.** `ConfiguracionDatos` redirige Firestore
+al emulador y **nadie redirigía la identidad**: con `--dart-define=USAR_EMULADORES=true`,
+entrar salía al proyecto real con las opciones ficticias del emulador y fallaba siempre con
+«api-key-not-valid». Desde que existen cuentas —la 004— cualquier cosa con sesión había que
+verificarla desplegando. Eso explica el precio de las tres rondas de despliegue de la 006.
+
+**2. Quien acababa de registrarse entraba sin ficha de nadador.** El alta crea la ficha y
+escribe el `nadadorId` en el documento de la cuenta, pero la `Cuenta` que estaba en memoria se
+construyó antes. Sin releerla: no se le cargaba su plan, y **`Ajustes` le decía que no había
+datos suyos que ver ni borrar**, negándole sin querer los tres derechos de la Ley 1581. Se
+arreglaba solo al recargar la app, que es la clase de fallo que nadie reporta.
+
+- [X] T072 Conectar la identidad al emulador en `lib/datos/auth/sesion_firebase.dart` —el único archivo que puede importar `firebase_auth`— y llamarlo desde `lib/main.dart` cuando se arranca con emuladores
+- [X] T073 Releer la cuenta al terminar el alta: `refrescarCuenta()` en `lib/ui/acceso/estado_sesion.dart`, `alGuardarElPerfil` en `lib/ui/alta/puerta_del_perfil.dart`, y su cerrojo en `test/ui/alta/entrar_despues_del_alta_test.dart` con control negativo

@@ -33,6 +33,15 @@ progressive reveal fits the methodology — but it has to be designed, not assum
 scope (`Alcance.video`, modelled in 004 precisely for this). Whether the feedback
 request includes video, or stops at the request, is a decision for its spec.
 
+**010 also has to finish something 007 started.** Records have been written to
+Firestore since feature 003 and, until 007, nothing ever read them back:
+`RegistrosLocales` reads the device's own store, so the coach only ever saw what
+his own phone had written. The promise — "the coach reads it next to the session
+that produced it" — held only when coach and swimmer shared a device, which is
+exactly how it was tested. Feature 007 built `RegistrosFirestore` because a Home
+number needed it; the coach's full reading of what his swimmers answer is the
+`Análisis` that 010 brings, and it should start from that reader.
+
 **The deferred manual checks** — T088 and T089 of feature 004, and C1/C2 of
 feature 003 — close after 010. They need a real device and the coach's own eyes.
 

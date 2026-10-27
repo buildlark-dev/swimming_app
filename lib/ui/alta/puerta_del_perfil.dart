@@ -35,6 +35,7 @@ class PuertaDelPerfil extends StatefulWidget {
     required this.dentro,
     this.almacen,
     this.nadadorId,
+    this.alGuardarElPerfil,
   });
 
   final String uid;
@@ -43,6 +44,18 @@ class PuertaDelPerfil extends StatefulWidget {
   final OperacionesDelServidor? operaciones;
   final AlmacenLocal? almacen;
   final String? nadadorId;
+
+  /// Qué hacer cuando el perfil acaba de guardarse.
+  ///
+  /// **Hace falta por lo que el servidor escribe en ese momento**: el alta
+  /// crea la ficha de nadador y pone el `nadadorId` en el documento de la
+  /// cuenta, y la `Cuenta` que está en memoria se construyó antes de eso. Sin
+  /// avisar, quien acaba de darse de alta entra con una cuenta que todavía no
+  /// sabe que tiene ficha, y entonces no se le carga su plan y `Ajustes` le
+  /// dice que no hay datos suyos que ver o borrar —negándole, sin querer, los
+  /// tres derechos de la Ley 1581—. Se arreglaba solo al recargar la app, que
+  /// es justo la clase de fallo que nadie reporta.
+  final Future<void> Function()? alGuardarElPerfil;
 
   /// Lo que hay detrás, una vez se sabe quién es.
   final Widget dentro;
@@ -127,10 +140,14 @@ class _PuertaDelPerfilState extends State<PuertaDelPerfil> {
         nadadorId: widget.nadadorId,
       )..recuperar(),
       child: PantallaAlta(
-        alTerminar: (resultado) => setState(() {
-          _altaRecienTerminada = resultado;
-          _altaGuardada = true;
-        }),
+        alTerminar: (resultado) {
+          setState(() {
+            _altaRecienTerminada = resultado;
+            _altaGuardada = true;
+          });
+          // Y que la sesión vuelva a leer quién es: ahora tiene ficha.
+          widget.alGuardarElPerfil?.call();
+        },
         // Si el perfil no se pudo guardar, se entra igual. Sin fecha de
         // nacimiento la app trata a quien entra como menor, así que la puerta
         // sigue cerrada y nada sale del dispositivo: lo único que se pierde es

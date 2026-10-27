@@ -154,6 +154,15 @@ class _PantallaInicioState extends State<PantallaInicio> {
       usarEmuladores: usarEmuladores,
     ).conectar();
 
+    // **Y la identidad al emulador también.**
+    //
+    // `ConfiguracionDatos` redirige Firestore, pero la identidad vive en otra
+    // librería y nadie la redirigía: con `USAR_EMULADORES=true`, entrar salía
+    // al proyecto real con las opciones ficticias del emulador y fallaba
+    // siempre con «api-key-not-valid». Desde la feature 004 eso hacía
+    // imposible probar nada con cuentas sin desplegar.
+    if (usarEmuladores && datos != null) usarEmuladorDeAuth();
+
     return RecursosIniciales(
       biblioteca: biblioteca,
       versionMetodologia: version,
@@ -356,6 +365,9 @@ class _Acceso extends StatelessWidget {
                       ),
                 operaciones: recursos.operaciones,
                 nadadorId: sesion.cuenta!.nadadorId,
+                // El alta acaba de crear su ficha de nadador: hay que releer
+                // quién es, o entra con una cuenta que todavía no lo sabe.
+                alGuardarElPerfil: sesion.refrescarCuenta,
                 dentro: PantallaPrincipal(
                   recursos: recursos,
                   cuenta: sesion.cuenta,

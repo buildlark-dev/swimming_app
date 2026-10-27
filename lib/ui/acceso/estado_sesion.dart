@@ -153,6 +153,17 @@ class SesionActiva extends ChangeNotifier {
     _fijar(EstadoDeSesion.sinRol);
   }
 
+  /// Vuelve a leer quién está dentro.
+  ///
+  /// Se llama justo después del alta. El servidor acaba de crear la ficha de
+  /// nadador y de escribir el `nadadorId` en el documento de la cuenta, y la
+  /// [Cuenta] que hay en memoria se construyó antes de eso: sin releerla, quien
+  /// acaba de registrarse entra sin ficha, no se le carga su plan y `Ajustes`
+  /// le dice que no hay datos suyos. Se arreglaba solo al recargar la app.
+  Future<void> refrescarCuenta() async {
+    _actualizar(await identidad.actual());
+  }
+
   /// Vuelve a intentarlo, para el botón de la pantalla de espera.
   Future<void> reintentar() async {
     _rendido = false;

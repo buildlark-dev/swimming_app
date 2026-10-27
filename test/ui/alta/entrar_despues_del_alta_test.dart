@@ -46,6 +46,7 @@ void main() {
   Future<void> abrir(
     WidgetTester tester, {
     required RepositorioPerfil repositorio,
+    Future<void> Function()? alGuardarElPerfil,
   }) async {
     tester.view.physicalSize = const Size(420, 1000);
     tester.view.devicePixelRatio = 1;
@@ -59,6 +60,7 @@ void main() {
           correo: 'nadador@ejemplo.com',
           repositorio: repositorio,
           operaciones: _ServidorQueAcepta(),
+          alGuardarElPerfil: alGuardarElPerfil,
           dentro: const Scaffold(body: Text('Mi entrenamiento')),
         ),
       ),
@@ -89,6 +91,43 @@ void main() {
     await tester.tap(find.byKey(const Key('alta-terminar')));
     await tester.pumpAndSettle();
   }
+
+  group('al terminar el alta, la sesión se entera', () {
+    // **Esto lo encontró la app en vivo, no una prueba.** El servidor acaba de
+    // crear la ficha de nadador y de escribir el `nadadorId` en el documento
+    // de la cuenta; la `Cuenta` que había en memoria se construyó antes de
+    // eso. Sin releerla, quien acababa de registrarse entraba sin ficha: no se
+    // le cargaba su plan, y `Ajustes` le decía que no había datos suyos que
+    // ver ni borrar —negándole, sin querer, los tres derechos de la Ley 1581—.
+    //
+    // Se arreglaba solo al recargar la app, que es la clase de fallo que nadie
+    // reporta.
+    testWidgets('se le avisa, una vez', (tester) async {
+      var avisos = 0;
+
+      await abrir(
+        tester,
+        repositorio: RepositorioPerfilEnMemoria(),
+        alGuardarElPerfil: () async => avisos++,
+      );
+      await terminarElAlta(tester);
+
+      expect(
+        avisos,
+        1,
+        reason:
+            'Sin el aviso, la cuenta no sabe que tiene ficha hasta la '
+            'próxima vez que se abra la app',
+      );
+    });
+
+    testWidgets('y si nadie escucha, el alta termina igual', (tester) async {
+      await abrir(tester, repositorio: RepositorioPerfilEnMemoria());
+      await terminarElAlta(tester);
+
+      expect(find.byKey(const Key('alta-continuar')), findsOneWidget);
+    });
+  });
 
   group('al terminar el alta, «Entrar» entra', () {
     testWidgets('aunque la lectura del perfil todavía no vea lo guardado', (

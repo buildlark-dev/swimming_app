@@ -31,6 +31,22 @@ const String claveDelRol = 'rol';
 /// documento (decisión D2).
 const String coleccionUsuarios = 'usuarios';
 
+/// Manda la identidad al emulador de Auth.
+///
+/// **Esto faltaba, y costaba caro.** `ConfiguracionDatos` redirigía Firestore
+/// al emulador pero nadie redirigía la identidad, así que con
+/// `--dart-define=USAR_EMULADORES=true` la autenticación salía al proyecto
+/// real con las opciones ficticias del emulador y fallaba siempre con
+/// «api-key-not-valid». Desde la feature 004, que es cuando aparecieron las
+/// cuentas, **no se podía entrar en local**: todo había que verificarlo
+/// desplegando.
+///
+/// Vive aquí porque este es el único archivo del proyecto que puede importar
+/// `firebase_auth`, y la prueba de frontera lo vigila.
+void usarEmuladorDeAuth({String host = 'localhost', int puerto = 9099}) {
+  fb.FirebaseAuth.instance.useAuthEmulator(host, puerto);
+}
+
 class SesionFirebase implements Identidad {
   SesionFirebase({
     required this.auth,
