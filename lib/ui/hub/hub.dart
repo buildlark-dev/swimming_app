@@ -425,6 +425,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
         body: Column(
           children: [
             _BarraDeSesion(cuenta: widget.cuenta, modoLocal: widget.modoLocal),
+            // El nombre del destino, cuando la barra no puede mostrarlo. Nadie
+            // se queda sin saber dónde está.
+            _TituloDelDestino(destino: _destino),
             Expanded(
               child: IndexedStack(
                 index: _destino.posicion,
@@ -436,19 +439,41 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
             ),
           ],
         ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _destino.posicion,
-          onDestinationSelected: (posicion) =>
-              setState(() => _destino = Destino.values[posicion]),
-          destinations: [
-            for (final destino in Destino.values)
-              NavigationDestination(
-                key: Key('destino-${destino.name}'),
-                icon: Icon(iconoDe(destino)),
-                selectedIcon: Icon(iconoDe(destino, activo: true)),
-                label: destino.etiqueta,
-              ),
-          ],
+        bottomNavigationBar: LayoutBuilder(
+          builder: (context, medidas) {
+            // **Donde no caben, cede la barra y no la palabra.**
+            //
+            // Son cuentas, no gusto: a 320 px cada destino tiene 64, y
+            // «Ver Plan» necesita 100 con la etiqueta de 13 px que la feature
+            // 005 declaró como suelo —«no baja de aquí», porque algunos de
+            // quienes leen esto tienen nueve años—. Cinco etiquetas en
+            // español piden unos 440 px, más de lo que mide un teléfono.
+            //
+            // Así que por debajo de ese ancho la barra muestra iconos y el
+            // nombre del destino va de título, entero y a tamaño de lectura.
+            // Abreviar «Análisis» o encoger la letra sería decidir que el
+            // vocabulario cede ante la maquetación, y en esta app es al revés.
+            final caben = medidas.maxWidth >= anchoParaLasEtiquetas;
+
+            return NavigationBar(
+              selectedIndex: _destino.posicion,
+              labelBehavior: caben
+                  ? NavigationDestinationLabelBehavior.alwaysShow
+                  : NavigationDestinationLabelBehavior.alwaysHide,
+              onDestinationSelected: (posicion) =>
+                  setState(() => _destino = Destino.values[posicion]),
+              destinations: [
+                for (final destino in Destino.values)
+                  NavigationDestination(
+                    key: Key('destino-${destino.name}'),
+                    icon: Icon(iconoDe(destino)),
+                    selectedIcon: Icon(iconoDe(destino, activo: true)),
+                    label: destino.etiqueta,
+                    tooltip: destino.etiqueta,
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -521,6 +546,55 @@ class _BarraDeSesion extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Cuántos píxeles de ancho hacen falta para que las cinco etiquetas caben.
+///
+/// Medido, no elegido: la más larga —«Ver Plan»— pide 100 px con la etiqueta de
+/// 13 px que la feature 005 fijó como suelo, y son cinco. Por debajo de esto la
+/// barra pasa a iconos y el nombre va de título (garantía H9).
+///
+/// En la práctica: **ningún teléfono llega**. Los anchos de teléfono van de 320
+/// a 430, así que las cinco etiquetas se ven en tableta y en escritorio, y en el
+/// teléfono se ve el nombre del destino actual, entero, como título.
+const double anchoParaLasEtiquetas = 500;
+
+/// El nombre del destino, cuando la barra no puede mostrarlo.
+///
+/// No es decoración: es la mitad de la promesa. La barra cede las etiquetas en
+/// pantallas angostas, y el nombre tiene que seguir leyéndose **entero y a
+/// tamaño de lectura** en alguna parte.
+class _TituloDelDestino extends StatelessWidget {
+  const _TituloDelDestino({required this.destino});
+
+  final Destino destino;
+
+  @override
+  Widget build(BuildContext context) {
+    final ancho = MediaQuery.sizeOf(context).width;
+    if (ancho >= anchoParaLasEtiquetas) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: Espaciado.amplio,
+        right: Espaciado.amplio,
+        top: Espaciado.normal,
+      ),
+      child: Row(
+        children: [
+          Icon(iconoDe(destino, activo: true), size: 20),
+          const SizedBox(width: Espaciado.corto),
+          Expanded(
+            child: Text(
+              destino.etiqueta,
+              key: Key('titulo-${destino.name}'),
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ),
+        ],
       ),
     );
   }

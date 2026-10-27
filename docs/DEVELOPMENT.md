@@ -41,6 +41,24 @@ cannot be approved.
 - **It works with no signal.** Reading the plan, today's session and your own
   progress never waits for the network. Writing offline is kept on the device,
   the app says so, and it goes out on its own when the connection returns.
+- **Accounts, roles and verifiable guardian consent**: a minor's data stays on
+  their device until their guardian authorises it, through a link the guardian
+  opens without an account of their own. The gate is enforced in the security
+  rules, not on a screen.
+- **Sign-up asks who you are**: name, exact birth date and country, in short
+  steps. The terms are accepted on the way in, and the version each person
+  accepted is kept — changing the text never rewrites what somebody accepted.
+  When the age says minor, the app asks for the guardian's email and explains
+  what it is for.
+- **One visual system**: colour, type, spacing and the repeated components live
+  in one place, light and dark, with measured contrast.
+- **The HUB and the two journeys**: five destinations — `Generar`, `Ver Plan`,
+  `Home`, `Análisis`, `Ajustes` — the same bar for the coach and the swimmer
+  with different content inside, and a portada that answers "how am I doing".
+- **Each person governs their own account**: in `Ajustes` they see and correct
+  their data, read the version of the terms they accepted, change their
+  password through their verified email, and exercise the three rights Ley 1581
+  grants them — to know what is stored, to take it, and to have it erased.
 
 ## Working offline
 
@@ -180,8 +198,12 @@ dart run tool/verificar_metodologia.dart
 ```text
 lib/
 ├── dominio/      Pure Dart. No Flutter, no Firebase. All the rules.
+│   └── hub/      Which content each role gets, in each destination.
 ├── datos/        Firestore, in-memory, bundled assets and export.
-└── ui/           Screens.
+└── ui/
+    ├── hub/      The bar, the two Homes, and the wiring to screens.
+    ├── ajustes/  Where a person governs their own account.
+    └── …         The rest of the screens.
 
 firebase/         Security rules, emulator config and their tests.
 docs/metodologia/ Normative source of the domain.
@@ -192,6 +214,51 @@ tool/             Utilities: Library extraction, Excel reading, checks.
 A test watches that `lib/dominio/` imports neither Flutter nor Firebase. That is
 principle II of the constitution, turned into something the system verifies
 instead of something somebody has to remember.
+
+## The HUB and the two journeys
+
+Five destinations, in this order, with `Home` in the centre: `Generar`,
+`Ver Plan`, `Home`, `Análisis`, `Ajustes`. **The bar is the same for both
+roles.** What changes is what is inside.
+
+Which content each role gets is **not decided in a screen**. It is a total
+function in `lib/dominio/hub/destino.dart`:
+
+```dart
+QueHay reparto(Destino destino, Rol rol)  // Contiene(…) or TodaviaNo(…)
+```
+
+That is why "no content of the other role shows up in a journey" is something a
+pure-Dart test proves without painting anything, and why only the journey of
+whoever signed in is ever built. What came before was two parallel lists walked
+with one shared index, carrying its own warning in a comment: that is how you
+end up showing the editor when somebody taps «Mi progreso».
+
+### Adding a destination's content
+
+1. Add the identifier to `Contenido`, in the domain.
+2. Give it to a role in `reparto`. The function is total: every destination and
+   every role returns either content or an explicit `TodaviaNo`.
+3. Map the identifier to a widget in `lib/ui/hub/contenidos.dart`. **That is the
+   only place in the project where a content becomes a screen.**
+4. Add the screen to `test/ui/tema/ayuda_pantallas.dart`, with realistic
+   content.
+
+A destination whose content arrives in a later feature says so in one sentence
+and has **no tappable control** — not even a disabled one as a hint of what is
+coming.
+
+### The bar on a narrow phone
+
+Five Spanish labels need about 500 px: «Ver Plan» alone wants 100 px at the
+13 px label, which is the floor feature 005 declared because some of the people
+reading this are nine years old. Phones are 320 to 430 px wide.
+
+So below 500 px **the bar gives up its labels, not the words**: it shows icons,
+and the name of the current destination is the screen's title, in full and at
+reading size. `test/ui/hub/etiquetas_caben_test.dart` measures it by comparing
+what each label is painted at against what it would need unconstrained — which
+is the only way to catch a label that ellipsises silently.
 
 ## The visual system
 
@@ -229,6 +296,14 @@ the app had 34 uses of the error family out of 54 semantic colour uses: it
 painted everything that asked for attention red, and a red that always shows up
 stops meaning anything. Anything that needs attention without something having
 broken takes the **care** tone; anything that only informs takes **informative**.
+
+What that test forbids is **applying** the colour. Saying `TonoDeAviso.error` on
+a notice is allowed anywhere, because that is the sanctioned way to report a
+failure and the colour for it is still applied in `lib/ui/tema/`. Feature 007
+had to make that distinction explicit: as written, no new screen could report a
+failure at all. And it is a failure that earns the tone — the delete button in
+`Ajustes` is deliberately not red, because asking for an erasure is not a
+failure.
 
 **A component takes its measurements, it does not decide them.**
 `test/ui/tema/componentes_test.dart` fails on a literal measurement inside

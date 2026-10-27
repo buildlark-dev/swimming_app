@@ -275,7 +275,8 @@ void main() {
         expect(
           fuente,
           isNot(contains(via)),
-          reason: 'Lo que se exporta son los datos personales de alguien. '
+          reason:
+              'Lo que se exporta son los datos personales de alguien. '
               '«$via» los sacaría de la pantalla y los dejaría en un sitio '
               'que esa persona no eligió',
         );

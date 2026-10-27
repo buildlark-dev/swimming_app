@@ -318,8 +318,12 @@ salvo las que afirman la navegación anterior, que son el objeto de esta feature
 
 - **SC-001**: El nadador llega a la sesión de hoy en **un** toque desde que abre la app.
 - **SC-002**: El entrenador llega al generador en **un** toque desde que abre la app.
-- **SC-003**: Las cinco etiquetas se leen completas, sin truncar, a 320 px de ancho, en los
-  dos temas.
+- **SC-003**: El nombre del destino en el que se está se lee **entero**, sin truncar, a 320 px
+  de ancho y en los dos temas. Las cinco etiquetas de la barra se muestran desde 500 px.
+  Corregido durante la implementación: el enunciado anterior —las cinco a 320 px— era
+  imposible, porque «Ver Plan» necesita 100 px con la letra mínima que la feature 005 declaró
+  y cinco destinos en 320 px tienen 64 cada uno. Lo que cede es la barra, no la palabra; la
+  medida y las alternativas rechazadas están en la garantía H9 del contrato.
 - **SC-004**: Una persona que no ha visto la app encuentra dónde cerrar sesión en menos de
   diez segundos, sin ayuda.
 - **SC-005**: Los tres derechos de la Ley 1581 se alcanzan desde Ajustes en **dos** toques o

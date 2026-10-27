@@ -35,8 +35,19 @@ decide por su cuenta de quién es un contenido.
 **H8** — Cambiar de destino conserva el estado del que se abandona. Una sesión a medio editar,
 una respuesta a medio escribir y una búsqueda hecha siguen ahí al volver.
 
-**H9** — Las cinco etiquetas se leen completas, sin truncar ni abreviar, a 320 px de ancho, en
-claro y en oscuro.
+**H9** — El nombre del destino en el que se está **se lee entero**, sin truncar ni abreviar, a
+320 px de ancho y en los dos temas. Las cinco etiquetas de la barra se muestran a partir de
+500 px; por debajo, la barra son iconos y el nombre va de título.
+
+> **Esta garantía se corrigió durante la implementación, y la razón es aritmética.** Decía
+> que las cinco etiquetas se leerían completas a 320 px. No se puede: cinco destinos en 320 px
+> dan 64 px cada uno, y «Ver Plan» necesita **100 px** con la etiqueta de 13 px que la feature
+> 005 fijó como suelo —«no baja de aquí», porque algunos de quienes leen esto tienen nueve
+> años—. Las cinco piden 500 px, y los teléfonos miden entre 320 y 430.
+>
+> Las salidas eran tres: encoger la letra por debajo del suelo, abreviar el vocabulario, o que
+> ceda la barra. Cede la barra. Lo que **no** se hizo fue dejar las etiquetas recortándose en
+> silencio, que es lo que pasaba antes de medirlo.
 
 **H10** — Volver atrás desde un destino que no es `Home` lleva a `Home`. Desde `Home`, sale de
 la app.
