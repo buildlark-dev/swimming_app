@@ -39,7 +39,8 @@ class ResumenDelEntrenador {
     bool Function(Plan)? listoParaFirmar,
   }) {
     final auditoria = Auditoria();
-    final listo = listoParaFirmar ??
+    final listo =
+        listoParaFirmar ??
         (Plan plan) => auditoria.impedimentosPara(plan).isEmpty;
 
     final asignados = <String, Set<String>>{};

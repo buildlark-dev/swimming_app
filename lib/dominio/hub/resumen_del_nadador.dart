@@ -49,8 +49,10 @@ class ResumenDelNadador {
     // Se reutiliza el cálculo de la feature 003 en lugar de contar aquí. Si
     // «cumplida» significara una cosa en la sesión del día y otra en esta
     // pantalla, el nadador vería dos verdades sobre lo mismo.
-    final adherencia =
-        ProgresoDelNadador(plan: plan, registros: registros).adherenciaDelPlan;
+    final adherencia = ProgresoDelNadador(
+      plan: plan,
+      registros: registros,
+    ).adherenciaDelPlan;
 
     return ResumenDelNadador(
       entregadas: adherencia.programadas,

@@ -19,8 +19,8 @@ import 'package:natacion_app/dominio/hub/destino.dart';
 void main() {
   /// Lo que le toca a un rol, destino por destino.
   Map<Destino, QueHay> recorridoDe(Rol rol) => {
-        for (final destino in Destino.values) destino: reparto(destino, rol),
-      };
+    for (final destino in Destino.values) destino: reparto(destino, rol),
+  };
 
   group('el reparto', () {
     test('H4 — cada destino y cada rol tienen exactamente una respuesta', () {
@@ -36,24 +36,28 @@ void main() {
       }
     });
 
-    test('H5 — ningún contenido aparece en los dos recorridos, salvo Ajustes',
-        () {
-      Set<Contenido> contenidosDe(Rol rol) => {
-            for (final queHay in recorridoDe(rol).values)
-              if (queHay is Contiene) queHay.contenido,
-          };
+    test(
+      'H5 — ningún contenido aparece en los dos recorridos, salvo Ajustes',
+      () {
+        Set<Contenido> contenidosDe(Rol rol) => {
+          for (final queHay in recorridoDe(rol).values)
+            if (queHay is Contiene) queHay.contenido,
+        };
 
-      final compartidos = contenidosDe(Rol.entrenador)
-          .intersection(contenidosDe(Rol.nadador));
+        final compartidos = contenidosDe(
+          Rol.entrenador,
+        ).intersection(contenidosDe(Rol.nadador));
 
-      expect(
-        compartidos,
-        {Contenido.ajustes},
-        reason: 'Ajustes es la cuenta de quien está dentro, así que es el '
-            'mismo contenido con datos distintos. Cualquier otro compartido '
-            'significa que un recorrido se metió en el otro',
-      );
-    });
+        expect(
+          compartidos,
+          {Contenido.ajustes},
+          reason:
+              'Ajustes es la cuenta de quien está dentro, así que es el '
+              'mismo contenido con datos distintos. Cualquier otro compartido '
+              'significa que un recorrido se metió en el otro',
+        );
+      },
+    );
 
     test('H6 — el nadador no tiene nada del taller del entrenador', () {
       final suyos = recorridoDe(Rol.nadador).values;
@@ -91,13 +95,15 @@ void main() {
       final esperando = <String>[
         for (final rol in Rol.values)
           for (final destino in Destino.values)
-            if (reparto(destino, rol) is TodaviaNo) '${destino.name}/${rol.name}',
+            if (reparto(destino, rol) is TodaviaNo)
+              '${destino.name}/${rol.name}',
       ];
 
       expect(
         esperando..sort(),
         ['analisis/entrenador', 'generar/nadador'],
-        reason: 'El Análisis del nadador NO es uno de ellos: lleva dentro «Mi '
+        reason:
+            'El Análisis del nadador NO es uno de ellos: lleva dentro «Mi '
             'progreso» de la feature 003 (FR-031)',
       );
     });

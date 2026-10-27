@@ -1,23 +1,23 @@
 /// El HUB: la barra de cinco destinos y los dos recorridos.
 ///
-/// Vivía dentro de `main.dart` hasta la feature 007. Sale aquí porque son dos
+/// Vivía dentro de `main.dart` hasta la feature 007. Salió aquí porque son dos
 /// trabajos distintos —arrancar la app y disponerla— y porque esta feature
-/// multiplica el segundo por dos recorridos: dejarlo dentro llevaba el archivo
-/// de arranque por encima de las mil doscientas líneas (decisión D1).
+/// multiplica el segundo por dos recorridos (decisión D1).
 ///
-/// Lo que entró aquí entró **sin cambiar nada**. El reparto por rol, los
-/// destinos y las pantallas nuevas llegan en las tareas siguientes, cada una
-/// con su cerrojo escrito antes.
+/// Lo que decide **qué le toca a quién** no está en este archivo: está en
+/// `lib/dominio/hub/destino.dart`, en Dart puro, y se comprueba sin pintar
+/// nada. Aquí se monta lo que esa tabla dice.
+///
+/// Los contenidos se mantienen vivos en un `IndexedStack`: cambiar de destino
+/// conserva lo escrito a medias (H8). Y como solo se construyen los del rol que
+/// entró, **el contenido del otro recorrido no existe ni en memoria** (H6).
 library;
 
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:natacion_app/datos/firestore/repositorios_firestore.dart';
 import 'package:natacion_app/datos/local/almacen_local.dart';
 import 'package:natacion_app/datos/local/repositorios_locales.dart';
-import 'package:natacion_app/datos/memoria/repositorios_memoria.dart';
 import 'package:natacion_app/datos/recursos/recursos_iniciales.dart';
 import 'package:natacion_app/dominio/cuentas/cuenta.dart';
 import 'package:natacion_app/dominio/entidades/asignacion.dart';
@@ -25,30 +25,30 @@ import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/generacion/resultado.dart';
+import 'package:natacion_app/dominio/hub/destino.dart';
+import 'package:natacion_app/dominio/hub/resumen_del_entrenador.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
 import 'package:natacion_app/ui/acceso/estado_sesion.dart';
 import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
-import 'package:natacion_app/ui/editor/pantalla_editor.dart';
-import 'package:natacion_app/ui/generacion/pantalla_peticion.dart';
+import 'package:natacion_app/ui/hub/contenidos.dart';
+import 'package:natacion_app/ui/hub/repositorios_del_hub.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
-import 'package:natacion_app/ui/nadador/pantalla_mi_progreso.dart';
-import 'package:natacion_app/ui/nadador/pantalla_sesion_del_dia.dart';
 import 'package:natacion_app/ui/nadador/perfil_activo.dart';
-import 'package:natacion_app/ui/nadadores/pantalla_perfiles.dart';
 import 'package:natacion_app/ui/planes/pantalla_plan.dart';
 import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:provider/provider.dart';
 
-/// Navegación entre el editor de sesión y los perfiles de nadador.
+/// La casa de la app: cinco destinos, dos recorridos.
 class PantallaPrincipal extends StatefulWidget {
   const PantallaPrincipal({
     super.key,
     required this.recursos,
     this.cuenta,
     this.modoLocal = false,
+    this.repositorios,
   });
 
   final RecursosIniciales recursos;
@@ -60,83 +60,163 @@ class PantallaPrincipal extends StatefulWidget {
   /// guardar nada. Es el modo de desarrollo, y va rotulado.
   final bool modoLocal;
 
+  /// Para pruebas: repositorios ya sembrados.
+  ///
+  /// En la app no se pasa, y se construyen de los recursos. Existe porque sin
+  /// esto el recorrido del nadador no se podía comprobar: los repositorios se
+  /// creaban dentro del estado y no había forma de sembrar ni un nadador.
+  final RepositoriosDelHub? repositorios;
+
   @override
   State<PantallaPrincipal> createState() => _PantallaPrincipalState();
 }
 
 class _PantallaPrincipalState extends State<PantallaPrincipal> {
-  int _indice = 0;
+  /// Se abre en `Home`, para los dos roles (decisión D3).
+  Destino _destino = Destino.home;
+
+  /// En modo local no hay rol que consultar, así que se elige a propósito
+  /// (decisión D13). Adivinarlo sería peor.
+  Rol _recorridoLocal = Rol.entrenador;
 
   @override
   void initState() {
     super.initState();
-    // Lo guardado está ahí antes de que nadie toque nada. Con la persistencia
-    // de Firestore activada, esta lectura responde **también sin red**: lo del
-    // entrenador se lee de la caché (FR-034).
-    unawaited(_recargar());
+    unawaited(_cargar());
   }
 
-  /// Los repositorios. Con servidor persisten; en modo local, no.
+  /// Particionado por cuenta: dos hermanos con el mismo teléfono no comparten
+  /// ni una clave, tampoco en la bandeja de salida (garantía A9).
+  late final AlmacenLocal _almacen = AlmacenPreferencias(
+    cuentaId: widget.cuenta?.id,
+  );
+
+  late final RepositoriosDelHub _repos =
+      widget.repositorios ?? RepositoriosDelHub.de(widget.recursos, _almacen);
+
+  /// Un solo estado de editor para todo el destino `Generar`, para que lo
+  /// generado aparezca en el editor sin cambiar de sitio.
+  late final EstadoEditor _editor = EstadoEditor(
+    biblioteca: widget.recursos.biblioteca,
+  );
+
+  /// El recorrido del nadador (feature 003).
   ///
-  /// Hasta la feature 004 `main.dart` usaba los de memoria **aunque los de
-  /// Firestore existieran desde la 001**: estaban escritos y nadie los
-  /// llamaba. El trabajo del entrenador se perdía al recargar.
-  late final FirebaseFirestore? _db = widget.recursos.firestore;
-
-  late final RepositorioSesiones _sesiones = _db == null
-      ? RepositorioSesionesMemoria()
-      : RepositorioSesionesFirestore(_db, widget.recursos.biblioteca);
-
-  late final RepositorioPlanes _repoPlanes = _db == null
-      ? RepositorioPlanesMemoria()
-      : RepositorioPlanesFirestore(
-          _db,
-          widget.recursos.biblioteca,
-          _sesiones,
-        );
-
-  late final RepositorioNadadores _nadadores = _db == null
-      ? RepositorioNadadoresMemoria()
-      : RepositorioNadadoresFirestore(_db);
-
-  late final RepositorioAsignaciones _repoAsignaciones = _db == null
-      ? RepositorioAsignacionesMemoria()
-      : RepositorioAsignacionesFirestore(_db);
-
-  /// Un solo estado de editor para toda la app, para que lo generado en la
-  /// primera pestaña aparezca en la segunda.
-  late final EstadoEditor _editor =
-      EstadoEditor(biblioteca: widget.recursos.biblioteca);
-
-  /// Estado del recorrido del nadador (feature 003).
-  ///
-  /// Se monta sobre el almacén local y la bandeja de salida: **escribir no
-  /// consulta la red**, y lo que quede pendiente viaja cuando vuelva.
+  /// **Escribir no consulta la red**, y lo que quede pendiente viaja cuando
+  /// vuelva.
   late final EstadoNadador _nadador = EstadoNadador(
     sincronizador: Sincronizador(
-      registros: RegistrosLocales(_almacen),
+      registros: _repos.registrosLocales,
       bandeja: BandejaLocal(_almacen),
       red: widget.recursos.red,
       transporte: widget.recursos.transporte,
     ),
   );
 
-  /// Particionado por cuenta: dos hermanos con el mismo teléfono no comparten
-  /// ni una clave, tampoco en la bandeja de salida (garantía A9).
-  late final AlmacenLocal _almacen =
-      AlmacenPreferencias(cuentaId: widget.cuenta?.id);
-
-  /// Lo que hay cargado ahora mismo, para pintar. **La fuente de verdad son
-  /// los repositorios**: esto es una copia que se recarga desde ellos.
+  /// Lo que hay cargado para pintar. **La fuente de verdad son los
+  /// repositorios**: esto es una copia que se recarga desde ellos.
   final List<Plan> _planes = [];
-
-  late final RegistrosLocales _registros = RegistrosLocales(_almacen);
-
-  /// A quiénes se les ha entregado cada plan.
-  ///
-  /// Una asignación por nadador, no una lista dentro del plan: ver
-  /// `lib/dominio/entidades/asignacion.dart`.
   final List<Asignacion> _asignaciones = [];
+
+  ResumenDelEntrenador? _resumen;
+
+  Rol? get _rol => widget.modoLocal ? _recorridoLocal : widget.cuenta?.rol;
+
+  bool get _esEntrenador => _rol == Rol.entrenador;
+
+  /// Carga lo que el recorrido de quien entró necesita, y **solo eso**.
+  ///
+  /// La diferencia no es de comodidad: pedir la lista de planes es una lectura
+  /// que las reglas le deniegan a un nadador, así que su recorrido tiene que
+  /// llegar a lo suyo por sus asignaciones.
+  Future<void> _cargar() async {
+    if (_esEntrenador) {
+      await _recargar();
+    } else {
+      await _abrirMiPerfil();
+    }
+  }
+
+  /// **El nadador llega a lo suyo sin tocar nada** (T067).
+  ///
+  /// Antes su perfil solo se abría si elegía un chip en el selector del
+  /// entrenador, y ese selector se alimenta de una lista que las reglas no le
+  /// dejan leer: veía «Todavía no hay perfiles. Crea uno en la pestaña
+  /// Nadadores» —sobre una pestaña que no tiene— y su plan no aparecía nunca.
+  ///
+  /// Ahora sale de su cuenta: su ficha, sus asignaciones, y de ahí su plan
+  /// publicado.
+  Future<void> _abrirMiPerfil() async {
+    final nadadorId = widget.cuenta?.nadadorId;
+    if (nadadorId == null) return;
+
+    try {
+      final nadador = await _repos.nadadores.obtener(nadadorId);
+      if (nadador == null) return;
+
+      final suyas = await _repos.asignaciones.deNadador(nadadorId);
+
+      // De haber varios, el último: es el que está entrenando. Misma regla que
+      // `planDe`, que no se puede reutilizar aquí porque esa trabaja sobre la
+      // lista completa de planes y el nadador no puede pedirla.
+      Plan? plan;
+      for (final asignacion in suyas) {
+        final candidato = await _repos.planes.obtener(asignacion.planId);
+        if (candidato != null && candidato.estado == EstadoPlan.publicado) {
+          plan = candidato;
+        }
+      }
+
+      final registros = plan == null
+          ? <RegistroDeSesion>[]
+          : await _repos.registrosLocales.obtenerDePlan(
+              nadadorId,
+              plan.id ?? '',
+            );
+
+      if (!mounted) return;
+      _nadador.abrirComo(nadador, plan: plan, registros: registros);
+      await _nadador.sincronizar();
+    } on FalloDeDatos {
+      // Sin red y sin caché, entra igual: su plan aparecerá cuando se pueda
+      // leer. Dejarlo fuera de la app por un problema de lectura sería lo
+      // contrario de lo que la feature 003 promete.
+    }
+  }
+
+  /// Vuelve a leer lo del entrenador, y recuenta su resumen.
+  Future<void> _recargar() async {
+    try {
+      final planes = await _repos.planes.listar();
+      final asignaciones = await _repos.asignaciones.listar();
+      final conRegistros = await _repos.registrosParaContar
+          .nadadoresConRegistros();
+
+      if (!mounted) return;
+      setState(() {
+        _planes
+          ..clear()
+          ..addAll(planes);
+        _asignaciones
+          ..clear()
+          ..addAll(asignaciones);
+        _resumen = ResumenDelEntrenador.de(
+          planes: planes,
+          asignaciones: asignaciones,
+          nadadoresConRegistros: conRegistros,
+        );
+      });
+    } on FalloDeDatos {
+      // El resumen se queda sin contar y la portada lo dice girando, en lugar
+      // de mostrar cuatro ceros como si fueran datos.
+    } on FalloDeAlmacenLocal {
+      // **Y el almacén del dispositivo también puede faltar**: sin servidor,
+      // contar quién ha respondido lo lee de ahí. Un navegador sin
+      // almacenamiento no puede tumbar el arranque por un número de la
+      // portada; es la misma lección del PR #5, cuando un fallo que debía
+      // degradar se llevó la app entera.
+    }
+  }
 
   /// Publica y asigna: es el puente entre el entrenador y el nadador.
   ///
@@ -147,14 +227,14 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     final planId = publicado.id;
     if (planId == null) return;
 
-    await _repoPlanes.guardarAprobado(publicado, const {});
+    await _repos.planes.guardarAprobado(publicado, const {});
 
     // Una escritura por nadador. Cada una pasa por la puerta: si alguno no
     // tiene consentimiento vigente, el servidor la deniega y se dice cuál.
     final sinPermiso = <String>[];
     for (final nadadorId in nadadoresIds) {
       try {
-        await _repoAsignaciones.asignar(
+        await _repos.asignaciones.asignar(
           Asignacion(
             planId: planId,
             nadadorId: nadadorId,
@@ -180,28 +260,18 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     );
   }
 
-  /// Vuelve a leer de los repositorios lo que se pinta.
-  Future<void> _recargar() async {
-    final planes = await _repoPlanes.listar();
-    final asignaciones = await _repoAsignaciones.listar();
-
-    if (!mounted) return;
-    setState(() {
-      _planes
-        ..clear()
-        ..addAll(planes);
-      _asignaciones
-        ..clear()
-        ..addAll(asignaciones);
-    });
-  }
-
   /// Carga el perfil elegido con su plan publicado y sus registros.
+  ///
+  /// Sigue siendo la herramienta del entrenador para abrir la app como uno de
+  /// sus nadadores, y en modo local la única forma de ver ese recorrido.
   Future<void> _abrirComoNadador(Nadador nadador) async {
     final plan = planDe(nadador, _planes, _asignaciones);
     final registros = plan == null
         ? <RegistroDeSesion>[]
-        : await _registros.obtenerDePlan(nadador.id ?? '', plan.id ?? '');
+        : await _repos.registrosLocales.obtenerDePlan(
+            nadador.id ?? '',
+            plan.id ?? '',
+          );
 
     _nadador.abrirComo(nadador, plan: plan, registros: registros);
     await _nadador.sincronizar();
@@ -212,7 +282,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     final plan = _editor.planRevisado;
     if (plan == null) return;
 
-    final nadadores = await _nadadores.listar();
+    final nadadores = await _repos.nadadores.listar();
     if (!mounted) return;
 
     await Navigator.of(context).push<void>(
@@ -227,6 +297,10 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     );
   }
 
+  void _abrirGenerado(MicrocicloGenerado generado) {
+    _editor.abrirGenerado(generado.plan);
+  }
+
   @override
   void dispose() {
     _editor.dispose();
@@ -234,78 +308,35 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     super.dispose();
   }
 
-  void _abrirGenerado(MicrocicloGenerado generado) {
-    _editor.abrirGenerado(generado.plan);
-    setState(() => _indice = 1);
-  }
+  /// El selector de perfil: **solo del entrenador y del modo local**.
+  ///
+  /// En el recorrido del nadador le hablaba de una pestaña que no tiene, y su
+  /// perfil se abre solo desde su cuenta.
+  Widget? get _selector {
+    if (!widget.modoLocal && _esEntrenador) return null;
+    if (!widget.modoLocal) return null;
 
-  /// Qué pestañas le tocan a quien está dentro.
-  ///
-  /// No es una comodidad: un nadador no tiene nada que hacer en el editor, y
-  /// las reglas de acceso le denegarían todo lo que intentara desde ahí. Lo
-  /// que decide es `Permisos`, no una condición escrita en esta pantalla.
-  ///
-  /// En modo local se ven todas, porque no hay rol que consultar y es el modo
-  /// con el que se desarrolla.
-  bool _leToca(_Pestana pestana) {
-    if (widget.modoLocal) return true;
-    final cuenta = widget.cuenta;
-    if (cuenta == null) return false;
-    return pestana.esDelEntrenador ? cuenta.esEntrenador : cuenta.esNadador;
+    return FutureBuilder<List<Nadador>>(
+      future: _repos.nadadores.listar(),
+      builder: (context, instantanea) => SelectorDePerfil(
+        estado: _nadador,
+        nadadores: instantanea.data ?? const [],
+        planes: _planes,
+        asignaciones: _asignaciones,
+        alElegir: _abrirComoNadador,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final pantallas = <Widget>[
-      PantallaPeticion(
-        biblioteca: widget.recursos.biblioteca,
-        indiceTerminos: widget.recursos.indiceTerminos,
-        alGenerar: _abrirGenerado,
-      ),
-      ChangeNotifierProvider<EstadoEditor>.value(
-        value: _editor,
-        child: PantallaEditor(alRevisarPlan: _revisarPlan),
-      ),
-      PantallaPerfiles(repositorio: _nadadores),
-      // El recorrido del nadador va en su propia pestaña y sobre su propio
-      // estado. Es la feature 003: el nadador y el entrenador son dos
-      // recorridos distintos sobre el mismo dominio, y mezclarlos en las mismas
-      // pantallas haría que cada cambio para uno arriesgara al otro.
-      ChangeNotifierProvider<EstadoNadador>.value(
-        value: _nadador,
-        child: PantallaSesionDelDia(
-          selector: FutureBuilder<List<Nadador>>(
-            future: _nadadores.listar(),
-            builder: (context, instantanea) => SelectorDePerfil(
-              estado: _nadador,
-              nadadores: instantanea.data ?? const [],
-              planes: _planes,
-              asignaciones: _asignaciones,
-              alElegir: _abrirComoNadador,
-            ),
-          ),
-        ),
-      ),
-      ChangeNotifierProvider<EstadoNadador>.value(
-        value: _nadador,
-        child: const PantallaMiProgreso(),
-      ),
-    ];
+    final rol = _rol;
 
-    // Pestaña y pantalla van emparejadas para que filtrar por rol no pueda
-    // desalinear los índices. Hacerlo con dos listas paralelas y un índice
-    // compartido es la forma clásica de acabar enseñando el editor al pulsar
-    // «Mi progreso».
-    final visibles = <(_Pestana, Widget)>[
-      for (var i = 0; i < _Pestana.values.length; i++)
-        if (_leToca(_Pestana.values[i])) (_Pestana.values[i], pantallas[i]),
-    ];
-
-    if (visibles.isEmpty) {
+    if (rol == null) {
       return const Scaffold(
         body: Center(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: EdgeInsets.all(Espaciado.seccion),
             child: Text(
               'Tu cuenta todavía no tiene nada asignado.\n'
               'Cuando tu entrenador te inscriba, aparecerá aquí.',
@@ -316,89 +347,88 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       );
     }
 
-    final indice = _indice.clamp(0, visibles.length - 1);
+    final ctx = ContextoDelHub(
+      biblioteca: widget.recursos.biblioteca,
+      indiceTerminos: widget.recursos.indiceTerminos,
+      versionMetodologia: widget.recursos.versionMetodologia,
+      nadadores: _repos.nadadores,
+      editor: _editor,
+      nadador: _nadador,
+      planes: _planes,
+      asignaciones: _asignaciones,
+      resumenDelEntrenador: _resumen,
+      irAVerPlan: () => setState(() => _destino = Destino.verPlan),
+      alGenerar: _abrirGenerado,
+      alRevisarPlan: _revisarPlan,
+      alEntregar: _entregar,
+      selectorDePerfil: _selector,
+    );
 
-    return Scaffold(
-      body: Column(
-        children: [
-          _BarraDeSesion(cuenta: widget.cuenta, modoLocal: widget.modoLocal),
-          Expanded(child: visibles[indice].$2),
-        ],
-      ),
-      bottomNavigationBar: visibles.length < 2
-          ? null
-          : NavigationBar(
-              selectedIndex: indice,
-              onDestinationSelected: (i) => setState(() => _indice = i),
-              destinations: [
-                for (final (pestana, _) in visibles)
-                  NavigationDestination(
-                    icon: Icon(pestana.icono),
-                    selectedIcon: Icon(pestana.iconoActivo),
-                    label: pestana.etiqueta,
-                  ),
-              ],
+    return PopScope(
+      // Volver atrás lleva a `Home`; desde `Home`, sale de la app (H10).
+      canPop: _destino == Destino.home,
+      onPopInvokedWithResult: (hecho, _) {
+        if (!hecho && _destino != Destino.home) {
+          setState(() => _destino = Destino.home);
+        }
+      },
+      child: Scaffold(
+        body: Column(
+          children: [
+            _BarraDeSesion(
+              cuenta: widget.cuenta,
+              modoLocal: widget.modoLocal,
+              recorridoLocal: _recorridoLocal,
+              alCambiarRecorrido: (otro) =>
+                  setState(() => _recorridoLocal = otro),
             ),
+            Expanded(
+              child: IndexedStack(
+                index: _destino.posicion,
+                children: [
+                  for (final destino in Destino.values)
+                    contenidoDe(destino, rol, ctx),
+                ],
+              ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _destino.posicion,
+          onDestinationSelected: (posicion) =>
+              setState(() => _destino = Destino.values[posicion]),
+          destinations: [
+            for (final destino in Destino.values)
+              NavigationDestination(
+                key: Key('destino-${destino.name}'),
+                icon: Icon(iconoDe(destino)),
+                selectedIcon: Icon(iconoDe(destino, activo: true)),
+                label: destino.etiqueta,
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-/// Las pestañas de la app, y de quién es cada una.
-enum _Pestana {
-  generar(
-    etiqueta: 'Generar',
-    icono: Icons.auto_awesome_outlined,
-    iconoActivo: Icons.auto_awesome,
-    esDelEntrenador: true,
-  ),
-  editor(
-    etiqueta: 'Editor',
-    icono: Icons.edit_note_outlined,
-    iconoActivo: Icons.edit_note,
-    esDelEntrenador: true,
-  ),
-  nadadores(
-    etiqueta: 'Nadadores',
-    icono: Icons.groups_outlined,
-    iconoActivo: Icons.groups,
-    esDelEntrenador: true,
-  ),
-  miSesion(
-    etiqueta: 'Mi sesión',
-    icono: Icons.pool_outlined,
-    iconoActivo: Icons.pool,
-    esDelEntrenador: false,
-  ),
-  miProgreso(
-    etiqueta: 'Mi progreso',
-    icono: Icons.timeline_outlined,
-    iconoActivo: Icons.timeline,
-    esDelEntrenador: false,
-  );
-
-  const _Pestana({
-    required this.etiqueta,
-    required this.icono,
-    required this.iconoActivo,
-    required this.esDelEntrenador,
-  });
-
-  final String etiqueta;
-  final IconData icono;
-  final IconData iconoActivo;
-  final bool esDelEntrenador;
-}
-
-/// Quién está dentro, y por dónde se sale.
+/// Quién está dentro, y —en modo local— por qué recorrido.
 ///
-/// En modo local, en cambio, avisa de que no hay servidor. No es decoración:
-/// sin servidor no hay consentimiento registrado, y el principio V exige que
-/// en ese caso la app se use solo con datos de prueba.
+/// En modo local avisa de que no hay servidor. No es decoración: sin servidor
+/// no hay consentimiento registrado, y el principio V exige que en ese caso la
+/// app se use solo con datos de prueba.
 class _BarraDeSesion extends StatelessWidget {
-  const _BarraDeSesion({required this.cuenta, required this.modoLocal});
+  const _BarraDeSesion({
+    required this.cuenta,
+    required this.modoLocal,
+    required this.recorridoLocal,
+    required this.alCambiarRecorrido,
+  });
 
   final Cuenta? cuenta;
   final bool modoLocal;
+  final Rol recorridoLocal;
+  final ValueChanged<Rol> alCambiarRecorrido;
 
   @override
   Widget build(BuildContext context) {
@@ -410,18 +440,36 @@ class _BarraDeSesion extends StatelessWidget {
       // El modo local no es un fallo: es un modo de trabajo, el que permite
       // desarrollar sin servidor. Lo que exige es cuidado, porque sin servidor
       // no hay consentimiento registrado y el principio V obliga a usar solo
-      // datos de prueba. Pintarlo de rojo lo confundía con una avería.
+      // datos de prueba.
       return Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: Espaciado.amplio,
           vertical: Espaciado.corto,
         ),
-        child: const Aviso(
-          tono: TonoDeAviso.cuidado,
-          icono: Icons.cloud_off_outlined,
-          claveDelMensaje: Key('aviso-modo-local'),
-          mensaje: 'Modo local, sin servidor: no hay cuentas ni consentimiento '
-              'registrado, y nada se guarda al cerrar. Solo datos de prueba.',
+        child: Column(
+          children: [
+            const Aviso(
+              tono: TonoDeAviso.cuidado,
+              icono: Icons.cloud_off_outlined,
+              claveDelMensaje: Key('aviso-modo-local'),
+              mensaje:
+                  'Modo local, sin servidor: no hay cuentas ni consentimiento '
+                  'registrado, y nada se guarda al cerrar. Solo datos de '
+                  'prueba.',
+            ),
+            const SizedBox(height: Espaciado.corto),
+            // Sin rol que consultar hay que elegir el recorrido a propósito
+            // (decisión D13). La historia 3 lo mueve a Ajustes.
+            SegmentedButton<Rol>(
+              key: const Key('recorrido-en-modo-local'),
+              segments: const [
+                ButtonSegment(value: Rol.entrenador, label: Text('Entrenador')),
+                ButtonSegment(value: Rol.nadador, label: Text('Nadador')),
+              ],
+              selected: {recorridoLocal},
+              onSelectionChanged: (cual) => alCambiarRecorrido(cual.first),
+            ),
+          ],
         ),
       );
     }

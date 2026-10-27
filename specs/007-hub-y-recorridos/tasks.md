@@ -77,19 +77,19 @@ nadadores.
 
 ### Los cerrojos
 
-- [ ] T012 [P] [US1] Escribir `test/ui/hub/recorrido_del_nadador_test.dart`: ve los cinco destinos, y en ninguno aparece el generador, el editor ni el panel de nadadores —**ni deshabilitados, ni con candado, ni nombrados**— (H6). Control negativo: cablear el editor en su `Generar` y ver fallar
-- [ ] T013 [P] [US1] Escribir `test/ui/hub/home_del_nadador_test.dart`: muestra entregadas, cumplidas, la última respuesta y **de cuándo son los datos**; abre sin conexión con lo que haya en el dispositivo (H14, H15). Control negativo: quitar la línea de la última sincronización y ver fallar
-- [ ] T014 [P] [US1] Escribir `test/ui/hub/estado_conservado_test.dart`: una respuesta a medio escribir sigue ahí al cambiar de destino y volver (H8). Control negativo: reconstruir el contenido en cada cambio y ver fallar
+- [X] T012 [P] [US1] Escribir `test/ui/hub/recorrido_del_nadador_test.dart`: ve los cinco destinos, y en ninguno aparece el generador, el editor ni el panel de nadadores —**ni deshabilitados, ni con candado, ni nombrados**— (H6). Control negativo: cablear el editor en su `Generar` y ver fallar
+- [X] T013 [P] [US1] Escribir `test/ui/hub/home_del_nadador_test.dart`: muestra entregadas, cumplidas, la última respuesta y **de cuándo son los datos**; abre sin conexión con lo que haya en el dispositivo (H14, H15). Control negativo: quitar la línea de la última sincronización y ver fallar
+- [X] T014 [P] [US1] Escribir `test/ui/hub/estado_conservado_test.dart`: una respuesta a medio escribir sigue ahí al cambiar de destino y volver (H8). Control negativo: reconstruir el contenido en cada cambio y ver fallar
 
 ### Las pantallas
 
-- [ ] T015 [US1] Crear `lib/ui/hub/hub.dart` (sobre lo extraído en T001): la barra con los cinco destinos leyendo el orden de `Destino`, el índice conservado, y el rol tomado de `Permisos` y nunca de una condición local (H7)
-- [ ] T016 [US1] Crear `lib/ui/hub/contenidos.dart`: el cableado destino × rol → widget, consultando la tabla de T008. Es el único sitio del proyecto donde se decide qué contenido le toca a quién
-- [ ] T017 [P] [US1] Crear `lib/ui/hub/todavia_no.dart`: lo que muestra un destino que espera su feature —una frase y **ningún control pulsable**— usando los componentes de la feature 005
-- [ ] T018 [US1] Crear `lib/ui/hub/home_del_nadador.dart` con el tema y los componentes de la 005, poniendo **la sesión de hoy como lo primero**, con el camino a `Ver Plan` (decisión D3: compensa el toque que se pierde)
-- [ ] T019 [US1] Cablear en `contenidos.dart` el recorrido del nadador: `Ver Plan` → `PantallaSesionDelDia` de la feature 003 y `Análisis` → `PantallaMiProgreso` (FR-031), las dos sin cambiarles nada
-- [ ] T020 [US1] Hacer que la app abra en `Home` para los dos roles (FR-005) en `lib/ui/hub/hub.dart`
-- [ ] T021 [US1] En `lib/ui/hub/hub.dart`, volver atrás desde un destino que no es `Home` lleva a `Home`; desde `Home`, sale de la app (H10)
+- [X] T015 [US1] Crear `lib/ui/hub/hub.dart` (sobre lo extraído en T001): la barra con los cinco destinos leyendo el orden de `Destino`, el índice conservado, y el rol tomado de `Permisos` y nunca de una condición local (H7)
+- [X] T016 [US1] Crear `lib/ui/hub/contenidos.dart`: el cableado destino × rol → widget, consultando la tabla de T008. Es el único sitio del proyecto donde se decide qué contenido le toca a quién
+- [X] T017 [P] [US1] Crear `lib/ui/hub/todavia_no.dart`: lo que muestra un destino que espera su feature —una frase y **ningún control pulsable**— usando los componentes de la feature 005
+- [X] T018 [US1] Crear `lib/ui/hub/home_del_nadador.dart` con el tema y los componentes de la 005, poniendo **la sesión de hoy como lo primero**, con el camino a `Ver Plan` (decisión D3: compensa el toque que se pierde)
+- [X] T019 [US1] Cablear en `contenidos.dart` el recorrido del nadador: `Ver Plan` → `PantallaSesionDelDia` de la feature 003 y `Análisis` → `PantallaMiProgreso` (FR-031), las dos sin cambiarles nada
+- [X] T020 [US1] Hacer que la app abra en `Home` para los dos roles (FR-005) en `lib/ui/hub/hub.dart`
+- [X] T021 [US1] En `lib/ui/hub/hub.dart`, volver atrás desde un destino que no es `Home` lleva a `Home`; desde `Home`, sale de la app (H10)
 
 ---
 
@@ -103,17 +103,17 @@ encuentra el plan de un nadador concreto desde `Ver Plan`.
 
 ### Los cerrojos
 
-- [ ] T022 [P] [US2] Escribir `test/ui/hub/recorrido_del_entrenador_test.dart`: ve los cinco destinos con su reparto, y en ninguno aparece la sesión del día ni «Mi progreso» del nadador (H5, H6)
-- [ ] T023 [P] [US2] Escribir `test/ui/hub/generar_sin_cambiar_de_destino_test.dart`: un plan recién generado se abre para revisarlo **sin salir de `Generar`** (H8, FR-009). Control negativo: mandarlo a otro destino y ver fallar
-- [ ] T024 [P] [US2] Escribir `test/ui/hub/home_del_entrenador_test.dart`: los cuatro números, cada uno diciendo de qué es, y con cero planes dicen cero y la pantalla dice por dónde empezar. **Ningún número aprueba, firma ni publica nada** (H18)
+- [X] T022 [P] [US2] Escribir `test/ui/hub/recorrido_del_entrenador_test.dart`: ve los cinco destinos con su reparto, y en ninguno aparece la sesión del día ni «Mi progreso» del nadador (H5, H6)
+- [X] T023 [P] [US2] Escribir `test/ui/hub/generar_sin_cambiar_de_destino_test.dart`: un plan recién generado se abre para revisarlo **sin salir de `Generar`** (H8, FR-009). Control negativo: mandarlo a otro destino y ver fallar
+- [X] T024 [P] [US2] Escribir `test/ui/hub/home_del_entrenador_test.dart`: los cuatro números, cada uno diciendo de qué es, y con cero planes dicen cero y la pantalla dice por dónde empezar. **Ningún número aprueba, firma ni publica nada** (H18)
 
 ### Las pantallas
 
-- [ ] T025 [US2] Crear `lib/ui/hub/home_del_entrenador.dart` con los cuatro números de T010
-- [ ] T026 [US2] Cablear el `Generar` del entrenador en `contenidos.dart`: el generador de la feature 002 y el editor de la 001 en el mismo destino, conservando el paso del plan generado al editor que hoy hace `_abrirGenerado`
-- [ ] T027 [US2] Cablear en `lib/ui/hub/contenidos.dart` el `Ver Plan` del entrenador: sus planes con **búsqueda y filtro por nadador** (FR-010) y `lib/ui/nadadores/pantalla_perfiles.dart` dentro de este destino, no como un sexto
-- [ ] T028 [US2] Abrir un plan desde `Ver Plan` —`lib/ui/planes/pantalla_plan.dart`— y ajustarlo con el editor de `lib/ui/editor/pantalla_editor.dart`, **sin construir un segundo editor** (FR-011)
-- [ ] T029 [US2] Cablear el `Análisis` del entrenador a `todavia_no.dart`, nombrando la feature 010
+- [X] T025 [US2] Crear `lib/ui/hub/home_del_entrenador.dart` con los cuatro números de T010
+- [X] T026 [US2] Cablear el `Generar` del entrenador en `contenidos.dart`: el generador de la feature 002 y el editor de la 001 en el mismo destino, conservando el paso del plan generado al editor que hoy hace `_abrirGenerado`
+- [X] T027 [US2] Cablear en `lib/ui/hub/contenidos.dart` el `Ver Plan` del entrenador: sus planes con **búsqueda y filtro por nadador** (FR-010) y `lib/ui/nadadores/pantalla_perfiles.dart` dentro de este destino, no como un sexto
+- [X] T028 [US2] Abrir un plan desde `Ver Plan` —`lib/ui/planes/pantalla_plan.dart`— y ajustarlo con el editor de `lib/ui/editor/pantalla_editor.dart`, **sin construir un segundo editor** (FR-011)
+- [X] T029 [US2] Cablear el `Análisis` del entrenador a `todavia_no.dart`, nombrando la feature 010
 
 ---
 
@@ -166,8 +166,8 @@ sobrevive.
 
 ## Phase 6: User Story 4 — Una pestaña que todavía no tiene contenido lo dice (Priority: P2)
 
-- [ ] T054 [P] [US4] Escribir `test/ui/hub/todavia_no_test.dart`: cada destino sin contenido dice en una frase qué llegará y **tiene cero controles pulsables**, ni deshabilitados como señuelo (H11, H12), comprobado en los dos roles. Control negativo: añadir un botón apagado y ver fallar
-- [ ] T055 [US4] Escribir los textos de los dos «todavía no» en `lib/ui/hub/todavia_no.dart`, nombrando la feature que trae cada uno: la 008 para el `Generar` del nadador y la 010 para el `Análisis` del entrenador
+- [X] T054 [P] [US4] Escribir `test/ui/hub/todavia_no_test.dart`: cada destino sin contenido dice en una frase qué llegará y **tiene cero controles pulsables**, ni deshabilitados como señuelo (H11, H12), comprobado en los dos roles. Control negativo: añadir un botón apagado y ver fallar
+- [X] T055 [US4] Escribir los textos de los dos «todavía no» en `lib/ui/hub/todavia_no.dart`, nombrando la feature que trae cada uno: la 008 para el `Generar` del nadador y la 010 para el `Análisis` del entrenador
 
 ---
 
@@ -306,9 +306,9 @@ restringir dentro de un `Row`. No se había visto porque la entrada «sesión de
 se monta **sin** selector: un banco solo mide los caminos que monta, que es justo la lección
 que ese cerrojo lleva escrita.
 
-- [ ] T067 [US1] En `lib/ui/hub/hub.dart`, abrir el perfil del nadador desde `cuenta.nadadorId` en lugar de esperar a que elija un chip, con su cerrojo escrito antes en `test/ui/hub/el_nadador_llega_a_lo_suyo_test.dart`: un nadador con `nadadorId` ve su sesión **sin tocar nada**, y no ve ningún selector. Control negativo: dejar el selector en su recorrido y ver fallar
-- [ ] T068 [US1] Dejar `SelectorDePerfil` solo en el recorrido del entrenador y en modo local —es su herramienta para abrir la app como uno de sus nadadores—, y arreglar el desborde de 82 px de la fila del encabezado en `lib/ui/nadador/perfil_activo.dart`
-- [ ] T069 [US1] Añadir `hub — nadador` al banco de `test/ui/tema/ayuda_pantallas.dart` una vez hechas T067 y T068, para que el recorrido del nadador se mida al 200%, en áreas pulsables y en oscuro
+- [X] T067 [US1] En `lib/ui/hub/hub.dart`, abrir el perfil del nadador desde `cuenta.nadadorId` en lugar de esperar a que elija un chip, con su cerrojo escrito antes en `test/ui/hub/el_nadador_llega_a_lo_suyo_test.dart`: un nadador con `nadadorId` ve su sesión **sin tocar nada**, y no ve ningún selector. Control negativo: dejar el selector en su recorrido y ver fallar
+- [X] T068 [US1] Dejar `SelectorDePerfil` solo en el recorrido del entrenador y en modo local —es su herramienta para abrir la app como uno de sus nadadores—, y arreglar el desborde de 82 px de la fila del encabezado en `lib/ui/nadador/perfil_activo.dart`
+- [X] T069 [US1] Añadir `hub — nadador` al banco de `test/ui/tema/ayuda_pantallas.dart` una vez hechas T067 y T068, para que el recorrido del nadador se mida al 200%, en áreas pulsables y en oscuro
 
 ## Y lo que destapó la fase 2 (T011)
 

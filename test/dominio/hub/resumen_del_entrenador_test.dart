@@ -24,19 +24,16 @@ void main() {
   final hoy = DateTime(2026, 10, 27);
 
   Plan plan(String id, EstadoPlan estado) => Plan(
-        id: id,
-        nombre: 'Microciclo $id',
-        categoria: Categoria.precompetitivo,
-        estiloObjetivo: Estilo.libre,
-        estado: estado,
-        versionMetodologia: '3.6.0',
-      );
+    id: id,
+    nombre: 'Microciclo $id',
+    categoria: Categoria.precompetitivo,
+    estiloObjetivo: Estilo.libre,
+    estado: estado,
+    versionMetodologia: '3.6.0',
+  );
 
-  Asignacion asignacion(String planId, String nadadorId) => Asignacion(
-        planId: planId,
-        nadadorId: nadadorId,
-        asignadaEn: hoy,
-      );
+  Asignacion asignacion(String planId, String nadadorId) =>
+      Asignacion(planId: planId, nadadorId: nadadorId, asignadaEn: hoy);
 
   /// Con el juicio sobre la auditoría inyectado, para poder contar sin montar
   /// un plan que cumpla los once criterios. Que el juicio de verdad sea la
@@ -46,13 +43,12 @@ void main() {
     List<Asignacion> asignaciones = const [],
     Set<String> conRegistros = const {},
     bool listo = true,
-  }) =>
-      ResumenDelEntrenador.de(
-        planes: planes,
-        asignaciones: asignaciones,
-        nadadoresConRegistros: conRegistros,
-        listoParaFirmar: (_) => listo,
-      );
+  }) => ResumenDelEntrenador.de(
+    planes: planes,
+    asignaciones: asignaciones,
+    nadadoresConRegistros: conRegistros,
+    listoParaFirmar: (_) => listo,
+  );
 
   group('sin nada', () {
     test('los cuatro números son cero', () {
@@ -67,11 +63,13 @@ void main() {
 
   group('planes generados', () {
     test('cuenta todos, en cualquier estado', () {
-      final r = resumen(planes: [
-        plan('p1', EstadoPlan.borrador),
-        plan('p2', EstadoPlan.aprobado),
-        plan('p3', EstadoPlan.publicado),
-      ]);
+      final r = resumen(
+        planes: [
+          plan('p1', EstadoPlan.borrador),
+          plan('p2', EstadoPlan.aprobado),
+          plan('p3', EstadoPlan.publicado),
+        ],
+      );
 
       expect(r.planesGenerados, 3);
     });
@@ -92,10 +90,12 @@ void main() {
     });
 
     test('lo ya aprobado no espera aprobación', () {
-      final r = resumen(planes: [
-        plan('p1', EstadoPlan.aprobado),
-        plan('p2', EstadoPlan.publicado),
-      ]);
+      final r = resumen(
+        planes: [
+          plan('p1', EstadoPlan.aprobado),
+          plan('p2', EstadoPlan.publicado),
+        ],
+      );
       expect(r.esperandoAprobacion, 0);
     });
   });

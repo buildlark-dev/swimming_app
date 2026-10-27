@@ -81,8 +81,9 @@ class RegistrosFirestore implements RepositorioRegistros {
   @override
   Future<Map<String, dynamic>> exportar(String nadadorId) async {
     try {
-      final instantanea =
-          await _registros.where('nadadorId', isEqualTo: nadadorId).get();
+      final instantanea = await _registros
+          .where('nadadorId', isEqualTo: nadadorId)
+          .get();
 
       return <String, dynamic>{
         'formato': formatoExportacion,

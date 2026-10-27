@@ -107,7 +107,8 @@ QueHay reparto(Destino destino, Rol rol) {
       return esEntrenador
           ? const Contiene(Contenido.generadorYEditor)
           : const TodaviaNo(
-              loQueLlegara: 'Desde aquí podrás pedir tu entrenamiento: '
+              loQueLlegara:
+                  'Desde aquí podrás pedir tu entrenamiento: '
                   'responderás unas preguntas y tu entrenador recibirá la '
                   'solicitud para prepararlo y firmarlo.',
               feature: '008',
@@ -126,7 +127,8 @@ QueHay reparto(Destino destino, Rol rol) {
     case Destino.analisis:
       return esEntrenador
           ? const TodaviaNo(
-              loQueLlegara: 'Aquí verás lo que tus nadadores han hecho: qué '
+              loQueLlegara:
+                  'Aquí verás lo que tus nadadores han hecho: qué '
                   'cumplieron, qué anotaron y cómo sintieron el esfuerzo.',
               feature: '010',
             )

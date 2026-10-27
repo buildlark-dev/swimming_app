@@ -51,9 +51,16 @@ class SelectorDePerfil extends StatelessWidget {
               children: [
                 const Icon(Icons.badge_outlined),
                 const SizedBox(width: 8),
-                Text(
-                  'Estás viendo la app como',
-                  style: Theme.of(context).textTheme.titleSmall,
+                // **`Expanded`, no un `Text` suelto.** Sin esto la fila se
+                // salía 82 píxeles a 360 puntos, y no lo veía nadie: la
+                // entrada «sesión del día» del banco del tema se monta sin
+                // selector, así que este camino no se medía. Un banco solo
+                // mide los caminos que monta.
+                Expanded(
+                  child: Text(
+                    'Estás viendo la app como',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                 ),
               ],
             ),

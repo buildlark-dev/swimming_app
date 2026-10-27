@@ -204,14 +204,21 @@ List<PantallaMedible> pantallasDeLaApp() => [
       // Al mudarla a `lib/ui/hub/` en la feature 007, el cerrojo la encontró
       // en el primer `flutter test`.
       //
-      // El recorrido del nadador entra en cuanto deje de montar el selector de
-      // perfil del entrenador: montado hoy, desborda 82 píxeles a 360 puntos y
-      // le habla al nadador de una pestaña que no tiene.
+      // Se monta con los dos roles porque son dos disposiciones distintas: el
+      // entrenador ve unos contenidos y el nadador otros, y medir solo uno
+      // deja el otro sin medir.
       PantallaMedible(
         'hub — entrenador',
         () => PantallaPrincipal(
           recursos: _recursos(),
           cuenta: Cuenta(id: 'u1', rol: Rol.entrenador),
+        ),
+      ),
+      PantallaMedible(
+        'hub — nadador',
+        () => PantallaPrincipal(
+          recursos: _recursos(),
+          cuenta: Cuenta(id: 'u2', rol: Rol.nadador, nadadorId: 'n1'),
         ),
       ),
       PantallaMedible(

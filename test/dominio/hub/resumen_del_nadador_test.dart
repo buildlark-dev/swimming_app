@@ -27,45 +27,42 @@ void main() {
   final hoy = DateTime(2026, 10, 27, 7);
 
   Sesion sesion(String id, DateTime fecha) => Sesion(
-        id: id,
-        microcicloId: 'm1',
-        fecha: fecha,
-        objetivoTecnico: 'Técnica de eficiencia en Libre',
-        objetivoFisiologico: 'Base aeróbica',
-        partes: const [Parte(tipo: TipoParte.central)],
-      );
+    id: id,
+    microcicloId: 'm1',
+    fecha: fecha,
+    objetivoTecnico: 'Técnica de eficiencia en Libre',
+    objetivoFisiologico: 'Base aeróbica',
+    partes: const [Parte(tipo: TipoParte.central)],
+  );
 
   Plan plan({int sesiones = 3}) => Plan(
-        id: 'p1',
-        nombre: 'Microciclo de base',
-        categoria: Categoria.precompetitivo,
-        estiloObjetivo: Estilo.libre,
-        estado: EstadoPlan.publicado,
-        versionMetodologia: '3.6.0',
-        microciclos: const [
-          Microciclo(id: 'm1', nombre: 'Semana 1', orden: 1),
-        ],
-        sesiones: [
-          for (var i = 0; i < sesiones; i++)
-            sesion('s$i', hoy.add(Duration(days: i))),
-        ],
-      );
+    id: 'p1',
+    nombre: 'Microciclo de base',
+    categoria: Categoria.precompetitivo,
+    estiloObjetivo: Estilo.libre,
+    estado: EstadoPlan.publicado,
+    versionMetodologia: '3.6.0',
+    microciclos: const [Microciclo(id: 'm1', nombre: 'Semana 1', orden: 1)],
+    sesiones: [
+      for (var i = 0; i < sesiones; i++)
+        sesion('s$i', hoy.add(Duration(days: i))),
+    ],
+  );
 
   RegistroDeSesion registro(
     String sesionId, {
     required bool realizada,
     DateTime? cuando,
     int? rpe,
-  }) =>
-      RegistroDeSesion(
-        nadadorId: 'n1',
-        planId: 'p1',
-        sesionId: sesionId,
-        versionDePlan: '3.6.0',
-        realizada: realizada,
-        registradoEn: cuando ?? hoy,
-        rpePercibido: rpe,
-      );
+  }) => RegistroDeSesion(
+    nadadorId: 'n1',
+    planId: 'p1',
+    sesionId: sesionId,
+    versionDePlan: '3.6.0',
+    realizada: realizada,
+    registradoEn: cuando ?? hoy,
+    rpePercibido: rpe,
+  );
 
   group('sin plan todavía', () {
     test('no estalla, y los números son cero', () {
@@ -96,7 +93,10 @@ void main() {
       final r = ResumenDelNadador.de(
         plan: plan(sesiones: 4),
         registros: const [],
-        hoy: SinSesionHoy(siguiente: sesion('s0', hoy.add(const Duration(days: 1))), cuando: hoy.add(const Duration(days: 1))),
+        hoy: SinSesionHoy(
+          siguiente: sesion('s0', hoy.add(const Duration(days: 1))),
+          cuando: hoy.add(const Duration(days: 1)),
+        ),
       );
 
       expect(r.entregadas, 4);
@@ -110,7 +110,10 @@ void main() {
           registro('s0', realizada: true),
           registro('s1', realizada: false),
         ],
-        hoy: SinSesionHoy(siguiente: sesion('s0', hoy.add(const Duration(days: 1))), cuando: hoy.add(const Duration(days: 1))),
+        hoy: SinSesionHoy(
+          siguiente: sesion('s0', hoy.add(const Duration(days: 1))),
+          cuando: hoy.add(const Duration(days: 1)),
+        ),
       );
 
       expect(r.cumplidas, 1);
@@ -127,7 +130,10 @@ void main() {
           registro('s1', realizada: true),
           registro('s9', realizada: true),
         ],
-        hoy: SinSesionHoy(siguiente: sesion('s0', hoy.add(const Duration(days: 1))), cuando: hoy.add(const Duration(days: 1))),
+        hoy: SinSesionHoy(
+          siguiente: sesion('s0', hoy.add(const Duration(days: 1))),
+          cuando: hoy.add(const Duration(days: 1)),
+        ),
       );
 
       expect(r.cumplidas, lessThanOrEqualTo(r.entregadas));
@@ -148,7 +154,10 @@ void main() {
             rpe: 9,
           ),
         ],
-        hoy: SinSesionHoy(siguiente: sesion('s0', hoy.add(const Duration(days: 1))), cuando: hoy.add(const Duration(days: 1))),
+        hoy: SinSesionHoy(
+          siguiente: sesion('s0', hoy.add(const Duration(days: 1))),
+          cuando: hoy.add(const Duration(days: 1)),
+        ),
       );
 
       expect(r.ultimaRespuesta?.rpePercibido, 4);
@@ -160,7 +169,10 @@ void main() {
       final r = ResumenDelNadador.de(
         plan: plan(),
         registros: const [],
-        hoy: SinSesionHoy(siguiente: sesion('s0', hoy.add(const Duration(days: 1))), cuando: hoy.add(const Duration(days: 1))),
+        hoy: SinSesionHoy(
+          siguiente: sesion('s0', hoy.add(const Duration(days: 1))),
+          cuando: hoy.add(const Duration(days: 1)),
+        ),
       );
 
       expect(r.ultimaRespuesta, isNull);
@@ -173,7 +185,10 @@ void main() {
       final r = ResumenDelNadador.de(
         plan: plan(),
         registros: const [],
-        hoy: SinSesionHoy(siguiente: sesion('s0', hoy.add(const Duration(days: 1))), cuando: hoy.add(const Duration(days: 1))),
+        hoy: SinSesionHoy(
+          siguiente: sesion('s0', hoy.add(const Duration(days: 1))),
+          cuando: hoy.add(const Duration(days: 1)),
+        ),
         ultimaSincronizacion: cuando,
         hayPendientes: true,
       );
@@ -186,7 +201,10 @@ void main() {
       final r = ResumenDelNadador.de(
         plan: plan(),
         registros: const [],
-        hoy: SinSesionHoy(siguiente: sesion('s0', hoy.add(const Duration(days: 1))), cuando: hoy.add(const Duration(days: 1))),
+        hoy: SinSesionHoy(
+          siguiente: sesion('s0', hoy.add(const Duration(days: 1))),
+          cuando: hoy.add(const Duration(days: 1)),
+        ),
       );
 
       expect(r.ultimaSincronizacion, isNull);
@@ -199,9 +217,9 @@ void main() {
       // **Se lee el fuente, no una lista que la propia clase declare.** Una
       // lista de «campos permitidos» mantenida a mano es un cerrojo que se
       // abre solo: quien añadiera una racha tampoco la apuntaría ahí.
-      final fuente = File('lib/dominio/hub/resumen_del_nadador.dart')
-          .readAsStringSync()
-          .toLowerCase();
+      final fuente = File(
+        'lib/dominio/hub/resumen_del_nadador.dart',
+      ).readAsStringSync().toLowerCase();
 
       for (final inventado in [
         'meta',
@@ -216,7 +234,8 @@ void main() {
         expect(
           fuente,
           isNot(contains(inventado)),
-          reason: '«$inventado» no existe como dato en esta app. El principio '
+          reason:
+              '«$inventado» no existe como dato en esta app. El principio '
               'IV no permite fabricarlo, y un nadador de nueve años se lo '
               'creería',
         );
@@ -224,8 +243,9 @@ void main() {
     });
 
     test('la prueba no pasa por vacía', () {
-      final fuente =
-          File('lib/dominio/hub/resumen_del_nadador.dart').readAsStringSync();
+      final fuente = File(
+        'lib/dominio/hub/resumen_del_nadador.dart',
+      ).readAsStringSync();
 
       expect(fuente, contains('class ResumenDelNadador'));
       expect(fuente.length, greaterThan(500));

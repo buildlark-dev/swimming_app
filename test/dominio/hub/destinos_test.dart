@@ -16,10 +16,13 @@ void main() {
     });
 
     test('H1 — en este orden y con estas etiquetas', () {
-      expect(
-        Destino.values.map((d) => d.etiqueta).toList(),
-        ['Generar', 'Ver Plan', 'Home', 'Análisis', 'Ajustes'],
-      );
+      expect(Destino.values.map((d) => d.etiqueta).toList(), [
+        'Generar',
+        'Ver Plan',
+        'Home',
+        'Análisis',
+        'Ajustes',
+      ]);
     });
 
     test('H2 — Home ocupa la posición central', () {
@@ -32,10 +35,7 @@ void main() {
     });
 
     test('las posiciones van de 0 a 4, sin huecos y sin repetir', () {
-      expect(
-        Destino.values.map((d) => d.posicion).toList(),
-        [0, 1, 2, 3, 4],
-      );
+      expect(Destino.values.map((d) => d.posicion).toList(), [0, 1, 2, 3, 4]);
     });
 
     test('ninguna etiqueta está vacía ni lleva espacios de sobra', () {
