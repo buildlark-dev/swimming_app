@@ -79,8 +79,7 @@ class Parte {
       tipo: tipo,
       textoOriginal: textoOriginal ?? this.textoOriginal,
       series: series ?? this.series,
-      fragmentosPendientes:
-          fragmentosPendientes ?? this.fragmentosPendientes,
+      fragmentosPendientes: fragmentosPendientes ?? this.fragmentosPendientes,
     );
   }
 

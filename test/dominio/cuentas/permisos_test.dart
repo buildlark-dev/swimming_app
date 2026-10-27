@@ -19,9 +19,10 @@ import 'package:natacion_app/dominio/metodologia/estilos.dart';
 ///
 /// Contrato: `specs/004-cuentas-y-consentimiento/contracts/cuentas_y_roles.md`.
 void main() {
-  final casos = (jsonDecode(
-    File('test/acceso/casos.json').readAsStringSync(),
-  ) as Map<String, dynamic>)['casos'] as List<dynamic>;
+  final casos =
+      (jsonDecode(File('test/acceso/casos.json').readAsStringSync())
+              as Map<String, dynamic>)['casos']
+          as List<dynamic>;
 
   Cuenta? cuentaDe(Map<String, dynamic>? json) {
     if (json == null) return null;
@@ -33,16 +34,14 @@ void main() {
   }
 
   Plan planDe(Map<String, dynamic> json) => Plan(
-        id: 'p1',
-        nombre: 'Microciclo de prueba',
-        categoria: Categoria.precompetitivo,
-        estiloObjetivo: Estilo.libre,
-        pruebaObjetivo: '800 Libre',
-        estado: EstadoPlan.values.firstWhere(
-          (e) => e.name == json['estado'],
-        ),
-        sesiones: const [],
-      );
+    id: 'p1',
+    nombre: 'Microciclo de prueba',
+    categoria: Categoria.precompetitivo,
+    estiloObjetivo: Estilo.libre,
+    pruebaObjetivo: '800 Libre',
+    estado: EstadoPlan.values.firstWhere((e) => e.name == json['estado']),
+    sesiones: const [],
+  );
 
   bool evaluar(Map<String, dynamic> caso) {
     final cuenta = cuentaDe(caso['cuenta'] as Map<String, dynamic>?);
@@ -91,9 +90,11 @@ void main() {
           esDeSuComunidad: caso['esDeSuComunidad'] as bool? ?? false,
         );
       default:
-        fail('Acción desconocida en casos.json: ${caso['accion']}. '
-            'Si se añadió una acción nueva, esta suite tiene que saber '
-            'evaluarla; si no, el caso pasaría sin comprobarse nada');
+        fail(
+          'Acción desconocida en casos.json: ${caso['accion']}. '
+          'Si se añadió una acción nueva, esta suite tiene que saber '
+          'evaluarla; si no, el caso pasaría sin comprobarse nada',
+        );
     }
   }
 
@@ -102,7 +103,8 @@ void main() {
       expect(
         casos,
         isNotEmpty,
-        reason: 'Una lista de casos vacía haría pasar esta suite sin '
+        reason:
+            'Una lista de casos vacía haría pasar esta suite sin '
             'comprobar una sola regla',
       );
     });
@@ -115,7 +117,8 @@ void main() {
         expect(
           evaluar(caso),
           esperado,
-          reason: caso['nota'] as String? ??
+          reason:
+              caso['nota'] as String? ??
               'El dominio decide distinto de lo que declara casos.json. Si el '
                   'caso es correcto, está mal el dominio; si cambió la regla, '
                   'hay que cambiarla también en firestore.rules',
@@ -127,10 +130,7 @@ void main() {
   group('lo que no depende de un caso concreto', () {
     test('sin sesión no hay permiso de nada', () {
       expect(Permisos.sinSesion(null), isTrue);
-      expect(
-        Permisos.sinSesion(Cuenta(id: 'u1', rol: Rol.nadador)),
-        isFalse,
-      );
+      expect(Permisos.sinSesion(Cuenta(id: 'u1', rol: Rol.nadador)), isFalse);
     });
 
     test('un rol desconocido en el token no se interpreta como nadador', () {

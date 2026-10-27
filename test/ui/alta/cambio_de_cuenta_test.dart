@@ -20,19 +20,20 @@ void main() {
   final hoy = DateTime(2026, 10, 22);
 
   Widget app(String uid, RepositorioPerfil repositorio) => MaterialApp(
-        theme: Tema.claro(),
-        home: PuertaDelPerfil(
-          key: ValueKey(uid),
-          uid: uid,
-          correo: '$uid@ejemplo.com',
-          repositorio: repositorio,
-          operaciones: _Servidor(),
-          dentro: const Scaffold(body: Text('Mi entrenamiento')),
-        ),
-      );
+    theme: Tema.claro(),
+    home: PuertaDelPerfil(
+      key: ValueKey(uid),
+      uid: uid,
+      correo: '$uid@ejemplo.com',
+      repositorio: repositorio,
+      operaciones: _Servidor(),
+      dentro: const Scaffold(body: Text('Mi entrenamiento')),
+    ),
+  );
 
-  testWidgets('al cambiar de cuenta, la nueva pasa por el alta',
-      (tester) async {
+  testWidgets('al cambiar de cuenta, la nueva pasa por el alta', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(420, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -61,7 +62,8 @@ void main() {
     expect(
       find.text('¿Cómo te llamas?'),
       findsOneWidget,
-      reason: 'La segunda cuenta no tiene perfil: tiene que pasar por el alta, '
+      reason:
+          'La segunda cuenta no tiene perfil: tiene que pasar por el alta, '
           'no heredar el permiso de la anterior',
     );
     expect(find.text('Mi entrenamiento'), findsNothing);
@@ -69,14 +71,30 @@ void main() {
 }
 
 class _Servidor implements OperacionesDelServidor {
+  // La feature 007 añadió estas dos: aquí no se usan, y lo que importa es
+  // que el doble siga cumpliendo la interfaz.
+  @override
+  Future<PerfilCorregido> corregirPerfil({
+    required String nombre,
+    required DateTime fechaNacimiento,
+    String? pais,
+  }) async => PerfilCorregido(nombre: nombre, esMenor: false);
+
+  @override
+  Future<DatosSuprimidos> suprimirMisDatos() async => const DatosSuprimidos(
+    registrosEliminados: 0,
+    asignacionesRetiradas: 0,
+    perfilEliminado: false,
+    cuentaEliminada: false,
+  );
+
   @override
   Future<PerfilGuardado> guardarPerfil({
     required String nombre,
     required DateTime fechaNacimiento,
     String? pais,
     required String versionDeTerminos,
-  }) async =>
-      const PerfilGuardado(esMenor: false, nadadorId: 'n1');
+  }) async => const PerfilGuardado(esMenor: false, nadadorId: 'n1');
 
   @override
   Future<void> pedirConsentimiento({

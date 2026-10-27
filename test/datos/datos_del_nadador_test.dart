@@ -19,18 +19,17 @@ void main() {
     String sesionId = 's1',
     String observaciones = '',
     ReporteDeMolestia? molestia,
-  }) =>
-      RegistroDeSesion(
-        nadadorId: nadadorId,
-        planId: 'p1',
-        sesionId: sesionId,
-        versionDePlan: '3.5.0',
-        realizada: true,
-        registradoEn: DateTime(2026, 10, 14, 7, 30),
-        rpePercibido: 7,
-        observaciones: observaciones,
-        molestia: molestia,
-      );
+  }) => RegistroDeSesion(
+    nadadorId: nadadorId,
+    planId: 'p1',
+    sesionId: sesionId,
+    versionDePlan: '3.5.0',
+    realizada: true,
+    registradoEn: DateTime(2026, 10, 14, 7, 30),
+    rpePercibido: 7,
+    observaciones: observaciones,
+    molestia: molestia,
+  );
 
   group('FR-023 — sin datos personales en lo que se guarda', () {
     test('el registro serializado no lleva nombre, edad ni marcas', () {
@@ -57,7 +56,8 @@ void main() {
           'registradoEn',
           'rpePercibido',
         },
-        reason: 'Minimización: no se guarda ningún dato que no tenga un uso '
+        reason:
+            'Minimización: no se guarda ningún dato que no tenga un uso '
             'declarado en esta feature',
       );
     });
@@ -184,22 +184,25 @@ void main() {
       expect(vuelto.molestia, original.molestia);
     });
 
-    test('un estado de envío desconocido vuelve a pendiente, nunca a enviado',
-        () {
-      final raro = envioDesdeJson(const {
-        'registroId': 'r1',
-        'estado': 'inventado',
-        'intentos': 2,
-      });
+    test(
+      'un estado de envío desconocido vuelve a pendiente, nunca a enviado',
+      () {
+        final raro = envioDesdeJson(const {
+          'registroId': 'r1',
+          'estado': 'inventado',
+          'intentos': 2,
+        });
 
-      expect(raro.estado.name, 'pendiente');
-      expect(
-        raro.esperaEnvio,
-        isTrue,
-        reason: 'Dar por enviado lo que no se sabe sería perder el dato en '
-            'silencio',
-      );
-    });
+        expect(raro.estado.name, 'pendiente');
+        expect(
+          raro.esperaEnvio,
+          isTrue,
+          reason:
+              'Dar por enviado lo que no se sabe sería perder el dato en '
+              'silencio',
+        );
+      },
+    );
   });
 }
 
@@ -237,11 +240,11 @@ class _AlmacenEnMemoria implements AlmacenLocal {
 
 /// Plan mínimo para la prueba de la copia descargable.
 Plan _planMinimo() => Plan(
-      id: 'p1',
-      nombre: 'Microciclo',
-      categoria: Categoria.precompetitivo,
-      estiloObjetivo: Estilo.libre,
-      pruebaObjetivo: '800 Libre',
-      estado: EstadoPlan.publicado,
-      sesiones: const [],
-    );
+  id: 'p1',
+  nombre: 'Microciclo',
+  categoria: Categoria.precompetitivo,
+  estiloObjetivo: Estilo.libre,
+  pruebaObjetivo: '800 Libre',
+  estado: EstadoPlan.publicado,
+  sesiones: const [],
+);

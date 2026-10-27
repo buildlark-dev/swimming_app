@@ -27,7 +27,8 @@ class DesviacionParte {
   double get diferencia => porcentajeReal - porcentajePrescrito;
 
   @override
-  String toString() => '${tipo.nombre}: $metros m '
+  String toString() =>
+      '${tipo.nombre}: $metros m '
       '(${porcentajeReal.toStringAsFixed(1)}% frente a $porcentajePrescrito%)';
 }
 
@@ -74,12 +75,14 @@ class CalculoSesion {
 
   /// Reparto real frente al prescrito, parte por parte.
   List<DesviacionParte> get repartoDePartes => TipoParte.values
-      .map((tipo) => DesviacionParte(
-            tipo: tipo,
-            metros: sesion.parteDe(tipo).metros,
-            porcentajeReal: sesion.porcentajeDe(tipo),
-            porcentajePrescrito: tipo.porcentajePrescrito,
-          ))
+      .map(
+        (tipo) => DesviacionParte(
+          tipo: tipo,
+          metros: sesion.parteDe(tipo).metros,
+          porcentajeReal: sesion.porcentajeDe(tipo),
+          porcentajePrescrito: tipo.porcentajePrescrito,
+        ),
+      )
       .toList();
 
   /// Comprueba el volumen contra el rango de la categoría.

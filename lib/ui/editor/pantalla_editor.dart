@@ -137,7 +137,8 @@ class _CabeceraSesion extends StatelessWidget {
             // Aquí caben: si no entran en una línea, bajan a la siguiente.
             CabeceraSeccion(
               titulo: '${estado.sesion.metros} m',
-              cifra: '${estado.sesion.porcentajeTecnico.toStringAsFixed(0)}% '
+              cifra:
+                  '${estado.sesion.porcentajeTecnico.toStringAsFixed(0)}% '
                   'técnico',
               estiloDeCifra: Theme.of(context).textTheme.titleMedium,
             ),
@@ -219,7 +220,8 @@ class _CampoParte extends StatelessWidget {
           children: [
             CabeceraSeccion(
               titulo: tipo.nombre,
-              cifra: '${parte.metros} m · ${porcentaje.toStringAsFixed(0)}% '
+              cifra:
+                  '${parte.metros} m · ${porcentaje.toStringAsFixed(0)}% '
                   '(prescrito ${tipo.porcentajePrescrito}%)',
             ),
             const SizedBox(height: 8),

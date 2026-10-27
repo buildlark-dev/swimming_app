@@ -16,8 +16,10 @@ class ValidacionCategoria {
   final bool valida;
   final String motivo;
 
-  static const ValidacionCategoria correcta =
-      ValidacionCategoria(valida: true, motivo: '');
+  static const ValidacionCategoria correcta = ValidacionCategoria(
+    valida: true,
+    motivo: '',
+  );
 }
 
 class ValidacionFase {
@@ -30,7 +32,8 @@ class ValidacionFase {
     if (!plan.categoria.usaAtr) {
       return ValidacionCategoria(
         valida: false,
-        motivo: '${plan.categoria.nombre} no usa el modelo ATR: no se le puede '
+        motivo:
+            '${plan.categoria.nombre} no usa el modelo ATR: no se le puede '
             'asignar la fase ${plan.faseAtr!.nombre} (sección 11)',
       );
     }
@@ -69,7 +72,8 @@ class ValidacionFase {
     final (minimo, maximo) = fase.semanasSegunIssurin;
     return ValidacionCategoria(
       valida: false,
-      motivo: '${fase.nombre} dura $semanas semanas. Issurin (2010) da '
+      motivo:
+          '${fase.nombre} dura $semanas semanas. Issurin (2010) da '
           '$minimo-$maximo para ese bloque. Es un aviso, no un impedimento: '
           'la literatura de natación usa fases más largas, y su macrociclo '
           'coincide con ella',
@@ -122,7 +126,8 @@ class ReglaAlternanciaTecnificacion {
 
     return ValidacionCategoria(
       valida: false,
-      motivo: 'Regla de alternancia de Tecnificación incumplida: '
+      motivo:
+          'Regla de alternancia de Tecnificación incumplida: '
           '${incumplimientos.join('; ')}',
     );
   }

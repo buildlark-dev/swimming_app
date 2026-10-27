@@ -31,7 +31,8 @@ void main() {
         expect(
           luces[i],
           lessThan(luces[i - 1]),
-          reason: 'La zona $i no es más oscura que la ${i - 1}. Enseñar otro '
+          reason:
+              'La zona $i no es más oscura que la ${i - 1}. Enseñar otro '
               'orden sería enseñar una ordenación que la metodología no hace',
         );
       }
@@ -66,9 +67,7 @@ void main() {
     /// paleta estaba bien y la regla estaba mal.
     double claridad(Color c) {
       final y = luminancia(c);
-      return y > 0.008856
-          ? 116 * math.pow(y, 1 / 3) - 16
-          : 903.3 * y;
+      return y > 0.008856 ? 116 * math.pow(y, 1 / 3) - 16 : 903.3 * y;
     }
 
     /// Dos pasos consecutivos tienen que separarse lo suficiente para que no
@@ -83,7 +82,8 @@ void main() {
         expect(
           separacion,
           greaterThanOrEqualTo(separacionMinima),
-          reason: 'Las zonas ${i - 1} y $i se separan solo '
+          reason:
+              'Las zonas ${i - 1} y $i se separan solo '
               '${separacion.toStringAsFixed(3)} en luminancia. Quien no '
               'distinga colores las verá iguales',
         );
@@ -98,7 +98,8 @@ void main() {
         expect(
           separacion,
           greaterThanOrEqualTo(separacionMinima),
-          reason: 'Las zonas ${i - 1} y $i se separan solo '
+          reason:
+              'Las zonas ${i - 1} y $i se separan solo '
               '${separacion.toStringAsFixed(3)} en luminancia.\n'
               'Luminancias: '
               '${luces.map((l) => l.toStringAsFixed(3)).join(', ')}',
@@ -118,17 +119,23 @@ void main() {
       expect(
         Paleta.zonas,
         hasLength(Zona.values.length),
-        reason: 'Si la metodología añadiera o quitara una zona, esta prueba se '
+        reason:
+            'Si la metodología añadiera o quitara una zona, esta prueba se '
             'entera antes que la pantalla',
       );
       expect(Paleta.zonasOscuro, hasLength(Zona.values.length));
     });
 
     test('son siete, en el orden A1, A2, A3, AT, Máx, Velocidad, Exp', () {
-      expect(
-        Zona.values.map((z) => z.abreviatura).toList(),
-        ['A1', 'A2', 'A3', 'AT', 'Máx', 'Velocidad', 'Exp'],
-      );
+      expect(Zona.values.map((z) => z.abreviatura).toList(), [
+        'A1',
+        'A2',
+        'A3',
+        'AT',
+        'Máx',
+        'Velocidad',
+        'Exp',
+      ]);
     });
 
     testWidgets('la escala que usan las pantallas es esta misma', (
@@ -195,13 +202,15 @@ void main() {
                   expect(
                     elegido,
                     greaterThanOrEqualTo(otro),
-                    reason: 'Sobre ${zona.abreviatura} se eligió el texto que '
+                    reason:
+                        'Sobre ${zona.abreviatura} se eligió el texto que '
                         'menos contraste da',
                   );
                   expect(
                     elegido,
                     greaterThanOrEqualTo(3.0),
-                    reason: 'Sobre ${zona.abreviatura} el texto queda en '
+                    reason:
+                        'Sobre ${zona.abreviatura} el texto queda en '
                         '${elegido.toStringAsFixed(2)}',
                   );
                 }

@@ -20,7 +20,8 @@ void main() {
       pruebaObjetivo: '100 Libre',
       faseAtr: categoria.usaAtr ? FaseAtr.acumulacion : null,
       componenteAcentuado: 'Técnica de eficiencia',
-      diasDisponibles: dias ??
+      diasDisponibles:
+          dias ??
           [DateTime(2026, 10, 5), DateTime(2026, 10, 7), DateTime(2026, 10, 9)],
       fechasSinServicio: sinServicio,
       longitudPiscina: 25,
@@ -71,8 +72,10 @@ void main() {
     });
 
     test('cambiar la categoría cambia la huella', () {
-      expect(base(categoria: Categoria.competitivo).huella,
-          isNot(base().huella));
+      expect(
+        base(categoria: Categoria.competitivo).huella,
+        isNot(base().huella),
+      );
     });
 
     test('un festivo cambia la huella porque cambia los días efectivos', () {

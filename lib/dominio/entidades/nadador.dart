@@ -88,10 +88,10 @@ class Nadador {
   /// —alguien que declaró ser mayor y cuya fecha dice que no— y ahí la
   /// respuesta nueva es la prudente: se pide el consentimiento.
   bool necesitaAcudienteEn(DateTime referencia) => necesitaAcudiente(
-        nacimiento: fechaNacimiento,
-        declaraSerMayorDeEdad: declaraSerMayorDeEdad,
-        referencia: referencia,
-      );
+    nacimiento: fechaNacimiento,
+    declaraSerMayorDeEdad: declaraSerMayorDeEdad,
+    referencia: referencia,
+  );
 
   /// Obligatoria para dar el perfil por completo: sin ella no se puede validar
   /// el volumen de sus sesiones.
@@ -118,8 +118,7 @@ class Nadador {
   /// Verdadero si se sabe que es menor de edad.
   ///
   /// Devuelve `null` cuando no hay fecha de nacimiento: no se supone la edad.
-  bool? esMenorEn(DateTime referencia) =>
-      esMenorA(fechaNacimiento, referencia);
+  bool? esMenorEn(DateTime referencia) => esMenorA(fechaNacimiento, referencia);
 
   List<FaltaEnPerfil> get faltas {
     final faltas = <FaltaEnPerfil>[];
@@ -128,17 +127,21 @@ class Nadador {
       faltas.add(const FaltaEnPerfil('nombre', 'Falta el nombre del nadador'));
     }
     if (categoria == null) {
-      faltas.add(const FaltaEnPerfil(
-        'categoria',
-        'Falta la categoría: sin ella no se puede validar el volumen',
-      ));
+      faltas.add(
+        const FaltaEnPerfil(
+          'categoria',
+          'Falta la categoría: sin ella no se puede validar el volumen',
+        ),
+      );
     }
     if (estiloObjetivo == null) {
-      faltas.add(const FaltaEnPerfil(
-        'estiloObjetivo',
-        'Falta el estilo objetivo: sin él no se puede validar la '
-            'distribución de estilos',
-      ));
+      faltas.add(
+        const FaltaEnPerfil(
+          'estiloObjetivo',
+          'Falta el estilo objetivo: sin él no se puede validar la '
+              'distribución de estilos',
+        ),
+      );
     }
 
     return faltas;

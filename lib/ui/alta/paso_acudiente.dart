@@ -58,7 +58,8 @@ class PasoAcudiente extends StatelessWidget {
         const Aviso(
           tono: TonoDeAviso.informativo,
           claveDelMensaje: Key('alta-aviso-sin-acudiente'),
-          mensaje: 'Si prefieres no ponerlo ahora, puedes continuar igual. '
+          mensaje:
+              'Si prefieres no ponerlo ahora, puedes continuar igual. '
               'Podrás entrar, ver tu plan y anotar cómo te fue; lo que '
               'escribas se guarda en tu teléfono y se enviará a tu entrenador '
               'cuando tu acudiente dé el permiso.',

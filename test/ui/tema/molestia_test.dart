@@ -31,42 +31,40 @@ void main() {
   final hoy = DateTime(2026, 10, 20, 7);
 
   Sesion sesion(String id) => Sesion(
-        id: id,
-        microcicloId: 'm1',
-        fecha: hoy,
-        objetivoTecnico: 'Técnica de eficiencia en Libre',
-        objetivoFisiologico: 'Base aeróbica',
-        partes: const [
-          Parte(tipo: TipoParte.inicial),
-          Parte(tipo: TipoParte.central),
-          Parte(tipo: TipoParte.cierre),
-        ],
-      );
+    id: id,
+    microcicloId: 'm1',
+    fecha: hoy,
+    objetivoTecnico: 'Técnica de eficiencia en Libre',
+    objetivoFisiologico: 'Base aeróbica',
+    partes: const [
+      Parte(tipo: TipoParte.inicial),
+      Parte(tipo: TipoParte.central),
+      Parte(tipo: TipoParte.cierre),
+    ],
+  );
 
   Plan plan(List<Sesion> sesiones) => Plan(
-        id: 'p1',
-        nombre: 'Microciclo',
-        categoria: Categoria.precompetitivo,
-        estiloObjetivo: Estilo.libre,
-        estado: EstadoPlan.publicado,
-        microciclos: const [
-          Microciclo(id: 'm1', nombre: 'Semana 1', orden: 1),
-        ],
-        sesiones: sesiones,
-      );
+    id: 'p1',
+    nombre: 'Microciclo',
+    categoria: Categoria.precompetitivo,
+    estiloObjetivo: Estilo.libre,
+    estado: EstadoPlan.publicado,
+    microciclos: const [Microciclo(id: 'm1', nombre: 'Semana 1', orden: 1)],
+    sesiones: sesiones,
+  );
 
   RegistroDeSesion conMolestia(String sesionId) => RegistroDeSesion(
-        nadadorId: 'n1',
-        planId: 'p1',
-        sesionId: sesionId,
-        versionDePlan: 'v1',
-        realizada: true,
-        registradoEn: hoy,
-        molestia: const ReporteDeMolestia(
-          descripcion: 'Molestia en el hombro derecho al nadar espalda',
-          zonaDelCuerpo: 'hombro derecho',
-        ),
-      );
+    nadadorId: 'n1',
+    planId: 'p1',
+    sesionId: sesionId,
+    versionDePlan: 'v1',
+    realizada: true,
+    registradoEn: hoy,
+    molestia: const ReporteDeMolestia(
+      descripcion: 'Molestia en el hombro derecho al nadar espalda',
+      zonaDelCuerpo: 'hombro derecho',
+    ),
+  );
 
   Future<void> montar(
     WidgetTester tester, {
@@ -124,7 +122,8 @@ void main() {
           expect(
             aviso.tono,
             isNot(TonoDeAviso.error),
-            reason: 'El reporte de molestia está pintado como una avería. El '
+            reason:
+                'El reporte de molestia está pintado como una avería. El '
                 'principio IV prohíbe que la app opine sobre la gravedad: eso '
                 'lo decide el entrenador',
           );
@@ -133,7 +132,8 @@ void main() {
         expect(
           encontrados.map((a) => a.tono),
           contains(TonoDeAviso.cuidado),
-          reason: 'Tiene que llevar tono de cuidado: visible para encontrarlo, '
+          reason:
+              'Tiene que llevar tono de cuidado: visible para encontrarlo, '
               'sin cara de urgencia médica',
         );
       });

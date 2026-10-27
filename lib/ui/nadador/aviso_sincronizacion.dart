@@ -62,9 +62,11 @@ class UltimaSincronizacion extends StatelessWidget {
       return Text('Sin sincronizar todavía', style: estilo);
     }
 
-    final dia = '${cuando.day.toString().padLeft(2, '0')}/'
+    final dia =
+        '${cuando.day.toString().padLeft(2, '0')}/'
         '${cuando.month.toString().padLeft(2, '0')}';
-    final hora = '${cuando.hour.toString().padLeft(2, '0')}:'
+    final hora =
+        '${cuando.hour.toString().padLeft(2, '0')}:'
         '${cuando.minute.toString().padLeft(2, '0')}';
 
     return Text('Al día hasta el $dia a las $hora', style: estilo);

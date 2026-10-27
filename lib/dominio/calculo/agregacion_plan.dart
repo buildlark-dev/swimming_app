@@ -95,9 +95,7 @@ class AgregacionPlan {
       return {for (final t in ZonaTid.values) t: 0};
     }
     final porTid = metrosPorTid;
-    return {
-      for (final t in ZonaTid.values) t: ((porTid[t] ?? 0) * 100) / base,
-    };
+    return {for (final t in ZonaTid.values) t: ((porTid[t] ?? 0) * 100) / base};
   }
 
   /// Comparación zona por zona contra la fase ATR del plan.

@@ -29,12 +29,13 @@ class Sesion {
     this.rpePrevisto,
     this.variablesMonitoreo = const <String>[],
     List<Parte>? partes,
-  }) : partes = partes ??
-            const [
-              Parte(tipo: TipoParte.inicial),
-              Parte(tipo: TipoParte.central),
-              Parte(tipo: TipoParte.cierre),
-            ];
+  }) : partes =
+           partes ??
+           const [
+             Parte(tipo: TipoParte.inicial),
+             Parte(tipo: TipoParte.central),
+             Parte(tipo: TipoParte.cierre),
+           ];
 
   final String? id;
   final String? microcicloId;
@@ -82,22 +83,28 @@ class Sesion {
     final faltas = <FaltaEnSesion>[];
 
     if (objetivoTecnico.trim().isEmpty) {
-      faltas.add(const FaltaEnSesion(
-        'objetivoTecnico',
-        'Falta el objetivo técnico de la sesión',
-      ));
+      faltas.add(
+        const FaltaEnSesion(
+          'objetivoTecnico',
+          'Falta el objetivo técnico de la sesión',
+        ),
+      );
     }
     if (objetivoFisiologico.trim().isEmpty) {
-      faltas.add(const FaltaEnSesion(
-        'objetivoFisiologico',
-        'Falta el objetivo fisiológico de la sesión',
-      ));
+      faltas.add(
+        const FaltaEnSesion(
+          'objetivoFisiologico',
+          'Falta el objetivo fisiológico de la sesión',
+        ),
+      );
     }
     if (partes.length != 3) {
-      faltas.add(FaltaEnSesion(
-        'partes',
-        'La sesión debe tener tres partes y tiene ${partes.length}',
-      ));
+      faltas.add(
+        FaltaEnSesion(
+          'partes',
+          'La sesión debe tener tres partes y tiene ${partes.length}',
+        ),
+      );
     }
     if (metros == 0) {
       faltas.add(const FaltaEnSesion('series', 'La sesión no tiene series'));
@@ -105,10 +112,12 @@ class Sesion {
 
     final pendientes = todosLosPendientes;
     if (pendientes.isNotEmpty) {
-      faltas.add(FaltaEnSesion(
-        'pendientes',
-        'Quedan ${pendientes.length} fragmentos sin interpretar',
-      ));
+      faltas.add(
+        FaltaEnSesion(
+          'pendientes',
+          'Quedan ${pendientes.length} fragmentos sin interpretar',
+        ),
+      );
     }
 
     return faltas;
@@ -148,6 +157,7 @@ class Sesion {
   }
 
   @override
-  String toString() => 'Sesión de $metros m '
+  String toString() =>
+      'Sesión de $metros m '
       '(${porcentajeTecnico.toStringAsFixed(1)}% técnico)';
 }

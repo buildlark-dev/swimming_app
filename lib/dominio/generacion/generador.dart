@@ -31,11 +31,11 @@ import 'package:natacion_app/dominio/notacion/renderizador.dart';
 
 class Generador {
   Generador({required this.biblioteca, IndiceTerminos? indice})
-      : indice = indice ?? IndiceTerminos.vacio(),
-        _selector = SelectorEjercicios(
-          biblioteca,
-          indice: indice ?? IndiceTerminos.vacio(),
-        );
+    : indice = indice ?? IndiceTerminos.vacio(),
+      _selector = SelectorEjercicios(
+        biblioteca,
+        indice: indice ?? IndiceTerminos.vacio(),
+      );
 
   final Biblioteca biblioteca;
 
@@ -65,10 +65,12 @@ class Generador {
 
     // La comprobación de duración se apoya en una estimación nuestra, no en
     // una regla del entrenador: queda declarada dentro del plan.
-    supuestos.add(const Supuesto(
-      descripcion: 'Ritmo medio estimado por categoría',
-      motivo: descripcionDelSupuesto,
-    ));
+    supuestos.add(
+      const Supuesto(
+        descripcion: 'Ritmo medio estimado por categoría',
+        motivo: descripcionDelSupuesto,
+      ),
+    );
 
     for (final lesion in peticion.lesiones) {
       avisos.add(
@@ -87,7 +89,12 @@ class Generador {
 
     final sesiones = <Sesion>[];
     for (var i = 0; i < presupuesto.sesiones; i++) {
-      final resultado = _componerSesion(peticion, presupuesto, i, microciclo.id);
+      final resultado = _componerSesion(
+        peticion,
+        presupuesto,
+        i,
+        microciclo.id,
+      );
       sesiones.add(resultado.sesion);
       vacios.addAll(resultado.vacios);
     }
@@ -101,8 +108,9 @@ class Generador {
       fechaInicio: peticion.diasEfectivos.isEmpty
           ? null
           : peticion.diasEfectivos.first,
-      fechaFin:
-          peticion.diasEfectivos.isEmpty ? null : peticion.diasEfectivos.last,
+      fechaFin: peticion.diasEfectivos.isEmpty
+          ? null
+          : peticion.diasEfectivos.last,
       faseAtr: peticion.faseAtr,
       microciclos: [microciclo],
       sesiones: sesiones,
@@ -151,8 +159,7 @@ class Generador {
     };
 
     for (final bloque in bloques) {
-      final admiteTecnica =
-          bloque.tipo == TipoParte.inicial || bloque.esPreSet;
+      final admiteTecnica = bloque.tipo == TipoParte.inicial || bloque.esPreSet;
       final faltanTecnicos = tecnicosSesion - tecnicosColocados;
 
       final seleccion = admiteTecnica && faltanTecnicos > 0
@@ -238,7 +245,10 @@ class Generador {
       // Parte de los metros de esta zona van al estilo complementario.
       final paraComplementario = complementario == null
           ? 0
-          : cuantizar((metros * porcentajeComplementario / 100).round(), unidad);
+          : cuantizar(
+              (metros * porcentajeComplementario / 100).round(),
+              unidad,
+            );
       final paraObjetivo = metros - paraComplementario;
 
       for (final tramo in [
@@ -254,33 +264,38 @@ class Generador {
         final tecnicos = ejercicios.isEmpty
             ? 0
             : (tecnicosRestantes < metrosTramo
-                ? tecnicosRestantes
-                : metrosTramo);
+                  ? tecnicosRestantes
+                  : metrosTramo);
 
         if (tecnicos > 0) {
           final ejercicio = ejercicios[indiceEjercicio % ejercicios.length];
           indiceEjercicio++;
           tecnicosRestantes -= tecnicos;
 
-          series.add(_serie(
-            metros: tecnicos,
-            unidad: unidad,
-            zona: zona,
-            estilo: estiloTramo,
-            ejercicio: ejercicio,
-          ));
+          series.add(
+            _serie(
+              metros: tecnicos,
+              unidad: unidad,
+              zona: zona,
+              estilo: estiloTramo,
+              ejercicio: ejercicio,
+            ),
+          );
         }
 
         final restantes = metrosTramo - tecnicos;
         if (restantes > 0) {
-          series.add(_serie(
-            metros: restantes,
-            unidad: unidad,
-            zona: zona,
-            estilo: estiloTramo,
-            modificadores:
-                esCierre ? const [Modificador.recuperacion] : const [],
-          ));
+          series.add(
+            _serie(
+              metros: restantes,
+              unidad: unidad,
+              zona: zona,
+              estilo: estiloTramo,
+              modificadores: esCierre
+                  ? const [Modificador.recuperacion]
+                  : const [],
+            ),
+          );
         }
       }
     }

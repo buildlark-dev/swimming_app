@@ -44,8 +44,7 @@ class CriterioEvaluado {
   /// Dónde ocurre: sesión, parte o serie.
   final String ubicacion;
 
-  bool get bloqueaAprobacion =>
-      !cumple && severidad == Severidad.bloqueante;
+  bool get bloqueaAprobacion => !cumple && severidad == Severidad.bloqueante;
 
   @override
   String toString() =>

@@ -29,18 +29,22 @@ void main() {
       expect(nadador().categoria, Categoria.iniciacion);
     });
 
-    test('con la fecha de un niño de nueve años, sigue siendo la declarada', () {
-      expect(
-        nadador(fechaNacimiento: DateTime(2017, 3, 14)).categoria,
-        Categoria.iniciacion,
-      );
-    });
+    test(
+      'con la fecha de un niño de nueve años, sigue siendo la declarada',
+      () {
+        expect(
+          nadador(fechaNacimiento: DateTime(2017, 3, 14)).categoria,
+          Categoria.iniciacion,
+        );
+      },
+    );
 
     test('con la fecha de un adulto de cuarenta, también', () {
       expect(
         nadador(fechaNacimiento: DateTime(1986, 3, 14)).categoria,
         Categoria.iniciacion,
-        reason: 'Un adulto que empieza a nadar está en Iniciación. La '
+        reason:
+            'Un adulto que empieza a nadar está en Iniciación. La '
             'categoría es lo que ya hace en el agua, no los años que tiene',
       );
     });
@@ -48,8 +52,9 @@ void main() {
     test('añadir, cambiar y quitar la fecha no la mueve', () {
       final sinFecha = nadador();
       final conNino = sinFecha.copiarCon(fechaNacimiento: DateTime(2017, 1, 1));
-      final conAdulto =
-          conNino.copiarCon(fechaNacimiento: DateTime(1980, 1, 1));
+      final conAdulto = conNino.copiarCon(
+        fechaNacimiento: DateTime(1980, 1, 1),
+      );
 
       expect(sinFecha.categoria, Categoria.iniciacion);
       expect(conNino.categoria, Categoria.iniciacion);
@@ -79,7 +84,8 @@ void main() {
       expect(
         Categoria.porNombre('Iniciación'),
         Categoria.iniciacion,
-        reason: 'La categoría se resuelve por su nombre, que es lo que el '
+        reason:
+            'La categoría se resuelve por su nombre, que es lo que el '
             'entrenador declara',
       );
     });
@@ -94,24 +100,27 @@ void main() {
 
     test('quien declara ser mayor de edad no necesita acudiente', () {
       expect(
-        nadador(declaraSerMayor: true)
-            .necesitaAcudienteEn(DateTime(2026, 10, 15)),
+        nadador(
+          declaraSerMayor: true,
+        ).necesitaAcudienteEn(DateTime(2026, 10, 15)),
         isFalse,
       );
     });
 
     test('una fecha de nacimiento de adulto también basta', () {
       expect(
-        nadador(fechaNacimiento: DateTime(1986, 3, 14))
-            .necesitaAcudienteEn(DateTime(2026, 10, 15)),
+        nadador(
+          fechaNacimiento: DateTime(1986, 3, 14),
+        ).necesitaAcudienteEn(DateTime(2026, 10, 15)),
         isFalse,
       );
     });
 
     test('un menor con fecha de nacimiento sí lo necesita', () {
       expect(
-        nadador(fechaNacimiento: DateTime(2017, 3, 14))
-            .necesitaAcudienteEn(DateTime(2026, 10, 15)),
+        nadador(
+          fechaNacimiento: DateTime(2017, 3, 14),
+        ).necesitaAcudienteEn(DateTime(2026, 10, 15)),
         isTrue,
       );
     });

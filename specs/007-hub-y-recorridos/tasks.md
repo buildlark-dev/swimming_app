@@ -128,39 +128,39 @@ sobrevive.
 
 ### Los cerrojos primero — y el primero es el más importante de la feature
 
-- [ ] T030 [P] [US3] Escribir `test/datos/servidor/contrato_corregir_perfil_test.dart`, que lee `firebase/functions/src/datos_personales.ts`: el cuerpo del cliente es `{ nombre, fechaNacimiento, pais }`, **no lleva `versionDeTerminos`**, y **la palabra `terminos` no aparece en el cuerpo de esa función** (H21). Control negativo: escribir `terminos` en la función y ver fallar
-- [ ] T031 [P] [US3] Escribir `test/datos/servidor/contrato_suprimir_test.dart`: el cuerpo es `{ confirmado }`, **no acepta `uid` ni `nadadorId`** —los dos salen del token— y el fuente exige `confirmado === true` (H27). Control negativo: aceptar un `nadadorId` del cliente y ver fallar
-- [ ] T032 [P] [US3] Escribir `firebase/test/datos_personales.test.ts` contra el emulador: tras suprimir, los registros, las asignaciones, la ficha de nadador y los datos personales de `usuarios/{uid}` dejan de estar, y **el historial de consentimiento sigue ahí con su fecha** (H27, garantía C8 de la 004). Control negativo: borrar también el historial y ver fallar
-- [ ] T033 [P] [US3] Escribir `test/ui/ajustes/la_constancia_no_se_toca_test.dart`: corregir el nombre deja intactas la versión aceptada y su fecha (H21), y `Ajustes` muestra **el texto de esa versión, no el vigente** (H20)
-- [ ] T034 [P] [US3] Escribir `test/ui/ajustes/un_solo_nombre_test.dart`: corregir el nombre lo deja igual en `usuarios/{uid}` y en la ficha de `nadadores/{id}` (H22). Control negativo: escribir solo en `usuarios` y ver fallar
-- [ ] T035 [P] [US3] Escribir `test/ui/ajustes/solo_lo_mio_test.dart`: `Ajustes` no muestra ni permite cambiar datos de otra persona (H19)
-- [ ] T036 [P] [US3] Escribir `test/ui/ajustes/nada_se_registra_test.dart`: nada de lo exportado pasa por un registro, una traza ni una métrica (H26, garantía A17 de la 006). Control negativo: imprimir el contenido exportado y ver fallar
-- [ ] T037 [P] [US3] Escribir `test/datos/preferencias/apariencia_sobrevive_test.dart`: la preferencia **no** vive bajo el prefijo `natacion_app/<cuentaId>/` y sobrevive a `vaciar()` (H29, decisión D4). Control negativo: guardarla en `AlmacenLocal` y ver fallar
+- [X] T030 [P] [US3] Escribir `test/datos/servidor/contrato_corregir_perfil_test.dart`, que lee `firebase/functions/src/datos_personales.ts`: el cuerpo del cliente es `{ nombre, fechaNacimiento, pais }`, **no lleva `versionDeTerminos`**, y **la palabra `terminos` no aparece en el cuerpo de esa función** (H21). Control negativo: escribir `terminos` en la función y ver fallar
+- [X] T031 [P] [US3] Escribir `test/datos/servidor/contrato_suprimir_test.dart`: el cuerpo es `{ confirmado }`, **no acepta `uid` ni `nadadorId`** —los dos salen del token— y el fuente exige `confirmado === true` (H27). Control negativo: aceptar un `nadadorId` del cliente y ver fallar
+- [X] T032 [P] [US3] Escribir `firebase/test/datos_personales.test.ts` contra el emulador: tras suprimir, los registros, las asignaciones, la ficha de nadador y los datos personales de `usuarios/{uid}` dejan de estar, y **el historial de consentimiento sigue ahí con su fecha** (H27, garantía C8 de la 004). Control negativo: borrar también el historial y ver fallar
+- [X] T033 [P] [US3] Escribir `test/ui/ajustes/la_constancia_no_se_toca_test.dart`: corregir el nombre deja intactas la versión aceptada y su fecha (H21), y `Ajustes` muestra **el texto de esa versión, no el vigente** (H20)
+- [X] T034 [P] [US3] Escribir `test/ui/ajustes/un_solo_nombre_test.dart`: corregir el nombre lo deja igual en `usuarios/{uid}` y en la ficha de `nadadores/{id}` (H22). Control negativo: escribir solo en `usuarios` y ver fallar
+- [X] T035 [P] [US3] Escribir `test/ui/ajustes/solo_lo_mio_test.dart`: `Ajustes` no muestra ni permite cambiar datos de otra persona (H19)
+- [X] T036 [P] [US3] Escribir `test/ui/ajustes/nada_se_registra_test.dart`: nada de lo exportado pasa por un registro, una traza ni una métrica (H26, garantía A17 de la 006). Control negativo: imprimir el contenido exportado y ver fallar
+- [X] T037 [P] [US3] Escribir `test/datos/preferencias/apariencia_sobrevive_test.dart`: la preferencia **no** vive bajo el prefijo `natacion_app/<cuentaId>/` y sobrevive a `vaciar()` (H29, decisión D4). Control negativo: guardarla en `AlmacenLocal` y ver fallar
 
 ### El servidor
 
-- [ ] T038 [US3] Crear `firebase/functions/src/datos_personales.ts` con `corregirPerfil`: valida `nombre` obligatorio, recortado, máximo 80 caracteres; `fechaNacimiento` obligatoria, `AAAA-MM-DD`, no futura, año no anterior a 1900; `pais` opcional, dos letras mayúsculas o nulo. No toma `uid`. Escribe `usuarios/{uid}` con `{ nombre, fechaNacimiento, pais }` en `merge` y `nadadores/{nadadorId}` con `{ nombre, fechaNacimiento }` en `merge`, y **nunca `terminos`**. Devuelve `{ nombre, esMenor }`, recalculando `esMenor` en el servidor
-- [ ] T039 [US3] Añadir `suprimirMisDatos` a `datos_personales.ts`, en el orden que `DerechosDelTitular` ya estableció: registros → asignaciones → ficha de nadador → datos personales de `usuarios/{uid}` → revocar el consentimiento **por la vía de `revocar`** sin borrar su historial (decisión D8). Devuelve `{ registrosEliminados, asignacionesRetiradas, perfilEliminado, cuentaEliminada }`
-- [ ] T040 [US3] Exportar las dos operaciones en `firebase/functions/src/index.ts`
-- [ ] T041 [US3] **Bloqueada por T065**: añadir en `firebase/functions/src/datos_personales.ts` el borrado de la cuenta de identidad al final de `suprimirMisDatos` (decisión D7). No se escribe hasta que el entrenador lo confirme
+- [X] T038 [US3] Crear `firebase/functions/src/datos_personales.ts` con `corregirPerfil`: valida `nombre` obligatorio, recortado, máximo 80 caracteres; `fechaNacimiento` obligatoria, `AAAA-MM-DD`, no futura, año no anterior a 1900; `pais` opcional, dos letras mayúsculas o nulo. No toma `uid`. Escribe `usuarios/{uid}` con `{ nombre, fechaNacimiento, pais }` en `merge` y `nadadores/{nadadorId}` con `{ nombre, fechaNacimiento }` en `merge`, y **nunca `terminos`**. Devuelve `{ nombre, esMenor }`, recalculando `esMenor` en el servidor
+- [X] T039 [US3] Añadir `suprimirMisDatos` a `datos_personales.ts`, en el orden que `DerechosDelTitular` ya estableció: registros → asignaciones → ficha de nadador → datos personales de `usuarios/{uid}` → revocar el consentimiento **por la vía de `revocar`** sin borrar su historial (decisión D8). Devuelve `{ registrosEliminados, asignacionesRetiradas, perfilEliminado, cuentaEliminada }`
+- [X] T040 [US3] Exportar las dos operaciones en `firebase/functions/src/index.ts`
+- [X] T041 [US3] **Bloqueada por T065**: añadir en `firebase/functions/src/datos_personales.ts` el borrado de la cuenta de identidad al final de `suprimirMisDatos` (decisión D7). No se escribe hasta que el entrenador lo confirme
 
 ### El cliente
 
-- [ ] T042 [US3] Añadir `corregirPerfil` y `suprimirMisDatos` a `lib/datos/servidor/operaciones.dart`, cada una con su **función con nombre** que arma el cuerpo, como `cuerpoDeCanje` de la 006, para que la prueba de contrato tenga qué leer
-- [ ] T043 [P] [US3] Añadir el cambio de contraseña al puerto `Identidad` en `lib/dominio/repositorios/repositorios.dart` e implementarlo en `lib/datos/auth/sesion_firebase.dart` como correo de restablecimiento, que es el único archivo que puede importar `firebase_auth` (decisión D9, H30)
-- [ ] T044 [P] [US3] Crear `lib/datos/preferencias/apariencia.dart`: `claro | oscuro | delSistema`, por omisión `delSistema`, en `SharedPreferences` bajo una clave **de dispositivo** fuera del prefijo por cuenta. Si no se puede leer, usa `delSistema` y no lo trata como fallo
-- [ ] T045 [US3] Hacer reactivo el `themeMode` de `MaterialApp` en `lib/main.dart:119`, que hoy está fijo en `ThemeMode.system`
+- [X] T042 [US3] Añadir `corregirPerfil` y `suprimirMisDatos` a `lib/datos/servidor/operaciones.dart`, cada una con su **función con nombre** que arma el cuerpo, como `cuerpoDeCanje` de la 006, para que la prueba de contrato tenga qué leer
+- [X] T043 [P] [US3] Añadir el cambio de contraseña al puerto `Identidad` en `lib/dominio/repositorios/repositorios.dart` e implementarlo en `lib/datos/auth/sesion_firebase.dart` como correo de restablecimiento, que es el único archivo que puede importar `firebase_auth` (decisión D9, H30)
+- [X] T044 [P] [US3] Crear `lib/datos/preferencias/apariencia.dart`: `claro | oscuro | delSistema`, por omisión `delSistema`, en `SharedPreferences` bajo una clave **de dispositivo** fuera del prefijo por cuenta. Si no se puede leer, usa `delSistema` y no lo trata como fallo
+- [X] T045 [US3] Hacer reactivo el `themeMode` de `MaterialApp` en `lib/main.dart:119`, que hoy está fijo en `ThemeMode.system`
 
 ### Las pantallas
 
-- [ ] T046 [US3] Crear `lib/ui/ajustes/pantalla_ajustes.dart`: el armazón de la sección, con los componentes de la feature 005
-- [ ] T047 [P] [US3] Crear `lib/ui/ajustes/mis_datos.dart`: ver y corregir nombre, fecha de nacimiento y país, llamando a `corregirPerfil`
-- [ ] T048 [P] [US3] Crear `lib/ui/ajustes/lo_que_acepte.dart`: el texto íntegro de la versión que aceptó —de `assets/terminos/` y `assets/consentimiento/`— con su fecha de aceptación
-- [ ] T049 [P] [US3] Crear `lib/ui/ajustes/mis_derechos.dart`: enchufar `DerechosDelTitular` por primera vez. `QueSeGuarda.enPalabras` en frases (H25) y la exportación a un archivo legible, **en dos toques o menos** (H24)
-- [ ] T050 [US3] Crear `lib/ui/ajustes/supresion.dart`: dos acciones deliberadas, y la segunda dice qué se borra y **qué sobrevive**, con las palabras de `ResultadoDeEliminacion.loQueSobrevive` y no en letra pequeña (H27). Al terminar, la app arranca de nuevo con el reinicio de la 006
-- [ ] T051 [P] [US3] Crear `lib/ui/ajustes/apariencia.dart`: claro, oscuro o el del sistema
-- [ ] T052 [US3] Mover cerrar sesión a `Ajustes` (H23, FR-019) y decidir qué queda de la tira de sesión de `hub.dart`: **el aviso de modo local se queda**, porque avisa de una condición y no de una identidad
-- [ ] T053 [US3] Añadir en `lib/ui/ajustes/pantalla_ajustes.dart` el conmutador de recorrido **solo en modo local**, guardado con la preferencia de dispositivo de `lib/datos/preferencias/apariencia.dart` (decisión D13), sin quitar el aviso de que no hay servidor
+- [X] T046 [US3] Crear `lib/ui/ajustes/pantalla_ajustes.dart`: el armazón de la sección, con los componentes de la feature 005
+- [X] T047 [P] [US3] Crear `lib/ui/ajustes/mis_datos.dart`: ver y corregir nombre, fecha de nacimiento y país, llamando a `corregirPerfil`
+- [X] T048 [P] [US3] Crear `lib/ui/ajustes/lo_que_acepte.dart`: el texto íntegro de la versión que aceptó —de `assets/terminos/` y `assets/consentimiento/`— con su fecha de aceptación
+- [X] T049 [P] [US3] Crear `lib/ui/ajustes/mis_derechos.dart`: enchufar `DerechosDelTitular` por primera vez. `QueSeGuarda.enPalabras` en frases (H25) y la exportación a un archivo legible, **en dos toques o menos** (H24)
+- [X] T050 [US3] Crear `lib/ui/ajustes/supresion.dart`: dos acciones deliberadas, y la segunda dice qué se borra y **qué sobrevive**, con las palabras de `ResultadoDeEliminacion.loQueSobrevive` y no en letra pequeña (H27). Al terminar, la app arranca de nuevo con el reinicio de la 006
+- [X] T051 [P] [US3] Crear `lib/ui/ajustes/apariencia.dart`: claro, oscuro o el del sistema
+- [X] T052 [US3] Mover cerrar sesión a `Ajustes` (H23, FR-019) y decidir qué queda de la tira de sesión de `hub.dart`: **el aviso de modo local se queda**, porque avisa de una condición y no de una identidad
+- [X] T053 [US3] Añadir en `lib/ui/ajustes/pantalla_ajustes.dart` el conmutador de recorrido **solo en modo local**, guardado con la preferencia de dispositivo de `lib/datos/preferencias/apariencia.dart` (decisión D13), sin quitar el aviso de que no hay servidor
 
 ---
 
@@ -176,15 +176,15 @@ sobrevive.
 **Las dos únicas tareas de toda la feature autorizadas a tocar una prueba anterior**, y lo que
 cada una puede cambiar está dicho (FR-033, decisión D12).
 
-- [ ] T056 [US5] En `test/widget_test.dart`, cambiar el ayudante `irAlEditor` para que entre por `Generar` en lugar de pulsar `Editor`, **sin tocar ni una aserción** de las cuatro pruebas que lo usan
-- [ ] T057 [US5] En `test/widget_test.dart`, reescribir «la app tiene las tres pestañas» como «la app tiene los cinco destinos y el reparto por rol»: comprueba más de lo que comprobaba
-- [ ] T058 [US5] Ejecutar `flutter test` y comprobar que el total **no bajó de 1283** y que las únicas pruebas modificadas son las de T056 y T057
+- [X] T056 [US5] En `test/widget_test.dart`, cambiar el ayudante `irAlEditor` para que entre por `Generar` en lugar de pulsar `Editor`, **sin tocar ni una aserción** de las cuatro pruebas que lo usan
+- [X] T057 [US5] En `test/widget_test.dart`, reescribir «la app tiene las tres pestañas» como «la app tiene los cinco destinos y el reparto por rol»: comprueba más de lo que comprobaba
+- [X] T058 [US5] Ejecutar `flutter test` y comprobar que el total **no bajó de 1283** y que las únicas pruebas modificadas son las de T056 y T057
 
 ---
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T059 [P] Medir las cinco etiquetas a 320 px de ancho, en claro y en oscuro, con una prueba en `test/ui/hub/etiquetas_caben_test.dart` (H9, SC-003). Si una no cabe, cambia la barra y **no la palabra**
+- [X] T059 [P] Medir las cinco etiquetas a 320 px de ancho, en claro y en oscuro, con una prueba en `test/ui/hub/etiquetas_caben_test.dart` (H9, SC-003). Si una no cabe, cambia la barra y **no la palabra**
 - [ ] T060 [P] Extender `test/ui/tema/pantallas_en_el_banco_test.dart` de la feature 005 con las pantallas nuevas: ninguna declara color, medida ni tipografía propios (FR-034)
 - [ ] T061 Pasar las cuatro puertas: `flutter analyze` limpio, `flutter test` en verde, `npm --prefix firebase test` en verde y `dart run tool/verificar_metodologia.dart` con las huellas coincidiendo
 - [ ] T062 [P] Actualizar `docs/DEVELOPMENT.md`: añadir el HUB y los dos recorridos, y **poner al día la lista «What is built»**, que se quedó en la feature 003 y no nombra cuentas, consentimiento, tema visual ni alta
@@ -195,7 +195,7 @@ cada una puede cambiar está dicho (FR-033, decisión D12).
 
 ## Dos tareas que no dependen de mí
 
-- [ ] T065 **Confirmación del entrenador**: ¿la supresión borra también la cuenta de identidad? El plan propone que sí —el correo es un dato personal, y dejar la cuenta viva convierte el derecho en un vaciado que deja a la persona registrada y sin nada— pero es irreversible y afecta a cuentas reales. **Bloquea T041**
+- [X] T065 **Confirmación del entrenador**: ¿la supresión borra también la cuenta de identidad? El plan propone que sí —el correo es un dato personal, y dejar la cuenta viva convierte el derecho en un vaciado que deja a la persona registrada y sin nada— pero es irreversible y afecta a cuentas reales. **Bloquea T041**
 - [ ] T066 **Criterio del entrenador**: qué muestra el `Home` del entrenador cuando los cuatro números son cero, visto con sus propios datos delante. Si sobra algo, sobra
 
 ---

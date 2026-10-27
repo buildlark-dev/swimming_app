@@ -45,10 +45,11 @@ void main() {
       final directorio = Directory(carpeta);
       if (!directorio.existsSync()) continue;
 
-      for (final archivo in directorio
-          .listSync(recursive: true)
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.dart'))) {
+      for (final archivo
+          in directorio
+              .listSync(recursive: true)
+              .whereType<File>()
+              .where((f) => f.path.endsWith('.dart'))) {
         final lineas = archivo.readAsLinesSync();
 
         for (var i = 0; i < lineas.length; i++) {
@@ -77,7 +78,8 @@ void main() {
       expect(
         encontradas,
         isEmpty,
-        reason: 'La categoría se declara **por habilidades**, no por la edad '
+        reason:
+            'La categoría se declara **por habilidades**, no por la edad '
             '(sección 11.1). Si esto que estás escribiendo necesita saber la '
             'edad para decidir qué entrena alguien, la decisión está mal, no '
             'la prueba.\n\n'
@@ -93,7 +95,8 @@ void main() {
         expect(
           Directory(carpeta).existsSync(),
           isTrue,
-          reason: '$carpeta no existe. O se renombró, y hay que actualizar '
+          reason:
+              '$carpeta no existe. O se renombró, y hay que actualizar '
               'esta lista, o la prueba lleva tiempo sin vigilar nada',
         );
       }
@@ -101,10 +104,14 @@ void main() {
 
     test('el patrón reconoce una lectura de la edad', () {
       expect(patron.hasMatch('if (nadador.edadEn(hoy)! < 12) {'), isTrue);
-      expect(patron.hasMatch('final menor = perfil.esMenorDeEdad(ahora);'),
-          isTrue);
-      expect(patron.hasMatch('if (nadador.categoria == Categoria.infantil) {'),
-          isFalse);
+      expect(
+        patron.hasMatch('final menor = perfil.esMenorDeEdad(ahora);'),
+        isTrue,
+      );
+      expect(
+        patron.hasMatch('if (nadador.categoria == Categoria.infantil) {'),
+        isFalse,
+      );
     });
 
     test('hay archivos que mirar', () {

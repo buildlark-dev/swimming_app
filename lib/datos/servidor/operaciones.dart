@@ -66,18 +66,17 @@ Map<String, dynamic> cuerpoDeCanje({
   required bool esRepresentanteLegal,
   required bool menorFueOido,
   required String versionDelTexto,
-}) =>
-    {
-      'token': token,
-      'declaracion': {
-        'nombre': nombre,
-        'documento': documento,
-        'calidad': calidad,
-        'esRepresentanteLegal': esRepresentanteLegal,
-        'menorFueOido': menorFueOido,
-        'versionDelTexto': versionDelTexto,
-      },
-    };
+}) => {
+  'token': token,
+  'declaracion': {
+    'nombre': nombre,
+    'documento': documento,
+    'calidad': calidad,
+    'esRepresentanteLegal': esRepresentanteLegal,
+    'menorFueOido': menorFueOido,
+    'versionDelTexto': versionDelTexto,
+  },
+};
 
 abstract class OperacionesDelServidor {
   /// Guarda el perfil de quien llama.
@@ -116,11 +115,88 @@ abstract class OperacionesDelServidor {
     required bool menorFueOido,
     required String versionDelTexto,
   });
+
+  /// Corrige los datos del perfil de quien llama.
+  ///
+  /// **No es `guardarPerfil`**, y la diferencia no es de estilo. Esa exige la
+  /// versión de los términos y escribe `terminos.aceptadaEn` con la hora del
+  /// servidor: usarla para corregir un apellido diría que la persona aceptó
+  /// hoy la versión vigente, cuando aceptó otra hace un mes y nadie le ha
+  /// mostrado la nueva. Eso es falsificar una constancia legal (decisión D5).
+  Future<PerfilCorregido> corregirPerfil({
+    required String nombre,
+    required DateTime fechaNacimiento,
+    String? pais,
+  });
+
+  /// Suprime los datos personales de quien llama, y su cuenta.
+  ///
+  /// **Esto no se puede hacer desde el cliente** y por eso está aquí: las
+  /// reglas tienen `registros` en `allow delete: if false`, `nadadores` solo lo
+  /// escribe el entrenador y `usuarios` no lo escribe nadie.
+  /// `DerechosDelTitular.eliminar` existe desde la feature 004 y contra
+  /// Firestore nunca pudo funcionar (decisión D6).
+  ///
+  /// Lo que **no** borra: el registro de que hubo consentimiento, con su fecha.
+  /// Es la prueba de que el tratamiento anterior estuvo amparado.
+  Future<DatosSuprimidos> suprimirMisDatos();
 }
+
+/// Lo que el servidor contesta al corregir un perfil.
+class PerfilCorregido {
+  const PerfilCorregido({required this.nombre, required this.esMenor});
+
+  final String nombre;
+
+  /// Recalculado en el servidor: corregir la fecha de nacimiento puede
+  /// cambiarlo, y la puerta de consentimiento tiene que trabajar sobre algo
+  /// que el servidor computó.
+  final bool esMenor;
+}
+
+/// Lo que se borró, para poder decírselo a quien lo pidió.
+class DatosSuprimidos {
+  const DatosSuprimidos({
+    required this.registrosEliminados,
+    required this.asignacionesRetiradas,
+    required this.perfilEliminado,
+    required this.cuentaEliminada,
+  });
+
+  final int registrosEliminados;
+  final int asignacionesRetiradas;
+  final bool perfilEliminado;
+  final bool cuentaEliminada;
+}
+
+/// El cuerpo que espera `corregirPerfil` en el servidor.
+///
+/// Función con nombre, como `cuerpoDeCanje`, para que la prueba de contrato
+/// tenga qué comparar contra el fuente del servidor. **Sin
+/// `versionDeTerminos`**: su ausencia es el contrato.
+Map<String, dynamic> cuerpoDeCorreccion({
+  required String nombre,
+  required DateTime fechaNacimiento,
+  required String? pais,
+}) => <String, dynamic>{
+  'nombre': nombre,
+  // Solo la fecha, sin hora: lo que se guarda es un día, no un instante.
+  'fechaNacimiento': fechaNacimiento.toIso8601String().split('T').first,
+  'pais': pais,
+};
+
+/// El cuerpo que espera `suprimirMisDatos`.
+///
+/// **Sin a quién borrar**: el uid y el nadadorId salen del token de quien
+/// llama. Y `confirmado` es el segundo paso de la confirmación llegando hasta
+/// el servidor, para que una llamada suelta no borre nada.
+Map<String, dynamic> cuerpoDeSupresion() => <String, dynamic>{
+  'confirmado': true,
+};
 
 class OperacionesFirebase implements OperacionesDelServidor {
   OperacionesFirebase({FirebaseFunctions? funciones})
-      : _funciones = funciones ?? FirebaseFunctions.instance;
+    : _funciones = funciones ?? FirebaseFunctions.instance;
 
   final FirebaseFunctions _funciones;
 
@@ -148,8 +224,7 @@ class OperacionesFirebase implements OperacionesDelServidor {
     final respuesta = await _llamar('guardarPerfil', {
       'nombre': nombre,
       // Solo la fecha, sin hora: lo que se guarda es un día, no un instante.
-      'fechaNacimiento':
-          fechaNacimiento.toIso8601String().split('T').first,
+      'fechaNacimiento': fechaNacimiento.toIso8601String().split('T').first,
       'pais': pais,
       'versionDeTerminos': versionDeTerminos,
     });
@@ -185,15 +260,53 @@ class OperacionesFirebase implements OperacionesDelServidor {
     required bool menorFueOido,
     required String versionDelTexto,
   }) async {
-    await _llamar('canjear', cuerpoDeCanje(
-      token: token,
-      nombre: nombre,
-      documento: documento,
-      calidad: calidad,
-      esRepresentanteLegal: esRepresentanteLegal,
-      menorFueOido: menorFueOido,
-      versionDelTexto: versionDelTexto,
-    ));
+    await _llamar(
+      'canjear',
+      cuerpoDeCanje(
+        token: token,
+        nombre: nombre,
+        documento: documento,
+        calidad: calidad,
+        esRepresentanteLegal: esRepresentanteLegal,
+        menorFueOido: menorFueOido,
+        versionDelTexto: versionDelTexto,
+      ),
+    );
+  }
+
+  @override
+  Future<PerfilCorregido> corregirPerfil({
+    required String nombre,
+    required DateTime fechaNacimiento,
+    String? pais,
+  }) async {
+    final respuesta = await _llamar(
+      'corregirPerfil',
+      cuerpoDeCorreccion(
+        nombre: nombre,
+        fechaNacimiento: fechaNacimiento,
+        pais: pais,
+      ),
+    );
+
+    return PerfilCorregido(
+      nombre: (respuesta?['nombre'] as String?) ?? nombre,
+      // Ante la duda, menor: el error de pedir un consentimiento que no hacía
+      // falta se arregla; el de no pedirlo, no.
+      esMenor: (respuesta?['esMenor'] as bool?) ?? true,
+    );
+  }
+
+  @override
+  Future<DatosSuprimidos> suprimirMisDatos() async {
+    final respuesta = await _llamar('suprimirMisDatos', cuerpoDeSupresion());
+
+    return DatosSuprimidos(
+      registrosEliminados: (respuesta?['registrosEliminados'] as int?) ?? 0,
+      asignacionesRetiradas: (respuesta?['asignacionesRetiradas'] as int?) ?? 0,
+      perfilEliminado: (respuesta?['perfilEliminado'] as bool?) ?? false,
+      cuentaEliminada: (respuesta?['cuentaEliminada'] as bool?) ?? false,
+    );
   }
 
   Future<Map<String, dynamic>?> _llamar(

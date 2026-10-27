@@ -66,8 +66,9 @@ class EntradaTermino {
 
   factory EntradaTermino.desdeJson(Map<String, dynamic> json) {
     final nombreEstilo = (json['estilo'] as String? ?? '').trim().toLowerCase();
-    final coincidencias =
-        Estilo.values.where((e) => e.name == nombreEstilo).toList();
+    final coincidencias = Estilo.values
+        .where((e) => e.name == nombreEstilo)
+        .toList();
 
     if (coincidencias.isEmpty) {
       throw FormatException('Estilo desconocido en el índice: «$nombreEstilo»');
@@ -90,7 +91,7 @@ class EntradaTermino {
 
 class IndiceTerminos {
   IndiceTerminos(List<EntradaTermino> entradas)
-      : entradas = List.unmodifiable(entradas);
+    : entradas = List.unmodifiable(entradas);
 
   /// Índice vacío: ninguna frase encuentra ejercicio, todas reportan vacío.
   IndiceTerminos.vacio() : entradas = const [];
@@ -107,10 +108,7 @@ class IndiceTerminos {
   /// Devuelve los nombres en el orden declarado por el entrenador, sin
   /// repetir. Vacío si ninguna entrada corresponde: eso es un vacío de
   /// Biblioteca y quien llama debe reportarlo, no sustituirlo.
-  List<String> ejerciciosPara({
-    required Estilo estilo,
-    required String frase,
-  }) {
+  List<String> ejerciciosPara({required Estilo estilo, required String frase}) {
     final nombres = <String>[];
 
     for (final entrada in entradas) {
@@ -128,17 +126,17 @@ class IndiceTerminos {
   /// Todas las frases declaradas para un estilo, para poder mostrárselas al
   /// entrenador cuando una suya no encuentra nada.
   List<String> frasesDe(Estilo estilo) => [
-        for (final entrada in entradas)
-          if (entrada.estilo == estilo) entrada.frase,
-      ];
+    for (final entrada in entradas)
+      if (entrada.estilo == estilo) entrada.frase,
+  ];
 
   /// Nombres de ejercicio que el índice menciona, sin repetir.
   ///
   /// Sirve para comprobar que el índice no referencia ejercicios que no
   /// existen en la Biblioteca.
   Set<String> get ejerciciosReferenciados => {
-        for (final entrada in entradas) ...entrada.ejercicios,
-      };
+    for (final entrada in entradas) ...entrada.ejercicios,
+  };
 
   factory IndiceTerminos.desdeJson(Map<String, dynamic> json) {
     final lista = (json['entradas'] as List<dynamic>? ?? const [])
@@ -155,9 +153,31 @@ class IndiceTerminos {
 /// quedan**: `no gira la cadera` y `gira la cadera` son errores opuestos, y
 /// `poco rolido` dice algo que `rolido` no dice.
 const Set<String> palabrasVacias = {
-  'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas',
-  'de', 'del', 'en', 'al', 'a', 'con', 'y', 'e', 'o',
-  'por', 'para', 'se', 'su', 'sus', 'lo', 'que', 'hasta',
+  'el',
+  'la',
+  'los',
+  'las',
+  'un',
+  'una',
+  'unos',
+  'unas',
+  'de',
+  'del',
+  'en',
+  'al',
+  'a',
+  'con',
+  'y',
+  'e',
+  'o',
+  'por',
+  'para',
+  'se',
+  'su',
+  'sus',
+  'lo',
+  'que',
+  'hasta',
 };
 
 /// Palabras significativas de un texto, normalizadas.

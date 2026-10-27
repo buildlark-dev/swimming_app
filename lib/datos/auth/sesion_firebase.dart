@@ -47,12 +47,11 @@ class SesionFirebase implements Identidad {
   factory SesionFirebase.porOmision({
     required FirebaseFirestore firestore,
     AlmacenLocal? almacenLocal,
-  }) =>
-      SesionFirebase(
-        auth: fb.FirebaseAuth.instance,
-        firestore: firestore,
-        almacenLocal: almacenLocal,
-      );
+  }) => SesionFirebase(
+    auth: fb.FirebaseAuth.instance,
+    firestore: firestore,
+    almacenLocal: almacenLocal,
+  );
 
   final fb.FirebaseAuth auth;
   final FirebaseFirestore firestore;
@@ -155,6 +154,25 @@ class SesionFirebase implements Identidad {
     await reiniciarLaApp();
   }
 
+  @override
+  Future<void> pedirCambioDeClave() async {
+    // **Al correo de la cuenta, no a uno que se escriba aquí.** Si la
+    // dirección viniera de un campo, cualquiera con el teléfono desbloqueado
+    // podría mandarse el enlace a su propio correo y quedarse con la cuenta.
+    final correo = auth.currentUser?.email;
+    if (correo == null || correo.isEmpty) {
+      throw const FalloDeAcceso(
+        'Esta cuenta no tiene un correo con el que confirmar el cambio.',
+      );
+    }
+
+    try {
+      await auth.sendPasswordResetEmail(email: correo);
+    } on fb.FirebaseAuthException catch (e) {
+      throw FalloDeAcceso(_mensajeDe(e));
+    }
+  }
+
   /// Traduce un usuario de Firebase al estado de identidad del dominio.
   ///
   /// Un token sin rol reconocible **no** se resuelve al rol menos peligroso:
@@ -198,16 +216,19 @@ class SesionFirebase implements Identidad {
       Cuenta(
         id: usuario.uid,
         rol: rol,
-        nadadorId:
-            rol == Rol.entrenador ? null : await _nadadorIdDe(usuario.uid),
+        nadadorId: rol == Rol.entrenador
+            ? null
+            : await _nadadorIdDe(usuario.uid),
       ),
     );
   }
 
   Future<String?> _nadadorIdDe(String uid) async {
     try {
-      final documento =
-          await firestore.collection(coleccionUsuarios).doc(uid).get();
+      final documento = await firestore
+          .collection(coleccionUsuarios)
+          .doc(uid)
+          .get();
       return documento.data()?['nadadorId'] as String?;
     } on FirebaseException {
       // Sin red y sin caché, la cuenta entra sin perfil asociado en lugar de

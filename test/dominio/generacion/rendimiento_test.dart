@@ -26,8 +26,7 @@ void main() {
       pruebaObjetivo: '400 Libre',
       faseAtr: FaseAtr.transformacion,
       componenteAcentuado: 'Umbral y ritmo competitivo',
-      diasDisponibles:
-          List.generate(5, (i) => DateTime(2026, 10, 5 + i)),
+      diasDisponibles: List.generate(5, (i) => DateTime(2026, 10, 5 + i)),
       longitudPiscina: 50,
       duracionSesionMinutos: 180,
     );

@@ -20,8 +20,11 @@ void main() {
   setUpAll(() {
     indice = IndiceTerminos.desdeJson(
       jsonDecode(
-        File('assets/biblioteca/terminos_diagnostico.json').readAsStringSync(),
-      ) as Map<String, dynamic>,
+            File(
+              'assets/biblioteca/terminos_diagnostico.json',
+            ).readAsStringSync(),
+          )
+          as Map<String, dynamic>,
     );
     selector = SelectorEjercicios(cargarBibliotecaReal(), indice: indice);
   });
@@ -61,7 +64,8 @@ void main() {
       expect(
         inexistentes,
         isEmpty,
-        reason: 'El índice nombra ejercicios que no están en la sección 19. '
+        reason:
+            'El índice nombra ejercicios que no están en la sección 19. '
             'Eso es invención por la puerta de atrás (regla R2): '
             '${inexistentes.join(', ')}',
       );
@@ -80,7 +84,8 @@ void main() {
             ejercicio!.estilo == entrada.estilo ||
                 ejercicio.estilo == Estilo.general,
             isTrue,
-            reason: 'La entrada «${entrada.frase}» es de '
+            reason:
+                'La entrada «${entrada.frase}» es de '
                 '${entrada.estilo.nombre} pero «$nombre» es de '
                 '${ejercicio.estilo.nombre}. El selector filtra por estilo, '
                 'así que esa correspondencia nunca se aplicaría',
@@ -94,7 +99,8 @@ void main() {
         expect(
           entrada.ejercicios,
           isNotEmpty,
-          reason: 'La entrada «${entrada.frase}» no lleva a ningún ejercicio. '
+          reason:
+              'La entrada «${entrada.frase}» no lleva a ningún ejercicio. '
               'Una frase sin ejercicio se omite del índice: así se reporta '
               'como vacío de Biblioteca',
         );
@@ -126,11 +132,7 @@ void main() {
         'patada desde las rodillas',
         'PATADA MI EXTENDIDOS – ANTI-BICICLETA',
       ),
-      (
-        Estilo.espalda,
-        'patada caída',
-        'PATADA MI EXTENDIDOS – ANTI-BICICLETA',
-      ),
+      (Estilo.espalda, 'patada caída', 'PATADA MI EXTENDIDOS – ANTI-BICICLETA'),
       (Estilo.espalda, 'cadera caída', 'PATADA MIRANDO EL TECHO'),
       (Estilo.espalda, 'brazo flexionado en fase aérea', 'MANO AL CIELO'),
       (Estilo.pecho, 'dosiflexión', 'TOCANDO TALÓN/TOBILLO'),
@@ -308,7 +310,8 @@ void main() {
       expect(
         reportaVacio(Estilo.libre, 'gira la cadera'),
         isTrue,
-        reason: 'Son errores opuestos. Si se descartara el «no», la app '
+        reason:
+            'Son errores opuestos. Si se descartara el «no», la app '
             'prescribiría lo mismo para los dos',
       );
     });
@@ -350,10 +353,11 @@ void main() {
 
   group('palabras significativas', () {
     test('descarta artículos y preposiciones', () {
-      expect(
-        palabrasSignificativas('baja las manos hasta la cadera'),
-        {'baja', 'manos', 'cadera'},
-      );
+      expect(palabrasSignificativas('baja las manos hasta la cadera'), {
+        'baja',
+        'manos',
+        'cadera',
+      });
     });
 
     test('normaliza tildes', () {

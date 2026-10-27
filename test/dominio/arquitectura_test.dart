@@ -47,9 +47,7 @@ void main() {
           }
           for (final prohibido in prohibidos) {
             if (linea.contains(prohibido)) {
-              infracciones.add(
-                '${entrada.path}:${i + 1} -> $prohibido',
-              );
+              infracciones.add('${entrada.path}:${i + 1} -> $prohibido');
             }
           }
         }
@@ -58,7 +56,8 @@ void main() {
       expect(
         infracciones,
         isEmpty,
-        reason: 'El dominio debe ser Dart puro (principio II de la '
+        reason:
+            'El dominio debe ser Dart puro (principio II de la '
             'constitución). Infracciones encontradas:\n'
             '${infracciones.join('\n')}',
       );
@@ -79,9 +78,11 @@ void main() {
         final importa = entrada
             .readAsLinesSync()
             .map((l) => l.trim())
-            .any((l) =>
-                (l.startsWith('import ') || l.startsWith('export ')) &&
-                l.contains('package:firebase_auth/'));
+            .any(
+              (l) =>
+                  (l.startsWith('import ') || l.startsWith('export ')) &&
+                  l.contains('package:firebase_auth/'),
+            );
 
         if (importa && ruta != permitido) importadores.add(ruta);
       }
@@ -89,7 +90,8 @@ void main() {
       expect(
         importadores,
         isEmpty,
-        reason: 'Solo $permitido puede importar firebase_auth. Lo importan '
+        reason:
+            'Solo $permitido puede importar firebase_auth. Lo importan '
             'también:\n${importadores.join('\n')}',
       );
     });
@@ -109,9 +111,11 @@ void main() {
         final importa = entrada
             .readAsLinesSync()
             .map((l) => l.trim())
-            .any((l) =>
-                (l.startsWith('import ') || l.startsWith('export ')) &&
-                l.contains('package:cloud_functions/'));
+            .any(
+              (l) =>
+                  (l.startsWith('import ') || l.startsWith('export ')) &&
+                  l.contains('package:cloud_functions/'),
+            );
 
         if (importa && ruta != permitido) importadores.add(ruta);
       }
@@ -119,7 +123,8 @@ void main() {
       expect(
         importadores,
         isEmpty,
-        reason: 'Solo $permitido puede importar cloud_functions. Lo importan '
+        reason:
+            'Solo $permitido puede importar cloud_functions. Lo importan '
             'también:\n${importadores.join('\n')}',
       );
     });

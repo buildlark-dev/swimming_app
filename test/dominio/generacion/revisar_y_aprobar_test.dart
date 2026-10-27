@@ -27,22 +27,21 @@ void main() {
   });
 
   PeticionGeneracion peticion() => PeticionGeneracion(
-        categoria: Categoria.precompetitivo,
-        estiloObjetivo: Estilo.libre,
-        pruebaObjetivo: '100 Libre',
-        faseAtr: FaseAtr.acumulacion,
-        componenteAcentuado: 'Técnica de eficiencia',
-        diasDisponibles: [
-          DateTime(2026, 10, 5),
-          DateTime(2026, 10, 7),
-          DateTime(2026, 10, 9),
-        ],
-        longitudPiscina: 25,
-        duracionSesionMinutos: 120,
-      );
+    categoria: Categoria.precompetitivo,
+    estiloObjetivo: Estilo.libre,
+    pruebaObjetivo: '100 Libre',
+    faseAtr: FaseAtr.acumulacion,
+    componenteAcentuado: 'Técnica de eficiencia',
+    diasDisponibles: [
+      DateTime(2026, 10, 5),
+      DateTime(2026, 10, 7),
+      DateTime(2026, 10, 9),
+    ],
+    longitudPiscina: 25,
+    duracionSesionMinutos: 120,
+  );
 
-  Plan generado() =>
-      (generador.generar(peticion()) as MicrocicloGenerado).plan;
+  Plan generado() => (generador.generar(peticion()) as MicrocicloGenerado).plan;
 
   group('US2: el editor recibe lo generado', () {
     test('abre la primera sesión del microciclo', () {
@@ -196,8 +195,7 @@ void main() {
     });
 
     test('al aprobar estampa versión y fecha, y conserva el origen', () {
-      final aprobado =
-          (ciclo.aprobar(generado()) as TransicionHecha).plan;
+      final aprobado = (ciclo.aprobar(generado()) as TransicionHecha).plan;
 
       expect(aprobado.estado, EstadoPlan.aprobado);
       expect(aprobado.versionMetodologia, '3.4.1');
@@ -212,12 +210,14 @@ void main() {
       final sesion = plan.sesiones.first;
       final parte = sesion.parteDe(TipoParte.inicial);
       final sinZona = parte.series
-          .map((s) => Serie(
-                repeticiones: s.repeticiones,
-                distancia: s.distancia,
-                estilo: s.estilo,
-                ejercicio: s.ejercicio,
-              ))
+          .map(
+            (s) => Serie(
+              repeticiones: s.repeticiones,
+              distancia: s.distancia,
+              estilo: s.estilo,
+              ejercicio: s.ejercicio,
+            ),
+          )
           .toList();
 
       final roto = plan.copiarCon(
@@ -231,15 +231,13 @@ void main() {
     });
 
     test('un plan generado aprobado ya no se puede volver a aprobar', () {
-      final aprobado =
-          (ciclo.aprobar(generado()) as TransicionHecha).plan;
+      final aprobado = (ciclo.aprobar(generado()) as TransicionHecha).plan;
 
       expect(auditoria.puedeAprobarse(aprobado), isFalse);
     });
 
     test('una versión nueva de un plan generado sigue siendo generada', () {
-      final aprobado =
-          (ciclo.aprobar(generado()) as TransicionHecha).plan;
+      final aprobado = (ciclo.aprobar(generado()) as TransicionHecha).plan;
 
       expect(ciclo.crearVersionDesde(aprobado).origen, OrigenPlan.automatico);
     });

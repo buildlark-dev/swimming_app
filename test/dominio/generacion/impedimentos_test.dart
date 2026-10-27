@@ -24,19 +24,19 @@ void main() {
   });
 
   PeticionGeneracion valida() => PeticionGeneracion(
-        categoria: Categoria.precompetitivo,
-        estiloObjetivo: Estilo.libre,
-        pruebaObjetivo: '100 Libre',
-        faseAtr: FaseAtr.acumulacion,
-        componenteAcentuado: 'Técnica de eficiencia',
-        diasDisponibles: [
-          DateTime(2026, 10, 5),
-          DateTime(2026, 10, 7),
-          DateTime(2026, 10, 9),
-        ],
-        longitudPiscina: 25,
-        duracionSesionMinutos: 120,
-      );
+    categoria: Categoria.precompetitivo,
+    estiloObjetivo: Estilo.libre,
+    pruebaObjetivo: '100 Libre',
+    faseAtr: FaseAtr.acumulacion,
+    componenteAcentuado: 'Técnica de eficiencia',
+    diasDisponibles: [
+      DateTime(2026, 10, 5),
+      DateTime(2026, 10, 7),
+      DateTime(2026, 10, 9),
+    ],
+    longitudPiscina: 25,
+    duracionSesionMinutos: 120,
+  );
 
   GeneracionImposible fallar(PeticionGeneracion peticion) {
     final resultado = generador.generar(peticion);
@@ -177,7 +177,9 @@ void main() {
 
   group('nada queda a medias (invariante 15)', () {
     test('un resultado imposible no trae plan', () {
-      final resultado = generador.generar(valida().copiarCon(pruebaObjetivo: ''));
+      final resultado = generador.generar(
+        valida().copiarCon(pruebaObjetivo: ''),
+      );
 
       expect(resultado, isA<GeneracionImposible>());
       expect(
@@ -207,10 +209,7 @@ void main() {
       final resultado = generador.generar(valida()) as MicrocicloGenerado;
 
       expect(resultado.supuestos, isNotEmpty);
-      expect(
-        resultado.supuestos.first.descripcion,
-        contains('Ritmo medio'),
-      );
+      expect(resultado.supuestos.first.descripcion, contains('Ritmo medio'));
     });
   });
 

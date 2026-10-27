@@ -25,16 +25,15 @@ void main() {
     String sesionId = 's1',
     bool realizada = true,
     int? rpe = 7,
-  }) =>
-      RegistroDeSesion(
-        nadadorId: 'n1',
-        planId: 'p1',
-        sesionId: sesionId,
-        versionDePlan: '1',
-        realizada: realizada,
-        registradoEn: ahora,
-        rpePercibido: rpe,
-      );
+  }) => RegistroDeSesion(
+    nadadorId: 'n1',
+    planId: 'p1',
+    sesionId: sesionId,
+    versionDePlan: '1',
+    realizada: realizada,
+    registradoEn: ahora,
+    rpePercibido: rpe,
+  );
 
   setUp(() {
     ahora = DateTime(2026, 10, 14, 7, 30);
@@ -84,7 +83,8 @@ void main() {
       expect(
         red.vecesConsultada,
         0,
-        reason: 'Garantía G1: escribir no puede fallar por culpa de la red, '
+        reason:
+            'Garantía G1: escribir no puede fallar por culpa de la red, '
             'así que ni siquiera la mira',
       );
     });
@@ -124,7 +124,8 @@ void main() {
       expect(
         (await bandeja.estadoDe(registro.id))!.intentos,
         0,
-        reason: 'No haber podido intentarlo no es haber fallado: contarlo '
+        reason:
+            'No haber podido intentarlo no es haber fallado: contarlo '
             'alargaría la espera del siguiente reintento sin motivo',
       );
     });
@@ -143,24 +144,27 @@ void main() {
   });
 
   group('S3 — lo pendiente sobrevive al cierre de la app', () {
-    test('un sincronizador nuevo sobre el mismo almacén lo encuentra', () async {
-      red.hayConexionAhora = false;
-      await sincronizador.guardar(unRegistro());
+    test(
+      'un sincronizador nuevo sobre el mismo almacén lo encuentra',
+      () async {
+        red.hayConexionAhora = false;
+        await sincronizador.guardar(unRegistro());
 
-      // Simula cerrar y reabrir: instancias nuevas, mismo almacenamiento.
-      final otro = Sincronizador(
-        registros: registros,
-        bandeja: bandeja,
-        red: red,
-        transporte: envio,
-        reloj: () => ahora,
-      );
+        // Simula cerrar y reabrir: instancias nuevas, mismo almacenamiento.
+        final otro = Sincronizador(
+          registros: registros,
+          bandeja: bandeja,
+          red: red,
+          transporte: envio,
+          reloj: () => ahora,
+        );
 
-      expect(await otro.hayPendientes(), isTrue);
+        expect(await otro.hayPendientes(), isTrue);
 
-      red.hayConexionAhora = true;
-      expect((await otro.sincronizar()).enviados, hasLength(1));
-    });
+        red.hayConexionAhora = true;
+        expect((await otro.sincronizar()).enviados, hasLength(1));
+      },
+    );
   });
 
   group('S4 — tres fallos y luego éxito', () {
@@ -200,7 +204,8 @@ void main() {
       expect(
         envio.intentosDeEnvio,
         intentosTrasElFallo,
-        reason: 'El teléfono es de alguien que está nadando y tiene batería '
+        reason:
+            'El teléfono es de alguien que está nadando y tiene batería '
             'limitada: no se reintenta en bucle apretado',
       );
     });
@@ -217,10 +222,7 @@ void main() {
       await sincronizador.guardar(registro);
       await sincronizador.sincronizar();
 
-      expect(
-        envio.destino.keys.where((id) => id == registro.id),
-        hasLength(1),
-      );
+      expect(envio.destino.keys.where((id) => id == registro.id), hasLength(1));
     });
 
     test('el identificador es determinista, que es lo que lo garantiza', () {
@@ -230,36 +232,44 @@ void main() {
       expect(
         a.id,
         b.id,
-        reason: 'Mismo nadador, plan, sesión y versión: mismo identificador, '
+        reason:
+            'Mismo nadador, plan, sesión y versión: mismo identificador, '
             'aunque el contenido cambie. La duplicación es imposible por '
             'construcción, no por una comprobación que alguien pueda olvidar',
       );
     });
 
     test('cambiar de sesión cambia el identificador', () {
-      expect(unRegistro(sesionId: 's1').id, isNot(unRegistro(sesionId: 's2').id));
+      expect(
+        unRegistro(sesionId: 's1').id,
+        isNot(unRegistro(sesionId: 's2').id),
+      );
     });
   });
 
   group('S6 — de tres pendientes llegan dos', () {
-    test('dos enviados y uno pendiente, sin estados intermedios raros', () async {
-      await sincronizador.guardar(unRegistro(sesionId: 's1'));
-      await sincronizador.guardar(unRegistro(sesionId: 's2'));
-      await sincronizador.guardar(unRegistro(sesionId: 's3'));
+    test(
+      'dos enviados y uno pendiente, sin estados intermedios raros',
+      () async {
+        await sincronizador.guardar(unRegistro(sesionId: 's1'));
+        await sincronizador.guardar(unRegistro(sesionId: 's2'));
+        await sincronizador.guardar(unRegistro(sesionId: 's3'));
 
-      envio.fallaPara = {'n1|p1|s2|1'};
+        envio.fallaPara = {'n1|p1|s2|1'};
 
-      final resultado = await sincronizador.sincronizar();
+        final resultado = await sincronizador.sincronizar();
 
-      expect(resultado.enviados, hasLength(2));
-      expect(resultado.siguenPendientes, ['n1|p1|s2|1']);
-      expect(
-        resultado.todoEnviado,
-        isFalse,
-        reason: 'El estado es correcto, no inconsistente: no hay transacción '
-            'entre varios registros',
-      );
-    });
+        expect(resultado.enviados, hasLength(2));
+        expect(resultado.siguenPendientes, ['n1|p1|s2|1']);
+        expect(
+          resultado.todoEnviado,
+          isFalse,
+          reason:
+              'El estado es correcto, no inconsistente: no hay transacción '
+              'entre varios registros',
+        );
+      },
+    );
 
     test('que uno falle no detiene a los demás', () async {
       await sincronizador.guardar(unRegistro(sesionId: 's1'));
@@ -288,7 +298,8 @@ void main() {
       expect(
         () => sincronizador.guardar(unRegistro()),
         throwsA(isA<Exception>()),
-        reason: 'Un fallo de red deja pendiente y reintenta; un fallo de '
+        reason:
+            'Un fallo de red deja pendiente y reintenta; un fallo de '
             'escritura local significa que el dato se pierde, y el nadador '
             'tiene que saberlo',
       );
@@ -314,7 +325,8 @@ void main() {
       expect(
         EstadoDeEnvio.values.map((e) => e.name),
         isNot(contains('fallido')),
-        reason: 'Un estado terminal de fallo sería la forma en que los datos '
+        reason:
+            'Un estado terminal de fallo sería la forma en que los datos '
             'se pierden en silencio (FR-019)',
       );
     });
@@ -370,10 +382,9 @@ class _RegistrosEnMemoria implements RepositorioRegistros {
   Future<List<RegistroDeSesion>> obtenerDePlan(
     String nadadorId,
     String planId,
-  ) async =>
-      guardados.values
-          .where((r) => r.nadadorId == nadadorId && r.planId == planId)
-          .toList();
+  ) async => guardados.values
+      .where((r) => r.nadadorId == nadadorId && r.planId == planId)
+      .toList();
 
   @override
   Future<void> guardar(RegistroDeSesion registro) async {
@@ -419,7 +430,8 @@ class _RedSimulada implements EstadoDeRed {
   bool hayConexionAhora;
   int vecesConsultada = 0;
 
-  final StreamController<bool> _controlador = StreamController<bool>.broadcast();
+  final StreamController<bool> _controlador =
+      StreamController<bool>.broadcast();
 
   void emitir(bool hayConexion) => _controlador.add(hayConexion);
 

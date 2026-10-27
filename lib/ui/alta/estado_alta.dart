@@ -85,12 +85,12 @@ class EstadoAlta extends ChangeNotifier {
   /// El del acudiente aparece en cuanto la fecha dice que es menor, y
   /// desaparece si la corrige.
   List<PasoDelAlta> get pasos => [
-        PasoDelAlta.nombre,
-        PasoDelAlta.nacimiento,
-        PasoDelAlta.pais,
-        PasoDelAlta.terminos,
-        if (esMenor) PasoDelAlta.acudiente,
-      ];
+    PasoDelAlta.nombre,
+    PasoDelAlta.nacimiento,
+    PasoDelAlta.pais,
+    PasoDelAlta.terminos,
+    if (esMenor) PasoDelAlta.acudiente,
+  ];
 
   PasoDelAlta get pasoActual => pasos[_paso.clamp(0, pasos.length - 1)];
 
@@ -181,16 +181,15 @@ class EstadoAlta extends ChangeNotifier {
 
   /// Si el paso que se está mirando se puede dar por bueno.
   bool get elPasoEstaListo => switch (pasoActual) {
-        PasoDelAlta.nombre => _perfil.nombre.trim().isNotEmpty,
-        PasoDelAlta.nacimiento =>
-          _perfil.fechaNacimiento != null && !_faltaLaFecha,
-        // Decirlo es opcional: se puede pasar sin elegir nada (FR-009).
-        PasoDelAlta.pais => true,
-        PasoDelAlta.terminos => _perfil.terminos != null,
-        // **Se puede seguir sin darlo** (FR-019). Lo que no se puede es darlo
-        // mal.
-        PasoDelAlta.acudiente => problemaDelAcudiente == null,
-      };
+    PasoDelAlta.nombre => _perfil.nombre.trim().isNotEmpty,
+    PasoDelAlta.nacimiento => _perfil.fechaNacimiento != null && !_faltaLaFecha,
+    // Decirlo es opcional: se puede pasar sin elegir nada (FR-009).
+    PasoDelAlta.pais => true,
+    PasoDelAlta.terminos => _perfil.terminos != null,
+    // **Se puede seguir sin darlo** (FR-019). Lo que no se puede es darlo
+    // mal.
+    PasoDelAlta.acudiente => problemaDelAcudiente == null,
+  };
 
   bool get _faltaLaFecha =>
       _perfil.faltas.any((f) => f.campo == 'fechaNacimiento');
@@ -225,7 +224,8 @@ class EstadoAlta extends ChangeNotifier {
   Future<ResultadoDelAlta?> terminar() async {
     final servidor = operaciones;
     if (servidor == null) {
-      _fallo = 'No hay conexión con el servidor. Inténtalo otra vez en un '
+      _fallo =
+          'No hay conexión con el servidor. Inténtalo otra vez en un '
           'momento: lo que escribiste no se ha perdido.';
       notifyListeners();
       return null;
@@ -319,8 +319,10 @@ class EstadoAlta extends ChangeNotifier {
     // siguiente.
     almacen?.escribir(_coleccion, _clave, {
       'nombre': _perfil.nombre,
-      'fechaNacimiento':
-          _perfil.fechaNacimiento?.toIso8601String().split('T').first,
+      'fechaNacimiento': _perfil.fechaNacimiento
+          ?.toIso8601String()
+          .split('T')
+          .first,
       'pais': _perfil.pais,
       'versionDeTerminos': _perfil.terminos?.version,
       'terminosAceptadosEn': _perfil.terminos?.aceptadaEn.toIso8601String(),

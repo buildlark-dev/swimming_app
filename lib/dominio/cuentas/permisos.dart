@@ -74,8 +74,7 @@ abstract final class Permisos {
   static bool puedeAsignar(
     Cuenta? cuenta, {
     required bool tieneConsentimiento,
-  }) =>
-      (cuenta?.esEntrenador ?? false) && tieneConsentimiento;
+  }) => (cuenta?.esEntrenador ?? false) && tieneConsentimiento;
 
   /// Escribir un registro de sesión: **solo el nadador al que pertenece**.
   ///
@@ -83,7 +82,10 @@ abstract final class Permisos {
   /// feature 003, donde era el único que podía porque no había identidad de
   /// nadador. Lo que el nadador responde es su carga interna, no la del
   /// entrenador (garantía A5).
-  static bool puedeEscribirRegistro(Cuenta? cuenta, String nadadorIdDelRegistro) {
+  static bool puedeEscribirRegistro(
+    Cuenta? cuenta,
+    String nadadorIdDelRegistro,
+  ) {
     if (cuenta == null) return false;
     if (cuenta.esEntrenador) return false;
     return cuenta.nadadorId == nadadorIdDelRegistro;

@@ -24,14 +24,18 @@ void main() {
     });
 
     test('un plan puede nacer automático', () {
-      final plan = constructor.comoGenerado(constructor.planAcumulacionCorrecto());
+      final plan = constructor.comoGenerado(
+        constructor.planAcumulacionCorrecto(),
+      );
       expect(plan.origen, OrigenPlan.automatico);
     });
   });
 
   group('el origen no cambia al editar', () {
     test('copiarCon no permite cambiar un plan automático a manual', () {
-      final generado = constructor.comoGenerado(constructor.planAcumulacionCorrecto());
+      final generado = constructor.comoGenerado(
+        constructor.planAcumulacionCorrecto(),
+      );
 
       final editado = generado.copiarCon(nombre: 'Otro nombre');
 
@@ -50,7 +54,9 @@ void main() {
     });
 
     test('un intento explícito de cambiarlo se ignora', () {
-      final generado = constructor.comoGenerado(constructor.planAcumulacionCorrecto());
+      final generado = constructor.comoGenerado(
+        constructor.planAcumulacionCorrecto(),
+      );
 
       // copiarCon acepta el parámetro por uniformidad, pero no lo aplica:
       // el origen solo se fija al construir.
@@ -76,31 +82,31 @@ void main() {
     });
 
     test('un plan generado sigue siendo automático tras aprobarse', () {
-      final generado = constructor.comoGenerado(constructor.planAcumulacionCorrecto());
+      final generado = constructor.comoGenerado(
+        constructor.planAcumulacionCorrecto(),
+      );
 
       final resultado = ciclo.aprobar(generado);
 
       expect(resultado, isA<TransicionHecha>());
-      expect(
-        (resultado as TransicionHecha).plan.origen,
-        OrigenPlan.automatico,
-      );
+      expect((resultado as TransicionHecha).plan.origen, OrigenPlan.automatico);
     });
 
     test('sigue siendo automático tras publicarse', () {
-      final generado = constructor.comoGenerado(constructor.planAcumulacionCorrecto());
+      final generado = constructor.comoGenerado(
+        constructor.planAcumulacionCorrecto(),
+      );
       final aprobado = (ciclo.aprobar(generado) as TransicionHecha).plan;
 
       final publicado = ciclo.publicar(aprobado);
 
-      expect(
-        (publicado as TransicionHecha).plan.origen,
-        OrigenPlan.automatico,
-      );
+      expect((publicado as TransicionHecha).plan.origen, OrigenPlan.automatico);
     });
 
     test('una versión nueva hereda el origen del plan anterior', () {
-      final generado = constructor.comoGenerado(constructor.planAcumulacionCorrecto());
+      final generado = constructor.comoGenerado(
+        constructor.planAcumulacionCorrecto(),
+      );
       final aprobado = (ciclo.aprobar(generado) as TransicionHecha).plan;
 
       final nueva = ciclo.crearVersionDesde(aprobado);

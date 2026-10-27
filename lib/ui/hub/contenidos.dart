@@ -9,7 +9,12 @@ library;
 import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
 import 'package:natacion_app/dominio/biblioteca/indice_terminos.dart';
+import 'package:natacion_app/datos/perfil/repositorio_perfil.dart';
+import 'package:natacion_app/datos/preferencias/apariencia.dart';
+import 'package:natacion_app/datos/servidor/operaciones.dart';
+import 'package:natacion_app/dominio/consentimiento/constancia.dart';
 import 'package:natacion_app/dominio/cuentas/cuenta.dart';
+import 'package:natacion_app/dominio/datos_personales/derechos_del_titular.dart';
 import 'package:natacion_app/dominio/entidades/asignacion.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/generacion/resultado.dart';
@@ -19,6 +24,7 @@ import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/ui/editor/pantalla_editor.dart';
 import 'package:natacion_app/ui/generacion/pantalla_peticion.dart';
+import 'package:natacion_app/ui/ajustes/pantalla_ajustes.dart';
 import 'package:natacion_app/ui/hub/home_del_entrenador.dart';
 import 'package:natacion_app/ui/hub/home_del_nadador.dart';
 import 'package:natacion_app/ui/hub/planes_del_entrenador.dart';
@@ -48,6 +54,15 @@ class ContextoDelHub {
     required this.alGenerar,
     required this.alRevisarPlan,
     required this.alEntregar,
+    required this.uid,
+    required this.repositorioPerfil,
+    this.nadadorId,
+    this.operaciones,
+    this.identidad,
+    this.constancias,
+    this.derechos,
+    this.alElegirApariencia,
+    this.conmutadorDeRecorrido,
     this.selectorDePerfil,
   });
 
@@ -67,6 +82,19 @@ class ContextoDelHub {
   final void Function(MicrocicloGenerado) alGenerar;
   final Future<void> Function() alRevisarPlan;
   final Future<void> Function(Plan, List<String>) alEntregar;
+
+  /// Lo que `Ajustes` necesita. Todo de quien está dentro y de nadie más.
+  final String uid;
+  final String? nadadorId;
+  final RepositorioPerfil repositorioPerfil;
+  final OperacionesDelServidor? operaciones;
+  final Identidad? identidad;
+  final LectorDeConstancias? constancias;
+  final DerechosDelTitular? derechos;
+  final ValueChanged<Apariencia>? alElegirApariencia;
+
+  /// Solo en modo local: el conmutador de recorrido (decisión D13).
+  final Widget? conmutadorDeRecorrido;
 
   /// La herramienta del entrenador para abrir la app como uno de sus
   /// nadadores. **Nula en el recorrido del nadador**: allí le hablaba de una
@@ -124,8 +152,17 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
       value: ctx.nadador,
       child: HomeDelNadador(irAVerPlan: ctx.irAVerPlan),
     ),
-    // La sección de Ajustes llega con la historia 3 de esta feature.
-    Contenido.ajustes => const _AjustesTodaviaNo(),
+    Contenido.ajustes => PantallaAjustes(
+      uid: ctx.uid,
+      nadadorId: ctx.nadadorId,
+      repositorioPerfil: ctx.repositorioPerfil,
+      operaciones: ctx.operaciones,
+      identidad: ctx.identidad,
+      constancias: ctx.constancias,
+      derechos: ctx.derechos,
+      alElegirApariencia: ctx.alElegirApariencia,
+      conmutadorDeRecorrido: ctx.conmutadorDeRecorrido,
+    ),
   };
 }
 
@@ -196,24 +233,6 @@ class _GenerarDelEntrenadorState extends State<_GenerarDelEntrenador> {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Provisional, mientras la historia 3 construye `Ajustes`.
-class _AjustesTodaviaNo extends StatelessWidget {
-  const _AjustesTodaviaNo();
-
-  @override
-  Widget build(BuildContext context) {
-    return const TodaviaNoHay(
-      destino: Destino.ajustes,
-      queHay: TodaviaNo(
-        loQueLlegara:
-            'Aquí verás tus datos, lo que aceptaste, y podrás pedir '
-            'que se borren. También podrás cerrar sesión desde aquí.',
-        feature: '007',
-      ),
     );
   }
 }

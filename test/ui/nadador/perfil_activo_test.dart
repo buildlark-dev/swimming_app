@@ -18,20 +18,20 @@ import 'package:natacion_app/ui/nadador/perfil_activo.dart';
 /// inmutable y porque las reglas de acceso no saben recorrer listas.
 void main() {
   Plan plan({required String id, required EstadoPlan estado}) => Plan(
-        id: id,
-        nombre: 'Microciclo $id',
-        categoria: Categoria.precompetitivo,
-        estiloObjetivo: Estilo.libre,
-        pruebaObjetivo: '800 Libre',
-        estado: estado,
-        sesiones: const [],
-      );
+    id: id,
+    nombre: 'Microciclo $id',
+    categoria: Categoria.precompetitivo,
+    estiloObjetivo: Estilo.libre,
+    pruebaObjetivo: '800 Libre',
+    estado: estado,
+    sesiones: const [],
+  );
 
   Asignacion asignacion(String planId, String nadadorId) => Asignacion(
-        planId: planId,
-        nadadorId: nadadorId,
-        asignadaEn: DateTime(2026, 10, 15),
-      );
+    planId: planId,
+    nadadorId: nadadorId,
+    asignadaEn: DateTime(2026, 10, 15),
+  );
 
   const nadador = Nadador(id: 'n1', nombre: 'Perfil de prueba');
   const otro = Nadador(id: 'n2', nombre: 'Otro perfil');
@@ -56,7 +56,8 @@ void main() {
           [asignacion('p1', 'n1')],
         ),
         isNull,
-        reason: 'Un plan aprobado todavía no es de nadie. Publicarlo y '
+        reason:
+            'Un plan aprobado todavía no es de nadie. Publicarlo y '
             'asignarlo es lo que lo convierte en el entrenamiento de alguien',
       );
     });
@@ -136,10 +137,7 @@ void main() {
 
     test('una asignación sin su plan no inventa uno', () {
       // Puede pasar si el entrenador borra un borrador que nunca se publicó.
-      expect(
-        planDe(nadador, const [], [asignacion('fantasma', 'n1')]),
-        isNull,
-      );
+      expect(planDe(nadador, const [], [asignacion('fantasma', 'n1')]), isNull);
     });
 
     test('un perfil sin identificador no recibe nada, y no revienta', () {

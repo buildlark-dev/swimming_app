@@ -19,10 +19,7 @@ import 'package:natacion_app/dominio/cuentas/edad.dart';
 /// algún día es «¿qué aceptó esta familia exactamente?», y la única respuesta
 /// útil es **el texto que leyeron**, no el de hoy.
 class AceptacionDeTerminos {
-  const AceptacionDeTerminos({
-    required this.version,
-    required this.aceptadaEn,
-  });
+  const AceptacionDeTerminos({required this.version, required this.aceptadaEn});
 
   final String version;
   final DateTime aceptadaEn;
@@ -82,12 +79,12 @@ class Perfil {
   /// (garantía A4). Este perfil no lo calcula por su cuenta, aunque tenga el
   /// dato delante.
   bool necesitaAcudienteEn(DateTime referencia) => necesitaAcudiente(
-        nacimiento: fechaNacimiento,
-        // Un perfil nuevo no tiene declaración: ese campo es de las cuentas
-        // de antes de esta feature, y vive en `Nadador` (decisión D2).
-        declaraSerMayorDeEdad: null,
-        referencia: referencia,
-      );
+    nacimiento: fechaNacimiento,
+    // Un perfil nuevo no tiene declaración: ese campo es de las cuentas
+    // de antes de esta feature, y vive en `Nadador` (decisión D2).
+    declaraSerMayorDeEdad: null,
+    referencia: referencia,
+  );
 
   /// Lo que falta para darlo por completo.
   ///
@@ -144,12 +141,11 @@ class Perfil {
     String? pais,
     AceptacionDeTerminos? terminos,
     String? correoDelAcudiente,
-  }) =>
-      Perfil(
-        nombre: nombre ?? this.nombre,
-        fechaNacimiento: fechaNacimiento ?? this.fechaNacimiento,
-        pais: pais ?? this.pais,
-        terminos: terminos ?? this.terminos,
-        correoDelAcudiente: correoDelAcudiente ?? this.correoDelAcudiente,
-      );
+  }) => Perfil(
+    nombre: nombre ?? this.nombre,
+    fechaNacimiento: fechaNacimiento ?? this.fechaNacimiento,
+    pais: pais ?? this.pais,
+    terminos: terminos ?? this.terminos,
+    correoDelAcudiente: correoDelAcudiente ?? this.correoDelAcudiente,
+  );
 }

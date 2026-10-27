@@ -61,7 +61,7 @@ class FalloDeAlmacenLocal implements Exception {
 
 class AlmacenPreferencias implements AlmacenLocal {
   AlmacenPreferencias({SharedPreferences? preferencias, this.cuentaId})
-      : _inyectadas = preferencias;
+    : _inyectadas = preferencias;
 
   /// De quién es lo que se guarda aquí.
   ///

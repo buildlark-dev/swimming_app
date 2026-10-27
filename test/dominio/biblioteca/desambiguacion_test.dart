@@ -50,10 +50,7 @@ void main() {
     });
 
     test('ROLIDO CON 1 BRAZO sin estilo es ambiguo', () {
-      expect(
-        biblioteca.buscar('ROLIDO CON 1 BRAZO'),
-        isA<EjercicioAmbiguo>(),
-      );
+      expect(biblioteca.buscar('ROLIDO CON 1 BRAZO'), isA<EjercicioAmbiguo>());
     });
 
     test('un ejercicio de un solo estilo no exige desambiguación', () {
@@ -70,14 +67,16 @@ void main() {
       expect(resultado.pendientes.first.motivo, MotivoPendiente.ambiguo);
     });
 
-    test('el aviso dice en qué estilos existe, sin elegir por el entrenador',
-        () {
-      final resultado = analizador.analizar('200 FLECHA');
+    test(
+      'el aviso dice en qué estilos existe, sin elegir por el entrenador',
+      () {
+        final resultado = analizador.analizar('200 FLECHA');
 
-      final detalle = resultado.pendientes.first.detalle;
-      expect(detalle, contains('Indique el estilo'));
-      expect(detalle.toLowerCase(), contains('libre'));
-    });
+        final detalle = resultado.pendientes.first.detalle;
+        expect(detalle, contains('Indique el estilo'));
+        expect(detalle.toLowerCase(), contains('libre'));
+      },
+    );
 
     test('con el estilo indicado no queda pendiente', () {
       final resultado = analizador.analizar('200 E FLECHA');

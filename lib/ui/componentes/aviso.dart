@@ -69,7 +69,9 @@ class Aviso extends StatelessWidget {
       decoration: BoxDecoration(
         color: esquema.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(Espaciado.radioNormal),
-        border: Border(left: BorderSide(color: color, width: Espaciado.minimo)),
+        border: Border(
+          left: BorderSide(color: color, width: Espaciado.minimo),
+        ),
       ),
       padding: const EdgeInsets.all(Espaciado.normal),
       child: Row(
@@ -82,10 +84,7 @@ class Aviso extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (titulo != null) ...[
-                  Text(
-                    titulo!,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  Text(titulo!, style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: Espaciado.minimo),
                 ],
                 Text(mensaje, key: claveDelMensaje),

@@ -7,6 +7,7 @@ import 'package:natacion_app/datos/auth/sesion_firebase.dart';
 import 'package:natacion_app/datos/firestore/configuracion.dart';
 import 'package:natacion_app/datos/firestore/envio_registros.dart';
 import 'package:natacion_app/datos/perfil/repositorio_perfil.dart';
+import 'package:natacion_app/datos/preferencias/apariencia.dart';
 import 'package:natacion_app/datos/recursos/biblioteca_empaquetada.dart';
 import 'package:natacion_app/datos/recursos/recursos_iniciales.dart';
 import 'package:natacion_app/datos/recursos/version_metodologia.dart';
@@ -22,21 +23,57 @@ import 'package:natacion_app/ui/consentimiento/pagina_del_acudiente.dart';
 import 'package:natacion_app/ui/hub/hub.dart';
 import 'package:natacion_app/ui/tema/tema.dart';
 import 'package:provider/provider.dart';
+
 /// Punto de entrada de la aplicación.
 ///
 /// `USAR_EMULADORES` se pasa con `--dart-define=USAR_EMULADORES=true` y decide
 /// si la capa de datos apunta a los emuladores locales. Por omisión es falsa,
 /// de modo que un arranque descuidado nunca escriba en un proyecto real.
-const bool usarEmuladores =
-    bool.fromEnvironment('USAR_EMULADORES', defaultValue: false);
+const bool usarEmuladores = bool.fromEnvironment(
+  'USAR_EMULADORES',
+  defaultValue: false,
+);
 
 void main() {
   runApp(const AppNatacion());
 }
 
+class AppNatacion extends StatefulWidget {
+  const AppNatacion({
+    super.key,
+    this.preferencias = const PreferenciasDelDispositivo(),
+  });
 
-class AppNatacion extends StatelessWidget {
-  const AppNatacion({super.key});
+  final PreferenciasDelDispositivo preferencias;
+
+  @override
+  State<AppNatacion> createState() => _AppNatacionState();
+}
+
+class _AppNatacionState extends State<AppNatacion> {
+  /// Por omisión, la del teléfono: es lo que la app hacía antes de que hubiera
+  /// dónde elegir.
+  Apariencia _apariencia = Apariencia.delSistema;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarApariencia();
+  }
+
+  Future<void> _cargarApariencia() async {
+    final guardada = await widget.preferencias.apariencia();
+    if (mounted) setState(() => _apariencia = guardada);
+  }
+
+  void _elegir(Apariencia apariencia) =>
+      setState(() => _apariencia = apariencia);
+
+  ThemeMode get _modo => switch (_apariencia) {
+    Apariencia.claro => ThemeMode.light,
+    Apariencia.oscuro => ThemeMode.dark,
+    Apariencia.delSistema => ThemeMode.system,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -44,10 +81,10 @@ class AppNatacion extends StatelessWidget {
       title: 'Planificación de natación',
       theme: temaSeguro(Tema.claro),
       darkTheme: temaSeguro(Tema.oscuro),
-      // Sigue al sistema, sin ajuste propio (decisión D3). El interruptor
-      // pertenece a la pantalla de Ajustes de la feature 007, y construirlo
-      // aquí sería hacer algo que esa feature va a rehacer.
-      themeMode: ThemeMode.system,
+      // La elección de Ajustes, y si no hay ninguna, la del teléfono. Hasta la
+      // feature 007 esto estaba fijo en `system`, con una nota diciendo que el
+      // interruptor pertenecía a esta feature.
+      themeMode: _modo,
 
       // **Todo en español, el calendario incluido.**
       //
@@ -59,7 +96,7 @@ class AppNatacion extends StatelessWidget {
       supportedLocales: const [Locale('es')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
 
-      home: const PantallaInicio(),
+      home: PantallaInicio(alElegirApariencia: _elegir),
     );
   }
 }
@@ -86,7 +123,10 @@ ThemeData temaSeguro(ThemeData Function() construir) {
 /// app. Sin biblioteca no se puede comprobar la regla de no invención, así que
 /// no se muestra nada hasta tenerla.
 class PantallaInicio extends StatefulWidget {
-  const PantallaInicio({super.key});
+  const PantallaInicio({super.key, this.alElegirApariencia});
+
+  /// Para que la app entera se repinte con lo que se elija en Ajustes.
+  final ValueChanged<Apariencia>? alElegirApariencia;
 
   @override
   State<PantallaInicio> createState() => _PantallaInicioState();
@@ -110,9 +150,9 @@ class _PantallaInicioState extends State<PantallaInicio> {
     // **La app arranca igual.** El nadador lee y escribe en local, y lo
     // pendiente espera. Caerse porque no hay conexión sería justo lo contrario
     // de lo que esta feature promete.
-    final datos =
-        await const ConfiguracionDatos(usarEmuladores: usarEmuladores)
-            .conectar();
+    final datos = await const ConfiguracionDatos(
+      usarEmuladores: usarEmuladores,
+    ).conectar();
 
     return RecursosIniciales(
       biblioteca: biblioteca,
@@ -126,8 +166,9 @@ class _PantallaInicioState extends State<PantallaInicio> {
       // Sin Firestore no hay con quién autenticarse. La app arranca igual y
       // entra en modo local, que es lo que permite seguir desarrollando sin
       // levantar los emuladores.
-      identidad:
-          datos == null ? null : SesionFirebase.porOmision(firestore: datos),
+      identidad: datos == null
+          ? null
+          : SesionFirebase.porOmision(firestore: datos),
       // Por lo mismo: sin servidor no hay a quién llamar. El alta lo dice en
       // lugar de guardar un perfil que no va a ninguna parte.
       operaciones: datos == null
@@ -196,7 +237,10 @@ class _PantallaInicioState extends State<PantallaInicio> {
           );
         }
 
-        return _Acceso(recursos: instantanea.data!);
+        return _Acceso(
+          recursos: instantanea.data!,
+          alElegirApariencia: widget.alElegirApariencia,
+        );
       },
     );
   }
@@ -209,16 +253,21 @@ class _PantallaInicioState extends State<PantallaInicio> {
 /// emuladores, y en él no hay nada que proteger porque no hay dónde guardar
 /// nada. Va rotulado para que nadie lo confunda con la app de verdad.
 class _Acceso extends StatelessWidget {
-  const _Acceso({required this.recursos});
+  const _Acceso({required this.recursos, this.alElegirApariencia});
 
   final RecursosIniciales recursos;
+  final ValueChanged<Apariencia>? alElegirApariencia;
 
   @override
   Widget build(BuildContext context) {
     final identidad = recursos.identidad;
 
     if (identidad == null) {
-      return PantallaPrincipal(recursos: recursos, modoLocal: true);
+      return PantallaPrincipal(
+        recursos: recursos,
+        modoLocal: true,
+        alElegirApariencia: alElegirApariencia,
+      );
     }
 
     return ChangeNotifierProvider<SesionActiva>(
@@ -248,22 +297,26 @@ class _Acceso extends StatelessWidget {
 
             case EstadoDeSesion.fuera:
               return PantallaAcceso(
-                alEnviar: ({
-                  required String correo,
-                  required String clave,
-                  required ModoDeAcceso modo,
-                }) async {
-                  try {
-                    if (modo == ModoDeAcceso.crear) {
-                      await identidad.crearCuenta(correo: correo, clave: clave);
-                    } else {
-                      await identidad.entrar(correo: correo, clave: clave);
-                    }
-                    return null;
-                  } on FalloDeAcceso catch (e) {
-                    return e.mensaje;
-                  }
-                },
+                alEnviar:
+                    ({
+                      required String correo,
+                      required String clave,
+                      required ModoDeAcceso modo,
+                    }) async {
+                      try {
+                        if (modo == ModoDeAcceso.crear) {
+                          await identidad.crearCuenta(
+                            correo: correo,
+                            clave: clave,
+                          );
+                        } else {
+                          await identidad.entrar(correo: correo, clave: clave);
+                        }
+                        return null;
+                      } on FalloDeAcceso catch (e) {
+                        return e.mensaje;
+                      }
+                    },
               );
 
             case EstadoDeSesion.dentro:
@@ -306,6 +359,7 @@ class _Acceso extends StatelessWidget {
                 dentro: PantallaPrincipal(
                   recursos: recursos,
                   cuenta: sesion.cuenta,
+                  alElegirApariencia: alElegirApariencia,
                 ),
               );
           }
@@ -400,7 +454,6 @@ class _SinRol extends StatelessWidget {
     );
   }
 }
-
 
 /// Envía registros si hay Firestore, y si no, falla de forma recuperable.
 ///

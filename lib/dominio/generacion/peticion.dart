@@ -62,11 +62,9 @@ class PeticionGeneracion {
   /// Días que quedan tras descontar los festivos declarados.
   List<DateTime> get diasEfectivos {
     bool estaFuera(DateTime dia) => fechasSinServicio.any(
-          (sin) =>
-              sin.year == dia.year &&
-              sin.month == dia.month &&
-              sin.day == dia.day,
-        );
+      (sin) =>
+          sin.year == dia.year && sin.month == dia.month && sin.day == dia.day,
+    );
 
     return diasDisponibles.where((dia) => !estaFuera(dia)).toList();
   }
@@ -76,16 +74,16 @@ class PeticionGeneracion {
   /// Dos peticiones con los mismos valores deben producir el mismo plan. Esta
   /// huella permite comprobarlo sin comparar campo por campo.
   String get huella => [
-        categoria.name,
-        estiloObjetivo.name,
-        pruebaObjetivo.trim(),
-        faseAtr?.name ?? 'sinFase',
-        componenteAcentuado.trim(),
-        diasEfectivos.length,
-        longitudPiscina,
-        duracionSesionMinutos,
-        diagnosticoTecnico.join('|'),
-      ].join('::');
+    categoria.name,
+    estiloObjetivo.name,
+    pruebaObjetivo.trim(),
+    faseAtr?.name ?? 'sinFase',
+    componenteAcentuado.trim(),
+    diasEfectivos.length,
+    longitudPiscina,
+    duracionSesionMinutos,
+    diagnosticoTecnico.join('|'),
+  ].join('::');
 
   PeticionGeneracion copiarCon({
     Categoria? categoria,
@@ -120,16 +118,16 @@ class PeticionGeneracion {
 
   /// Quita la fase ATR, que `copiarCon` no puede poner a nulo.
   PeticionGeneracion sinFase() => PeticionGeneracion(
-        categoria: categoria,
-        estiloObjetivo: estiloObjetivo,
-        pruebaObjetivo: pruebaObjetivo,
-        componenteAcentuado: componenteAcentuado,
-        diasDisponibles: diasDisponibles,
-        fechasSinServicio: fechasSinServicio,
-        longitudPiscina: longitudPiscina,
-        duracionSesionMinutos: duracionSesionMinutos,
-        diagnosticoTecnico: diagnosticoTecnico,
-        lesiones: lesiones,
-        nadadoresIds: nadadoresIds,
-      );
+    categoria: categoria,
+    estiloObjetivo: estiloObjetivo,
+    pruebaObjetivo: pruebaObjetivo,
+    componenteAcentuado: componenteAcentuado,
+    diasDisponibles: diasDisponibles,
+    fechasSinServicio: fechasSinServicio,
+    longitudPiscina: longitudPiscina,
+    duracionSesionMinutos: duracionSesionMinutos,
+    diagnosticoTecnico: diagnosticoTecnico,
+    lesiones: lesiones,
+    nadadoresIds: nadadoresIds,
+  );
 }

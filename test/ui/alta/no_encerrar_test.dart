@@ -24,7 +24,10 @@ import 'package:natacion_app/ui/alta/puerta_del_perfil.dart';
 import 'package:natacion_app/ui/tema/tema.dart';
 
 void main() {
-  Future<void> abrir(WidgetTester tester, OperacionesDelServidor? servidor) async {
+  Future<void> abrir(
+    WidgetTester tester,
+    OperacionesDelServidor? servidor,
+  ) async {
     tester.view.physicalSize = const Size(420, 1000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -55,8 +58,9 @@ void main() {
     await tester.pump();
   }
 
-  testWidgets('sin servidor, el alta lo dice y ofrece entrar igual',
-      (tester) async {
+  testWidgets('sin servidor, el alta lo dice y ofrece entrar igual', (
+    tester,
+  ) async {
     await abrir(tester, null);
     await rellenarYTerminar(tester);
 
@@ -65,8 +69,9 @@ void main() {
     expect(find.text('¿Cuándo naciste?'), findsOneWidget);
   });
 
-  testWidgets('cuando guardar falla, se puede entrar de todos modos',
-      (tester) async {
+  testWidgets('cuando guardar falla, se puede entrar de todos modos', (
+    tester,
+  ) async {
     await abrir(tester, _ServidorCaido());
 
     // Se recorre el alta entera hasta el fallo.
@@ -76,29 +81,43 @@ void main() {
     expect(
       find.text('¿Cómo te llamas?'),
       findsOneWidget,
-      reason: 'Una cuenta sin perfil empieza por aquí, que es el caso de '
+      reason:
+          'Una cuenta sin perfil empieza por aquí, que es el caso de '
           'todas las que existen hoy',
     );
   });
 
   test('sin perfil, la app trata a quien entra como menor', () {
     // Es lo que hace segura la salida: la puerta sigue cerrada.
-    expect(
-      const Perfil().necesitaAcudienteEn(DateTime(2026, 10, 21)),
-      isTrue,
-    );
+    expect(const Perfil().necesitaAcudienteEn(DateTime(2026, 10, 21)), isTrue);
   });
 }
 
 class _ServidorCaido implements OperacionesDelServidor {
+  // La feature 007 añadió estas dos: aquí no se usan, y lo que importa es
+  // que el doble siga cumpliendo la interfaz.
+  @override
+  Future<PerfilCorregido> corregirPerfil({
+    required String nombre,
+    required DateTime fechaNacimiento,
+    String? pais,
+  }) async => PerfilCorregido(nombre: nombre, esMenor: false);
+
+  @override
+  Future<DatosSuprimidos> suprimirMisDatos() async => const DatosSuprimidos(
+    registrosEliminados: 0,
+    asignacionesRetiradas: 0,
+    perfilEliminado: false,
+    cuentaEliminada: false,
+  );
+
   @override
   Future<PerfilGuardado> guardarPerfil({
     required String nombre,
     required DateTime fechaNacimiento,
     String? pais,
     required String versionDeTerminos,
-  }) async =>
-      throw const FalloDelServidor('No se pudo conectar.');
+  }) async => throw const FalloDelServidor('No se pudo conectar.');
 
   @override
   Future<void> pedirConsentimiento({

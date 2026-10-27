@@ -288,12 +288,12 @@ class RepositorioAsignacionesFirestore implements RepositorioAsignaciones {
       _db.collection('asignaciones');
 
   Asignacion _desde(Map<String, dynamic> json) => Asignacion(
-        planId: json['planId'] as String,
-        nadadorId: json['nadadorId'] as String,
-        asignadaEn:
-            DateTime.tryParse(json['asignadaEn'] as String? ?? '') ??
-                DateTime.fromMillisecondsSinceEpoch(0),
-      );
+    planId: json['planId'] as String,
+    nadadorId: json['nadadorId'] as String,
+    asignadaEn:
+        DateTime.tryParse(json['asignadaEn'] as String? ?? '') ??
+        DateTime.fromMillisecondsSinceEpoch(0),
+  );
 
   @override
   Future<List<Asignacion>> listar() async {
@@ -303,15 +303,17 @@ class RepositorioAsignacionesFirestore implements RepositorioAsignaciones {
 
   @override
   Future<List<Asignacion>> deNadador(String nadadorId) async {
-    final instantanea =
-        await _coleccion.where('nadadorId', isEqualTo: nadadorId).get();
+    final instantanea = await _coleccion
+        .where('nadadorId', isEqualTo: nadadorId)
+        .get();
     return instantanea.docs.map((d) => _desde(d.data())).toList();
   }
 
   @override
   Future<List<Asignacion>> dePlan(String planId) async {
-    final instantanea =
-        await _coleccion.where('planId', isEqualTo: planId).get();
+    final instantanea = await _coleccion
+        .where('planId', isEqualTo: planId)
+        .get();
     return instantanea.docs.map((d) => _desde(d.data())).toList();
   }
 
@@ -330,7 +332,7 @@ class RepositorioAsignacionesFirestore implements RepositorioAsignaciones {
       throw FalloDeDatos(
         e.code == 'permission-denied'
             ? 'No se puede entregar el plan: ese nadador no tiene '
-                'consentimiento vigente de su acudiente.'
+                  'consentimiento vigente de su acudiente.'
             : 'No se pudo entregar el plan: ${e.message}',
       );
     }

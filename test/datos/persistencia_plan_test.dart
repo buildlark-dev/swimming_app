@@ -20,48 +20,48 @@ import 'package:natacion_app/dominio/metodologia/zonas.dart';
 /// que no se le podía confiar a la app.
 void main() {
   Plan plan({EstadoPlan estado = EstadoPlan.aprobado}) => Plan(
-        id: 'p1',
-        nombre: 'Microciclo de base aeróbica',
-        categoria: Categoria.precompetitivo,
-        estiloObjetivo: Estilo.libre,
-        pruebaObjetivo: '800 Libre',
-        estado: estado,
-        versionMetodologia: '3.6.0',
-        fechaAprobacion: DateTime(2026, 10, 1),
-        microciclos: const [
-          Microciclo(
-            id: 'm1',
-            nombre: 'Semana 1',
-            orden: 1,
-            objetivo: 'Economía de nado',
-          ),
-        ],
-        sesiones: [
-          for (var i = 1; i <= 3; i++)
-            Sesion(
-              id: 's$i',
-              microcicloId: 'm1',
-              fecha: DateTime(2026, 10, i),
-              objetivoTecnico: 'Técnica de eficiencia',
-              objetivoFisiologico: 'Base aeróbica',
-              partes: [
-                Parte(
-                  tipo: TipoParte.inicial,
-                  series: const [
-                    Serie(
-                      repeticiones: 8,
-                      distancia: 50,
-                      zona: Zona.a1,
-                      estilo: Estilo.libre,
-                    ),
-                  ],
+    id: 'p1',
+    nombre: 'Microciclo de base aeróbica',
+    categoria: Categoria.precompetitivo,
+    estiloObjetivo: Estilo.libre,
+    pruebaObjetivo: '800 Libre',
+    estado: estado,
+    versionMetodologia: '3.6.0',
+    fechaAprobacion: DateTime(2026, 10, 1),
+    microciclos: const [
+      Microciclo(
+        id: 'm1',
+        nombre: 'Semana 1',
+        orden: 1,
+        objetivo: 'Economía de nado',
+      ),
+    ],
+    sesiones: [
+      for (var i = 1; i <= 3; i++)
+        Sesion(
+          id: 's$i',
+          microcicloId: 'm1',
+          fecha: DateTime(2026, 10, i),
+          objetivoTecnico: 'Técnica de eficiencia',
+          objetivoFisiologico: 'Base aeróbica',
+          partes: [
+            Parte(
+              tipo: TipoParte.inicial,
+              series: const [
+                Serie(
+                  repeticiones: 8,
+                  distancia: 50,
+                  zona: Zona.a1,
+                  estilo: Estilo.libre,
                 ),
-                const Parte(tipo: TipoParte.central),
-                const Parte(tipo: TipoParte.cierre),
               ],
             ),
-        ],
-      );
+            const Parte(tipo: TipoParte.central),
+            const Parte(tipo: TipoParte.cierre),
+          ],
+        ),
+    ],
+  );
 
   String serializado(Plan p) => jsonEncode(planAJson(p, conSesiones: true));
 
@@ -78,7 +78,8 @@ void main() {
       expect(
         serializado(recuperado!),
         antes,
-        reason: 'Si esto falla, el entrenador ya no puede saber que lo que '
+        reason:
+            'Si esto falla, el entrenador ya no puede saber que lo que '
             'firmó sigue siendo lo que hay',
       );
     });
@@ -111,7 +112,8 @@ void main() {
       expect(
         recuperado!.estado,
         EstadoPlan.borrador,
-        reason: 'Guardar es guardar. Aprobar es la firma del entrenador, y es '
+        reason:
+            'Guardar es guardar. Aprobar es la firma del entrenador, y es '
             'un paso suyo (principio IV)',
       );
     });
@@ -121,38 +123,50 @@ void main() {
     test('las asignaciones se recuperan después de guardarlas', () async {
       final repo = RepositorioAsignacionesMemoria();
       await repo.asignar(
-        Asignacion(planId: 'p1', nadadorId: 'n1', asignadaEn: DateTime(2026, 10, 15)),
+        Asignacion(
+          planId: 'p1',
+          nadadorId: 'n1',
+          asignadaEn: DateTime(2026, 10, 15),
+        ),
       );
 
       expect((await repo.listar()), hasLength(1));
       expect((await repo.deNadador('n1')).single.planId, 'p1');
     });
 
-    test('entregar dos veces el mismo plan a la misma persona no duplica', () async {
-      final repo = RepositorioAsignacionesMemoria();
-      final asignacion = Asignacion(
-        planId: 'p1',
-        nadadorId: 'n1',
-        asignadaEn: DateTime(2026, 10, 15),
-      );
+    test(
+      'entregar dos veces el mismo plan a la misma persona no duplica',
+      () async {
+        final repo = RepositorioAsignacionesMemoria();
+        final asignacion = Asignacion(
+          planId: 'p1',
+          nadadorId: 'n1',
+          asignadaEn: DateTime(2026, 10, 15),
+        );
 
-      await repo.asignar(asignacion);
-      await repo.asignar(asignacion);
+        await repo.asignar(asignacion);
+        await repo.asignar(asignacion);
 
-      expect(
-        await repo.listar(),
-        hasLength(1),
-        reason: 'El identificador es determinista: dos entregas escriben el '
-            'mismo documento. No por una comprobación que alguien pueda '
-            'olvidar, sino porque no hay otro documento que escribir',
-      );
-    });
+        expect(
+          await repo.listar(),
+          hasLength(1),
+          reason:
+              'El identificador es determinista: dos entregas escriben el '
+              'mismo documento. No por una comprobación que alguien pueda '
+              'olvidar, sino porque no hay otro documento que escribir',
+        );
+      },
+    );
 
     test('retirar un plan no se lleva las demás asignaciones', () async {
       final repo = RepositorioAsignacionesMemoria();
       for (final n in ['n1', 'n2']) {
         await repo.asignar(
-          Asignacion(planId: 'p1', nadadorId: n, asignadaEn: DateTime(2026, 10, 15)),
+          Asignacion(
+            planId: 'p1',
+            nadadorId: n,
+            asignadaEn: DateTime(2026, 10, 15),
+          ),
         );
       }
 

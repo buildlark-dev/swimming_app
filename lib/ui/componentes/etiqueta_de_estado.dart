@@ -49,10 +49,9 @@ class EtiquetaDeEstado extends StatelessWidget {
           const SizedBox(width: Espaciado.minimo),
           Text(
             estado.nombre,
-            style: Theme.of(context)
-                .textTheme
-                .labelMedium
-                ?.copyWith(color: color),
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: color),
           ),
         ],
       ),

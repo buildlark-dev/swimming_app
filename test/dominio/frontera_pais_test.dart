@@ -48,10 +48,11 @@ void main() {
     final raiz = Directory('lib');
     if (!raiz.existsSync()) return encontradas;
 
-    for (final archivo in raiz
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.dart'))) {
+    for (final archivo
+        in raiz
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.dart'))) {
       final ruta = archivo.path.replaceAll(r'\', '/');
       if (permitidos.any(ruta.contains)) continue;
 
@@ -80,7 +81,8 @@ void main() {
       expect(
         encontradas,
         isEmpty,
-        reason: 'El país se pide para que el club sepa de dónde viene cada '
+        reason:
+            'El país se pide para que el club sepa de dónde viene cada '
             'nadador, y para nada más (FR-007). Si lo que estás escribiendo '
             'necesita decidir según el país, eso es una decisión nueva con '
             'consecuencias: tómala a la vista y borra esta prueba a '

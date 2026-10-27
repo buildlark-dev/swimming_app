@@ -28,8 +28,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:natacion_app/datos/auth/reinicio.dart';
 
 void main() {
-  final fuente =
-      File('lib/datos/auth/sesion_firebase.dart').readAsStringSync();
+  final fuente = File('lib/datos/auth/sesion_firebase.dart').readAsStringSync();
 
   final desde = fuente.indexOf('Future<void> cerrarSesion()');
   final cerrarSesion = fuente.substring(
@@ -62,7 +61,8 @@ void main() {
       expect(
         cerrarSesion,
         contains('reiniciarLaApp'),
-        reason: 'Vaciar la caché termina el cliente de Firestore y el plugin '
+        reason:
+            'Vaciar la caché termina el cliente de Firestore y el plugin '
             'no lo vuelve a crear. Sin reinicio, cerrar sesión deja la app sin '
             'base de datos hasta que alguien cierre la PWA a mano',
       );

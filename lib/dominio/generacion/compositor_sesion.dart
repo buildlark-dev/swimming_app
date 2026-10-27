@@ -72,28 +72,69 @@ List<ReparteParte> componerSesion({
   required int unidad,
 }) {
   // Metros de cada bloque, cuantizados y ajustados para que sumen exacto.
-  final objetivoInicial =
-      _cuantizarPorcentaje(volumenSesion, TipoParte.inicial.porcentajePrescrito, unidad);
-  final objetivoPreSet =
-      _cuantizarPorcentaje(volumenSesion, porcentajePreSetDeSesion, unidad);
-  final objetivoFinal =
-      _cuantizarPorcentaje(volumenSesion, TipoParte.cierre.porcentajePrescrito, unidad);
+  final objetivoInicial = _cuantizarPorcentaje(
+    volumenSesion,
+    TipoParte.inicial.porcentajePrescrito,
+    unidad,
+  );
+  final objetivoPreSet = _cuantizarPorcentaje(
+    volumenSesion,
+    porcentajePreSetDeSesion,
+    unidad,
+  );
+  final objetivoFinal = _cuantizarPorcentaje(
+    volumenSesion,
+    TipoParte.cierre.porcentajePrescrito,
+    unidad,
+  );
   final objetivoPrincipal =
       volumenSesion - objetivoInicial - objetivoPreSet - objetivoFinal;
 
   // Copia mutable del presupuesto de zonas de la sesión.
   final disponible = <Zona, int>{...zonasDeSesion};
 
-  final inicial = _llenar(objetivoInicial, preferenciaDeZonas[TipoParte.inicial]!, disponible, unidad);
+  final inicial = _llenar(
+    objetivoInicial,
+    preferenciaDeZonas[TipoParte.inicial]!,
+    disponible,
+    unidad,
+  );
   final preSet = _llenar(objetivoPreSet, preferenciaPreSet, disponible, unidad);
-  final principal = _llenar(objetivoPrincipal, preferenciaDeZonas[TipoParte.central]!, disponible, unidad);
-  final cierre = _llenar(objetivoFinal, preferenciaDeZonas[TipoParte.cierre]!, disponible, unidad);
+  final principal = _llenar(
+    objetivoPrincipal,
+    preferenciaDeZonas[TipoParte.central]!,
+    disponible,
+    unidad,
+  );
+  final cierre = _llenar(
+    objetivoFinal,
+    preferenciaDeZonas[TipoParte.cierre]!,
+    disponible,
+    unidad,
+  );
 
   return [
-    ReparteParte(tipo: TipoParte.inicial, metros: objetivoInicial, metrosPorZona: inicial),
-    ReparteParte(tipo: TipoParte.central, metros: objetivoPreSet, metrosPorZona: preSet, esPreSet: true),
-    ReparteParte(tipo: TipoParte.central, metros: objetivoPrincipal, metrosPorZona: principal),
-    ReparteParte(tipo: TipoParte.cierre, metros: objetivoFinal, metrosPorZona: cierre),
+    ReparteParte(
+      tipo: TipoParte.inicial,
+      metros: objetivoInicial,
+      metrosPorZona: inicial,
+    ),
+    ReparteParte(
+      tipo: TipoParte.central,
+      metros: objetivoPreSet,
+      metrosPorZona: preSet,
+      esPreSet: true,
+    ),
+    ReparteParte(
+      tipo: TipoParte.central,
+      metros: objetivoPrincipal,
+      metrosPorZona: principal,
+    ),
+    ReparteParte(
+      tipo: TipoParte.cierre,
+      metros: objetivoFinal,
+      metrosPorZona: cierre,
+    ),
   ];
 }
 
@@ -153,8 +194,9 @@ Estilo estiloDeSesion({
 
   // Las sesiones que corresponden al estilo objetivo, redondeando hacia
   // arriba: el estilo objetivo nunca queda por debajo de lo que le toca.
-  final sesionesObjetivo =
-      (totalSesiones * porcentajeObjetivo / 100).ceil().clamp(1, totalSesiones);
+  final sesionesObjetivo = (totalSesiones * porcentajeObjetivo / 100)
+      .ceil()
+      .clamp(1, totalSesiones);
 
   if (indiceSesion < sesionesObjetivo) return estiloObjetivo;
 

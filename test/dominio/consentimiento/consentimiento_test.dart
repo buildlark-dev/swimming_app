@@ -16,16 +16,15 @@ void main() {
     Otorgante otorgante = acudiente,
     bool menorFueOido = true,
     DateTime? revocadoEn,
-  }) =>
-      Consentimiento(
-        nadadorId: 'n1',
-        otorgadoPor: otorgante,
-        otorgadoEn: cuando,
-        alcances: alcances,
-        versionDelTexto: 'v1',
-        menorFueOido: menorFueOido,
-        revocadoEn: revocadoEn,
-      );
+  }) => Consentimiento(
+    nadadorId: 'n1',
+    otorgadoPor: otorgante,
+    otorgadoEn: cuando,
+    alcances: alcances,
+    versionDelTexto: 'v1',
+    menorFueOido: menorFueOido,
+    revocadoEn: revocadoEn,
+  );
 
   group('un consentimiento tiene que amparar algo', () {
     test('sin alcances no se construye', () {
@@ -45,18 +44,21 @@ void main() {
       );
     });
 
-    test('un mayor de edad que consiente por sí mismo no necesita oír a nadie', () {
-      final propio = consentimiento(
-        otorgante: const Otorgante.elPropioNadador(
-          nombre: 'Juan Pérez',
-          documento: '1020304050',
-        ),
-        menorFueOido: false,
-      );
+    test(
+      'un mayor de edad que consiente por sí mismo no necesita oír a nadie',
+      () {
+        final propio = consentimiento(
+          otorgante: const Otorgante.elPropioNadador(
+            nombre: 'Juan Pérez',
+            documento: '1020304050',
+          ),
+          menorFueOido: false,
+        );
 
-      expect(propio.vigente, isTrue);
-      expect(propio.otorgadoPor.esElPropioNadador, isTrue);
-    });
+        expect(propio.vigente, isTrue);
+        expect(propio.otorgadoPor.esElPropioNadador, isTrue);
+      },
+    );
   });
 
   group('FR-023 — el alcance no se concede en bloque', () {
@@ -67,7 +69,8 @@ void main() {
       expect(
         soloEntrenamiento.cubre(Alcance.video),
         isFalse,
-        reason: 'El principio V exige que el consentimiento de video sea '
+        reason:
+            'El principio V exige que el consentimiento de video sea '
             'específico y separado. Si conceder uno concediera el otro, la '
             'familia habría autorizado algo que no leyó',
       );
@@ -110,7 +113,8 @@ void main() {
       expect(
         revocado.otorgadoEn,
         cuando,
-        reason: 'Ese registro es la prueba de que el tratamiento anterior '
+        reason:
+            'Ese registro es la prueba de que el tratamiento anterior '
             'estuvo amparado. Borrarlo al revocar destruiría justamente la '
             'evidencia que protege al entrenador',
       );
@@ -128,22 +132,25 @@ void main() {
   });
 
   group('FR-018 — el texto informativo va versionado', () {
-    test('cada consentimiento consta bajo la versión que su otorgante leyó', () {
-      final viejo = Consentimiento(
-        nadadorId: 'n1',
-        otorgadoPor: acudiente,
-        otorgadoEn: cuando,
-        alcances: const {Alcance.datosDeEntrenamiento},
-        versionDelTexto: 'v1',
-        menorFueOido: true,
-      );
+    test(
+      'cada consentimiento consta bajo la versión que su otorgante leyó',
+      () {
+        final viejo = Consentimiento(
+          nadadorId: 'n1',
+          otorgadoPor: acudiente,
+          otorgadoEn: cuando,
+          alcances: const {Alcance.datosDeEntrenamiento},
+          versionDelTexto: 'v1',
+          menorFueOido: true,
+        );
 
-      final nuevo = consentimiento();
+        final nuevo = consentimiento();
 
-      // Cambiar el texto no reescribe lo que alguien ya aceptó.
-      expect(viejo.versionDelTexto, 'v1');
-      expect(nuevo.versionDelTexto, 'v1');
-    });
+        // Cambiar el texto no reescribe lo que alguien ya aceptó.
+        expect(viejo.versionDelTexto, 'v1');
+        expect(nuevo.versionDelTexto, 'v1');
+      },
+    );
   });
 
   group('lo que el otorgante declara', () {
@@ -173,8 +180,10 @@ void main() {
 
   group('los alcances se leen de su clave sin interpretarse', () {
     test('las claves son las que viajan al servidor', () {
-      expect(Alcance.porClave('datosDeEntrenamiento'),
-          Alcance.datosDeEntrenamiento);
+      expect(
+        Alcance.porClave('datosDeEntrenamiento'),
+        Alcance.datosDeEntrenamiento,
+      );
       expect(Alcance.porClave('video'), Alcance.video);
     });
 

@@ -32,18 +32,18 @@ abstract final class EstadosDePlan {
   /// firmado, algo entregado. El de `aprobado` es un sello y el de `publicado`
   /// una entrega, no dos vistos distintos.
   static IconData iconoDe(EstadoPlan estado) => switch (estado) {
-        EstadoPlan.borrador => Icons.edit_note,
-        EstadoPlan.aprobado => Icons.verified_outlined,
-        EstadoPlan.publicado => Icons.send_outlined,
-      };
+    EstadoPlan.borrador => Icons.edit_note,
+    EstadoPlan.aprobado => Icons.verified_outlined,
+    EstadoPlan.publicado => Icons.send_outlined,
+  };
 
   /// Lo que significa, en una línea.
   ///
   /// Va debajo del nombre del estado porque «aprobado» no le dice a nadie que
   /// el plan sigue sin entregar.
   static String explicacionDe(EstadoPlan estado) => switch (estado) {
-        EstadoPlan.borrador => 'Todavía no es de nadie',
-        EstadoPlan.aprobado => 'Firmado, pero aún sin entregar',
-        EstadoPlan.publicado => 'Es el entrenamiento de alguien',
-      };
+    EstadoPlan.borrador => 'Todavía no es de nadie',
+    EstadoPlan.aprobado => 'Firmado, pero aún sin entregar',
+    EstadoPlan.publicado => 'Es el entrenamiento de alguien',
+  };
 }

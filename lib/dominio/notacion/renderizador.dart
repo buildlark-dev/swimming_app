@@ -99,8 +99,7 @@ class Renderizador {
   }
 
   /// Escribe todas las series de una parte, una por línea.
-  String parte(Parte parte) =>
-      parte.series.map(serie).join('\n');
+  String parte(Parte parte) => parte.series.map(serie).join('\n');
 
   /// Escribe una lista de series, una por línea.
   String series(List<Serie> lista) => lista.map(serie).join('\n');

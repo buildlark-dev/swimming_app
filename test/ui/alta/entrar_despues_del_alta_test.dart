@@ -72,13 +72,14 @@ void main() {
   /// Escribe a través del estado que la propia puerta creó, porque lo que se
   /// prueba es lo que pasa **después** de terminar, no cómo se rellena.
   Future<void> terminarElAlta(WidgetTester tester) async {
-    final estado = Provider.of<EstadoAlta>(
-      tester.element(find.byType(PantallaAlta)),
-      listen: false,
-    )
-      ..escribirNombre('Ana María')
-      ..escribirNacimiento(DateTime(1995, 4, 12))
-      ..aceptarTerminos(aceptados: true);
+    final estado =
+        Provider.of<EstadoAlta>(
+            tester.element(find.byType(PantallaAlta)),
+            listen: false,
+          )
+          ..escribirNombre('Ana María')
+          ..escribirNacimiento(DateTime(1995, 4, 12))
+          ..aceptarTerminos(aceptados: true);
 
     while (!estado.esElUltimo) {
       estado.avanzar();
@@ -90,8 +91,9 @@ void main() {
   }
 
   group('al terminar el alta, «Entrar» entra', () {
-    testWidgets('aunque la lectura del perfil todavía no vea lo guardado',
-        (tester) async {
+    testWidgets('aunque la lectura del perfil todavía no vea lo guardado', (
+      tester,
+    ) async {
       // El caso real: el servidor guardó y contestó, y el cliente sigue
       // leyendo vacío. Antes volvía al alta; es el fallo que se reportó.
       await abrir(tester, repositorio: RepositorioPerfilEnMemoria());
@@ -105,7 +107,8 @@ void main() {
       expect(
         find.text('Mi entrenamiento'),
         findsOneWidget,
-        reason: 'El alta la guardó el servidor y contestó. Devolver al alta a '
+        reason:
+            'El alta la guardó el servidor y contestó. Devolver al alta a '
             'quien acaba de terminarla es pedirle los mismos datos dos veces',
       );
       expect(find.text('¿Cómo te llamas?'), findsNothing);
@@ -161,8 +164,9 @@ void main() {
       expect(debajo.intentos, 1);
     });
 
-    testWidgets('con un fallo al abrir, se entra sin pasar por el alta',
-        (tester) async {
+    testWidgets('con un fallo al abrir, se entra sin pasar por el alta', (
+      tester,
+    ) async {
       await abrir(
         tester,
         repositorio: RepositorioPerfilConReintentos(
@@ -175,7 +179,8 @@ void main() {
       expect(
         find.text('Mi entrenamiento'),
         findsOneWidget,
-        reason: 'Es el caso de cerrar sesión y volver a entrar: la lectura '
+        reason:
+            'Es el caso de cerrar sesión y volver a entrar: la lectura '
             'falla una vez porque el cliente aún no lleva el token nuevo',
       );
     });
@@ -202,14 +207,30 @@ class _RepositorioQueFalla implements RepositorioPerfil {
 }
 
 class _ServidorQueAcepta implements OperacionesDelServidor {
+  // La feature 007 añadió estas dos: aquí no se usan, y lo que importa es
+  // que el doble siga cumpliendo la interfaz.
+  @override
+  Future<PerfilCorregido> corregirPerfil({
+    required String nombre,
+    required DateTime fechaNacimiento,
+    String? pais,
+  }) async => PerfilCorregido(nombre: nombre, esMenor: false);
+
+  @override
+  Future<DatosSuprimidos> suprimirMisDatos() async => const DatosSuprimidos(
+    registrosEliminados: 0,
+    asignacionesRetiradas: 0,
+    perfilEliminado: false,
+    cuentaEliminada: false,
+  );
+
   @override
   Future<PerfilGuardado> guardarPerfil({
     required String nombre,
     required DateTime fechaNacimiento,
     String? pais,
     required String versionDeTerminos,
-  }) async =>
-      const PerfilGuardado(esMenor: false, nadadorId: 'n1');
+  }) async => const PerfilGuardado(esMenor: false, nadadorId: 'n1');
 
   @override
   Future<void> pedirConsentimiento({

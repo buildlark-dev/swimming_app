@@ -59,10 +59,12 @@ void main() {
         cargarBibliotecaReal(),
       );
 
-      final zonasOriginales =
-          plan.sesiones.first.todasLasSeries.map((s) => s.zona).toList();
-      final zonasRecuperadas =
-          recuperado.sesiones.first.todasLasSeries.map((s) => s.zona).toList();
+      final zonasOriginales = plan.sesiones.first.todasLasSeries
+          .map((s) => s.zona)
+          .toList();
+      final zonasRecuperadas = recuperado.sesiones.first.todasLasSeries
+          .map((s) => s.zona)
+          .toList();
 
       expect(zonasRecuperadas, zonasOriginales);
     });
@@ -78,8 +80,9 @@ void main() {
     });
 
     test('conserva el origen del plan', () {
-      final generado =
-          constructor.comoGenerado(constructor.planAcumulacionCorrecto());
+      final generado = constructor.comoGenerado(
+        constructor.planAcumulacionCorrecto(),
+      );
       final recuperado = planDesdeJson(
         planAJson(generado, conSesiones: true),
         cargarBibliotecaReal(),
@@ -105,8 +108,10 @@ void main() {
       final json = planAJson(constructor.planAcumulacionCorrecto())
         ..remove('origen');
 
-      expect(planDesdeJson(json, cargarBibliotecaReal()).origen,
-          OrigenPlan.manual);
+      expect(
+        planDesdeJson(json, cargarBibliotecaReal()).origen,
+        OrigenPlan.manual,
+      );
     });
 
     test('no guarda los derivados: se recalculan', () {
@@ -165,9 +170,9 @@ void main() {
   group('el repositorio protege la inmutabilidad', () {
     test('no deja sobrescribir un plan aprobado', () async {
       final repositorio = RepositorioPlanesMemoria();
-      final aprobado = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(estado: EstadoPlan.aprobado);
+      final aprobado = constructor.planAcumulacionCorrecto().copiarCon(
+        estado: EstadoPlan.aprobado,
+      );
 
       expect(
         () => repositorio.guardarBorrador(aprobado),
@@ -190,9 +195,9 @@ void main() {
     test('la versión nueva apunta al plan aprobado', () async {
       final repositorio = RepositorioPlanesMemoria();
       final aprobado = constructor.planAcumulacionCorrecto().copiarCon(
-            id: 'plan-aprobado',
-            estado: EstadoPlan.aprobado,
-          );
+        id: 'plan-aprobado',
+        estado: EstadoPlan.aprobado,
+      );
       await repositorio.guardarAprobado(aprobado, <String, dynamic>{});
 
       final nueva = await repositorio.crearVersionDesde('plan-aprobado');

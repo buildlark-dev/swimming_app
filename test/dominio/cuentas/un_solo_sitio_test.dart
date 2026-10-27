@@ -34,10 +34,11 @@ void main() {
   test('A4 — nadie más calcula la mayoría de edad', () {
     final infracciones = <String>[];
 
-    for (final archivo in Directory('lib')
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.dart'))) {
+    for (final archivo
+        in Directory('lib')
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.dart'))) {
       final ruta = archivo.path.replaceAll(r'\', '/');
       if (ruta.endsWith(elSitio)) continue;
 
@@ -55,7 +56,8 @@ void main() {
     expect(
       infracciones,
       isEmpty,
-      reason: 'Esto calcula la mayoría de edad por su cuenta. Pregúntale a '
+      reason:
+          'Esto calcula la mayoría de edad por su cuenta. Pregúntale a '
           '`$elSitio`: si hay dos respuestas, un día serán distintas, y el día '
           'que lo sean alguien se habrá quedado sin que le pidan el '
           'consentimiento.\n\n'
@@ -123,7 +125,8 @@ void main() {
       expect(
         patron.hasMatch(fuente),
         isTrue,
-        reason: 'Si el cálculo ya no está aquí, se habrá ido a otro sitio y '
+        reason:
+            'Si el cálculo ya no está aquí, se habrá ido a otro sitio y '
             'esta prueba estaría vigilando una casa vacía',
       );
     });

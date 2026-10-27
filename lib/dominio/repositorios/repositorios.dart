@@ -196,4 +196,13 @@ abstract class Identidad {
   ///
   /// No es una cortesía. El grupo son hermanos que comparten teléfono.
   Future<void> cerrarSesion();
+
+  /// Pide por correo el cambio de contraseña de quien está dentro.
+  ///
+  /// **Por correo y no en una pantalla** (decisión D9, garantía H30). Un
+  /// formulario que pide la contraseña nueva sin comprobar quién la escribe
+  /// deja que cualquiera con el teléfono desbloqueado se quede con la cuenta, y
+  /// el teléfono lo comparten hermanos. El correo ya está verificado desde el
+  /// alta.
+  Future<void> pedirCambioDeClave();
 }

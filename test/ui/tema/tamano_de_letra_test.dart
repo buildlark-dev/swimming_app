@@ -24,16 +24,17 @@ void main() {
   /// Un teléfono barato, que es el que hay.
   const telefono = Size(360, 640);
 
-  Widget enTelefono(Widget pantalla, {required double escala, required ThemeData tema}) {
+  Widget enTelefono(
+    Widget pantalla, {
+    required double escala,
+    required ThemeData tema,
+  }) {
     return MediaQuery(
       data: MediaQueryData(
         size: telefono,
         textScaler: TextScaler.linear(escala),
       ),
-      child: MaterialApp(
-        theme: tema,
-        home: pantalla,
-      ),
+      child: MaterialApp(theme: tema, home: pantalla),
     );
   }
 
@@ -64,7 +65,8 @@ void main() {
         expect(
           tester.takeException(),
           isNull,
-          reason: 'La pantalla «${pantalla.nombre}» se rompe con la letra al '
+          reason:
+              'La pantalla «${pantalla.nombre}» se rompe con la letra al '
               '200%. No se arregla encogiendo el texto: se arregla dejando '
               'que lo que no cabe en una línea baje a la siguiente',
         );

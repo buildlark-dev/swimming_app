@@ -42,29 +42,27 @@ void main() {
   }
 
   EstadoDelNadador conOrigen(OrigenDeLaDeclaracion? origen) => EstadoDelNadador(
-        nadadorId: 'n1',
-        nombre: 'Ana María Restrepo',
-        estado: EstadoDeConsentimiento.vigente,
-        alcances: const {Alcance.datosDeEntrenamiento},
-        origen: origen,
-      );
+    nadadorId: 'n1',
+    nombre: 'Ana María Restrepo',
+    estado: EstadoDeConsentimiento.vigente,
+    alcances: const {Alcance.datosDeEntrenamiento},
+    origen: origen,
+  );
 
   group('A9 — el origen se ve', () {
     testWidgets('uno declarado por el nadador lo dice', (tester) async {
-      await abrir(
-        tester,
-        [conOrigen(OrigenDeLaDeclaracion.declaradoPorElNadador)],
-      );
+      await abrir(tester, [
+        conOrigen(OrigenDeLaDeclaracion.declaradoPorElNadador),
+      ]);
 
       expect(find.byKey(const Key('origen-n1')), findsOneWidget);
       expect(find.text('Declarado por el nadador'), findsOneWidget);
     });
 
     testWidgets('uno de la matrícula del entrenador, también', (tester) async {
-      await abrir(
-        tester,
-        [conOrigen(OrigenDeLaDeclaracion.matriculaDelEntrenador)],
-      );
+      await abrir(tester, [
+        conOrigen(OrigenDeLaDeclaracion.matriculaDelEntrenador),
+      ]);
 
       expect(find.text('De la matrícula del entrenador'), findsOneWidget);
     });
@@ -92,8 +90,9 @@ void main() {
       expect(uno.data, isNot(otro.data));
     });
 
-    testWidgets('sin haber pedido nada, no se inventa un origen',
-        (tester) async {
+    testWidgets('sin haber pedido nada, no se inventa un origen', (
+      tester,
+    ) async {
       await abrir(tester, [
         const EstadoDelNadador(
           nadadorId: 'n1',
@@ -110,10 +109,9 @@ void main() {
     testWidgets('aunque el consentimiento ya esté vigente', (tester) async {
       // Es la salida que el entrenador tiene si no se fía del canal que
       // declaró el nadador.
-      await abrir(
-        tester,
-        [conOrigen(OrigenDeLaDeclaracion.declaradoPorElNadador)],
-      );
+      await abrir(tester, [
+        conOrigen(OrigenDeLaDeclaracion.declaradoPorElNadador),
+      ]);
 
       expect(find.text('Volver a pedir'), findsOneWidget);
     });

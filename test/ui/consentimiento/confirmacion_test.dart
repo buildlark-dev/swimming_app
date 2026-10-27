@@ -33,8 +33,14 @@ void main() {
   }
 
   Future<void> rellenar(WidgetTester tester) async {
-    await tester.enterText(find.byKey(const Key('campo-nombre')), 'María Gómez');
-    await tester.enterText(find.byKey(const Key('campo-documento')), '43123456');
+    await tester.enterText(
+      find.byKey(const Key('campo-nombre')),
+      'María Gómez',
+    );
+    await tester.enterText(
+      find.byKey(const Key('campo-documento')),
+      '43123456',
+    );
     await tester.enterText(find.byKey(const Key('campo-calidad')), 'madre');
     await tester.pump();
   }
@@ -44,8 +50,9 @@ void main() {
   bool estaHabilitado(WidgetTester tester) =>
       tester.widget<FilledButton>(botonConfirmar()).onPressed != null;
 
-  testWidgets('el texto informativo está delante, no detrás de un enlace',
-      (tester) async {
+  testWidgets('el texto informativo está delante, no detrás de un enlace', (
+    tester,
+  ) async {
     await abrir(tester);
     expect(find.byKey(const Key('texto-informativo')), findsOneWidget);
     expect(find.text('Texto informativo de prueba'), findsOneWidget);
@@ -78,7 +85,8 @@ void main() {
     expect(
       estaHabilitado(tester),
       isFalse,
-      reason: 'Declarar ser el representante no basta: el Decreto 1377 pide '
+      reason:
+          'Declarar ser el representante no basta: el Decreto 1377 pide '
           'que el menor haya sido oído',
     );
 
@@ -134,30 +142,34 @@ void main() {
     expect(
       registrada!.versionDelTexto,
       'v1',
-      reason: 'Cada consentimiento consta bajo la versión del texto que su '
+      reason:
+          'Cada consentimiento consta bajo la versión del texto que su '
           'otorgante leyó (FR-018)',
     );
   });
 
-  testWidgets('al quedar registrado se le dice, y se le dice qué hacer si no fue él',
-      (tester) async {
-    await abrir(tester);
-    await rellenar(tester);
-    await tester.tap(find.byKey(const Key('casilla-representante')));
-    await tester.tap(find.byKey(const Key('casilla-menor-oido')));
-    await tester.pump();
+  testWidgets(
+    'al quedar registrado se le dice, y se le dice qué hacer si no fue él',
+    (tester) async {
+      await abrir(tester);
+      await rellenar(tester);
+      await tester.tap(find.byKey(const Key('casilla-representante')));
+      await tester.tap(find.byKey(const Key('casilla-menor-oido')));
+      await tester.pump();
 
-    await tester.ensureVisible(botonConfirmar());
-    await tester.pump();
-    await tester.tap(botonConfirmar());
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(botonConfirmar());
+      await tester.pump();
+      await tester.tap(botonConfirmar());
+      await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('confirmacion-registrada')), findsOneWidget);
-    expect(find.textContaining('avise al entrenador'), findsOneWidget);
-  });
+      expect(find.byKey(const Key('confirmacion-registrada')), findsOneWidget);
+      expect(find.textContaining('avise al entrenador'), findsOneWidget);
+    },
+  );
 
-  testWidgets('si el servidor rechaza, se muestra y no se da por registrado',
-      (tester) async {
+  testWidgets('si el servidor rechaza, se muestra y no se da por registrado', (
+    tester,
+  ) async {
     aDevolver = 'Este enlace no sirve.';
 
     await abrir(tester);
@@ -175,9 +187,14 @@ void main() {
     expect(find.byKey(const Key('confirmacion-registrada')), findsNothing);
   });
 
-  testWidgets('se le recuerda que puede retirarla sin pasar por el entrenador',
-      (tester) async {
-    await abrir(tester);
-    expect(find.textContaining('sin pasar por el entrenador'), findsOneWidget);
-  });
+  testWidgets(
+    'se le recuerda que puede retirarla sin pasar por el entrenador',
+    (tester) async {
+      await abrir(tester);
+      expect(
+        find.textContaining('sin pasar por el entrenador'),
+        findsOneWidget,
+      );
+    },
+  );
 }

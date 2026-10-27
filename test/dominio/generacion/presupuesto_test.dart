@@ -55,24 +55,29 @@ void main() {
       expect(presupuesto.volumenTotal, 6000);
     });
 
-    test('la distribución es A1 3.300 · A2 1.375 · A3 600 · AT 300 · Máx 425',
-        () {
-      expect(presupuesto.metrosPorZona[Zona.a1], 3300);
-      expect(presupuesto.metrosPorZona[Zona.a2], 1375);
-      expect(presupuesto.metrosPorZona[Zona.a3], 600);
-      expect(presupuesto.metrosPorZona[Zona.at], 300);
-      expect(presupuesto.metrosPorZona[Zona.resistenciaIntensiva], 425);
-      expect(presupuesto.metrosPorZona[Zona.velocidad], 0);
-      expect(presupuesto.metrosPorZona[Zona.explosivo], 0);
-    });
+    test(
+      'la distribución es A1 3.300 · A2 1.375 · A3 600 · AT 300 · Máx 425',
+      () {
+        expect(presupuesto.metrosPorZona[Zona.a1], 3300);
+        expect(presupuesto.metrosPorZona[Zona.a2], 1375);
+        expect(presupuesto.metrosPorZona[Zona.a3], 600);
+        expect(presupuesto.metrosPorZona[Zona.at], 300);
+        expect(presupuesto.metrosPorZona[Zona.resistenciaIntensiva], 425);
+        expect(presupuesto.metrosPorZona[Zona.velocidad], 0);
+        expect(presupuesto.metrosPorZona[Zona.explosivo], 0);
+      },
+    );
 
     test('agrupada en tres zonas, cae en el envolvente piramidal', () {
       // Z1 = A1 + A2 · Z2 = A3 + AT · Z3 = el resto.
-      final z1 = presupuesto.metrosPorZona[Zona.a1]! +
+      final z1 =
+          presupuesto.metrosPorZona[Zona.a1]! +
           presupuesto.metrosPorZona[Zona.a2]!;
-      final z2 = presupuesto.metrosPorZona[Zona.a3]! +
+      final z2 =
+          presupuesto.metrosPorZona[Zona.a3]! +
           presupuesto.metrosPorZona[Zona.at]!;
-      final z3 = presupuesto.metrosPorZona[Zona.resistenciaIntensiva]! +
+      final z3 =
+          presupuesto.metrosPorZona[Zona.resistenciaIntensiva]! +
           presupuesto.metrosPorZona[Zona.velocidad]! +
           presupuesto.metrosPorZona[Zona.explosivo]!;
 
@@ -85,7 +90,8 @@ void main() {
       expect(
         modelo.rangoDe(ZonaTid.z3).contiene(z3 * 100 / total),
         isTrue,
-        reason: 'Acumulación ahora lleva Z3: el modelo piramidal publicado '
+        reason:
+            'Acumulación ahora lleva Z3: el modelo piramidal publicado '
             'prescribe del 6 al 10%, y la tabla anterior no pedía ninguno',
       );
     });
@@ -106,7 +112,8 @@ void main() {
 
       for (final fase in fases) {
         for (final piscina in [25, 50]) {
-          final etiqueta = '${categoria.nombre} · '
+          final etiqueta =
+              '${categoria.nombre} · '
               '${fase?.nombre ?? 'sin ATR'} · piscina $piscina';
 
           test('$etiqueta: el volumen cae dentro del rango', () {
@@ -117,7 +124,8 @@ void main() {
             expect(
               categoria.volumenPorSesion.contiene(p.volumenPorSesion),
               isTrue,
-              reason: '${p.volumenPorSesion} m fuera de '
+              reason:
+                  '${p.volumenPorSesion} m fuera de '
                   '${categoria.volumenPorSesion}',
             );
           });
@@ -127,8 +135,7 @@ void main() {
               peticionPara(categoria, fase, piscina),
             );
 
-            final suma =
-                p.metrosPorZona.values.fold(0, (a, b) => a + b);
+            final suma = p.metrosPorZona.values.fold(0, (a, b) => a + b);
             expect(suma, p.volumenTotal);
           });
 
@@ -137,10 +144,7 @@ void main() {
               peticionPara(categoria, fase, piscina),
             );
 
-            expect(
-              p.metrosPorSesion.fold(0, (a, b) => a + b),
-              p.volumenTotal,
-            );
+            expect(p.metrosPorSesion.fold(0, (a, b) => a + b), p.volumenTotal);
             expect(p.metrosPorSesion, hasLength(categoria.sesionesPorSemana));
           });
 
@@ -159,8 +163,7 @@ void main() {
           });
 
           if (fase != null) {
-            test('$etiqueta: ninguna zona se desvía más que la tolerancia',
-                () {
+            test('$etiqueta: ninguna zona se desvía más que la tolerancia', () {
               final p = calcularPresupuesto(
                 peticionPara(categoria, fase, piscina),
               );
@@ -171,7 +174,8 @@ void main() {
                 expect(
                   Tolerancia.predeterminada.admite(real - prescrito),
                   isTrue,
-                  reason: '${zona.abreviatura}: '
+                  reason:
+                      '${zona.abreviatura}: '
                       '${real.toStringAsFixed(2)}% frente a $prescrito%',
                 );
               }
@@ -187,7 +191,8 @@ void main() {
                   p.porcentajeTecnico - fase.porcentajeTecnico,
                 ),
                 isTrue,
-                reason: '${p.porcentajeTecnico.toStringAsFixed(2)}% frente a '
+                reason:
+                    '${p.porcentajeTecnico.toStringAsFixed(2)}% frente a '
                     '${fase.porcentajeTecnico}%',
               );
             });
@@ -217,10 +222,7 @@ void main() {
         peticionPara(Categoria.precompetitivo, FaseAtr.acumulacion, 25),
       );
 
-      expect(
-        p.metrosPorEstilo.values.fold(0, (a, b) => a + b),
-        p.volumenTotal,
-      );
+      expect(p.metrosPorEstilo.values.fold(0, (a, b) => a + b), p.volumenTotal);
     });
 
     test('con objetivo Pecho, reparte mitad y mitad', () {
@@ -259,8 +261,11 @@ void main() {
 
   group('determinismo del presupuesto', () {
     test('la misma petición da el mismo presupuesto', () {
-      final peticion =
-          peticionPara(Categoria.competitivo, FaseAtr.transformacion, 25);
+      final peticion = peticionPara(
+        Categoria.competitivo,
+        FaseAtr.transformacion,
+        25,
+      );
 
       final uno = calcularPresupuesto(peticion);
       final dos = calcularPresupuesto(peticion);

@@ -55,7 +55,8 @@ enum ModeloTid {
       ZonaTid.z2: RangoTid(12, 30),
       ZonaTid.z3: RangoTid(6, 10),
     },
-    fuente: 'Filipas et al. 2022 (75-81/12-18/6-8) ∪ '
+    fuente:
+        'Filipas et al. 2022 (75-81/12-18/6-8) ∪ '
         'Arroyo-Toledo et al. 2021, en nadadores (60/30/10)',
   ),
   umbral(
@@ -66,7 +67,8 @@ enum ModeloTid {
       ZonaTid.z2: RangoTid(25, 61),
       ZonaTid.z3: RangoTid(0, 10),
     },
-    fuente: 'Stöggl & Sperlich 2014 (39-53/47-61/0) ∪ '
+    fuente:
+        'Stöggl & Sperlich 2014 (39-53/47-61/0) ∪ '
         'Pla et al. 2019, en nadadores (65/25/10)',
   ),
   polarizado(
@@ -77,7 +79,8 @@ enum ModeloTid {
       ZonaTid.z2: RangoTid(0, 14),
       ZonaTid.z3: RangoTid(15, 33),
     },
-    fuente: 'Stöggl & Sperlich 2014 (56-80/0-14/19-33) ∪ '
+    fuente:
+        'Stöggl & Sperlich 2014 (56-80/0-14/19-33) ∪ '
         'Pla et al. 2019 (81/4/15) ∪ Arroyo-Toledo et al. 2021 (82/0/18), '
         'los dos últimos en nadadores',
   );

@@ -28,10 +28,7 @@ library;
 /// Si viviera dentro del texto libre, encontrarlo dependería de que alguien
 /// leyera todas las observaciones de todas las sesiones.
 class ReporteDeMolestia {
-  const ReporteDeMolestia({
-    required this.descripcion,
-    this.zonaDelCuerpo = '',
-  });
+  const ReporteDeMolestia({required this.descripcion, this.zonaDelCuerpo = ''});
 
   final String descripcion;
 
@@ -134,8 +131,7 @@ class RegistroDeSesion {
     required String planId,
     required String sesionId,
     required String versionDePlan,
-  }) =>
-      '$nadadorId|$planId|$sesionId|$versionDePlan';
+  }) => '$nadadorId|$planId|$sesionId|$versionDePlan';
 
   final String id;
   final String nadadorId;

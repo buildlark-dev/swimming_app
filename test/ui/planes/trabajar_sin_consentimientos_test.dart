@@ -29,41 +29,41 @@ void main() {
   );
 
   Plan borrador() => Plan(
-        id: 'p1',
-        nombre: 'Microciclo de base',
-        categoria: Categoria.iniciacion,
-        estiloObjetivo: Estilo.libre,
-        pruebaObjetivo: '100 Libre',
-        estado: EstadoPlan.borrador,
-        microciclos: const [
-          Microciclo(id: 'm1', nombre: 'Semana 1', orden: 1, objetivo: 'Base'),
-        ],
-        sesiones: [
-          for (var i = 1; i <= 2; i++)
-            Sesion(
-              id: 's$i',
-              microcicloId: 'm1',
-              fecha: DateTime(2026, 10, i),
-              objetivoTecnico: 'Adaptación acuática',
-              objetivoFisiologico: 'Base aeróbica',
-              partes: [
-                Parte(
-                  tipo: TipoParte.inicial,
-                  series: const [
-                    Serie(
-                      repeticiones: 6,
-                      distancia: 50,
-                      zona: Zona.a1,
-                      estilo: Estilo.libre,
-                    ),
-                  ],
+    id: 'p1',
+    nombre: 'Microciclo de base',
+    categoria: Categoria.iniciacion,
+    estiloObjetivo: Estilo.libre,
+    pruebaObjetivo: '100 Libre',
+    estado: EstadoPlan.borrador,
+    microciclos: const [
+      Microciclo(id: 'm1', nombre: 'Semana 1', orden: 1, objetivo: 'Base'),
+    ],
+    sesiones: [
+      for (var i = 1; i <= 2; i++)
+        Sesion(
+          id: 's$i',
+          microcicloId: 'm1',
+          fecha: DateTime(2026, 10, i),
+          objetivoTecnico: 'Adaptación acuática',
+          objetivoFisiologico: 'Base aeróbica',
+          partes: [
+            Parte(
+              tipo: TipoParte.inicial,
+              series: const [
+                Serie(
+                  repeticiones: 6,
+                  distancia: 50,
+                  zona: Zona.a1,
+                  estilo: Estilo.libre,
                 ),
-                const Parte(tipo: TipoParte.central),
-                const Parte(tipo: TipoParte.cierre),
               ],
             ),
-        ],
-      );
+            const Parte(tipo: TipoParte.central),
+            const Parte(tipo: TipoParte.cierre),
+          ],
+        ),
+    ],
+  );
 
   final entrenador = Cuenta(id: 'u-e', rol: Rol.entrenador);
 
@@ -103,8 +103,9 @@ void main() {
     test('se puede publicar: publicar no es entregar a nadie', () {
       // Un plan publicado sin asignar no es de nadie, y por eso publicarlo no
       // toca los datos de nadie.
-      final resultado =
-          ciclo.publicar(borrador().copiarCon(estado: EstadoPlan.aprobado));
+      final resultado = ciclo.publicar(
+        borrador().copiarCon(estado: EstadoPlan.aprobado),
+      );
 
       expect(resultado, isA<TransicionHecha>());
     });
@@ -142,7 +143,8 @@ void main() {
       expect(
         puerta.consultas,
         0,
-        reason: 'El trabajo del entrenador es su obra profesional y no son '
+        reason:
+            'El trabajo del entrenador es su obra profesional y no son '
             'datos personales de nadie. Si la puerta se consultara aquí, '
             'sería una puerta de trabajo y no de publicación',
       );

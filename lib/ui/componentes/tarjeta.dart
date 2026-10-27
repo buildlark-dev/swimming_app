@@ -34,7 +34,9 @@ class Tarjeta extends StatelessWidget {
     );
 
     if (alPulsar == null) {
-      return Card(child: Padding(padding: relleno, child: child));
+      return Card(
+        child: Padding(padding: relleno, child: child),
+      );
     }
 
     return Card(

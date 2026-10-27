@@ -172,7 +172,8 @@ class _Bienvenida extends StatelessWidget {
                 const Aviso(
                   tono: TonoDeAviso.exito,
                   claveDelMensaje: Key('alta-solicitud-enviada'),
-                  mensaje: 'Le enviamos un correo a tu acudiente para pedirle '
+                  mensaje:
+                      'Le enviamos un correo a tu acudiente para pedirle '
                       'permiso. Mientras tanto puedes usar la app con '
                       'normalidad: lo que anotes se guarda en tu teléfono.',
                 ),
@@ -186,7 +187,8 @@ class _Bienvenida extends StatelessWidget {
                 const Aviso(
                   tono: TonoDeAviso.informativo,
                   claveDelMensaje: Key('alta-sin-acudiente'),
-                  mensaje: 'Todavía no nos diste el correo de tu acudiente. '
+                  mensaje:
+                      'Todavía no nos diste el correo de tu acudiente. '
                       'Puedes usar la app igual, pero lo que anotes se quedará '
                       'en tu teléfono hasta que alguien dé el permiso. Podrás '
                       'añadirlo más adelante.',

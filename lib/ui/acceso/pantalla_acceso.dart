@@ -16,11 +16,12 @@ import 'package:natacion_app/ui/componentes/boton.dart';
 enum ModoDeAcceso { entrar, crear }
 
 /// Lo que esta pantalla pide. Quien la monta decide qué hacer con ello.
-typedef Credenciales = Future<String?> Function({
-  required String correo,
-  required String clave,
-  required ModoDeAcceso modo,
-});
+typedef Credenciales =
+    Future<String?> Function({
+      required String correo,
+      required String clave,
+      required ModoDeAcceso modo,
+    });
 
 class PantallaAcceso extends StatefulWidget {
   const PantallaAcceso({super.key, required this.alEnviar});
@@ -148,11 +149,11 @@ class _PantallaAccesoState extends State<PantallaAcceso> {
                     onPressed: _enviando
                         ? null
                         : () => setState(() {
-                              _modo = creando
-                                  ? ModoDeAcceso.entrar
-                                  : ModoDeAcceso.crear;
-                              _error = null;
-                            }),
+                            _modo = creando
+                                ? ModoDeAcceso.entrar
+                                : ModoDeAcceso.crear;
+                            _error = null;
+                          }),
                     child: Text(
                       creando
                           ? '¿Ya tienes cuenta? Entra'

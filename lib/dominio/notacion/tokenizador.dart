@@ -74,12 +74,9 @@ class Tokenizador {
 
       // Espacios: se saltan, pero un salto de línea separa series.
       if (caracter == '\n' || caracter == '\r') {
-        tokens.add(Token(
-          tipo: TipoToken.separador,
-          texto: '\n',
-          inicio: i,
-          fin: i + 1,
-        ));
+        tokens.add(
+          Token(tipo: TipoToken.separador, texto: '\n', inicio: i, fin: i + 1),
+        );
         i++;
         continue;
       }
@@ -111,24 +108,28 @@ class Tokenizador {
               segundos = int.parse(texto.substring(trasComilla, i));
               if (i < texto.length && texto[i] == '"') i++;
             }
-            tokens.add(Token(
-              tipo: TipoToken.tiempo,
-              texto: texto.substring(inicio, i),
-              inicio: inicio,
-              fin: i,
-              duracion: Duration(
-                minutes: int.parse(digitos),
-                seconds: segundos,
+            tokens.add(
+              Token(
+                tipo: TipoToken.tiempo,
+                texto: texto.substring(inicio, i),
+                inicio: inicio,
+                fin: i,
+                duracion: Duration(
+                  minutes: int.parse(digitos),
+                  seconds: segundos,
+                ),
               ),
-            ));
+            );
           } else {
-            tokens.add(Token(
-              tipo: TipoToken.tiempo,
-              texto: texto.substring(inicio, i),
-              inicio: inicio,
-              fin: i,
-              duracion: Duration(seconds: int.parse(digitos)),
-            ));
+            tokens.add(
+              Token(
+                tipo: TipoToken.tiempo,
+                texto: texto.substring(inicio, i),
+                inicio: inicio,
+                fin: i,
+                duracion: Duration(seconds: int.parse(digitos)),
+              ),
+            );
           }
           continue;
         }
@@ -138,35 +139,41 @@ class Tokenizador {
           final esNumeracion = _soloEspaciosDesdeInicioDeLinea(texto, inicio);
           if (esNumeracion) {
             i++;
-            tokens.add(Token(
-              tipo: TipoToken.separador,
-              texto: texto.substring(inicio, i),
-              inicio: inicio,
-              fin: i,
-            ));
+            tokens.add(
+              Token(
+                tipo: TipoToken.separador,
+                texto: texto.substring(inicio, i),
+                inicio: inicio,
+                fin: i,
+              ),
+            );
             continue;
           }
         }
 
-        tokens.add(Token(
-          tipo: TipoToken.numero,
-          texto: digitos,
-          inicio: inicio,
-          fin: i,
-          valorNumerico: int.parse(digitos),
-        ));
+        tokens.add(
+          Token(
+            tipo: TipoToken.numero,
+            texto: digitos,
+            inicio: inicio,
+            fin: i,
+            valorNumerico: int.parse(digitos),
+          ),
+        );
         continue;
       }
 
       // Progresivo y regresivo: `1<4`, `1>4` ya se habrían leído como número;
       // aquí se captan los signos sueltos.
       if (caracter == '<' || caracter == '>') {
-        tokens.add(Token(
-          tipo: TipoToken.palabra,
-          texto: caracter,
-          inicio: i,
-          fin: i + 1,
-        ));
+        tokens.add(
+          Token(
+            tipo: TipoToken.palabra,
+            texto: caracter,
+            inicio: i,
+            fin: i + 1,
+          ),
+        );
         i++;
         continue;
       }
@@ -183,12 +190,14 @@ class Tokenizador {
         '^': TipoToken.palabra,
       };
       if (simples.containsKey(caracter)) {
-        tokens.add(Token(
-          tipo: simples[caracter]!,
-          texto: caracter,
-          inicio: i,
-          fin: i + 1,
-        ));
+        tokens.add(
+          Token(
+            tipo: simples[caracter]!,
+            texto: caracter,
+            inicio: i,
+            fin: i + 1,
+          ),
+        );
         i++;
         continue;
       }
@@ -197,12 +206,9 @@ class Tokenizador {
       if ((caracter == 'x' || caracter == 'X' || caracter == '×') &&
           tokens.isNotEmpty &&
           tokens.last.tipo == TipoToken.numero) {
-        tokens.add(Token(
-          tipo: TipoToken.por,
-          texto: caracter,
-          inicio: i,
-          fin: i + 1,
-        ));
+        tokens.add(
+          Token(tipo: TipoToken.por, texto: caracter, inicio: i, fin: i + 1),
+        );
         i++;
         continue;
       }
@@ -210,45 +216,58 @@ class Tokenizador {
       // Palabra: letras, dígitos internos, puntos y acentos.
       if (_esLetra(caracter)) {
         final inicio = i;
-        while (i < texto.length && (_esLetra(texto[i]) || _esDigito(texto[i]) ||
-            texto[i] == '.' || texto[i] == '/')) {
+        while (i < texto.length &&
+            (_esLetra(texto[i]) ||
+                _esDigito(texto[i]) ||
+                texto[i] == '.' ||
+                texto[i] == '/')) {
           i++;
         }
-        tokens.add(Token(
-          tipo: TipoToken.palabra,
-          texto: texto.substring(inicio, i),
-          inicio: inicio,
-          fin: i,
-        ));
+        tokens.add(
+          Token(
+            tipo: TipoToken.palabra,
+            texto: texto.substring(inicio, i),
+            inicio: inicio,
+            fin: i,
+          ),
+        );
         continue;
       }
 
       // Puntuación que separa tareas dentro de una celda.
-      if (caracter == ',' || caracter == ';' || caracter == '·' ||
-          caracter == '→' || caracter == '▸') {
-        tokens.add(Token(
-          tipo: TipoToken.separador,
-          texto: caracter,
-          inicio: i,
-          fin: i + 1,
-        ));
+      if (caracter == ',' ||
+          caracter == ';' ||
+          caracter == '·' ||
+          caracter == '→' ||
+          caracter == '▸') {
+        tokens.add(
+          Token(
+            tipo: TipoToken.separador,
+            texto: caracter,
+            inicio: i,
+            fin: i + 1,
+          ),
+        );
         i++;
         continue;
       }
 
-      tokens.add(Token(
-        tipo: TipoToken.desconocido,
-        texto: caracter,
-        inicio: i,
-        fin: i + 1,
-      ));
+      tokens.add(
+        Token(
+          tipo: TipoToken.desconocido,
+          texto: caracter,
+          inicio: i,
+          fin: i + 1,
+        ),
+      );
       i++;
     }
 
     return tokens;
   }
 
-  static bool _esDigito(String c) => c.codeUnitAt(0) >= 48 && c.codeUnitAt(0) <= 57;
+  static bool _esDigito(String c) =>
+      c.codeUnitAt(0) >= 48 && c.codeUnitAt(0) <= 57;
 
   static bool _esLetra(String c) {
     final codigo = c.codeUnitAt(0);

@@ -8,7 +8,8 @@ void main() {
       expect(
         () => Cuenta(id: 'u1', rol: Rol.entrenador, nadadorId: 'n1'),
         throwsArgumentError,
-        reason: 'Si el entrenador quiere entrenarse a sí mismo, eso es una '
+        reason:
+            'Si el entrenador quiere entrenarse a sí mismo, eso es una '
             'segunda cuenta, no un campo. Permitirlo haría que «los registros '
             'de su comunidad» se solapara con «sus propios registros», y las '
             'reglas de acceso tendrían dos respuestas para la misma pregunta',
@@ -59,7 +60,8 @@ void main() {
         expect(
           Rol.porClave(basura),
           isNull,
-          reason: '«$basura» no es un rol. Resolverlo al más parecido sería '
+          reason:
+              '«$basura» no es un rol. Resolverlo al más parecido sería '
               'exactamente como se cuela un permiso',
         );
       }

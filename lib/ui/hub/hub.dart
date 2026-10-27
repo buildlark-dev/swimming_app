@@ -16,10 +16,15 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/datos/firestore/consentimientos.dart';
 import 'package:natacion_app/datos/local/almacen_local.dart';
 import 'package:natacion_app/datos/local/repositorios_locales.dart';
+import 'package:natacion_app/datos/perfil/repositorio_perfil.dart';
+import 'package:natacion_app/datos/preferencias/apariencia.dart';
 import 'package:natacion_app/datos/recursos/recursos_iniciales.dart';
+import 'package:natacion_app/dominio/consentimiento/constancia.dart';
 import 'package:natacion_app/dominio/cuentas/cuenta.dart';
+import 'package:natacion_app/dominio/datos_personales/derechos_del_titular.dart';
 import 'package:natacion_app/dominio/entidades/asignacion.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
@@ -29,7 +34,6 @@ import 'package:natacion_app/dominio/hub/destino.dart';
 import 'package:natacion_app/dominio/hub/resumen_del_entrenador.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
-import 'package:natacion_app/ui/acceso/estado_sesion.dart';
 import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/ui/hub/contenidos.dart';
@@ -39,7 +43,6 @@ import 'package:natacion_app/ui/nadador/perfil_activo.dart';
 import 'package:natacion_app/ui/planes/pantalla_plan.dart';
 import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
-import 'package:provider/provider.dart';
 
 /// La casa de la app: cinco destinos, dos recorridos.
 class PantallaPrincipal extends StatefulWidget {
@@ -49,6 +52,7 @@ class PantallaPrincipal extends StatefulWidget {
     this.cuenta,
     this.modoLocal = false,
     this.repositorios,
+    this.alElegirApariencia,
   });
 
   final RecursosIniciales recursos;
@@ -59,6 +63,10 @@ class PantallaPrincipal extends StatefulWidget {
   /// Sin servidor: no hay cuentas, no hay consentimiento y no hay dónde
   /// guardar nada. Es el modo de desarrollo, y va rotulado.
   final bool modoLocal;
+
+  /// Para que la app entera se repinte cuando alguien elige la apariencia en
+  /// Ajustes. Nula en pruebas.
+  final ValueChanged<Apariencia>? alElegirApariencia;
 
   /// Para pruebas: repositorios ya sembrados.
   ///
@@ -93,6 +101,30 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
   late final RepositoriosDelHub _repos =
       widget.repositorios ?? RepositoriosDelHub.de(widget.recursos, _almacen);
+
+  /// Sus propios datos de cuenta, para Ajustes. Sin servidor, vacíos: se ven
+  /// pero no hay nada guardado que mostrar.
+  late final RepositorioPerfil _repositorioPerfil =
+      widget.recursos.firestore == null
+      ? RepositorioPerfilEnMemoria()
+      : RepositorioPerfilFirestore(widget.recursos.firestore!);
+
+  /// La constancia del consentimiento, para poder verla. Nula sin servidor.
+  late final LectorDeConstancias? _constancias =
+      widget.recursos.firestore == null
+      ? null
+      : ConstanciasFirestore(widget.recursos.firestore!);
+
+  /// El conmutador de recorrido del modo local. Vive en Ajustes (T053).
+  Widget _conmutadorDeRecorrido() => SegmentedButton<Rol>(
+    key: const Key('recorrido-en-modo-local'),
+    segments: const [
+      ButtonSegment(value: Rol.entrenador, label: Text('Entrenador')),
+      ButtonSegment(value: Rol.nadador, label: Text('Nadador')),
+    ],
+    selected: {_recorridoLocal},
+    onSelectionChanged: (cual) => setState(() => _recorridoLocal = cual.first),
+  );
 
   /// Un solo estado de editor para todo el destino `Generar`, para que lo
   /// generado aparezca en el editor sin cambiar de sitio.
@@ -362,6 +394,23 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       alRevisarPlan: _revisarPlan,
       alEntregar: _entregar,
       selectorDePerfil: _selector,
+      uid: widget.cuenta?.id ?? '',
+      nadadorId: widget.cuenta?.nadadorId,
+      repositorioPerfil: _repositorioPerfil,
+      operaciones: widget.recursos.operaciones,
+      identidad: widget.recursos.identidad,
+      constancias: _constancias,
+      // **Aquí se enchufa por primera vez lo que la feature 004 construyó.**
+      // `DerechosDelTitular` existía con sus pruebas y ninguna pantalla lo
+      // montaba: los tres derechos de la Ley 1581 estaban en el código y no
+      // estaban para la persona.
+      derechos: DerechosDelTitular(
+        nadadores: _repos.nadadores,
+        registros: _repos.registrosParaContar,
+        asignaciones: _repos.asignaciones,
+      ),
+      alElegirApariencia: widget.alElegirApariencia,
+      conmutadorDeRecorrido: widget.modoLocal ? _conmutadorDeRecorrido() : null,
     );
 
     return PopScope(
@@ -375,13 +424,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       child: Scaffold(
         body: Column(
           children: [
-            _BarraDeSesion(
-              cuenta: widget.cuenta,
-              modoLocal: widget.modoLocal,
-              recorridoLocal: _recorridoLocal,
-              alCambiarRecorrido: (otro) =>
-                  setState(() => _recorridoLocal = otro),
-            ),
+            _BarraDeSesion(cuenta: widget.cuenta, modoLocal: widget.modoLocal),
             Expanded(
               child: IndexedStack(
                 index: _destino.posicion,
@@ -412,23 +455,20 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   }
 }
 
-/// Quién está dentro, y —en modo local— por qué recorrido.
+/// Quién está dentro, y el aviso de modo local.
 ///
-/// En modo local avisa de que no hay servidor. No es decoración: sin servidor
-/// no hay consentimiento registrado, y el principio V exige que en ese caso la
-/// app se use solo con datos de prueba.
+/// **Ya no lleva «Salir»**: cerrar sesión vive en `Ajustes` desde la feature
+/// 007 (H23, FR-019), y tenerlo en dos sitios no lo hace más fácil de
+/// encontrar, solo más fácil de pulsar sin querer.
+///
+/// El aviso de modo local **se queda**, porque avisa de una condición y no de
+/// una identidad: sin servidor no hay consentimiento registrado, y el
+/// principio V exige que entonces la app se use solo con datos de prueba.
 class _BarraDeSesion extends StatelessWidget {
-  const _BarraDeSesion({
-    required this.cuenta,
-    required this.modoLocal,
-    required this.recorridoLocal,
-    required this.alCambiarRecorrido,
-  });
+  const _BarraDeSesion({required this.cuenta, required this.modoLocal});
 
   final Cuenta? cuenta;
   final bool modoLocal;
-  final Rol recorridoLocal;
-  final ValueChanged<Rol> alCambiarRecorrido;
 
   @override
   Widget build(BuildContext context) {
@@ -438,38 +478,20 @@ class _BarraDeSesion extends StatelessWidget {
       // **Tono de cuidado, no de error.**
       //
       // El modo local no es un fallo: es un modo de trabajo, el que permite
-      // desarrollar sin servidor. Lo que exige es cuidado, porque sin servidor
-      // no hay consentimiento registrado y el principio V obliga a usar solo
-      // datos de prueba.
-      return Padding(
-        padding: const EdgeInsets.symmetric(
+      // desarrollar sin servidor. Lo que exige es cuidado.
+      return const Padding(
+        padding: EdgeInsets.symmetric(
           horizontal: Espaciado.amplio,
           vertical: Espaciado.corto,
         ),
-        child: Column(
-          children: [
-            const Aviso(
-              tono: TonoDeAviso.cuidado,
-              icono: Icons.cloud_off_outlined,
-              claveDelMensaje: Key('aviso-modo-local'),
-              mensaje:
-                  'Modo local, sin servidor: no hay cuentas ni consentimiento '
-                  'registrado, y nada se guarda al cerrar. Solo datos de '
-                  'prueba.',
-            ),
-            const SizedBox(height: Espaciado.corto),
-            // Sin rol que consultar hay que elegir el recorrido a propósito
-            // (decisión D13). La historia 3 lo mueve a Ajustes.
-            SegmentedButton<Rol>(
-              key: const Key('recorrido-en-modo-local'),
-              segments: const [
-                ButtonSegment(value: Rol.entrenador, label: Text('Entrenador')),
-                ButtonSegment(value: Rol.nadador, label: Text('Nadador')),
-              ],
-              selected: {recorridoLocal},
-              onSelectionChanged: (cual) => alCambiarRecorrido(cual.first),
-            ),
-          ],
+        child: Aviso(
+          tono: TonoDeAviso.cuidado,
+          icono: Icons.cloud_off_outlined,
+          claveDelMensaje: Key('aviso-modo-local'),
+          mensaje:
+              'Modo local, sin servidor: no hay cuentas ni consentimiento '
+              'registrado, y nada se guarda al cerrar. Solo datos de prueba. '
+              'El recorrido se elige en Ajustes.',
         ),
       );
     }
@@ -480,25 +502,22 @@ class _BarraDeSesion extends StatelessWidget {
     return Material(
       color: esquema.surfaceContainerHighest,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: Espaciado.amplio,
+          vertical: Espaciado.minimo,
+        ),
         child: Row(
           children: [
             Icon(
               dentro.esEntrenador ? Icons.sports : Icons.person_outline,
               size: 18,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: Espaciado.corto),
             Expanded(
               child: Text(
                 dentro.esEntrenador ? 'Entrenador' : 'Nadador',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
-            ),
-            TextButton.icon(
-              key: const Key('boton-cerrar-sesion'),
-              onPressed: () => context.read<SesionActiva>().cerrarSesion(),
-              icon: const Icon(Icons.logout, size: 18),
-              label: const Text('Salir'),
             ),
           ],
         ),

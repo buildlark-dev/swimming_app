@@ -11,12 +11,16 @@ library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:natacion_app/dominio/consentimiento/consentimiento.dart';
+import 'package:natacion_app/dominio/consentimiento/constancia.dart';
 import 'package:natacion_app/dominio/consentimiento/puerta.dart';
 
 const String coleccionConsentimientos = 'consentimientos';
 
 class PuertaFirestore implements PuertaDeConsentimiento {
-  PuertaFirestore(this.firestore, {this.alcance = Alcance.datosDeEntrenamiento});
+  PuertaFirestore(
+    this.firestore, {
+    this.alcance = Alcance.datosDeEntrenamiento,
+  });
 
   final FirebaseFirestore firestore;
 
@@ -67,5 +71,47 @@ class PuertaFirestore implements PuertaDeConsentimiento {
     // El alcance se comprueba por separado: conceder datos de entrenamiento
     // no concede video, y al revés tampoco (FR-023).
     return alcances.contains(alcance);
+  }
+}
+
+/// Lee la constancia para mostrarla en `Ajustes` (feature 007).
+///
+/// Aparte de [PuertaFirestore] a propósito: esa decide si algo **sale**, y
+/// ante la duda retiene. Esta solo cuenta lo que hay, y si no hay nada lo dice.
+/// Juntarlas haría que una pantalla informativa compartiera camino con la
+/// puerta que protege los datos de un menor.
+class ConstanciasFirestore implements LectorDeConstancias {
+  const ConstanciasFirestore(this.firestore);
+
+  final FirebaseFirestore firestore;
+
+  @override
+  Future<ConstanciaDeConsentimiento?> de(String nadadorId) async {
+    if (nadadorId.trim().isEmpty) return null;
+
+    try {
+      final documento = await firestore
+          .collection(coleccionConsentimientos)
+          .doc(nadadorId)
+          .get();
+
+      final datos = documento.data();
+      if (datos == null) return null;
+
+      return ConstanciaDeConsentimiento(
+        vigente: datos['vigente'] == true,
+        alcances: (datos['alcances'] as List<dynamic>? ?? const [])
+            .map((a) => Alcance.porClave(a as String?))
+            .nonNulls
+            .toSet(),
+        versionDelTexto: datos['versionDelTexto'] as String?,
+        otorgadoEn: (datos['otorgadoEn'] as Timestamp?)?.toDate(),
+        revocadoEn: (datos['revocadoEn'] as Timestamp?)?.toDate(),
+      );
+    } on FirebaseException {
+      // Sin red ni caché no se sabe. **Se dice que no se sabe** en lugar de
+      // decir que no hay consentimiento, que es una afirmación distinta.
+      return null;
+    }
   }
 }

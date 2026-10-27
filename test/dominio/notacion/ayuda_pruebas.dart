@@ -11,9 +11,9 @@ import 'package:natacion_app/dominio/notacion/analizador.dart';
 /// contra una inventada: la regla de no invención solo se puede comprobar
 /// frente a la fuente normativa.
 Biblioteca cargarBibliotecaReal() {
-  final json = jsonDecode(
-    File('assets/biblioteca/ejercicios.json').readAsStringSync(),
-  ) as Map<String, dynamic>;
+  final json =
+      jsonDecode(File('assets/biblioteca/ejercicios.json').readAsStringSync())
+          as Map<String, dynamic>;
   return Biblioteca.desdeJson(json);
 }
 
@@ -23,11 +23,14 @@ Biblioteca cargarBibliotecaReal() {
 /// entrenador va a ver. Con un índice inventado, una correspondencia que él
 /// confirmó podría romperse sin que ninguna prueba se enterara.
 IndiceTerminos cargarIndiceReal() {
-  final json = jsonDecode(
-    File('assets/biblioteca/terminos_diagnostico.json').readAsStringSync(),
-  ) as Map<String, dynamic>;
+  final json =
+      jsonDecode(
+            File(
+              'assets/biblioteca/terminos_diagnostico.json',
+            ).readAsStringSync(),
+          )
+          as Map<String, dynamic>;
   return IndiceTerminos.desdeJson(json);
 }
 
-Analizador crearAnalizador() =>
-    Analizador(biblioteca: cargarBibliotecaReal());
+Analizador crearAnalizador() => Analizador(biblioteca: cargarBibliotecaReal());

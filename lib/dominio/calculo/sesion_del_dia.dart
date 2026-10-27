@@ -29,7 +29,8 @@ class SinSesionHoy extends QueTocaHoy {
   final DateTime cuando;
 
   /// Cuántos días faltan, contando desde hoy.
-  int diasDesde(DateTime hoy) => _soloFecha(cuando).difference(_soloFecha(hoy)).inDays;
+  int diasDesde(DateTime hoy) =>
+      _soloFecha(cuando).difference(_soloFecha(hoy)).inDays;
 }
 
 /// El plan terminó, o no tiene sesiones con fecha.

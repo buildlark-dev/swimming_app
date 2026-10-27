@@ -42,11 +42,11 @@ enum TonoDeAviso {
   /// **El color nunca es la única señal** (FR-015). Quien no distinga colores
   /// tiene que poder reconocer el tono igual.
   IconData get icono => switch (this) {
-        TonoDeAviso.informativo => Icons.info_outline,
-        TonoDeAviso.exito => Icons.check_circle_outline,
-        TonoDeAviso.cuidado => Icons.error_outline,
-        TonoDeAviso.error => Icons.cancel_outlined,
-      };
+    TonoDeAviso.informativo => Icons.info_outline,
+    TonoDeAviso.exito => Icons.check_circle_outline,
+    TonoDeAviso.cuidado => Icons.error_outline,
+    TonoDeAviso.error => Icons.cancel_outlined,
+  };
 }
 
 /// Los colores que Material no trae y esta app necesita.
@@ -65,27 +65,27 @@ class ColoresDelDominio extends ThemeExtension<ColoresDelDominio> {
 
   /// Los del modo claro.
   factory ColoresDelDominio.claro() => const ColoresDelDominio(
-        informativo: Paleta.informativo,
-        exito: Paleta.exito,
-        cuidado: Paleta.cuidado,
-        error: Paleta.error,
-        zonas: Paleta.zonas,
-        borrador: Paleta.borrador,
-        aprobado: Paleta.aprobado,
-        publicado: Paleta.publicado,
-      );
+    informativo: Paleta.informativo,
+    exito: Paleta.exito,
+    cuidado: Paleta.cuidado,
+    error: Paleta.error,
+    zonas: Paleta.zonas,
+    borrador: Paleta.borrador,
+    aprobado: Paleta.aprobado,
+    publicado: Paleta.publicado,
+  );
 
   /// Los del modo oscuro.
   factory ColoresDelDominio.oscuro() => const ColoresDelDominio(
-        informativo: Paleta.informativoOscuro,
-        exito: Paleta.exitoOscuro,
-        cuidado: Paleta.cuidadoOscuro,
-        error: Paleta.errorOscuro,
-        zonas: Paleta.zonasOscuro,
-        borrador: Paleta.borradorOscuro,
-        aprobado: Paleta.aprobadoOscuro,
-        publicado: Paleta.publicadoOscuro,
-      );
+    informativo: Paleta.informativoOscuro,
+    exito: Paleta.exitoOscuro,
+    cuidado: Paleta.cuidadoOscuro,
+    error: Paleta.errorOscuro,
+    zonas: Paleta.zonasOscuro,
+    borrador: Paleta.borradorOscuro,
+    aprobado: Paleta.aprobadoOscuro,
+    publicado: Paleta.publicadoOscuro,
+  );
 
   final Color informativo;
   final Color exito;
@@ -101,11 +101,11 @@ class ColoresDelDominio extends ThemeExtension<ColoresDelDominio> {
 
   /// El color de un tono de aviso.
   Color deTono(TonoDeAviso tono) => switch (tono) {
-        TonoDeAviso.informativo => informativo,
-        TonoDeAviso.exito => exito,
-        TonoDeAviso.cuidado => cuidado,
-        TonoDeAviso.error => error,
-      };
+    TonoDeAviso.informativo => informativo,
+    TonoDeAviso.exito => exito,
+    TonoDeAviso.cuidado => cuidado,
+    TonoDeAviso.error => error,
+  };
 
   /// El color de una zona por su posición en el orden de intensidad.
   ///
@@ -123,17 +123,16 @@ class ColoresDelDominio extends ThemeExtension<ColoresDelDominio> {
     Color? borrador,
     Color? aprobado,
     Color? publicado,
-  }) =>
-      ColoresDelDominio(
-        informativo: informativo ?? this.informativo,
-        exito: exito ?? this.exito,
-        cuidado: cuidado ?? this.cuidado,
-        error: error ?? this.error,
-        zonas: zonas ?? this.zonas,
-        borrador: borrador ?? this.borrador,
-        aprobado: aprobado ?? this.aprobado,
-        publicado: publicado ?? this.publicado,
-      );
+  }) => ColoresDelDominio(
+    informativo: informativo ?? this.informativo,
+    exito: exito ?? this.exito,
+    cuidado: cuidado ?? this.cuidado,
+    error: error ?? this.error,
+    zonas: zonas ?? this.zonas,
+    borrador: borrador ?? this.borrador,
+    aprobado: aprobado ?? this.aprobado,
+    publicado: publicado ?? this.publicado,
+  );
 
   @override
   ColoresDelDominio lerp(ColoresDelDominio? otro, double t) {

@@ -18,10 +18,8 @@ const int puertoFirestore = 8080;
 
 /// Cómo se arranca Firebase. Se inyecta para poder comprobar en pruebas que un
 /// arranque fallido deja la app en pie; en producción es siempre la de verdad.
-typedef IniciarFirebase = Future<FirebaseApp> Function({
-  String? name,
-  FirebaseOptions? options,
-});
+typedef IniciarFirebase =
+    Future<FirebaseApp> Function({String? name, FirebaseOptions? options});
 
 class ConfiguracionDatos {
   const ConfiguracionDatos({

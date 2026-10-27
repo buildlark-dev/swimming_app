@@ -53,8 +53,8 @@ class Otorgante {
   const Otorgante.elPropioNadador({
     required this.nombre,
     required this.documento,
-  })  : calidad = 'el propio nadador',
-        esElPropioNadador = true;
+  }) : calidad = 'el propio nadador',
+       esElPropioNadador = true;
 
   final String nombre;
   final String documento;
@@ -157,14 +157,14 @@ class Consentimiento {
   /// el tratamiento anterior estuvo amparado. Borrarlo al revocar destruiría
   /// justamente la evidencia que protege al entrenador.
   Consentimiento revocar(DateTime cuando) => Consentimiento(
-        nadadorId: nadadorId,
-        otorgadoPor: otorgadoPor,
-        otorgadoEn: otorgadoEn,
-        alcances: alcances,
-        versionDelTexto: versionDelTexto,
-        menorFueOido: menorFueOido,
-        revocadoEn: cuando,
-      );
+    nadadorId: nadadorId,
+    otorgadoPor: otorgadoPor,
+    otorgadoEn: otorgadoEn,
+    alcances: alcances,
+    versionDelTexto: versionDelTexto,
+    menorFueOido: menorFueOido,
+    revocadoEn: cuando,
+  );
 
   @override
   String toString() =>

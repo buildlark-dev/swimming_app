@@ -50,10 +50,7 @@ void main() {
       final sesion = sesionCon(objetivoTecnico: '');
 
       expect(sesion.estaCompleta, isFalse);
-      expect(
-        sesion.faltas.map((f) => f.campo),
-        contains('objetivoTecnico'),
-      );
+      expect(sesion.faltas.map((f) => f.campo), contains('objetivoTecnico'));
     });
 
     test('sin objetivo fisiológico no está completa', () {
@@ -125,8 +122,7 @@ void main() {
         ],
       );
 
-      final falta =
-          sesion.faltas.firstWhere((f) => f.campo == 'pendientes');
+      final falta = sesion.faltas.firstWhere((f) => f.campo == 'pendientes');
       expect(falta.descripcion, contains('2'));
     });
 
@@ -151,10 +147,7 @@ void main() {
       final sesion = Sesion();
 
       expect(sesion.partes, hasLength(3));
-      expect(
-        sesion.partes.map((p) => p.tipo),
-        containsAll(TipoParte.values),
-      );
+      expect(sesion.partes.map((p) => p.tipo), containsAll(TipoParte.values));
     });
 
     test('reemplazar una parte conserva las otras dos', () {

@@ -67,7 +67,8 @@ void main() {
       expect(
         infracciones,
         isEmpty,
-        reason: 'Un componente toma sus medidas de `Espaciado`. Si la que '
+        reason:
+            'Un componente toma sus medidas de `Espaciado`. Si la que '
             'necesita no está, **falta un token**: se añade allí, no aquí.\n\n'
             '${infracciones.join('\n')}',
       );
@@ -87,7 +88,8 @@ void main() {
       expect(
         infracciones,
         isEmpty,
-        reason: 'Un componente lee de `Theme.of(context)`, no de `Paleta`.\n\n'
+        reason:
+            'Un componente lee de `Theme.of(context)`, no de `Paleta`.\n\n'
             '${infracciones.join('\n')}',
       );
     });
@@ -98,16 +100,18 @@ void main() {
       expect(componentes(), hasLength(greaterThanOrEqualTo(6)));
       expect(patron.hasMatch('padding: EdgeInsets.all(14),'), isTrue);
       expect(patron.hasMatch('width: 70,'), isTrue);
-      expect(patron.hasMatch('padding: EdgeInsets.all(Espaciado.normal),'),
-          isFalse);
+      expect(
+        patron.hasMatch('padding: EdgeInsets.all(Espaciado.normal),'),
+        isFalse,
+      );
     });
   });
 
   group('el aviso', () {
     Widget conTema(Widget hijo, {bool oscuro = false}) => MaterialApp(
-          theme: oscuro ? Tema.oscuro() : Tema.claro(),
-          home: Scaffold(body: hijo),
-        );
+      theme: oscuro ? Tema.oscuro() : Tema.claro(),
+      home: Scaffold(body: hijo),
+    );
 
     /// Monta sobre un árbol limpio.
     ///
@@ -142,12 +146,15 @@ void main() {
       expect(
         iconos,
         hasLength(TonoDeAviso.values.length),
-        reason: 'Dos tonos con el mismo icono se distinguen solo por el '
+        reason:
+            'Dos tonos con el mismo icono se distinguen solo por el '
             'color, y eso deja fuera a quien no lo distingue',
       );
     });
 
-    testWidgets('el color del tono sale del tema, no del aviso', (tester) async {
+    testWidgets('el color del tono sale del tema, no del aviso', (
+      tester,
+    ) async {
       // El mismo aviso en claro y en oscuro tiene que cambiar de color sin que
       // nadie lo configure. Si no cambia, el color está escrito en el
       // componente.
@@ -208,7 +215,10 @@ void main() {
         alPulsar: () {},
         trabajando: true,
       ),
-      'cabecera': const CabeceraSeccion(titulo: 'Parte inicial', cifra: '400 m'),
+      'cabecera': const CabeceraSeccion(
+        titulo: 'Parte inicial',
+        cifra: '400 m',
+      ),
       'cabecera sin cifra': const CabeceraSeccion(titulo: 'Distribución'),
       'estado vacío': const EstadoVacio(
         icono: Icons.event_busy_outlined,

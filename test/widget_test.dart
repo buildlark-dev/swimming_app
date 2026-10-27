@@ -55,8 +55,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
   }
 
-  testWidgets('mientras carga la biblioteca muestra el indicador',
-      (tester) async {
+  testWidgets('mientras carga la biblioteca muestra el indicador', (
+    tester,
+  ) async {
     await tester.pumpWidget(const AppNatacion());
 
     // Sin biblioteca no se puede comprobar la regla de no invención, así que
@@ -64,8 +65,9 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('cargada la biblioteca, el generador está a un toque',
-      (tester) async {
+  testWidgets('cargada la biblioteca, el generador está a un toque', (
+    tester,
+  ) async {
     await abrirApp(tester);
     await irAGenerar(tester);
 
@@ -73,8 +75,9 @@ void main() {
     expect(find.text('Generar microciclo'), findsOneWidget);
   });
 
-  testWidgets('el generador pide los datos del protocolo de inicio',
-      (tester) async {
+  testWidgets('el generador pide los datos del protocolo de inicio', (
+    tester,
+  ) async {
     await abrirApp(tester);
     await irAGenerar(tester);
 
@@ -90,8 +93,9 @@ void main() {
     expect(find.text('Diagnóstico y limitaciones'), findsOneWidget);
   });
 
-  testWidgets('el generador avisa de que las lesiones no modifican el plan',
-      (tester) async {
+  testWidgets('el generador avisa de que las lesiones no modifican el plan', (
+    tester,
+  ) async {
     await abrirApp(tester);
     await irAGenerar(tester);
 
@@ -108,8 +112,9 @@ void main() {
     );
   });
 
-  testWidgets('la app tiene los cinco destinos, y Home al centro',
-      (tester) async {
+  testWidgets('la app tiene los cinco destinos, y Home al centro', (
+    tester,
+  ) async {
     // **Esta prueba afirmaba la barra que la feature 007 cambia a propósito.**
     // Antes contaba tres pestañas —`Generar`, `Editor`, `Nadadores`—, que eran
     // los trozos que se fueron construyendo y no los recorridos que existen.
@@ -132,15 +137,30 @@ void main() {
     );
   });
 
-  testWidgets('en modo local se elige el recorrido a propósito',
-      (tester) async {
+  testWidgets('en modo local se elige el recorrido a propósito', (
+    tester,
+  ) async {
     // Sin servidor no hay rol que consultar, y cada destino tendría dos
     // contenidos candidatos. Adivinarlo sería peor que preguntarlo
     // (decisión D13).
     await abrirApp(tester);
 
-    expect(find.byKey(const Key('recorrido-en-modo-local')), findsOneWidget);
     expect(find.byKey(const Key('aviso-modo-local')), findsOneWidget);
+
+    // El conmutador vive en Ajustes, donde está todo lo que se gobierna.
+    await tester.tap(find.byKey(const Key('destino-ajustes')));
+    for (var intento = 0; intento < 5; intento++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    // Ajustes es una lista larga y un `ListView` no construye lo que no se ve.
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('recorrido-en-modo-local')),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+
+    expect(find.byKey(const Key('recorrido-en-modo-local')), findsOneWidget);
   });
 
   testWidgets('se puede pasar al editor', (tester) async {
@@ -151,8 +171,7 @@ void main() {
     expect(find.text('Editor de sesión'), findsOneWidget);
   });
 
-  testWidgets('el editor muestra las tres partes de la sesión',
-      (tester) async {
+  testWidgets('el editor muestra las tres partes de la sesión', (tester) async {
     await abrirApp(tester);
     await irAlEditor(tester);
 
@@ -161,8 +180,9 @@ void main() {
     expect(find.text('Final'), findsWidgets);
   });
 
-  testWidgets('una sesión recién abierta se declara incompleta',
-      (tester) async {
+  testWidgets('una sesión recién abierta se declara incompleta', (
+    tester,
+  ) async {
     await abrirApp(tester);
     await irAlEditor(tester);
 

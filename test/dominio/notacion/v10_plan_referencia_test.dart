@@ -23,12 +23,14 @@ void main() {
   // desglose de drills, los separadores ·, las etiquetas "Pre-set" y
   // "Principal", las zonas escritas entre paréntesis y las notas del
   // entrenador.
-  const inicialS2 = '300 Nado Libre (A1)\n'
+  const inicialS2 =
+      '300 Nado Libre (A1)\n'
       '8×50 TEC E / 20"  →  2×ROLIDO (Espalda) · 2×ROLIDO CON 1 BRAZO '
       '(Espalda) · 2×MANO AL CIELO · 2×TOCANDO FRENTE\n'
       '100 Nado Espalda continuo (A1)';
 
-  const centralS2 = 'Pre-set: 4×50 ROZAR SUPERFICIE (Libre) / 20"\n'
+  const centralS2 =
+      'Pre-set: 4×50 ROZAR SUPERFICIE (Libre) / 20"\n'
       'Principal: 6×100 Nado Libre A2 / 1\'40" (foco rolido y respiración)'
       '  +  2×50 Nado Espalda A1';
 
@@ -40,7 +42,8 @@ void main() {
       expect(
         resultado.metros,
         800,
-        reason: 'Interpretado: '
+        reason:
+            'Interpretado: '
             '${resultado.series.map((s) => s.toString()).join(' | ')}',
       );
     });
@@ -50,7 +53,8 @@ void main() {
       expect(
         resultado.metros,
         900,
-        reason: 'Interpretado: '
+        reason:
+            'Interpretado: '
             '${resultado.series.map((s) => s.toString()).join(' | ')}',
       );
     });
@@ -60,14 +64,16 @@ void main() {
     });
 
     test('la sesión completa suma 1.900 m', () {
-      final total = analizador.analizar(inicialS2).metros +
+      final total =
+          analizador.analizar(inicialS2).metros +
           analizador.analizar(centralS2).metros +
           analizador.analizar(finalS2).metros;
 
       expect(
         total,
         1900,
-        reason: 'Es el total que declara el documento del entrenador para la '
+        reason:
+            'Es el total que declara el documento del entrenador para la '
             'sesión S2 del 04/08',
       );
     });
@@ -75,7 +81,8 @@ void main() {
 
   group('la semana completa, que el documento declara en 5.700 m', () {
     test('tres sesiones de 1.900 m suman 5.700 m', () {
-      final porSesion = analizador.analizar(inicialS2).metros +
+      final porSesion =
+          analizador.analizar(inicialS2).metros +
           analizador.analizar(centralS2).metros +
           analizador.analizar(finalS2).metros;
 
@@ -162,7 +169,8 @@ void main() {
         expect(
           resultado.pendientes,
           isEmpty,
-          reason: 'El documento lo usa, así que debe estar en la sección 19. '
+          reason:
+              'El documento lo usa, así que debe estar en la sección 19. '
               'Pendientes: '
               '${resultado.pendientes.map((p) => p.toString()).join(', ')}',
         );

@@ -40,7 +40,7 @@ class ResultadoAnalisis {
 
 class Analizador {
   Analizador({required this.biblioteca, Glosario? glosario})
-      : glosario = glosario ?? Glosario();
+    : glosario = glosario ?? Glosario();
 
   final Biblioteca biblioteca;
   final Glosario glosario;
@@ -61,13 +61,15 @@ class Analizador {
     final prohibida = Glosario.formaProhibidaEn(texto);
     if (prohibida != null) {
       final posicion = texto.toLowerCase().indexOf(prohibida);
-      pendientes.add(FragmentoPendiente(
-        texto: texto.substring(posicion, posicion + prohibida.length),
-        posicionInicio: posicion,
-        posicionFin: posicion + prohibida.length,
-        motivo: MotivoPendiente.nomenclaturaProhibida,
-        detalle: 'Use un ejercicio de la Biblioteca antes del nado completo',
-      ));
+      pendientes.add(
+        FragmentoPendiente(
+          texto: texto.substring(posicion, posicion + prohibida.length),
+          posicionInicio: posicion,
+          posicionFin: posicion + prohibida.length,
+          motivo: MotivoPendiente.nomenclaturaProhibida,
+          detalle: 'Use un ejercicio de la Biblioteca antes del nado completo',
+        ),
+      );
     }
 
     for (final trozo in _dividirEnSeries(texto)) {
@@ -150,12 +152,13 @@ class Analizador {
     return protegidos;
   }
 
-  late final List<String> _nombresConMas = biblioteca.todos
-      .map((e) => e.nombreBase.toUpperCase())
-      .where((nombre) => nombre.contains('+'))
-      .toSet()
-      .toList()
-    ..sort((a, b) => b.length.compareTo(a.length));
+  late final List<String> _nombresConMas =
+      biblioteca.todos
+          .map((e) => e.nombreBase.toUpperCase())
+          .where((nombre) => nombre.contains('+'))
+          .toSet()
+          .toList()
+        ..sort((a, b) => b.length.compareTo(a.length));
 
   /// Quita la numeración `1)`, `2)` del principio de una línea.
   ///
@@ -226,8 +229,7 @@ class Analizador {
     //
     // Sin esto, una línea con etiqueta se descartaba en silencio, que es peor
     // que no entenderla: los metros desaparecían sin aviso.
-    final inicioCabecera =
-        tokens.indexWhere((t) => t.tipo == TipoToken.numero);
+    final inicioCabecera = tokens.indexWhere((t) => t.tipo == TipoToken.numero);
     if (inicioCabecera > 0) {
       i = inicioCabecera;
     }
@@ -323,14 +325,17 @@ class Analizador {
               }
             }
             // `TEC` sin estilo reconocible no es una etiqueta válida.
-            pendientes.add(FragmentoPendiente(
-              texto: palabra,
-              posicionInicio: desplazamiento + token.inicio,
-              posicionFin: desplazamiento + token.fin,
-              motivo: MotivoPendiente.estructuraNoReconocida,
-              detalle: 'Etiqueta de bloque técnico sin estilo: use '
-                  'TEC L, TEC E, TEC P, TEC M o TEC EST',
-            ));
+            pendientes.add(
+              FragmentoPendiente(
+                texto: palabra,
+                posicionInicio: desplazamiento + token.inicio,
+                posicionFin: desplazamiento + token.fin,
+                motivo: MotivoPendiente.estructuraNoReconocida,
+                detalle:
+                    'Etiqueta de bloque técnico sin estilo: use '
+                    'TEC L, TEC E, TEC P, TEC M o TEC EST',
+              ),
+            );
             i++;
             continue;
           }
@@ -377,13 +382,15 @@ class Analizador {
           continue;
 
         case TipoToken.desconocido:
-          pendientes.add(FragmentoPendiente(
-            texto: token.texto,
-            posicionInicio: desplazamiento + token.inicio,
-            posicionFin: desplazamiento + token.fin,
-            motivo: MotivoPendiente.terminoDesconocido,
-            detalle: 'Carácter no reconocido',
-          ));
+          pendientes.add(
+            FragmentoPendiente(
+              texto: token.texto,
+              posicionInicio: desplazamiento + token.inicio,
+              posicionFin: desplazamiento + token.fin,
+              motivo: MotivoPendiente.terminoDesconocido,
+              detalle: 'Carácter no reconocido',
+            ),
+          );
           i++;
           continue;
       }
@@ -410,13 +417,15 @@ class Analizador {
       // Sin distancia no hay serie medible. Si además no hubo nada más
       // reconocible, se reporta la estructura completa como no interpretada.
       if (resolucion.ejercicio == null && implementos.isEmpty) {
-        pendientes.add(FragmentoPendiente(
-          texto: texto.trim(),
-          posicionInicio: desplazamiento,
-          posicionFin: desplazamiento + texto.length,
-          motivo: MotivoPendiente.estructuraNoReconocida,
-          detalle: 'No se encontró la distancia de la serie',
-        ));
+        pendientes.add(
+          FragmentoPendiente(
+            texto: texto.trim(),
+            posicionInicio: desplazamiento,
+            posicionFin: desplazamiento + texto.length,
+            motivo: MotivoPendiente.estructuraNoReconocida,
+            detalle: 'No se encontró la distancia de la serie',
+          ),
+        );
       }
       return ResultadoAnalisis(
         series: const [],
@@ -450,11 +459,9 @@ class Analizador {
   ///
   /// El orden importa: `ROLIDO CON 1 BRAZO` debe probarse antes que `ROLIDO`,
   /// o el nombre largo nunca se reconocería.
-  late final List<String> _nombresOrdenados = biblioteca.todos
-      .map((e) => e.nombreBase.toUpperCase())
-      .toSet()
-      .toList()
-    ..sort((a, b) => b.length.compareTo(a.length));
+  late final List<String> _nombresOrdenados =
+      biblioteca.todos.map((e) => e.nombreBase.toUpperCase()).toSet().toList()
+        ..sort((a, b) => b.length.compareTo(a.length));
 
   /// Busca un nombre de la Biblioteca directamente en el texto de la serie.
   ///
@@ -489,7 +496,8 @@ class Analizador {
             posicionInicio: desplazamiento + posicion,
             posicionFin: desplazamiento + posicion + nombre.length,
             motivo: MotivoPendiente.ambiguo,
-            detalle: 'Existe en '
+            detalle:
+                'Existe en '
                 '${resultado.estilosPosibles.map((e) => e.nombre).join(', ')}. '
                 'Indique el estilo',
           ),
@@ -501,8 +509,7 @@ class Analizador {
   }
 
   static bool _tieneFronteraDePalabra(String texto, int inicio, int longitud) {
-    bool esAlfanumerico(String c) =>
-        RegExp(r'[A-Za-zÁÉÍÓÚÜÑ0-9]').hasMatch(c);
+    bool esAlfanumerico(String c) => RegExp(r'[A-Za-zÁÉÍÓÚÜÑ0-9]').hasMatch(c);
 
     if (inicio > 0 && esAlfanumerico(texto[inicio - 1])) return false;
 
@@ -543,7 +550,8 @@ class Analizador {
               posicionInicio: desplazamiento + grupo.first.inicio,
               posicionFin: desplazamiento + grupo.last.fin,
               motivo: MotivoPendiente.ambiguo,
-              detalle: 'Existe en ${resultado.estilosPosibles.map((e) => e.nombre).join(', ')}. '
+              detalle:
+                  'Existe en ${resultado.estilosPosibles.map((e) => e.nombre).join(', ')}. '
                   'Indique el estilo',
             ),
           ]);

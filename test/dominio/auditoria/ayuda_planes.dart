@@ -167,24 +167,24 @@ class ConstructorPlanes {
   /// única forma de tener un plan generado es construirlo como tal. Es lo mismo
   /// que hará el generador.
   Plan comoGenerado(Plan plan) => Plan(
-        id: plan.id,
-        nombre: plan.nombre,
-        categoria: plan.categoria,
-        estiloObjetivo: plan.estiloObjetivo,
-        pruebaObjetivo: plan.pruebaObjetivo,
-        longitudPiscina: plan.longitudPiscina,
-        fechaInicio: plan.fechaInicio,
-        fechaFin: plan.fechaFin,
-        faseAtr: plan.faseAtr,
-        microciclos: plan.microciclos,
-        sesiones: plan.sesiones,
-        estado: plan.estado,
-        origen: OrigenPlan.automatico,
-        versionMetodologia: plan.versionMetodologia,
-        fechaAprobacion: plan.fechaAprobacion,
-        justificaciones: plan.justificaciones,
-        versionAnteriorId: plan.versionAnteriorId,
-      );
+    id: plan.id,
+    nombre: plan.nombre,
+    categoria: plan.categoria,
+    estiloObjetivo: plan.estiloObjetivo,
+    pruebaObjetivo: plan.pruebaObjetivo,
+    longitudPiscina: plan.longitudPiscina,
+    fechaInicio: plan.fechaInicio,
+    fechaFin: plan.fechaFin,
+    faseAtr: plan.faseAtr,
+    microciclos: plan.microciclos,
+    sesiones: plan.sesiones,
+    estado: plan.estado,
+    origen: OrigenPlan.automatico,
+    versionMetodologia: plan.versionMetodologia,
+    fechaAprobacion: plan.fechaAprobacion,
+    justificaciones: plan.justificaciones,
+    versionAnteriorId: plan.versionAnteriorId,
+  );
 
   /// Igual que el anterior, pero fuera del envolvente piramidal.
   ///

@@ -20,47 +20,47 @@ import 'package:natacion_app/ui/planes/pantalla_plan.dart';
 /// como hecha sin estarlo porque nada recorría el camino de verdad.
 void main() {
   Plan planAprobado() => Plan(
-        id: 'p1',
-        nombre: 'Microciclo de base',
-        categoria: Categoria.precompetitivo,
-        estiloObjetivo: Estilo.libre,
-        pruebaObjetivo: '800 Libre',
-        estado: EstadoPlan.aprobado,
-        versionMetodologia: '3.6.0',
-        fechaAprobacion: DateTime(2026, 10, 15),
-        microciclos: const [
-          Microciclo(
-            id: 'm1',
-            nombre: 'Semana 1',
-            orden: 1,
-            objetivo: 'Base aeróbica',
-          ),
-        ],
-        sesiones: [
-          Sesion(
-            id: 's1',
-            microcicloId: 'm1',
-            fecha: DateTime(2026, 10, 15),
-            objetivoTecnico: 'Técnica de eficiencia',
-            objetivoFisiologico: 'Base aeróbica',
-            partes: [
-              Parte(
-                tipo: TipoParte.inicial,
-                series: const [
-                  Serie(
-                    repeticiones: 8,
-                    distancia: 50,
-                    zona: Zona.a1,
-                    estilo: Estilo.libre,
-                  ),
-                ],
+    id: 'p1',
+    nombre: 'Microciclo de base',
+    categoria: Categoria.precompetitivo,
+    estiloObjetivo: Estilo.libre,
+    pruebaObjetivo: '800 Libre',
+    estado: EstadoPlan.aprobado,
+    versionMetodologia: '3.6.0',
+    fechaAprobacion: DateTime(2026, 10, 15),
+    microciclos: const [
+      Microciclo(
+        id: 'm1',
+        nombre: 'Semana 1',
+        orden: 1,
+        objetivo: 'Base aeróbica',
+      ),
+    ],
+    sesiones: [
+      Sesion(
+        id: 's1',
+        microcicloId: 'm1',
+        fecha: DateTime(2026, 10, 15),
+        objetivoTecnico: 'Técnica de eficiencia',
+        objetivoFisiologico: 'Base aeróbica',
+        partes: [
+          Parte(
+            tipo: TipoParte.inicial,
+            series: const [
+              Serie(
+                repeticiones: 8,
+                distancia: 50,
+                zona: Zona.a1,
+                estilo: Estilo.libre,
               ),
-              const Parte(tipo: TipoParte.central),
-              const Parte(tipo: TipoParte.cierre),
             ],
           ),
+          const Parte(tipo: TipoParte.central),
+          const Parte(tipo: TipoParte.cierre),
         ],
-      );
+      ),
+    ],
+  );
 
   const conConsentimiento = Nadador(
     id: 'n1',
@@ -106,15 +106,17 @@ void main() {
         ),
       );
 
-  testWidgets('quien no tiene consentimiento no se puede marcar',
-      (tester) async {
+  testWidgets('quien no tiene consentimiento no se puede marcar', (
+    tester,
+  ) async {
     await abrirEntrega(tester, permitidos: {'n1'});
 
     expect(casillaDe(tester, conConsentimiento.nombre).enabled, isTrue);
     expect(
       casillaDe(tester, sinConsentimiento.nombre).enabled,
       isFalse,
-      reason: 'El consentimiento es puerta de publicación (FR-013). Ofrecer '
+      reason:
+          'El consentimiento es puerta de publicación (FR-013). Ofrecer '
           'la casilla sería ofrecer algo que el servidor va a denegar',
     );
   });
@@ -128,8 +130,9 @@ void main() {
     );
   });
 
-  testWidgets('sin ningún consentimiento no se puede marcar a nadie',
-      (tester) async {
+  testWidgets('sin ningún consentimiento no se puede marcar a nadie', (
+    tester,
+  ) async {
     await abrirEntrega(tester, permitidos: const {});
 
     expect(casillaDe(tester, conConsentimiento.nombre).enabled, isFalse);
@@ -178,7 +181,8 @@ void main() {
     expect(
       entregadoA,
       ['n1'],
-      reason: 'Publicar y asignar son dos cosas: el plan cambia de estado, y '
+      reason:
+          'Publicar y asignar son dos cosas: el plan cambia de estado, y '
           'cada entrega es una asignación propia que pasa por la puerta de '
           'consentimiento de ese nadador',
     );

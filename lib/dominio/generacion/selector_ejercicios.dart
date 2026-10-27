@@ -52,7 +52,7 @@ class SeleccionEjercicios {
 
 class SelectorEjercicios {
   SelectorEjercicios(this.biblioteca, {IndiceTerminos? indice})
-      : indice = indice ?? IndiceTerminos.vacio();
+    : indice = indice ?? IndiceTerminos.vacio();
 
   final Biblioteca biblioteca;
 
@@ -183,9 +183,9 @@ class SelectorEjercicios {
     final buscado = _normalizar(termino);
     if (buscado.isEmpty) return const [];
 
-    return _delEstilo(estilo)
-        .where((e) => _normalizar(e.errorQueCorrige).contains(buscado))
-        .toList();
+    return _delEstilo(
+      estilo,
+    ).where((e) => _normalizar(e.errorQueCorrige).contains(buscado)).toList();
   }
 
   /// Ejercicios del estilo, más los generales, en el orden de la Biblioteca.

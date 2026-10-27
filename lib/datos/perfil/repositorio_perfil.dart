@@ -46,10 +46,10 @@ class RepositorioPerfilFirestore implements RepositorioPerfil {
   /// tiempo, si algún día la escribiera otra cosa. Se admiten las dos antes de
   /// que la diferencia cueste un fallo raro.
   static DateTime? _comoFecha(Object? valor) => switch (valor) {
-        final String texto => DateTime.tryParse(texto),
-        final Timestamp marca => marca.toDate(),
-        _ => null,
-      };
+    final String texto => DateTime.tryParse(texto),
+    final Timestamp marca => marca.toDate(),
+    _ => null,
+  };
 
   static AceptacionDeTerminos? _comoAceptacion(Object? valor) {
     if (valor is! Map) return null;
@@ -123,6 +123,5 @@ class RepositorioPerfilEnMemoria implements RepositorioPerfil {
   final Map<String, Perfil> _perfiles;
 
   @override
-  Future<Perfil> obtener(String uid) async =>
-      _perfiles[uid] ?? const Perfil();
+  Future<Perfil> obtener(String uid) async => _perfiles[uid] ?? const Perfil();
 }

@@ -89,9 +89,9 @@ class SelectorDePerfil extends StatelessWidget {
               Text(
                 planes.isEmpty
                     ? 'No hay ningún plan publicado todavía. Genera un '
-                        'microciclo, apruébalo y entrégalo desde el editor.'
+                          'microciclo, apruébalo y entrégalo desde el editor.'
                     : 'Hay planes publicados, pero ninguno asignado a este '
-                        'perfil. Entrégale uno desde el editor.',
+                          'perfil. Entrégale uno desde el editor.',
                 style: TextStyle(color: esquema.onSurfaceVariant),
               ),
             ],
@@ -109,10 +109,9 @@ class SelectorDePerfil extends StatelessWidget {
                     'Sin cuentas todavía: el perfil se elige aquí. Úsalo solo '
                     'con perfiles de prueba o contigo mismo hasta que exista el '
                     'registro de consentimiento.',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: esquema.outline),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: esquema.outline),
                   ),
                 ),
               ],

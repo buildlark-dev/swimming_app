@@ -20,8 +20,7 @@ class Tolerancia {
   final double puntosPorcentuales;
 
   /// Verdadero si la diferencia cabe dentro de la tolerancia.
-  bool admite(double diferencia) =>
-      diferencia.abs() <= puntosPorcentuales;
+  bool admite(double diferencia) => diferencia.abs() <= puntosPorcentuales;
 
   @override
   String toString() => '±$puntosPorcentuales puntos porcentuales';

@@ -117,10 +117,15 @@ void main() {
   group('los casos que dieron problemas en la feature 001', () {
     test('un ejercicio ambiguo se escribe con su estilo', () {
       final biblioteca = cargarBibliotecaReal();
-      final flecha = biblioteca.todos
-          .firstWhere((e) => e.nombreBase == 'FLECHA' && e.requiereDesambiguacion);
+      final flecha = biblioteca.todos.firstWhere(
+        (e) => e.nombreBase == 'FLECHA' && e.requiereDesambiguacion,
+      );
 
-      final serie = Serie(distancia: 200, ejercicio: flecha, estilo: flecha.estilo);
+      final serie = Serie(
+        distancia: 200,
+        ejercicio: flecha,
+        estilo: flecha.estilo,
+      );
       final texto = renderizador.serie(serie);
       final leida = analizador.analizar(texto);
 
@@ -134,10 +139,15 @@ void main() {
 
     test('un nombre con + se relee entero', () {
       final biblioteca = cargarBibliotecaReal();
-      final conMas = biblioteca.todos
-          .firstWhere((e) => e.nombreBase.contains('+'));
+      final conMas = biblioteca.todos.firstWhere(
+        (e) => e.nombreBase.contains('+'),
+      );
 
-      final serie = Serie(distancia: 200, ejercicio: conMas, estilo: conMas.estilo);
+      final serie = Serie(
+        distancia: 200,
+        ejercicio: conMas,
+        estilo: conMas.estilo,
+      );
       final leida = analizador.analizar(renderizador.serie(serie));
 
       expect(leida.metros, 200);
@@ -182,8 +192,9 @@ void main() {
         final etiqueta = '${categoria.nombre} · piscina $piscina';
 
         test('$etiqueta: los metros coinciden, 0 m de diferencia', () {
-          final resultado =
-              generador.generar(peticionPara(categoria, fase, piscina));
+          final resultado = generador.generar(
+            peticionPara(categoria, fase, piscina),
+          );
           final plan = (resultado as MicrocicloGenerado).plan;
 
           for (final sesion in plan.sesiones) {
@@ -203,8 +214,9 @@ void main() {
         });
 
         test('$etiqueta: no queda ningún fragmento pendiente', () {
-          final resultado =
-              generador.generar(peticionPara(categoria, fase, piscina));
+          final resultado = generador.generar(
+            peticionPara(categoria, fase, piscina),
+          );
           final plan = (resultado as MicrocicloGenerado).plan;
 
           for (final sesion in plan.sesiones) {
@@ -217,7 +229,8 @@ void main() {
               expect(
                 releida.pendientes,
                 isEmpty,
-                reason: '$etiqueta:\n$texto\n'
+                reason:
+                    '$etiqueta:\n$texto\n'
                     '${releida.pendientes.map((p) => p.toString()).join('\n')}',
               );
             }
@@ -225,16 +238,18 @@ void main() {
         });
 
         test('$etiqueta: las zonas se conservan', () {
-          final resultado =
-              generador.generar(peticionPara(categoria, fase, piscina));
+          final resultado = generador.generar(
+            peticionPara(categoria, fase, piscina),
+          );
           final plan = (resultado as MicrocicloGenerado).plan;
 
           for (final sesion in plan.sesiones) {
             for (final parte in sesion.partes) {
               if (parte.series.isEmpty) continue;
 
-              final releida =
-                  analizador.analizar(renderizador.series(parte.series));
+              final releida = analizador.analizar(
+                renderizador.series(parte.series),
+              );
 
               final originales = parte.series.map((s) => s.zona).toList();
               final recuperadas = releida.series.map((s) => s.zona).toList();
@@ -263,10 +278,7 @@ void main() {
             isNotEmpty,
             reason: 'El editor necesita el texto para mostrarlo',
           );
-          expect(
-            analizador.analizar(parte.textoOriginal).metros,
-            parte.metros,
-          );
+          expect(analizador.analizar(parte.textoOriginal).metros, parte.metros);
         }
       }
     });

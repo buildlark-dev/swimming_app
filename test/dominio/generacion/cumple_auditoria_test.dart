@@ -76,11 +76,13 @@ void main() {
 
     test('con tantas sesiones como su categoría prescribe', () {
       for (final categoria in Categoria.values) {
-        final plan = generarPlan(peticionPara(
-          categoria,
-          categoria.usaAtr ? FaseAtr.acumulacion : null,
-          25,
-        ));
+        final plan = generarPlan(
+          peticionPara(
+            categoria,
+            categoria.usaAtr ? FaseAtr.acumulacion : null,
+            25,
+          ),
+        );
 
         expect(
           plan.sesiones,
@@ -106,7 +108,8 @@ void main() {
 
       for (final fase in fases) {
         for (final piscina in [25, 50]) {
-          final etiqueta = '${categoria.nombre} · '
+          final etiqueta =
+              '${categoria.nombre} · '
               '${fase?.nombre ?? 'sin ATR'} · piscina $piscina';
 
           test('$etiqueta: ningún criterio bloqueante en rojo', () {
@@ -134,11 +137,13 @@ void main() {
   group('las reglas absolutas nunca ceden', () {
     test('todas las series tienen zona asignada (invariante 9)', () {
       for (final categoria in Categoria.values) {
-        final plan = generarPlan(peticionPara(
-          categoria,
-          categoria.usaAtr ? FaseAtr.transformacion : null,
-          25,
-        ));
+        final plan = generarPlan(
+          peticionPara(
+            categoria,
+            categoria.usaAtr ? FaseAtr.transformacion : null,
+            25,
+          ),
+        );
 
         for (final sesion in plan.sesiones) {
           for (final serie in sesion.todasLasSeries) {
@@ -182,17 +187,20 @@ void main() {
 
     test('el volumen de cada sesión cae en el rango de la categoría', () {
       for (final categoria in Categoria.values) {
-        final plan = generarPlan(peticionPara(
-          categoria,
-          categoria.usaAtr ? FaseAtr.acumulacion : null,
-          25,
-        ));
+        final plan = generarPlan(
+          peticionPara(
+            categoria,
+            categoria.usaAtr ? FaseAtr.acumulacion : null,
+            25,
+          ),
+        );
 
         for (final sesion in plan.sesiones) {
           expect(
             categoria.volumenPorSesion.contiene(sesion.metros),
             isTrue,
-            reason: '${categoria.nombre}: ${sesion.metros} m fuera de '
+            reason:
+                '${categoria.nombre}: ${sesion.metros} m fuera de '
                 '${categoria.volumenPorSesion}',
           );
         }
@@ -216,8 +224,11 @@ void main() {
 
   group('determinismo (FR-024)', () {
     test('la misma petición produce el mismo plan', () {
-      final peticion =
-          peticionPara(Categoria.precompetitivo, FaseAtr.acumulacion, 25);
+      final peticion = peticionPara(
+        Categoria.precompetitivo,
+        FaseAtr.acumulacion,
+        25,
+      );
 
       final uno = generarPlan(peticion);
       final dos = generarPlan(peticion);
@@ -234,8 +245,11 @@ void main() {
     });
 
     test('cambiar el componente acentuado cambia el plan', () {
-      final base =
-          peticionPara(Categoria.precompetitivo, FaseAtr.acumulacion, 25);
+      final base = peticionPara(
+        Categoria.precompetitivo,
+        FaseAtr.acumulacion,
+        25,
+      );
       final otra = base.copiarCon(componenteAcentuado: 'Ritmo competitivo');
 
       expect(
@@ -247,20 +261,24 @@ void main() {
 
   group('lesiones: avisan, no modifican', () {
     test('el plan con lesión declarada es idéntico al de sin ella', () {
-      final sinLesion =
-          peticionPara(Categoria.precompetitivo, FaseAtr.acumulacion, 25);
+      final sinLesion = peticionPara(
+        Categoria.precompetitivo,
+        FaseAtr.acumulacion,
+        25,
+      );
       final conLesion = sinLesion.copiarCon(lesiones: ['dolor de hombro']);
 
       expect(generarPlan(conLesion).metros, generarPlan(sinLesion).metros);
     });
 
     test('pero aparece como aviso', () {
-      final peticion =
-          peticionPara(Categoria.precompetitivo, FaseAtr.acumulacion, 25)
-              .copiarCon(lesiones: ['dolor de hombro']);
+      final peticion = peticionPara(
+        Categoria.precompetitivo,
+        FaseAtr.acumulacion,
+        25,
+      ).copiarCon(lesiones: ['dolor de hombro']);
 
-      final resultado =
-          generador.generar(peticion) as MicrocicloGenerado;
+      final resultado = generador.generar(peticion) as MicrocicloGenerado;
 
       expect(resultado.avisos, isNotEmpty);
       expect(resultado.avisos.first, contains('dolor de hombro'));
@@ -270,9 +288,11 @@ void main() {
 
   group('supuestos declarados', () {
     test('la estimación de ritmo se declara como supuesto', () {
-      final resultado = generador.generar(
-        peticionPara(Categoria.precompetitivo, FaseAtr.acumulacion, 25),
-      ) as MicrocicloGenerado;
+      final resultado =
+          generador.generar(
+                peticionPara(Categoria.precompetitivo, FaseAtr.acumulacion, 25),
+              )
+              as MicrocicloGenerado;
 
       expect(resultado.supuestos, isNotEmpty);
       expect(resultado.supuestos.first.motivo, contains('No es una regla'));

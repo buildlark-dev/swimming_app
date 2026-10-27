@@ -36,15 +36,14 @@ void main() {
   Future<String> unNadador({
     String nombre = 'Nadador de prueba',
     DateTime? fechaNacimiento,
-  }) =>
-      nadadores.guardar(
-        Nadador(
-          nombre: nombre,
-          fechaNacimiento: fechaNacimiento,
-          categoria: Categoria.iniciacion,
-          estiloObjetivo: Estilo.libre,
-        ),
-      );
+  }) => nadadores.guardar(
+    Nadador(
+      nombre: nombre,
+      fechaNacimiento: fechaNacimiento,
+      categoria: Categoria.iniciacion,
+      estiloObjetivo: Estilo.libre,
+    ),
+  );
 
   Future<String> unPlanEntregadoA(String nadadorId) async {
     final planId = await planes.guardarBorrador(
@@ -74,28 +73,30 @@ void main() {
     String planId,
     String sesionId, {
     bool conMolestia = false,
-  }) =>
-      registros.guardar(
-        RegistroDeSesion(
-          nadadorId: nadadorId,
-          planId: planId,
-          sesionId: sesionId,
-          versionDePlan: '3.6.0',
-          realizada: true,
-          registradoEn: DateTime(2026, 10, 15),
-          rpePercibido: 7,
-          molestia: conMolestia
-              ? const ReporteDeMolestia(
-                  descripcion: 'Pinchazo',
-                  zonaDelCuerpo: 'hombro derecho',
-                )
-              : null,
-        ),
-      );
+  }) => registros.guardar(
+    RegistroDeSesion(
+      nadadorId: nadadorId,
+      planId: planId,
+      sesionId: sesionId,
+      versionDePlan: '3.6.0',
+      realizada: true,
+      registradoEn: DateTime(2026, 10, 15),
+      rpePercibido: 7,
+      molestia: conMolestia
+          ? const ReporteDeMolestia(
+              descripcion: 'Pinchazo',
+              zonaDelCuerpo: 'hombro derecho',
+            )
+          : null,
+    ),
+  );
 
   group('FR-036 — saber qué se guarda, en palabras', () {
     test('cuenta lo que hay sin volcar la base de datos', () async {
-      final id = await unNadador(nombre: 'Ana', fechaNacimiento: DateTime(2017, 5, 1));
+      final id = await unNadador(
+        nombre: 'Ana',
+        fechaNacimiento: DateTime(2017, 5, 1),
+      );
       final planId = await unPlanEntregadoA(id);
       await respuesta(id, planId, 's1');
       await respuesta(id, planId, 's2', conMolestia: true);
@@ -117,7 +118,8 @@ void main() {
       expect(
         palabras.join(' '),
         contains('No hay fotos, ni videos'),
-        reason: 'A un acudiente hay que decirle también lo que NO se guarda. '
+        reason:
+            'A un acudiente hay que decirle también lo que NO se guarda. '
             'Es la mitad de la respuesta y la que más tranquiliza',
       );
     });
@@ -175,7 +177,11 @@ void main() {
       final otro = await unNadador(nombre: 'Luis');
       final planId = await unPlanEntregadoA(uno);
       await asignaciones.asignar(
-        Asignacion(planId: planId, nadadorId: otro, asignadaEn: DateTime(2026, 10, 15)),
+        Asignacion(
+          planId: planId,
+          nadadorId: otro,
+          asignadaEn: DateTime(2026, 10, 15),
+        ),
       );
       await respuesta(otro, planId, 's1');
 
@@ -204,7 +210,8 @@ void main() {
       expect(
         plan,
         isNotNull,
-        reason: 'Un microciclo es la obra profesional del entrenador. Borrar '
+        reason:
+            'Un microciclo es la obra profesional del entrenador. Borrar '
             'los datos de un niño no puede costarle la temporada',
       );
       expect(plan!.nombre, 'Microciclo del entrenador');
@@ -252,10 +259,9 @@ class _RegistrosEnMemoria implements RepositorioRegistros {
   Future<List<RegistroDeSesion>> obtenerDePlan(
     String nadadorId,
     String planId,
-  ) async =>
-      _guardados.values
-          .where((r) => r.nadadorId == nadadorId && r.planId == planId)
-          .toList();
+  ) async => _guardados.values
+      .where((r) => r.nadadorId == nadadorId && r.planId == planId)
+      .toList();
 
   @override
   Future<void> guardar(RegistroDeSesion registro) async {
@@ -264,11 +270,11 @@ class _RegistrosEnMemoria implements RepositorioRegistros {
 
   @override
   Future<Map<String, dynamic>> exportar(String nadadorId) async => {
-        'misRegistros': _guardados.values
-            .where((r) => r.nadadorId == nadadorId)
-            .map((r) => r.sesionId)
-            .toList(),
-      };
+    'misRegistros': _guardados.values
+        .where((r) => r.nadadorId == nadadorId)
+        .map((r) => r.sesionId)
+        .toList(),
+  };
 
   @override
   Future<void> eliminarDe(String nadadorId) async {

@@ -102,6 +102,5 @@ class GeneracionImposible extends ResultadoGeneracion {
 
   String get resumen => impedimentos.map((i) => i.toString()).join('\n');
 
-  bool tiene(TipoImpedimento tipo) =>
-      impedimentos.any((i) => i.tipo == tipo);
+  bool tiene(TipoImpedimento tipo) => impedimentos.any((i) => i.tipo == tipo);
 }
