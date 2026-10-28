@@ -156,6 +156,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   /// girar sin fin.
   String? _noSePudoContar;
 
+  /// Qué grupo de planes se vino a mirar desde la portada.
+  QueMirar _queMirar = QueMirar.todos;
+
   Rol? get _rol => widget.modoLocal ? _recorridoLocal : widget.cuenta?.rol;
 
   bool get _esEntrenador => _rol == Rol.entrenador;
@@ -418,6 +421,13 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       asignaciones: _asignaciones,
       resumenDelEntrenador: _resumen,
       noSePudoContar: _noSePudoContar,
+      queMirar: _queMirar,
+      idsQueMirar: _resumen?.idsDe(_queMirar),
+      alQuitarElFiltro: () => setState(() => _queMirar = QueMirar.todos),
+      alMirar: (que) => setState(() {
+        _queMirar = que;
+        _destino = Destino.verPlan;
+      }),
       irAVerPlan: () => setState(() => _destino = Destino.verPlan),
       alGenerar: _abrirGenerado,
       alRevisarPlan: _revisarPlan,

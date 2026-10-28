@@ -51,6 +51,10 @@ class ContextoDelHub {
     required this.asignaciones,
     required this.resumenDelEntrenador,
     this.noSePudoContar,
+    this.queMirar = QueMirar.todos,
+    this.idsQueMirar,
+    this.alQuitarElFiltro,
+    this.alMirar,
     required this.irAVerPlan,
     required this.alGenerar,
     required this.alRevisarPlan,
@@ -81,6 +85,12 @@ class ContextoDelHub {
 
   /// Por qué no se pudo contar, si no se pudo.
   final String? noSePudoContar;
+
+  /// Qué grupo de planes se está mirando, y cómo salir de él.
+  final QueMirar queMirar;
+  final Set<String>? idsQueMirar;
+  final VoidCallback? alQuitarElFiltro;
+  final void Function(QueMirar)? alMirar;
 
   final VoidCallback irAVerPlan;
   final void Function(MicrocicloGenerado) alGenerar;
@@ -135,6 +145,9 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
   return switch (contenido) {
     Contenido.generadorYEditor => _GenerarDelEntrenador(ctx: ctx),
     Contenido.planesDelEntrenador => PlanesDelEntrenador(
+      queMirar: ctx.queMirar,
+      idsQueMirar: ctx.idsQueMirar,
+      alQuitarElFiltro: ctx.alQuitarElFiltro,
       planes: ctx.planes,
       asignaciones: ctx.asignaciones,
       nadadores: ctx.nadadores,
@@ -144,6 +157,7 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
     Contenido.homeDelEntrenador => HomeDelEntrenador(
       resumen: ctx.resumenDelEntrenador,
       noSePudoContar: ctx.noSePudoContar,
+      alMirar: ctx.alMirar,
     ),
     Contenido.sesionDelDia => ChangeNotifierProvider<EstadoNadador>.value(
       value: ctx.nadador,

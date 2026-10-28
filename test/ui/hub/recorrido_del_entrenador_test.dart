@@ -164,6 +164,77 @@ void main() {
     });
   });
 
+  group('T066 — contar sin poder ir a verlos no sirve', () {
+    testWidgets('tocar un número abre **esos** planes en Ver Plan', (
+      tester,
+    ) async {
+      await abrirHub(
+        tester,
+        await montarHub(
+          rol: Rol.entrenador,
+          planes: [
+            planDePrueba(),
+            planDePrueba(id: 'p2', estado: EstadoPlan.aprobado),
+          ],
+          asignaciones: [asignacionDePrueba()],
+          registros: [registroDePrueba(sesionId: 's0', realizada: true)],
+        ),
+      );
+
+      await tester.tap(find.byKey(const Key('numero-en-uso')));
+      await tester.pumpAndSettle();
+
+      // Se cambió de destino, y la lista dice qué se está mirando.
+      expect(find.byKey(const Key('ver-plan-del-entrenador')), findsOneWidget);
+      expect(find.byKey(const Key('filtro-de-la-portada')), findsOneWidget);
+
+      // El que está en uso, y no el aprobado.
+      expect(find.text('Microciclo de base aeróbica'), findsWidgets);
+      expect(
+        tester
+            .widgetList<Text>(find.byType(Text))
+            .where((t) => t.data == 'Aprobado'),
+        isEmpty,
+        reason: 'Tocar «en uso» no puede traer un plan que no está en uso',
+      );
+    });
+
+    testWidgets('un número en cero no se toca', (tester) async {
+      await abrirHub(
+        tester,
+        await montarHub(rol: Rol.entrenador, planes: [planDePrueba()]),
+      );
+
+      await tester.tap(find.byKey(const Key('numero-en-uso')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('home-entrenador')),
+        findsOneWidget,
+        reason: 'Llevaría a una lista en blanco',
+      );
+    });
+
+    testWidgets('los borradores por corregir tienen su número', (tester) async {
+      // Antes no aparecían en ninguna parte: no esperan firma, y «planes
+      // generados» no distingue. Parecían no existir, y son justo los que
+      // piden trabajo.
+      await abrirHub(
+        tester,
+        await montarHub(
+          rol: Rol.entrenador,
+          planes: [planDePrueba(id: 'p-b', estado: EstadoPlan.borrador)],
+        ),
+      );
+
+      expect(find.byKey(const Key('numero-por-corregir')), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.byKey(const Key('numero-por-corregir'))).data,
+        '1',
+      );
+    });
+  });
+
   group('H18 — contar no es aprobar', () {
     testWidgets('en Home no hay nada que firme ni publique', (tester) async {
       await abrirHub(

@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/entidades/asignacion.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
+import 'package:natacion_app/dominio/hub/resumen_del_entrenador.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/ui/componentes/campo.dart';
 import 'package:natacion_app/ui/componentes/estado_vacio.dart';
@@ -29,6 +30,9 @@ class PlanesDelEntrenador extends StatefulWidget {
     required this.nadadores,
     required this.versionMetodologia,
     required this.alEntregar,
+    this.queMirar = QueMirar.todos,
+    this.idsQueMirar,
+    this.alQuitarElFiltro,
   });
 
   final List<Plan> planes;
@@ -36,6 +40,17 @@ class PlanesDelEntrenador extends StatefulWidget {
   final RepositorioNadadores nadadores;
   final String versionMetodologia;
   final Future<void> Function(Plan, List<String>) alEntregar;
+
+  /// Qué grupo se está mirando, porque se tocó un número de la portada.
+  final QueMirar queMirar;
+
+  /// Los planes de ese grupo. Nulo significa «todos».
+  ///
+  /// Vienen calculados del mismo sitio que el número: así el número y la lista
+  /// que abre no pueden decir cosas distintas.
+  final Set<String>? idsQueMirar;
+
+  final VoidCallback? alQuitarElFiltro;
 
   @override
   State<PlanesDelEntrenador> createState() => _PlanesDelEntrenadorState();
@@ -68,6 +83,10 @@ class _PlanesDelEntrenadorState extends State<PlanesDelEntrenador> {
     final texto = _busqueda.trim().toLowerCase();
 
     return widget.planes.where((plan) {
+      // El grupo que se vino a mirar desde la portada, si vino alguno.
+      final grupo = widget.idsQueMirar;
+      if (grupo != null && !grupo.contains(plan.id)) return false;
+
       if (texto.isNotEmpty &&
           !plan.nombre.toLowerCase().contains(texto) &&
           !(plan.pruebaObjetivo.toLowerCase().contains(texto))) {
@@ -124,6 +143,8 @@ class _PlanesDelEntrenadorState extends State<PlanesDelEntrenador> {
                 alEntregar: widget.alEntregar,
                 alBuscar: (texto) => setState(() => _busqueda = texto),
                 alFiltrar: (id) => setState(() => _nadadorFiltrado = id),
+                queMirar: widget.idsQueMirar == null ? null : widget.queMirar,
+                alQuitarElFiltro: widget.alQuitarElFiltro,
               ),
               PantallaPerfiles(repositorio: widget.nadadores),
             ],
@@ -145,6 +166,8 @@ class _ListaDePlanes extends StatelessWidget {
     required this.alEntregar,
     required this.alBuscar,
     required this.alFiltrar,
+    this.queMirar,
+    this.alQuitarElFiltro,
   });
 
   final List<Plan> planes;
@@ -157,11 +180,27 @@ class _ListaDePlanes extends StatelessWidget {
   final ValueChanged<String> alBuscar;
   final ValueChanged<String?> alFiltrar;
 
+  /// El grupo que se vino a mirar desde la portada, si vino alguno.
+  final QueMirar? queMirar;
+  final VoidCallback? alQuitarElFiltro;
+
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(Espaciado.amplio),
       children: [
+        // Qué grupo se está mirando, y cómo salir de él. Un filtro que no se
+        // ve es un filtro que deja al entrenador preguntándose dónde están
+        // sus otros planes.
+        if (queMirar != null) ...[
+          InputChip(
+            key: const Key('filtro-de-la-portada'),
+            avatar: const Icon(Icons.filter_alt_outlined, size: 18),
+            label: Text(queMirar!.etiqueta),
+            onDeleted: alQuitarElFiltro,
+          ),
+          const SizedBox(height: Espaciado.normal),
+        ],
         Campo(
           key: const Key('buscar-plan'),
           etiqueta: 'Buscar un plan',

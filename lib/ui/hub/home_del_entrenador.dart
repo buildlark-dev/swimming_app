@@ -21,6 +21,7 @@ class HomeDelEntrenador extends StatelessWidget {
     super.key,
     required this.resumen,
     this.noSePudoContar,
+    this.alMirar,
   });
 
   /// Nulo mientras se cuenta. No se enseñan ceros como si fueran datos.
@@ -33,6 +34,9 @@ class HomeDelEntrenador extends StatelessWidget {
   /// nombre del proyecto, y la portada se quedaba girando para siempre. Girar
   /// sin fin no se distingue de «está tardando»: hay que decirlo.
   final String? noSePudoContar;
+
+  /// Qué hacer cuando se toca un número: abrir esos planes en `Ver Plan`.
+  final void Function(QueMirar)? alMirar;
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +88,8 @@ class HomeDelEntrenador extends StatelessWidget {
             etiqueta: 'Planes generados',
             icono: Icons.description_outlined,
             valor: cuentas.planesGenerados,
+            que: QueMirar.todos,
+            alMirar: alMirar,
           ),
           const SizedBox(height: Espaciado.normal),
           _Numero(
@@ -92,6 +98,8 @@ class HomeDelEntrenador extends StatelessWidget {
             detalle: 'Entregados, y su nadador ya respondió algo',
             icono: Icons.pool_outlined,
             valor: cuentas.enUso,
+            que: QueMirar.enUso,
+            alMirar: alMirar,
           ),
           const SizedBox(height: Espaciado.normal),
           _Numero(
@@ -100,6 +108,21 @@ class HomeDelEntrenador extends StatelessWidget {
             detalle: 'Borradores sin nada que impida aprobarlos',
             icono: Icons.draw_outlined,
             valor: cuentas.esperandoAprobacion,
+            que: QueMirar.esperandoFirma,
+            alMirar: alMirar,
+          ),
+          const SizedBox(height: Espaciado.normal),
+          // **El quinto, que antes no estaba.** Un borrador bloqueado no
+          // aparecía en ningún número: no espera firma, y «planes generados»
+          // no distingue. Parecía no existir, y es justo el que pide trabajo.
+          _Numero(
+            clave: 'numero-por-corregir',
+            etiqueta: 'Con algo que corregir',
+            detalle: 'Borradores que la auditoría todavía no deja firmar',
+            icono: Icons.rule_outlined,
+            valor: cuentas.porCorregir,
+            que: QueMirar.porCorregir,
+            alMirar: alMirar,
           ),
           const SizedBox(height: Espaciado.normal),
           _Numero(
@@ -108,6 +131,8 @@ class HomeDelEntrenador extends StatelessWidget {
             detalle: 'Firmados y todavía sin nadador',
             icono: Icons.inbox_outlined,
             valor: cuentas.aprobadosSinAsignar,
+            que: QueMirar.aprobadosSinAsignar,
+            alMirar: alMirar,
           ),
         ],
       ],
@@ -121,6 +146,8 @@ class _Numero extends StatelessWidget {
     required this.etiqueta,
     required this.icono,
     required this.valor,
+    required this.que,
+    required this.alMirar,
     this.detalle,
   });
 
@@ -129,6 +156,8 @@ class _Numero extends StatelessWidget {
   final String? detalle;
   final IconData icono;
   final int valor;
+  final QueMirar que;
+  final void Function(QueMirar)? alMirar;
 
   @override
   Widget build(BuildContext context) {
@@ -136,6 +165,10 @@ class _Numero extends StatelessWidget {
     final esquema = Theme.of(context).colorScheme;
 
     return Tarjeta(
+      // **Contar sin poder ir a verlos deja al entrenador buscándolos a
+      // mano.** Tocar el número abre esos planes, y solo esos. Un grupo vacío
+      // no se toca: llevaría a una lista en blanco.
+      alPulsar: valor == 0 || alMirar == null ? null : () => alMirar!(que),
       child: Row(
         children: [
           Icon(icono, color: esquema.primary),
