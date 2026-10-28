@@ -258,10 +258,20 @@ class _FilaDePlan extends StatelessWidget {
               children: [
                 Text(plan.nombre, style: textos.titleSmall),
                 const SizedBox(height: Espaciado.minimo),
+                // **Sin contar sesiones aquí.**
+                //
+                // `listar()` no las trae —una consulta en lugar de una por
+                // plan—, así que el número sería siempre «0 sesiones». Un cero
+                // que no significa nada es peor que no decir nada: se dice lo
+                // que de la lista sí se sabe.
                 Text(
-                  '${plan.categoria.nombre} · ${plan.sesiones.length} sesiones'
-                  '${yaAsignados.isEmpty ? '' : ' · ${yaAsignados.length} '
-                            'entregas'}',
+                  [
+                    plan.categoria.nombre,
+                    if (plan.faseAtr != null) plan.faseAtr!.nombre,
+                    if (yaAsignados.isNotEmpty)
+                      '${yaAsignados.length} '
+                          '${yaAsignados.length == 1 ? 'entrega' : 'entregas'}',
+                  ].join(' · '),
                   style: textos.bodySmall,
                 ),
               ],

@@ -152,6 +152,10 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
   ResumenDelEntrenador? _resumen;
 
+  /// Por qué no se pudo contar, si no se pudo. La portada lo dice en lugar de
+  /// girar sin fin.
+  String? _noSePudoContar;
+
   Rol? get _rol => widget.modoLocal ? _recorridoLocal : widget.cuenta?.rol;
 
   bool get _esEntrenador => _rol == Rol.entrenador;
@@ -219,7 +223,27 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   /// Vuelve a leer lo del entrenador, y recuenta su resumen.
   Future<void> _recargar() async {
     try {
-      final planes = await _repos.planes.listar();
+      final listados = await _repos.planes.listar();
+
+      // **Los borradores, completos.**
+      //
+      // `listar()` no trae las sesiones a propósito: es una consulta en lugar
+      // de una por plan. Pero sin sesiones la auditoría da cualquier plan por
+      // incompleto, así que «esperando tu firma» no podía dar otra cosa que
+      // cero —lo enseñó la app, con un borrador delante y el número en 0—.
+      //
+      // Se completan **solo los borradores**, que son pocos y son los únicos
+      // que el número mira. Los demás se quedan como vienen.
+      final planes = <Plan>[];
+      for (final plan in listados) {
+        final id = plan.id;
+        if (plan.estado != EstadoPlan.borrador || id == null) {
+          planes.add(plan);
+          continue;
+        }
+        planes.add(await _repos.planes.obtener(id) ?? plan);
+      }
+
       final asignaciones = await _repos.asignaciones.listar();
       final conRegistros = await _repos.registrosParaContar
           .nadadoresConRegistros();
@@ -238,15 +262,19 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
           nadadoresConRegistros: conRegistros,
         );
       });
-    } on FalloDeDatos {
-      // El resumen se queda sin contar y la portada lo dice girando, en lugar
-      // de mostrar cuatro ceros como si fueran datos.
-    } on FalloDeAlmacenLocal {
-      // **Y el almacén del dispositivo también puede faltar**: sin servidor,
-      // contar quién ha respondido lo lee de ahí. Un navegador sin
-      // almacenamiento no puede tumbar el arranque por un número de la
-      // portada; es la misma lección del PR #5, cuando un fallo que debía
-      // degradar se llevó la app entera.
+    } catch (fallo) {
+      // **Cualquier fallo, no solo los que tienen nombre.**
+      //
+      // Lo encontró la app en vivo: un documento con una forma que el cliente
+      // no esperaba —una fecha guardada como marca de tiempo donde se leía
+      // texto— lanza un `TypeError`, que no es `FalloDeDatos` ni
+      // `FalloDeAlmacenLocal`. Con un `catch` por tipo, eso se escapaba y
+      // **la portada se quedaba girando para siempre**, sin decir nada.
+      //
+      // Girar sin fin es la peor respuesta posible: no se puede distinguir de
+      // «está tardando». Así que se guarda qué pasó y la pantalla lo dice.
+      if (!mounted) return;
+      setState(() => _noSePudoContar = '$fallo');
     }
   }
 
@@ -389,6 +417,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       planes: _planes,
       asignaciones: _asignaciones,
       resumenDelEntrenador: _resumen,
+      noSePudoContar: _noSePudoContar,
       irAVerPlan: () => setState(() => _destino = Destino.verPlan),
       alGenerar: _abrirGenerado,
       alRevisarPlan: _revisarPlan,

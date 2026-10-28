@@ -68,6 +68,8 @@ Plan planDePrueba({
   ],
 );
 
+PlanesComoFirestore? ultimoRepoComoFirestore;
+
 RegistroDeSesion registroDePrueba({
   required String sesionId,
   required bool realizada,
@@ -105,6 +107,8 @@ Future<Widget> montarHub({
   List<RegistroDeSesion> registros = const [],
   bool modoLocal = false,
   String? nadadorIdDeLaCuenta = 'n1',
+  bool planesQueFallan = false,
+  bool listarSinSesiones = false,
 }) async {
   SharedPreferences.setMockInitialValues({});
 
@@ -146,7 +150,11 @@ Future<Widget> montarHub({
               nadadorId: rol == Rol.entrenador ? null : nadadorIdDeLaCuenta,
             ),
       repositorios: RepositoriosDelHub(
-        planes: repoPlanes,
+        planes: planesQueFallan
+            ? _PlanesQueRevientan()
+            : listarSinSesiones
+            ? (ultimoRepoComoFirestore = PlanesComoFirestore(planes))
+            : repoPlanes,
         sesiones: RepositorioSesionesMemoria(),
         nadadores: repoNadadores,
         asignaciones: repoAsignaciones,
@@ -215,4 +223,74 @@ class _SinRed implements EstadoDeRed {
 class _TransporteQuieto implements EnvioDeRegistros {
   @override
   Future<DateTime> enviar(RegistroDeSesion registro) async => hoy;
+}
+
+/// Un repositorio que lanza algo que **no** es un fallo con nombre.
+///
+/// Es lo que pasa de verdad cuando un documento guardado tiene una forma que
+/// el cliente no espera: un `TypeError`, no un `FalloDeDatos`.
+class _PlanesQueRevientan implements RepositorioPlanes {
+  @override
+  Future<List<Plan>> listar({Categoria? categoria, EstadoPlan? estado}) async {
+    throw TypeError();
+  }
+
+  @override
+  Future<Plan?> obtener(String id) async => throw TypeError();
+
+  @override
+  Future<String> guardarBorrador(Plan plan) async => throw TypeError();
+
+  @override
+  Future<void> guardarAprobado(Plan plan, Map<String, dynamic> a) async =>
+      throw TypeError();
+
+  @override
+  Future<Plan> crearVersionDesde(String id) async => throw TypeError();
+
+  @override
+  Future<Map<String, dynamic>> exportar(String id) async => throw TypeError();
+}
+
+/// Un repositorio que **miente como el de Firestore**: al listar devuelve los
+/// planes sin sus sesiones, y solo al pedir uno concreto las trae.
+///
+/// Es exactamente lo que hace `RepositorioPlanesFirestore.listar()`, y es lo
+/// que hacía que «esperando tu firma» no pudiera dar otra cosa que cero.
+class PlanesComoFirestore implements RepositorioPlanes {
+  PlanesComoFirestore(this._completos);
+
+  final List<Plan> _completos;
+
+  /// Si alguien pidió un plan concreto: es lo que distingue contar sobre lo
+  /// listado de contar sobre el plan completo.
+  final pedidos = <String>[];
+
+  @override
+  Future<List<Plan>> listar({Categoria? categoria, EstadoPlan? estado}) async =>
+      _completos
+          .where((p) => estado == null || p.estado == estado)
+          .map((p) => p.copiarCon(sesiones: const []))
+          .toList();
+
+  @override
+  Future<Plan?> obtener(String id) async {
+    pedidos.add(id);
+    for (final plan in _completos) {
+      if (plan.id == id) return plan;
+    }
+    return null;
+  }
+
+  @override
+  Future<String> guardarBorrador(Plan plan) async => plan.id ?? 'p1';
+
+  @override
+  Future<void> guardarAprobado(Plan plan, Map<String, dynamic> a) async {}
+
+  @override
+  Future<Plan> crearVersionDesde(String id) async => throw UnimplementedError();
+
+  @override
+  Future<Map<String, dynamic>> exportar(String id) async => {};
 }

@@ -50,6 +50,7 @@ class ContextoDelHub {
     required this.planes,
     required this.asignaciones,
     required this.resumenDelEntrenador,
+    this.noSePudoContar,
     required this.irAVerPlan,
     required this.alGenerar,
     required this.alRevisarPlan,
@@ -77,6 +78,9 @@ class ContextoDelHub {
   final List<Plan> planes;
   final List<Asignacion> asignaciones;
   final ResumenDelEntrenador? resumenDelEntrenador;
+
+  /// Por qué no se pudo contar, si no se pudo.
+  final String? noSePudoContar;
 
   final VoidCallback irAVerPlan;
   final void Function(MicrocicloGenerado) alGenerar;
@@ -139,6 +143,7 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
     ),
     Contenido.homeDelEntrenador => HomeDelEntrenador(
       resumen: ctx.resumenDelEntrenador,
+      noSePudoContar: ctx.noSePudoContar,
     ),
     Contenido.sesionDelDia => ChangeNotifierProvider<EstadoNadador>.value(
       value: ctx.nadador,

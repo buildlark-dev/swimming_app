@@ -9,20 +9,54 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/hub/resumen_del_entrenador.dart';
+import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/componentes/estado_vacio.dart';
 import 'package:natacion_app/ui/componentes/tarjeta.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/ui/tema/tipografia.dart';
 
 class HomeDelEntrenador extends StatelessWidget {
-  const HomeDelEntrenador({super.key, required this.resumen});
+  const HomeDelEntrenador({
+    super.key,
+    required this.resumen,
+    this.noSePudoContar,
+  });
 
   /// Nulo mientras se cuenta. No se enseñan ceros como si fueran datos.
   final ResumenDelEntrenador? resumen;
 
+  /// Por qué no se pudo contar, si no se pudo.
+  ///
+  /// **Esto lo encontró la app en vivo.** Un documento con una forma que el
+  /// cliente no esperaba lanza un error que no es ninguno de los fallos con
+  /// nombre del proyecto, y la portada se quedaba girando para siempre. Girar
+  /// sin fin no se distingue de «está tardando»: hay que decirlo.
+  final String? noSePudoContar;
+
   @override
   Widget build(BuildContext context) {
     final cuentas = resumen;
+    final fallo = noSePudoContar;
+
+    if (fallo != null && cuentas == null) {
+      return ListView(
+        key: const Key('home-entrenador'),
+        padding: const EdgeInsets.all(Espaciado.amplio),
+        children: [
+          Aviso(
+            claveDelMensaje: const Key('home-no-se-pudo-contar'),
+            tono: TonoDeAviso.error,
+            icono: Icons.error_outline,
+            mensaje:
+                'No se pudieron contar tus planes. Lo que sigue funcionando '
+                'es todo lo demás: puedes generar, revisar y entregar.',
+          ),
+          const SizedBox(height: Espaciado.normal),
+          Text(fallo, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      );
+    }
 
     if (cuentas == null) {
       return const Center(

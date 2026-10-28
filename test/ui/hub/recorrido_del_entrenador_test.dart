@@ -121,6 +121,47 @@ void main() {
 
       expect(find.byKey(const Key('home-sin-nada')), findsOneWidget);
     });
+
+    testWidgets('**un borrador firmable se cuenta**', (tester) async {
+      // Lo encontró la app en vivo, con un borrador delante y el número en 0.
+      // `listar()` no trae las sesiones —una consulta en lugar de una por
+      // plan— y sin sesiones la auditoría da el plan por incompleto, así que
+      // «esperando tu firma» no podía dar otra cosa que cero. El HUB completa
+      // los borradores antes de contarlos.
+      await abrirHub(
+        tester,
+        await montarHub(
+          rol: Rol.entrenador,
+          planes: [planDePrueba(id: 'p-borrador', estado: EstadoPlan.borrador)],
+          listarSinSesiones: true,
+        ),
+      );
+
+      expect(
+        ultimoRepoComoFirestore?.pedidos,
+        contains('p-borrador'),
+        reason:
+            'Si el número se cuenta sobre lo que devuelve `listar()` —sin '
+            'sesiones—, la auditoría da todo borrador por incompleto y '
+            '«esperando tu firma» no puede ser otra cosa que cero',
+      );
+    });
+
+    testWidgets('si no se pueden contar, **lo dice en vez de girar**', (
+      tester,
+    ) async {
+      // Lo encontró la app en vivo: un documento con una forma que el cliente
+      // no esperaba lanza un error que no es ninguno de los fallos con nombre
+      // del proyecto. Con un `catch` por tipo se escapaba y la portada giraba
+      // para siempre, que no se distingue de «está tardando».
+      await abrirHub(
+        tester,
+        await montarHub(rol: Rol.entrenador, planesQueFallan: true),
+      );
+
+      expect(find.byKey(const Key('home-no-se-pudo-contar')), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
   });
 
   group('H18 — contar no es aprobar', () {
