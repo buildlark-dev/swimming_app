@@ -73,25 +73,54 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
   bool _cargando = true;
   String? _avisoDeClave;
 
+  /// Qué no se pudo leer, para decirlo. Nulo cuando se leyó todo.
+  String? _noSePudoLeer;
+
   @override
   void initState() {
     super.initState();
     _cargar();
   }
 
+  /// Carga cada cosa **por separado**, y si una falla sigue con las demás.
+  ///
+  /// Antes era un `await` detrás de otro sin red de seguridad: lo que fallara
+  /// se llevaba por delante la pantalla entera y la dejaba con la rueda dando
+  /// vueltas, que no se distingue de estar tardando. Lo vio el teléfono con la
+  /// cuenta de una nadadora —el documento de consentimiento tenía la fecha en
+  /// otro formato— y lo que se perdía no era un dato: eran los tres derechos
+  /// de la Ley 1581 y el botón de pedir el borrado, inalcanzables.
+  ///
+  /// Que no se pueda leer algo se dice. Quedarse callado girando, no.
   Future<void> _cargar() async {
-    final perfil = await widget.repositorioPerfil.obtener(widget.uid);
+    final noSePudo = <String>[];
 
+    Perfil? perfil;
+    try {
+      perfil = await widget.repositorioPerfil.obtener(widget.uid);
+    } catch (_) {
+      noSePudo.add('tus datos de cuenta');
+    }
+
+    ConstanciaDeConsentimiento? constancia;
     final nadadorId = widget.nadadorId;
-    final constancia = nadadorId == null
-        ? null
-        : await widget.constancias?.de(nadadorId);
+    if (nadadorId != null) {
+      try {
+        constancia = await widget.constancias?.de(nadadorId);
+      } catch (_) {
+        noSePudo.add('la constancia del consentimiento');
+      }
+    }
 
     if (!mounted) return;
     setState(() {
       _perfil = perfil;
       _constancia = constancia;
       _cargando = false;
+      _noSePudoLeer = noSePudo.isEmpty
+          ? null
+          : 'No se pudo leer ${noSePudo.join(' ni ')}. Lo demás de esta '
+                'pantalla funciona igual.';
     });
   }
 
@@ -113,7 +142,7 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
   Widget build(BuildContext context) {
     final perfil = _perfil;
 
-    if (_cargando || perfil == null) {
+    if (_cargando) {
       return const Center(
         key: Key('ajustes-cargando'),
         child: CircularProgressIndicator(),
@@ -124,14 +153,30 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
       key: const Key('ajustes'),
       padding: const EdgeInsets.all(Espaciado.amplio),
       children: [
-        MisDatos(
-          perfil: perfil,
-          operaciones: widget.operaciones,
-          alCorregir: _cargar,
-        ),
-        const SizedBox(height: Espaciado.amplio),
-        LoQueAcepte(perfil: perfil, constancia: _constancia),
-        const SizedBox(height: Espaciado.amplio),
+        if (_noSePudoLeer != null) ...[
+          // **De cuidado, no de error.** No se perdió nada: hay algo que no
+          // se pudo leer y el resto de la pantalla sirve igual.
+          Aviso(
+            tono: TonoDeAviso.cuidado,
+            icono: Icons.cloud_off_outlined,
+            claveDelMensaje: const Key('ajustes-no-se-pudo-leer'),
+            mensaje: _noSePudoLeer!,
+          ),
+          const SizedBox(height: Espaciado.amplio),
+        ],
+        // Sin perfil no se pueden pintar estas dos, y **lo que viene después
+        // sí**: los derechos y el borrado no dependen de haber podido leer
+        // el nombre.
+        if (perfil != null) ...[
+          MisDatos(
+            perfil: perfil,
+            operaciones: widget.operaciones,
+            alCorregir: _cargar,
+          ),
+          const SizedBox(height: Espaciado.amplio),
+          LoQueAcepte(perfil: perfil, constancia: _constancia),
+          const SizedBox(height: Espaciado.amplio),
+        ],
         MisDerechos(derechos: widget.derechos, nadadorId: widget.nadadorId),
         const SizedBox(height: Espaciado.amplio),
         SeccionApariencia(alElegir: widget.alElegirApariencia),

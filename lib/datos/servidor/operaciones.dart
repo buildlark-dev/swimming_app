@@ -208,7 +208,9 @@ class OperacionesFirebase implements OperacionesDelServidor {
     String? host,
     int puertoEmulador = 5001,
   }) {
-    final funciones = FirebaseFunctions.instance;
+    final funciones = FirebaseFunctions.instanceFor(
+      app: appDeFirebase(usarEmuladores: usarEmuladores),
+    );
     if (usarEmuladores) {
       // El host lo decide `hostEmulador`: en el emulador de Android,
       // `localhost` es el propio teléfono emulado y no la máquina que corre

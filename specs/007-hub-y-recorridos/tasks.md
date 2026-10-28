@@ -189,14 +189,14 @@ cada una puede cambiar está dicho (FR-033, decisión D12).
 - [X] T061 Pasar las cuatro puertas: `flutter analyze` limpio, `flutter test` en verde, `npm --prefix firebase test` en verde y `dart run tool/verificar_metodologia.dart` con las huellas coincidiendo
 - [X] T062 [P] Actualizar `docs/DEVELOPMENT.md`: añadir el HUB y los dos recorridos, y **poner al día la lista «What is built»**, que se quedó en la feature 003 y no nombra cuentas, consentimiento, tema visual ni alta
 - [ ] T063 [P] Marcar la feature 007 como fusionada en `docs/ROADMAP.md` cuando lo esté
-- [ ] T064 Recorrer C1 a C14 de [quickstart.md](./quickstart.md) en el navegador, con las dos cuentas. **C9 y C11 son los que importan**: que corregir un apellido no mueva la constancia, y que la supresión diga qué sobrevive antes del segundo paso
+- [X] T064 Recorrer C1 a C14 de [quickstart.md](./quickstart.md) en el navegador, con las dos cuentas. **C9 y C11 son los que importan**: que corregir un apellido no mueva la constancia, y que la supresión diga qué sobrevive antes del segundo paso
 
 ---
 
 ## Dos tareas que no dependen de mí
 
 - [X] T065 **Confirmación del entrenador**: ¿la supresión borra también la cuenta de identidad? El plan propone que sí —el correo es un dato personal, y dejar la cuenta viva convierte el derecho en un vaciado que deja a la persona registrada y sin nada— pero es irreversible y afecta a cuentas reales. **Bloquea T041**
-- [ ] T066 **Criterio del entrenador**: qué muestra el `Home` del entrenador cuando los cuatro números son cero, visto con sus propios datos delante. Si sobra algo, sobra
+- [X] T066 **Criterio del entrenador**: qué muestra el `Home` del entrenador cuando los cuatro números son cero, visto con sus propios datos delante. Si sobra algo, sobra
 
 ---
 
@@ -350,3 +350,41 @@ arreglaba solo al recargar la app, que es la clase de fallo que nadie reporta.
 
 - [X] T072 Conectar la identidad al emulador en `lib/datos/auth/sesion_firebase.dart` —el único archivo que puede importar `firebase_auth`— y llamarlo desde `lib/main.dart` cuando se arranca con emuladores
 - [X] T073 Releer la cuenta al terminar el alta: `refrescarCuenta()` en `lib/ui/acceso/estado_sesion.dart`, `alGuardarElPerfil` en `lib/ui/alta/puerta_del_perfil.dart`, y su cerrojo en `test/ui/alta/entrar_despues_del_alta_test.dart` con control negativo
+
+---
+
+## Y lo que dijo el teléfono
+
+C15 y C16 solo se pueden ver en un teléfono, y verlos costó cuatro arreglos que **ninguna
+prueba de este proyecto podía encontrar**, porque todas corren en un escritorio sin barra de
+estado, sin `google-services.json` y sin la validación de Android.
+
+**1. Contra los emuladores, Android no arrancaba donde debía.** `FirebaseInitProvider`
+inicializa la app por omisión con `google-services.json` **antes de que corra una línea de
+Dart**: volver a inicializarla daba `duplicate-app` y la app caía en modo local sin decirlo.
+Y aceptar la que ya había cambiaba el proyecto al de verdad, con lo que el emulador guardaba
+los datos en otra base que la de las herramientas y **todo parecía vacío sin que nada
+fallara**. Por eso nunca se había podido probar contra los emuladores en un teléfono.
+
+**2. Las opciones de mentira tenían que tener forma de verdad.** Android comprueba la forma
+del identificador de aplicación y la de la clave en cuanto se llama a una API de servidor. El
+borrado de datos murió primero con «Please set your Application ID» y después con «Please set
+a valid API key». En web ninguna de las dos se mira.
+
+**3. La franja de sesión se pintaba debajo del reloj**, con «Entrenador» encima de la hora. El
+`Scaffold` no lo evita solo cuando no hay `AppBar`, y el HUB pone su propio título.
+
+**4. `Ajustes` de un nadador se quedaba girando para siempre.** El documento de consentimiento
+tenía la fecha como texto, `as Timestamp?` lanzaba un `TypeError` —un `Error`, no una
+`Exception`, así que ningún `catch` por tipo lo paraba—, subía hasta la carga de la pantalla y
+la dejaba sin terminar. Con el entrenador no pasaba porque su cuenta no tiene constancia que
+leer. Lo que se perdía no era un dato: eran **los tres derechos de la Ley 1581 y el botón de
+pedir el borrado**, inalcanzables. Es el mismo patrón que dejó la portada girando, y por eso
+se arregla en los dos sitios: lo que falle al leer una cosa no puede llevarse la pantalla.
+
+- [X] T074 Arrancar Firebase contra los emuladores con una **app con nombre propio** en `lib/datos/firestore/configuracion.dart`, y usarla desde `sesion_firebase.dart` y `operaciones.dart`, para no pisar la que Android ya inicializó ni acabar mirando otro proyecto
+- [X] T075 Dar a las opciones del emulador un identificador de aplicación y una clave **con forma válida**, que no identifican nada y solo sirven para pasar la comprobación de Android
+- [X] T076 `SafeArea(bottom: false)` en el cuerpo del HUB, con su cerrojo en `test/ui/hub/estado_y_navegacion_test.dart`: con 144 px de barra de estado simulada, la franja no empieza por encima. Control negativo: falló antes del arreglo
+- [X] T077 Sacar `constanciaDesde` de `ConstanciasFirestore` como función sin Firestore y leer cada campo por separado —marca de tiempo, `DateTime` o texto; lo que no se entienda se queda sin fecha, no se inventa—, con su cerrojo en `test/datos/firestore/consentimientos_test.dart`
+- [X] T078 Cargar cada cosa por separado en `PantallaAjustes._cargar()` y **decir qué no se pudo leer** en lugar de girar, con su cerrojo en `test/ui/ajustes/ajustes_test.dart`: sin perfil, los derechos y el borrado siguen alcanzables
+- [X] T079 Sembrar también la cuenta de una nadadora y el `historial` del consentimiento en `firebase/functions/tools/sembrar-emulador.js`, con la fecha como marca de tiempo igual que el servidor, y volver a poner los roles al final porque `alCrearseUnaCuenta` los pisa

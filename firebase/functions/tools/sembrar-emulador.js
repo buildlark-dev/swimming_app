@@ -54,13 +54,55 @@ async function main() {
       estiloObjetivo: 'libre',
       pruebaObjetivo: '800 Libre',
     });
-    await db.collection('consentimientos').doc(nadador.id).set({
+    // La fecha como **marca de tiempo**, que es lo que escribe el servidor.
+    // Con texto, la app se comía un `TypeError` al leerla y `Ajustes` de un
+    // nadador se quedaba girando. Ya no se rompe —eso se arregló donde tocaba,
+    // en la lectura—, pero sembrar con otra forma que la de producción es
+    // sembrar otra cosa, y entonces probar aquí no prueba lo de allá.
+    const consentimiento = {
+      nadadorId: nadador.id,
       vigente: true,
       alcances: ['datosDeEntrenamiento'],
       versionDelTexto: 'v1',
-      otorgadoEn: new Date().toISOString(),
+      otorgadoEn: FieldValue.serverTimestamp(),
+    };
+    await db.collection('consentimientos').doc(nadador.id).set(consentimiento);
+
+    // **Y su constancia.** El historial es lo único que sobrevive a una
+    // supresión (garantía C8), así que sin sembrarlo no se puede comprobar
+    // que sobrevive: se vería una subcolección vacía antes y después, que no
+    // prueba nada.
+    await db
+      .collection('consentimientos')
+      .doc(nadador.id)
+      .collection('historial')
+      .doc('sembrado')
+      .set(consentimiento);
+  }
+
+  // 3.b La cuenta de Ana, para poder recorrer la supresión de un nadador:
+  //     tiene ficha, asignación y una respuesta suya. La del entrenador no
+  //     toca ninguna de esas ramas.
+  const CORREO_NADADORA = 'nadadora.verifica@ejemplo.test';
+  let laNadadora;
+  try {
+    laNadadora = await auth.getUserByEmail(CORREO_NADADORA);
+    await auth.updateUser(laNadadora.uid, { password: CLAVE });
+  } catch (_) {
+    laNadadora = await auth.createUser({
+      email: CORREO_NADADORA,
+      password: CLAVE,
     });
   }
+  await auth.setCustomUserClaims(laNadadora.uid, { rol: 'nadador' });
+  await db.collection('usuarios').doc(laNadadora.uid).set({
+    nadadorId: 'n-ana',
+    nombre: 'Ana María Restrepo',
+    fechaNacimiento: '2012-05-20',
+    pais: 'CO',
+    terminos: { version: 'v1', aceptadaEn: FieldValue.serverTimestamp() },
+    perfilCompletadoEn: FieldValue.serverTimestamp(),
+  });
 
   // 4. Planes en los tres estados, para que los cuatro números digan algo.
   const sesion = (id, dias) => ({
@@ -137,7 +179,17 @@ async function main() {
     registradoEn: new Date().toISOString(),
   });
 
+  // **El rol se vuelve a poner al final, y no es redundante.** El disparador
+  // `alCrearseUnaCuenta` corre cuando la cuenta se crea y escribe el rol por
+  // omisión, así que pisa el que se asignó arriba: el entrenador entraba como
+  // nadador y no había manera de ver su recorrido. Al final ya ha corrido.
+  await auth.setCustomUserClaims(usuario.uid, { rol: 'entrenador' });
+  await auth.setCustomUserClaims(laNadadora.uid, { rol: 'nadador' });
+
   console.log(`Entrenador: ${CORREO} / ${CLAVE}  (uid ${usuario.uid})`);
+  console.log(
+    `Nadadora:   ${CORREO_NADADORA} / ${CLAVE}  (uid ${laNadadora.uid}, ficha n-ana)`
+  );
   console.log('Planes: 4 (2 publicados, 1 aprobado, 1 borrador)');
   console.log('En uso esperado: 1 — solo Ana ha respondido algo');
 }

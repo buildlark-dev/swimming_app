@@ -122,4 +122,32 @@ void main() {
       expect(pagina.canPop, isTrue);
     });
   });
+
+  group('la franja de sesión respeta la barra de estado', () {
+    testWidgets('no empieza por encima de lo que el sistema ocupa', (
+      tester,
+    ) async {
+      // **Lo vio el teléfono, no una prueba.** En el emulador de Android la
+      // franja de sesión se dibujaba debajo del reloj y de los iconos del
+      // sistema: «Entrenador» encima de la hora, ilegibles los dos. En el
+      // navegador no se ve, porque ahí no hay nada que esquivar, y por eso
+      // ninguna de las pruebas de esta feature lo notó.
+      tester.view.padding = const FakeViewPadding(top: 144);
+      addTearDown(tester.view.reset);
+
+      await abrirHub(tester, await montarHub(rol: Rol.entrenador));
+
+      final ocupadoPorElSistema =
+          tester.view.padding.top / tester.view.devicePixelRatio;
+
+      expect(
+        tester.getTopLeft(find.byKey(const Key('barra-de-sesion'))).dy,
+        greaterThanOrEqualTo(ocupadoPorElSistema),
+        reason:
+            'La franja arranca a ${tester.getTopLeft(find.byKey(const Key('barra-de-sesion'))).dy} '
+            'y el sistema ocupa $ocupadoPorElSistema: se está pintando debajo '
+            'del reloj',
+      );
+    });
+  });
 }

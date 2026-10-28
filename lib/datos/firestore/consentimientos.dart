@@ -98,16 +98,7 @@ class ConstanciasFirestore implements LectorDeConstancias {
       final datos = documento.data();
       if (datos == null) return null;
 
-      return ConstanciaDeConsentimiento(
-        vigente: datos['vigente'] == true,
-        alcances: (datos['alcances'] as List<dynamic>? ?? const [])
-            .map((a) => Alcance.porClave(a as String?))
-            .nonNulls
-            .toSet(),
-        versionDelTexto: datos['versionDelTexto'] as String?,
-        otorgadoEn: (datos['otorgadoEn'] as Timestamp?)?.toDate(),
-        revocadoEn: (datos['revocadoEn'] as Timestamp?)?.toDate(),
-      );
+      return constanciaDesde(datos);
     } on FirebaseException {
       // Sin red ni caché no se sabe. **Se dice que no se sabe** en lugar de
       // decir que no hay consentimiento, que es una afirmación distinta.
@@ -115,3 +106,43 @@ class ConstanciasFirestore implements LectorDeConstancias {
     }
   }
 }
+
+/// Arma la constancia con lo que traiga el documento.
+///
+/// **Aparte y sin Firestore a propósito**, porque esto es lo que se rompió y
+/// lo que hay que poder probar. En el emulador de Android, `Ajustes` de una
+/// nadadora se quedaba girando para siempre: el documento tenía la fecha
+/// guardada como texto, `as Timestamp?` lanzaba un `TypeError` —que es un
+/// `Error` y no una `Exception`, así que ningún `catch` por tipo lo paraba— y
+/// la pantalla nunca terminaba de cargar. Con el entrenador no pasaba porque
+/// su cuenta no tiene constancia que leer.
+///
+/// Aquí cada campo se lee por separado y **lo que no se entienda se queda
+/// fuera**, no se inventa: una fecha de consentimiento es un dato legal, y
+/// entre no tenerla y ponerle una aproximada no hay duda. Lo que no se pierde
+/// es el resto de la constancia.
+ConstanciaDeConsentimiento constanciaDesde(Map<String, dynamic> datos) =>
+    ConstanciaDeConsentimiento(
+      vigente: datos['vigente'] == true,
+      alcances: (datos['alcances'] is List ? datos['alcances'] as List : const [])
+          .map((a) => Alcance.porClave(a is String ? a : null))
+          .nonNulls
+          .toSet(),
+      versionDelTexto: datos['versionDelTexto'] is String
+          ? datos['versionDelTexto'] as String
+          : null,
+      otorgadoEn: _fecha(datos['otorgadoEn']),
+      revocadoEn: _fecha(datos['revocadoEn']),
+    );
+
+/// Una fecha, venga como venga. Si no se entiende, no hay fecha.
+///
+/// El servidor escribe marcas de tiempo; una herramienta o una versión vieja
+/// pueden haber dejado texto. Ninguna de las dos formas debería costar una
+/// pantalla.
+DateTime? _fecha(Object? valor) => switch (valor) {
+  final Timestamp marca => marca.toDate(),
+  final DateTime fecha => fecha,
+  final String texto => DateTime.tryParse(texto),
+  _ => null,
+};

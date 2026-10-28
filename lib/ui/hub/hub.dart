@@ -461,22 +461,36 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
         }
       },
       child: Scaffold(
-        body: Column(
-          children: [
-            _BarraDeSesion(cuenta: widget.cuenta, modoLocal: widget.modoLocal),
-            // El nombre del destino, cuando la barra no puede mostrarlo. Nadie
-            // se queda sin saber dónde está.
-            _TituloDelDestino(destino: _destino),
-            Expanded(
-              child: IndexedStack(
-                index: _destino.posicion,
-                children: [
-                  for (final destino in Destino.values)
-                    contenidoDe(destino, rol, ctx),
-                ],
+        // **Por debajo del reloj.** Sin esto, en un teléfono la franja de
+        // sesión se pinta bajo la barra de estado y «Entrenador» queda encima
+        // de la hora. El `Scaffold` no lo evita por su cuenta cuando no hay
+        // `AppBar`, que es el caso desde que el HUB pone su propio título.
+        //
+        // `bottom: false` porque abajo ya se encarga `NavigationBar`, que
+        // añade el hueco de la barra de gestos él mismo; duplicarlo dejaría
+        // una franja vacía.
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              _BarraDeSesion(
+                cuenta: widget.cuenta,
+                modoLocal: widget.modoLocal,
               ),
-            ),
-          ],
+              // El nombre del destino, cuando la barra no puede mostrarlo.
+              // Nadie se queda sin saber dónde está.
+              _TituloDelDestino(destino: _destino),
+              Expanded(
+                child: IndexedStack(
+                  index: _destino.posicion,
+                  children: [
+                    for (final destino in Destino.values)
+                      contenidoDe(destino, rol, ctx),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
         bottomNavigationBar: LayoutBuilder(
           builder: (context, medidas) {
@@ -564,6 +578,7 @@ class _BarraDeSesion extends StatelessWidget {
     if (dentro == null) return const SizedBox.shrink();
 
     return Material(
+      key: const Key('barra-de-sesion'),
       color: esquema.surfaceContainerHighest,
       child: Padding(
         padding: const EdgeInsets.symmetric(

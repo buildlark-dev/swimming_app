@@ -15,6 +15,19 @@ import 'package:natacion_app/firebase_options.dart';
 /// nube, y así no hay riesgo de tocar un proyecto real por descuido.
 const String proyectoLocal = 'demo-natacion';
 
+/// El nombre de la app de Firebase que se usa contra los emuladores.
+///
+/// Tiene nombre propio para no pisar la que Android e iOS ya inicializaron con
+/// `google-services.json`: si se usara aquella, los datos del emulador caerían
+/// bajo el proyecto de verdad y las herramientas, que hablan de
+/// `demo-natacion`, mirarían otra base.
+const String nombreDeLaAppLocal = 'emuladores';
+
+/// La app de Firebase que esta app usa, según dónde esté.
+FirebaseApp appDeFirebase({required bool usarEmuladores}) => usarEmuladores
+    ? Firebase.app(nombreDeLaAppLocal)
+    : Firebase.app();
+
 /// Dónde están los emuladores, **visto desde donde corre la app**.
 ///
 /// En el emulador de Android, `localhost` es el propio teléfono emulado: la
@@ -57,13 +70,53 @@ class ConfiguracionDatos {
   /// Lo que protege los datos son las reglas de `firestore.rules`, que es por
   /// lo que están probadas como están.
   FirebaseOptions get opciones => usarEmuladores
+      // **Con forma válida, aunque sean de mentira.** En web cualquier cadena
+      // vale; Android comprueba la **forma** del identificador de aplicación y
+      // la de la clave en cuanto se llama a una API de servidor, y con cadenas
+      // libres el borrado de datos moría primero con «Please set your
+      // Application ID» y después con «Please set a valid API key». Lo dijo la
+      // app en el teléfono las dos veces, no una prueba.
+      //
+      // Ninguna de las dos identifica nada: el proyecto es `demo-natacion`,
+      // que no existe, y todo el tráfico va a los emuladores. Lo único que se
+      // les pide es tener la forma que Android exige.
       ? const FirebaseOptions(
-          apiKey: 'emulador-local',
-          appId: 'emulador-local',
-          messagingSenderId: 'emulador-local',
+          apiKey: 'AIzaSyDemoEmuladorLocalNoEsUnaClave1234',
+          appId: '1:000000000000:android:0000000000000000',
+          messagingSenderId: '000000000000',
           projectId: proyectoLocal,
         )
       : DefaultFirebaseOptions.currentPlatform;
+
+  /// Arranca Firebase. **Contra emuladores, con una app propia y con nombre.**
+  ///
+  /// Dos cosas obligan a esto, y las dos se vieron en un teléfono de verdad:
+  ///
+  /// 1. En Android y en iOS, `FirebaseInitProvider` inicializa la app por
+  ///    omisión con `google-services.json` **antes de que corra una línea de
+  ///    Dart**. Volver a inicializarla con otras opciones da `duplicate-app`,
+  ///    y esta app se quedaba en modo local sin decir por qué: por eso nunca
+  ///    se pudo probar contra los emuladores en un teléfono.
+  /// 2. Y si se acepta la que ya hay, el proyecto pasa a ser el de verdad. El
+  ///    emulador guarda los datos **por proyecto**, así que la app miraba una
+  ///    base y las herramientas —que hablan de `demo-natacion`— otra. Todo
+  ///    parecía vacío sin que nada fallara.
+  ///
+  /// Con una app con nombre propio, el proyecto ficticio vale en los dos sitios
+  /// y la app por omisión del teléfono se queda donde está, sin tocar.
+  Future<FirebaseApp> _iniciarLaApp() async {
+    if (!usarEmuladores) {
+      return iniciar(options: opciones);
+    }
+
+    try {
+      return await iniciar(name: nombreDeLaAppLocal, options: opciones);
+    } on FirebaseException catch (e) {
+      // Un arranque en caliente puede encontrarla ya creada.
+      if (e.code != 'duplicate-app') rethrow;
+      return Firebase.app(nombreDeLaAppLocal);
+    }
+  }
 
   /// Inicializa Firebase y, si procede, redirige a los emuladores.
   ///
@@ -71,9 +124,9 @@ class ConfiguracionDatos {
   /// explicarlo, no caerse.
   Future<FirebaseFirestore?> conectar() async {
     try {
-      await iniciar(options: opciones);
+      final app = await _iniciarLaApp();
 
-      final firestore = FirebaseFirestore.instance;
+      final firestore = FirebaseFirestore.instanceFor(app: app);
 
       if (usarEmuladores) {
         firestore.useFirestoreEmulator(hostEmulador, puertoFirestore);

@@ -177,7 +177,10 @@ class _PantallaInicioState extends State<PantallaInicio> {
       // levantar los emuladores.
       identidad: datos == null
           ? null
-          : SesionFirebase.porOmision(firestore: datos),
+          : SesionFirebase.porOmision(
+              firestore: datos,
+              usarEmuladores: usarEmuladores,
+            ),
       // Por lo mismo: sin servidor no hay a quién llamar. El alta lo dice en
       // lugar de guardar un perfil que no va a ninguna parte.
       operaciones: datos == null

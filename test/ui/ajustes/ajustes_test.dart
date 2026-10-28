@@ -43,6 +43,7 @@ void main() {
     Perfil? perfil,
     ConstanciaDeConsentimiento? constancia,
     String? nadadorId = 'n1',
+    bool constanciasQueRevientan = false,
   }) async {
     SharedPreferences.setMockInitialValues({});
 
@@ -67,7 +68,9 @@ void main() {
           repositorioPerfil: _PerfilSembrado(perfil ?? perfilDePrueba()),
           operaciones: operaciones,
           identidad: _Identidad(),
-          constancias: _Constancias(constancia),
+          constancias: constanciasQueRevientan
+              ? const _ConstanciasQueRevientan()
+              : _Constancias(constancia),
           derechos: DerechosDelTitular(
             nadadores: nadadores,
             registros: _Registros(),
@@ -287,6 +290,35 @@ void main() {
       expect(fuente, contains('Clipboard.setData'));
     });
   });
+
+  group('cargar a medias no deja Ajustes girando', () {
+    testWidgets('se ve lo que sí hay, y se dice qué no se pudo leer', (
+      tester,
+    ) async {
+      // **Lo encontró el teléfono, no una prueba.** Con la cuenta de una
+      // nadadora, `Ajustes` se quedaba con la rueda dando vueltas y no había
+      // forma de llegar a los derechos de la Ley 1581 ni a pedir el borrado.
+      // La causa era una fecha con otra forma en el documento de
+      // consentimiento, pero el defecto es este: que un fallo al leer **una**
+      // cosa deje la pantalla entera sin aparecer. Con el entrenador no
+      // pasaba, porque su cuenta no tiene constancia que leer.
+      await montar(tester, constanciasQueRevientan: true);
+
+      expect(
+        find.byKey(const Key('ajustes-cargando')),
+        findsNothing,
+        reason: 'Girar para siempre no se distingue de estar tardando',
+      );
+      expect(find.byKey(const Key('ajustes-mis-datos')), findsOneWidget);
+      expect(find.byKey(const Key('ajustes-no-se-pudo-leer')), findsOneWidget);
+    });
+
+    testWidgets('y se puede llegar a borrar los datos igual', (tester) async {
+      await montar(tester, constanciasQueRevientan: true);
+
+      expect(find.byKey(const Key('ajustes-suprimir')), findsOneWidget);
+    });
+  });
 }
 
 class _PerfilSembrado implements RepositorioPerfil {
@@ -305,6 +337,16 @@ class _Constancias implements LectorDeConstancias {
 
   @override
   Future<ConstanciaDeConsentimiento?> de(String nadadorId) async => _constancia;
+}
+
+/// Lo que hacía el documento con la fecha en texto: reventar con un `Error`,
+/// que no es una `Exception` y se escapa de los `catch` por tipo.
+class _ConstanciasQueRevientan implements LectorDeConstancias {
+  const _ConstanciasQueRevientan();
+
+  @override
+  Future<ConstanciaDeConsentimiento?> de(String nadadorId) async =>
+      throw TypeError();
 }
 
 class _Operaciones implements OperacionesDelServidor {

@@ -45,9 +45,13 @@ const String coleccionUsuarios = 'usuarios';
 /// Vive aquí porque este es el único archivo del proyecto que puede importar
 /// `firebase_auth`, y la prueba de frontera lo vigila.
 void usarEmuladorDeAuth({String? host, int puerto = 9099}) {
+  // **La identidad va por la misma app de Firebase que los datos.** Con la de
+  // por omisión, en Android, el emulador guardaría las cuentas bajo el
+  // proyecto de verdad y los datos bajo el ficticio: dos bases distintas.
   // El host lo decide `hostEmulador`: en el emulador de Android, `localhost`
   // es el propio teléfono emulado y no la máquina que corre los emuladores.
-  fb.FirebaseAuth.instance.useAuthEmulator(host ?? hostEmulador, puerto);
+  fb.FirebaseAuth.instanceFor(app: appDeFirebase(usarEmuladores: true))
+      .useAuthEmulator(host ?? hostEmulador, puerto);
 }
 
 class SesionFirebase implements Identidad {
@@ -66,8 +70,14 @@ class SesionFirebase implements Identidad {
   factory SesionFirebase.porOmision({
     required FirebaseFirestore firestore,
     AlmacenLocal? almacenLocal,
+    bool usarEmuladores = false,
   }) => SesionFirebase(
-    auth: fb.FirebaseAuth.instance,
+    // La misma app de Firebase que los datos: con la de por omisión, en
+    // Android las cuentas caerían bajo el proyecto de verdad y los datos bajo
+    // el ficticio.
+    auth: fb.FirebaseAuth.instanceFor(
+      app: appDeFirebase(usarEmuladores: usarEmuladores),
+    ),
     firestore: firestore,
     almacenLocal: almacenLocal,
   );
