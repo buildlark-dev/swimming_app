@@ -26,6 +26,8 @@ import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/ui/editor/pantalla_editor.dart';
 import 'package:natacion_app/ui/generacion/pantalla_peticion.dart';
 import 'package:natacion_app/ui/ajustes/pantalla_ajustes.dart';
+import 'package:natacion_app/dominio/peticiones/molestias_enlazadas.dart';
+import 'package:natacion_app/ui/hub/cola_del_entrenador.dart';
 import 'package:natacion_app/ui/hub/home_del_entrenador.dart';
 import 'package:natacion_app/ui/hub/home_del_nadador.dart';
 import 'package:natacion_app/ui/hub/planes_del_entrenador.dart';
@@ -49,6 +51,8 @@ class ContextoDelHub {
     required this.nadadores,
     required this.peticiones,
     required this.almacen,
+    this.molestias,
+    this.alCerrarPeticion,
     required this.editor,
     required this.nadador,
     required this.planes,
@@ -85,6 +89,13 @@ class ContextoDelHub {
 
   /// El almacén de esta cuenta, para lo que se responde a medias.
   final AlmacenLocal? almacen;
+
+  /// Las molestias que el nadador ya contó en sus sesiones. **Se leen donde
+  /// ya viven; esta feature no las copia** (FR-038). Nulo sin servidor.
+  final LectorDeMolestias? molestias;
+
+  /// Cierra una petición a través del servidor. Nulo sin servidor.
+  final AlCerrarPeticion? alCerrarPeticion;
 
   final EstadoEditor editor;
   final EstadoNadador nadador;
@@ -242,6 +253,11 @@ class _GenerarDelEntrenadorState extends State<_GenerarDelEntrenador> {
                 label: Text('Editor'),
                 icon: Icon(Icons.edit_note_outlined),
               ),
+              ButtonSegment(
+                value: 2,
+                label: Text('Solicitudes'),
+                icon: Icon(Icons.inbox_outlined),
+              ),
             ],
             selected: {_cual},
             onSelectionChanged: (cual) => setState(() => _cual = cual.first),
@@ -263,6 +279,18 @@ class _GenerarDelEntrenadorState extends State<_GenerarDelEntrenador> {
               ChangeNotifierProvider<EstadoEditor>.value(
                 value: ctx.editor,
                 child: PantallaEditor(alRevisarPlan: ctx.alRevisarPlan),
+              ),
+              // La cola vive aquí, junto al generador y el editor, y no en un
+              // sexto destino: los cinco del HUB no cambian, y con ellos se
+              // quedan quietos los cerrojos de la feature 007 —incluido el
+              // que mide si las cinco etiquetas caben a 320 px.
+              ColaDelEntrenador(
+                peticiones: ctx.peticiones,
+                nadadores: ctx.nadadores,
+                molestias: ctx.molestias,
+                biblioteca: ctx.biblioteca,
+                versionMetodologia: ctx.versionMetodologia,
+                alCerrar: ctx.alCerrarPeticion,
               ),
             ],
           ),

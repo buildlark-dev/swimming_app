@@ -127,21 +127,21 @@ the swimmer reads that reason.
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T031 [P] [US2] Write `test/ui/hub/cola_del_entrenador_test.dart`: the queue shows who asked, when, the six answers and the draft (P27); it distinguishes what awaits an answer from what has been answered (FR-024); and with no connection it shows the cache **and says the latest may be missing**, rather than an empty queue that reads as "no requests" (P32)
-- [ ] T032 [P] [US2] Write `test/dominio/peticiones/generacion_desde_peticion_test.dart`: the draft is born `borrador`, carries `OrigenPlan.automatico`, the request id and the methodology version (P17); and **generating twice from the same stored request produces the same draft** — generated twice and compared, never compared against a fixture, because a fixture would hide an input read from the clock (P20)
-- [ ] T033 [P] [US2] Write `test/dominio/peticiones/sin_fecha_no_hay_borrador_test.dart`: with no usable competition date and a category that uses ATR, **no draft is generated** and the request reaches the queue with the phase pending (P24, FR-018)
-- [ ] T034 [P] [US2] Write `test/ui/hub/rechazo_con_motivo_test.dart`: rejecting with an empty reason is **impossible, not discouraged** (P29), and the reason the coach wrote is what the swimmer reads, as written (P30)
-- [ ] T035 [P] [US2] Write `test/ui/hub/auditoria_antes_de_firmar_test.dart`: a draft that fails the section 16 audit cannot be approved, and the coach sees which criteria are missing — **the same audit as his own plans, not a lighter one** (P19)
-- [ ] T036 [US2] Run T031-T035 and record that they fail
+- [X] T031 [P] [US2] Write `test/ui/hub/cola_del_entrenador_test.dart`: the queue shows who asked, when, the six answers and the draft (P27); it distinguishes what awaits an answer from what has been answered (FR-024); and with no connection it shows the cache **and says the latest may be missing**, rather than an empty queue that reads as "no requests" (P32)
+- [X] T032 [P] [US2] Write `test/dominio/peticiones/generacion_desde_peticion_test.dart`: the draft is born `borrador`, carries `OrigenPlan.automatico`, the request id and the methodology version (P17); and **generating twice from the same stored request produces the same draft** — generated twice and compared, never compared against a fixture, because a fixture would hide an input read from the clock (P20)
+- [X] T033 [P] [US2] Write `test/dominio/peticiones/sin_fecha_no_hay_borrador_test.dart`: with no usable competition date and a category that uses ATR, **no draft is generated** and the request reaches the queue with the phase pending (P24, FR-018)
+- [X] T034 [P] [US2] Write `test/ui/hub/rechazo_con_motivo_test.dart`: rejecting with an empty reason is **impossible, not discouraged** (P29), and the reason the coach wrote is what the swimmer reads, as written (P30)
+- [X] T035 [P] [US2] Write `test/ui/hub/auditoria_antes_de_firmar_test.dart`: a draft that fails the section 16 audit cannot be approved, and the coach sees which criteria are missing — **the same audit as his own plans, not a lighter one** (P19)
+- [X] T036 [US2] Run T031-T035 and record that they fail
 
 ### Implementation for User Story 2
 
-- [ ] T037 [US2] Implement the generation from a request in `lib/dominio/peticiones/`: build a `PeticionGeneracion` from the stored answers, the swimmer's record (category, technical diagnosis) and the derived phase and component, and call the existing deterministic engine — **no language model touches any field** (P14)
-- [ ] T038 [US2] Implement `lib/ui/hub/cola_del_entrenador.dart` inside the coach's existing `Generar`, generating the draft **when he opens the request** (research D1) so it never exists on the swimmer's device
-- [ ] T039 [US2] Show the derived phase with its reason in days, and let the coach change it in one tap, regenerating the draft from the changed phase (P26, FR-017)
-- [ ] T040 [US2] Show the linked discomfort **with its dates**, read from `registros` through `lib/datos/firestore/registros_firestore.dart`, and say explicitly when the window holds none (P33, P34)
-- [ ] T041 [US2] Open the draft in the existing editor with the existing audit, so correcting a request's draft is the same act as correcting his own plan (P28)
-- [ ] T042 [US2] Make `enRevision` the state once he opens it, moved by him and by nothing else — no elapsed time, no other automatic rule (P31, FR-023)
+- [X] T037 [US2] Implement the generation from a request in `lib/dominio/peticiones/`: build a `PeticionGeneracion` from the stored answers, the swimmer's record (category, technical diagnosis) and the derived phase and component, and call the existing deterministic engine — **no language model touches any field** (P14)
+- [X] T038 [US2] Implement `lib/ui/hub/cola_del_entrenador.dart` inside the coach's existing `Generar`, generating the draft **when he opens the request** (research D1) so it never exists on the swimmer's device
+- [X] T039 [US2] Show the derived phase with its reason in days, and let the coach change it in one tap, regenerating the draft from the changed phase (P26, FR-017)
+- [X] T040 [US2] Show the linked discomfort **with its dates**, read from `registros` through `lib/datos/firestore/registros_firestore.dart`, and say explicitly when the window holds none (P33, P34)
+- [X] T041 [US2] Open the draft in the existing editor with the existing audit, so correcting a request's draft is the same act as correcting his own plan (P28)
+- [X] T042 [US2] Make `enRevision` the state once he opens it, moved by him and by nothing else — no elapsed time, no other automatic rule (P31, FR-023)
 
 **Checkpoint**: the coach can work the queue. Nothing has reached a swimmer.
 
