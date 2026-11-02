@@ -30,10 +30,7 @@ void main() {
     await tester.pumpWidget(
       MediaQuery(
         data: const MediaQueryData(size: telefono),
-        child: MaterialApp(
-          theme: Tema.claro(),
-          home: pantalla.construir(),
-        ),
+        child: MaterialApp(theme: Tema.claro(), home: pantalla.construir()),
       ),
     );
     await tester.pump();
@@ -57,7 +54,8 @@ void main() {
       expect(
         Espaciado.areaPulsableMinima,
         48,
-        reason: 'Un dedo mojado, y a veces el de un niño de nueve años. '
+        reason:
+            'Un dedo mojado, y a veces el de un niño de nueve años. '
             'La medida de la norma mínima no es la medida de esta app',
       );
     });
@@ -123,7 +121,8 @@ void main() {
       expect(
         fallo,
         isNotNull,
-        reason: 'Un objetivo de 20 por 20 tiene que suspender. Si pasa, la '
+        reason:
+            'Un objetivo de 20 por 20 tiene que suspender. Si pasa, la '
             'comprobación de las pantallas no está midiendo nada',
       );
     });

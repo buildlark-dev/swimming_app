@@ -35,7 +35,8 @@ void main() {
         expect(
           fase.repartoCabeEnElModelo,
           isTrue,
-          reason: '${fase.nombre} declara '
+          reason:
+              '${fase.nombre} declara '
               'Z1 ${fase.prescritoParaTid(ZonaTid.z1)}% · '
               'Z2 ${fase.prescritoParaTid(ZonaTid.z2)}% · '
               'Z3 ${fase.prescritoParaTid(ZonaTid.z3)}%, '
@@ -51,20 +52,23 @@ void main() {
       expect(
         fase.prescritoParaTid(ZonaTid.z3),
         7,
-        reason: 'Puntos medios de Filipas et al. 2022. Acumulación ahora lleva '
+        reason:
+            'Puntos medios de Filipas et al. 2022. Acumulación ahora lleva '
             'Z3: la tabla anterior no pedía ninguno',
       );
       expect(fase.porcentajeTecnico, 50);
     });
 
-    test('Transformación es de umbral: Z1 65 · Z2 25 · Z3 10, y 30% técnico',
-        () {
-      const fase = FaseAtr.transformacion;
-      expect(fase.prescritoParaTid(ZonaTid.z1), 65);
-      expect(fase.prescritoParaTid(ZonaTid.z2), 25);
-      expect(fase.prescritoParaTid(ZonaTid.z3), 10);
-      expect(fase.porcentajeTecnico, 30);
-    });
+    test(
+      'Transformación es de umbral: Z1 65 · Z2 25 · Z3 10, y 30% técnico',
+      () {
+        const fase = FaseAtr.transformacion;
+        expect(fase.prescritoParaTid(ZonaTid.z1), 65);
+        expect(fase.prescritoParaTid(ZonaTid.z2), 25);
+        expect(fase.prescritoParaTid(ZonaTid.z3), 10);
+        expect(fase.porcentajeTecnico, 30);
+      },
+    );
 
     test('Realización es polarizada: Z1 81 · Z2 4 · Z3 15, y 20% técnico', () {
       const fase = FaseAtr.realizacion;
@@ -105,7 +109,8 @@ void main() {
         expect(
           fase.porcentajeTecnico,
           greaterThan(0),
-          reason: 'La técnica debe estar presente toda la temporada '
+          reason:
+              'La técnica debe estar presente toda la temporada '
               '(sección 3 de la metodología)',
         );
       }
@@ -114,14 +119,21 @@ void main() {
 
   group('zonas de intensidad', () {
     test('las bandas son contiguas y no se solapan', () {
-      const conBanda = [Zona.a1, Zona.a2, Zona.a3, Zona.at, Zona.resistenciaIntensiva];
+      const conBanda = [
+        Zona.a1,
+        Zona.a2,
+        Zona.a3,
+        Zona.at,
+        Zona.resistenciaIntensiva,
+      ];
       for (var i = 0; i < conBanda.length - 1; i++) {
         final actual = conBanda[i].banda!;
         final siguiente = conBanda[i + 1].banda!;
         expect(
           actual.maximo,
           siguiente.minimo,
-          reason: '${conBanda[i].abreviatura} termina en ${actual.maximo} '
+          reason:
+              '${conBanda[i].abreviatura} termina en ${actual.maximo} '
               'pero ${conBanda[i + 1].abreviatura} empieza en '
               '${siguiente.minimo}',
         );
@@ -136,7 +148,8 @@ void main() {
         expect(
           coincidencias.length,
           1,
-          reason: '$porcentaje% cae en ${coincidencias.length} zonas: '
+          reason:
+              '$porcentaje% cae en ${coincidencias.length} zonas: '
               '${coincidencias.map((z) => z.abreviatura).join(', ')}',
         );
       }
@@ -194,7 +207,11 @@ void main() {
       final rango = Categoria.precompetitivo.volumenPorSesion;
       expect(rango.desviacion(2000), 0);
       expect(rango.desviacion(1400), -400, reason: 'faltan 400 m al mínimo');
-      expect(rango.desviacion(2600), 400, reason: 'sobran 400 m sobre el máximo');
+      expect(
+        rango.desviacion(2600),
+        400,
+        reason: 'sobran 400 m sobre el máximo',
+      );
     });
 
     test('solo Tecnificación tiene alternancia obligatoria de estilos', () {
@@ -239,8 +256,10 @@ void main() {
 
   group('reparto de la sesión', () {
     test('las tres partes suman el 100% del volumen', () {
-      final suma = TipoParte.values
-          .fold(0, (total, parte) => total + parte.porcentajePrescrito);
+      final suma = TipoParte.values.fold(
+        0,
+        (total, parte) => total + parte.porcentajePrescrito,
+      );
       expect(suma, 100);
     });
 

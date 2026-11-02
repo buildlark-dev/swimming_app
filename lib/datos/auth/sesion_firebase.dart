@@ -12,6 +12,7 @@ library;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:natacion_app/datos/auth/reinicio.dart';
+import 'package:natacion_app/datos/firestore/configuracion.dart';
 import 'package:natacion_app/datos/local/almacen_local.dart';
 import 'package:natacion_app/dominio/cuentas/cuenta.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
@@ -31,6 +32,28 @@ const String claveDelRol = 'rol';
 /// documento (decisión D2).
 const String coleccionUsuarios = 'usuarios';
 
+/// Manda la identidad al emulador de Auth.
+///
+/// **Esto faltaba, y costaba caro.** `ConfiguracionDatos` redirigía Firestore
+/// al emulador pero nadie redirigía la identidad, así que con
+/// `--dart-define=USAR_EMULADORES=true` la autenticación salía al proyecto
+/// real con las opciones ficticias del emulador y fallaba siempre con
+/// «api-key-not-valid». Desde la feature 004, que es cuando aparecieron las
+/// cuentas, **no se podía entrar en local**: todo había que verificarlo
+/// desplegando.
+///
+/// Vive aquí porque este es el único archivo del proyecto que puede importar
+/// `firebase_auth`, y la prueba de frontera lo vigila.
+void usarEmuladorDeAuth({String? host, int puerto = 9099}) {
+  // **La identidad va por la misma app de Firebase que los datos.** Con la de
+  // por omisión, en Android, el emulador guardaría las cuentas bajo el
+  // proyecto de verdad y los datos bajo el ficticio: dos bases distintas.
+  // El host lo decide `hostEmulador`: en el emulador de Android, `localhost`
+  // es el propio teléfono emulado y no la máquina que corre los emuladores.
+  fb.FirebaseAuth.instanceFor(app: appDeFirebase(usarEmuladores: true))
+      .useAuthEmulator(host ?? hostEmulador, puerto);
+}
+
 class SesionFirebase implements Identidad {
   SesionFirebase({
     required this.auth,
@@ -47,12 +70,17 @@ class SesionFirebase implements Identidad {
   factory SesionFirebase.porOmision({
     required FirebaseFirestore firestore,
     AlmacenLocal? almacenLocal,
-  }) =>
-      SesionFirebase(
-        auth: fb.FirebaseAuth.instance,
-        firestore: firestore,
-        almacenLocal: almacenLocal,
-      );
+    bool usarEmuladores = false,
+  }) => SesionFirebase(
+    // La misma app de Firebase que los datos: con la de por omisión, en
+    // Android las cuentas caerían bajo el proyecto de verdad y los datos bajo
+    // el ficticio.
+    auth: fb.FirebaseAuth.instanceFor(
+      app: appDeFirebase(usarEmuladores: usarEmuladores),
+    ),
+    firestore: firestore,
+    almacenLocal: almacenLocal,
+  );
 
   final fb.FirebaseAuth auth;
   final FirebaseFirestore firestore;
@@ -155,6 +183,25 @@ class SesionFirebase implements Identidad {
     await reiniciarLaApp();
   }
 
+  @override
+  Future<void> pedirCambioDeClave() async {
+    // **Al correo de la cuenta, no a uno que se escriba aquí.** Si la
+    // dirección viniera de un campo, cualquiera con el teléfono desbloqueado
+    // podría mandarse el enlace a su propio correo y quedarse con la cuenta.
+    final correo = auth.currentUser?.email;
+    if (correo == null || correo.isEmpty) {
+      throw const FalloDeAcceso(
+        'Esta cuenta no tiene un correo con el que confirmar el cambio.',
+      );
+    }
+
+    try {
+      await auth.sendPasswordResetEmail(email: correo);
+    } on fb.FirebaseAuthException catch (e) {
+      throw FalloDeAcceso(_mensajeDe(e));
+    }
+  }
+
   /// Traduce un usuario de Firebase al estado de identidad del dominio.
   ///
   /// Un token sin rol reconocible **no** se resuelve al rol menos peligroso:
@@ -198,16 +245,19 @@ class SesionFirebase implements Identidad {
       Cuenta(
         id: usuario.uid,
         rol: rol,
-        nadadorId:
-            rol == Rol.entrenador ? null : await _nadadorIdDe(usuario.uid),
+        nadadorId: rol == Rol.entrenador
+            ? null
+            : await _nadadorIdDe(usuario.uid),
       ),
     );
   }
 
   Future<String?> _nadadorIdDe(String uid) async {
     try {
-      final documento =
-          await firestore.collection(coleccionUsuarios).doc(uid).get();
+      final documento = await firestore
+          .collection(coleccionUsuarios)
+          .doc(uid)
+          .get();
       return documento.data()?['nadadorId'] as String?;
     } on FirebaseException {
       // Sin red y sin caché, la cuenta entra sin perfil asociado en lugar de

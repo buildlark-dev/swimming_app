@@ -38,24 +38,24 @@ class QueSeGuarda {
 
   /// En frases, no en campos.
   List<String> get enPalabras => [
-        'Su nombre: $nombre.',
-        if (constaFechaDeNacimiento)
-          'Su fecha de nacimiento.'
-        else
-          'No consta su fecha de nacimiento.',
-        if (marcasRegistradas > 0)
-          'Sus marcas en competencia: $marcasRegistradas.'
-        else
-          'No hay marcas registradas.',
-        'Planes de entrenamiento que se le han entregado: $planesEntregados.',
-        'Sesiones sobre las que ha respondido: $sesionesRespondidas. '
-            'De cada una, si la hizo, cuánto esfuerzo sintió y lo que quiso '
-            'escribir.',
-        if (conReporteDeMolestia > 0)
-          'De esas, $conReporteDeMolestia con un reporte de molestia o dolor.',
-        'Nada más. No hay fotos, ni videos, ni datos de salud fuera de lo que '
-            'él mismo escribió.',
-      ];
+    'Su nombre: $nombre.',
+    if (constaFechaDeNacimiento)
+      'Su fecha de nacimiento.'
+    else
+      'No consta su fecha de nacimiento.',
+    if (marcasRegistradas > 0)
+      'Sus marcas en competencia: $marcasRegistradas.'
+    else
+      'No hay marcas registradas.',
+    'Planes de entrenamiento que se le han entregado: $planesEntregados.',
+    'Sesiones sobre las que ha respondido: $sesionesRespondidas. '
+        'De cada una, si la hizo, cuánto esfuerzo sintió y lo que quiso '
+        'escribir.',
+    if (conReporteDeMolestia > 0)
+      'De esas, $conReporteDeMolestia con un reporte de molestia o dolor.',
+    'Nada más. No hay fotos, ni videos, ni datos de salud fuera de lo que '
+        'él mismo escribió.',
+  ];
 }
 
 /// Qué se borró y qué no, para poder decírselo a quien lo pidió.

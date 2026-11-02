@@ -117,7 +117,8 @@ enum RitmoCompetencia {
     final techo = porcentajeCsMaximo == null
         ? '>$porcentajeCsMinimo%'
         : '$porcentajeCsMinimo-$porcentajeCsMaximo%';
-    final base = '$nombre está en el $techo de la velocidad crítica, '
+    final base =
+        '$nombre está en el $techo de la velocidad crítica, '
         'así que cuenta como ${zonaPorDefecto.abreviatura}';
     if (!dependeDelConjunto) return '$base.';
     return '$base, y pasa a ${zonaAlternativa!.abreviatura} '

@@ -34,46 +34,46 @@ void main() {
   final hoy = DateTime(2026, 10, 14, 7);
 
   Sesion sesion({required String id, required DateTime fecha}) => Sesion(
-        id: id,
-        microcicloId: 'm1',
-        fecha: fecha,
-        objetivoTecnico: 'Técnica de eficiencia en Libre',
-        objetivoFisiologico: 'Base aeróbica',
-        partes: [
-          Parte(
-            tipo: TipoParte.inicial,
-            series: [
-              const Serie(
-                repeticiones: 4,
-                distancia: 100,
-                zona: Zona.a1,
-                estilo: Estilo.libre,
-              ),
-            ],
+    id: id,
+    microcicloId: 'm1',
+    fecha: fecha,
+    objetivoTecnico: 'Técnica de eficiencia en Libre',
+    objetivoFisiologico: 'Base aeróbica',
+    partes: [
+      Parte(
+        tipo: TipoParte.inicial,
+        series: [
+          const Serie(
+            repeticiones: 4,
+            distancia: 100,
+            zona: Zona.a1,
+            estilo: Estilo.libre,
           ),
-          const Parte(tipo: TipoParte.central),
-          const Parte(tipo: TipoParte.cierre),
         ],
-      );
+      ),
+      const Parte(tipo: TipoParte.central),
+      const Parte(tipo: TipoParte.cierre),
+    ],
+  );
 
   Plan planCon(List<Sesion> sesiones) => Plan(
-        id: 'p1',
-        nombre: 'Microciclo de base',
-        categoria: Categoria.precompetitivo,
-        estiloObjetivo: Estilo.libre,
-        pruebaObjetivo: '800 Libre',
-        estado: EstadoPlan.publicado,
-        versionMetodologia: '3.5.0',
-        microciclos: const [
-          Microciclo(
-            id: 'm1',
-            nombre: 'Semana 1',
-            orden: 1,
-            objetivo: 'Economía de nado',
-          ),
-        ],
-        sesiones: sesiones,
-      );
+    id: 'p1',
+    nombre: 'Microciclo de base',
+    categoria: Categoria.precompetitivo,
+    estiloObjetivo: Estilo.libre,
+    pruebaObjetivo: '800 Libre',
+    estado: EstadoPlan.publicado,
+    versionMetodologia: '3.5.0',
+    microciclos: const [
+      Microciclo(
+        id: 'm1',
+        nombre: 'Semana 1',
+        orden: 1,
+        objetivo: 'Economía de nado',
+      ),
+    ],
+    sesiones: sesiones,
+  );
 
   setUp(() {
     registros = _RegistrosEnMemoria();
@@ -94,11 +94,11 @@ void main() {
   });
 
   Widget app(Widget pantalla) => MaterialApp(
-        home: ChangeNotifierProvider<EstadoNadador>.value(
-          value: estado,
-          child: pantalla,
-        ),
-      );
+    home: ChangeNotifierProvider<EstadoNadador>.value(
+      value: estado,
+      child: pantalla,
+    ),
+  );
 
   group('C1 — la sesión del día, sin señal', () {
     testWidgets('aparece completa con la red caída', (tester) async {
@@ -115,7 +115,9 @@ void main() {
       expect(find.text('Base aeróbica'), findsOneWidget);
     });
 
-    testWidgets('las series van con la notación del entrenador', (tester) async {
+    testWidgets('las series van con la notación del entrenador', (
+      tester,
+    ) async {
       red.hayConexionAhora = false;
       estado.abrirComo(
         const Nadador(id: 'n1', nombre: 'Perfil de prueba'),
@@ -156,8 +158,9 @@ void main() {
   });
 
   group('C2 — anotar sin conexión', () {
-    testWidgets('guardar sin red muestra el aviso exacto de FR-017',
-        (tester) async {
+    testWidgets('guardar sin red muestra el aviso exacto de FR-017', (
+      tester,
+    ) async {
       red.hayConexionAhora = false;
       final plan = planCon([sesion(id: 's1', fecha: hoy)]);
       estado.abrirComo(
@@ -177,7 +180,8 @@ void main() {
       expect(
         find.text(avisoProgresoGuardado),
         findsOneWidget,
-        reason: 'FR-017 exige ese texto literal, y aparece solo cuando hay algo '
+        reason:
+            'FR-017 exige ese texto literal, y aparece solo cuando hay algo '
             'esperando: el estado de sincronización no estorba cuando no hace '
             'falta',
       );
@@ -201,7 +205,9 @@ void main() {
       expect(find.text('Marcar como realizada'), findsOneWidget);
     });
 
-    testWidgets('el registro queda guardado aunque no haya red', (tester) async {
+    testWidgets('el registro queda guardado aunque no haya red', (
+      tester,
+    ) async {
       red.hayConexionAhora = false;
       estado.abrirComo(
         const Nadador(id: 'n1', nombre: 'Perfil de prueba'),
@@ -240,8 +246,9 @@ void main() {
       expect(transporte.enviados, hasLength(1));
     });
 
-    testWidgets('nunca se le muestra un error de red al nadador',
-        (tester) async {
+    testWidgets('nunca se le muestra un error de red al nadador', (
+      tester,
+    ) async {
       red.hayConexionAhora = false;
       estado.abrirComo(
         const Nadador(id: 'n1', nombre: 'Perfil de prueba'),
@@ -316,8 +323,9 @@ void main() {
   });
 
   group('mi progreso', () {
-    testWidgets('muestra la adherencia como recuento, sin gráficas',
-        (tester) async {
+    testWidgets('muestra la adherencia como recuento, sin gráficas', (
+      tester,
+    ) async {
       estado.abrirComo(
         const Nadador(id: 'n1', nombre: 'Perfil de prueba'),
         plan: planCon([
@@ -397,6 +405,10 @@ void main() {
 // ---------------------------------------------------------------------------
 
 class _RegistrosEnMemoria implements RepositorioRegistros {
+  @override
+  Future<Set<String>> nadadoresConRegistros() async =>
+      guardados.values.map((r) => r.nadadorId).toSet();
+
   final Map<String, RegistroDeSesion> guardados = {};
 
   @override

@@ -82,7 +82,7 @@ class _Molestias extends StatelessWidget {
               '${entrada.sesion.objetivoTecnico}: '
               '${entrada.registro!.molestia!.descripcion}'
               '${entrada.registro!.molestia!.zonaDelCuerpo.isEmpty ? '' : ' '
-                  '(${entrada.registro!.molestia!.zonaDelCuerpo})'}',
+                        '(${entrada.registro!.molestia!.zonaDelCuerpo})'}',
             ),
           ),
       ],
@@ -157,9 +157,7 @@ class _Fila extends StatelessWidget {
                                 : context.colores.cuidado,
                           ),
                           const SizedBox(width: 6),
-                          Text(
-                            registro.realizada ? 'Realizada' : 'No la hizo',
-                          ),
+                          Text(registro.realizada ? 'Realizada' : 'No la hizo'),
                           if (registro.rpePercibido != null) ...[
                             const SizedBox(width: 12),
                             Text('RPE ${registro.rpePercibido}'),

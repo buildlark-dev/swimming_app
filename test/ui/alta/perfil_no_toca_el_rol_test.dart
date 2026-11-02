@@ -36,10 +36,11 @@ void main() {
     test('ningún archivo del alta lo lee ni lo escribe', () {
       final culpables = <String>[];
 
-      for (final archivo in Directory('lib/ui/alta')
-          .listSync(recursive: true)
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.dart'))) {
+      for (final archivo
+          in Directory('lib/ui/alta')
+              .listSync(recursive: true)
+              .whereType<File>()
+              .where((f) => f.path.endsWith('.dart'))) {
         final lineas = archivo.readAsLinesSync();
         for (var i = 0; i < lineas.length; i++) {
           final limpia = lineas[i].trimLeft();
@@ -57,7 +58,8 @@ void main() {
       expect(
         culpables,
         isEmpty,
-        reason: 'El alta no tiene nada que decir sobre el rol. Si una cuenta '
+        reason:
+            'El alta no tiene nada que decir sobre el rol. Si una cuenta '
             'de entrenador completara su perfil y saliera como nadadora, se '
             'quedaría sin poder aprobar ni publicar, y el único camino de '
             'vuelta es el comando administrativo.\n\n'
@@ -99,8 +101,10 @@ void main() {
 
     test('el patrón caza un uso de código y deja pasar el texto', () {
       expect(patron.hasMatch('if (cuenta.rol == Rol.entrenador) {'), isTrue);
-      expect(patron.hasMatch('await getAuth().setCustomUserClaims(...)'),
-          isTrue);
+      expect(
+        patron.hasMatch('await getAuth().setCustomUserClaims(...)'),
+        isTrue,
+      );
 
       // Lo que el nadador lee, y que tiene que seguir pudiéndose escribir.
       expect(

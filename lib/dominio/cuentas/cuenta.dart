@@ -79,14 +79,14 @@ final class CuentaSinRol extends EstadoDeCuenta {
 
 /// Una identidad con sesión iniciada.
 class Cuenta {
-  Cuenta({
-    required this.id,
-    required this.rol,
-    this.nadadorId,
-  }) {
+  Cuenta({required this.id, required this.rol, this.nadadorId}) {
     if (id.trim().isEmpty) {
-      throw ArgumentError.value(id, 'id', 'Una cuenta sin identificador no es '
-          'una cuenta: es contra esto que las reglas comparan request.auth.uid');
+      throw ArgumentError.value(
+        id,
+        'id',
+        'Una cuenta sin identificador no es '
+            'una cuenta: es contra esto que las reglas comparan request.auth.uid',
+      );
     }
     if (rol == Rol.entrenador && nadadorId != null) {
       throw ArgumentError.value(
@@ -119,11 +119,8 @@ class Cuenta {
   /// Verdadero cuando la cuenta todavía no está asociada a ningún perfil.
   bool get sinPerfilAsociado => nadadorId == null;
 
-  Cuenta copiarCon({String? nadadorId}) => Cuenta(
-        id: id,
-        rol: rol,
-        nadadorId: nadadorId ?? this.nadadorId,
-      );
+  Cuenta copiarCon({String? nadadorId}) =>
+      Cuenta(id: id, rol: rol, nadadorId: nadadorId ?? this.nadadorId);
 
   @override
   bool operator ==(Object other) =>

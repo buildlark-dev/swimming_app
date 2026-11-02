@@ -20,7 +20,9 @@ void main() {
   double luminancia(Color c) {
     double canal(double v) {
       final s = v;
-      return s <= 0.03928 ? s / 12.92 : math.pow((s + 0.055) / 1.055, 2.4) as double;
+      return s <= 0.03928
+          ? s / 12.92
+          : math.pow((s + 0.055) / 1.055, 2.4) as double;
     }
 
     return 0.2126 * canal(c.r) + 0.7152 * canal(c.g) + 0.0722 * canal(c.b);
@@ -69,17 +71,13 @@ void main() {
   /// Lo mínimo para algo que no es texto: un icono, una barra, un borde.
   const noTexto = 3.0;
 
-  void exigir(
-    String que,
-    Color texto,
-    Color fondo,
-    double minimo,
-  ) {
+  void exigir(String que, Color texto, Color fondo, double minimo) {
     final medido = contraste(texto, fondo);
     expect(
       medido,
       greaterThanOrEqualTo(minimo),
-      reason: '$que: contraste ${medido.toStringAsFixed(2)}, hace falta '
+      reason:
+          '$que: contraste ${medido.toStringAsFixed(2)}, hace falta '
           '$minimo. Si un color bonito no cumple, gana el contraste: la app '
           'se usa al sol',
     );
@@ -117,20 +115,36 @@ void main() {
     });
 
     test('en oscuro', () {
-      exigir('icono informativo', Paleta.informativoOscuro,
-          fondoDeAvisoOscuro, noTexto);
+      exigir(
+        'icono informativo',
+        Paleta.informativoOscuro,
+        fondoDeAvisoOscuro,
+        noTexto,
+      );
       exigir('icono de éxito', Paleta.exitoOscuro, fondoDeAvisoOscuro, noTexto);
-      exigir('icono de cuidado', Paleta.cuidadoOscuro, fondoDeAvisoOscuro,
-          noTexto);
+      exigir(
+        'icono de cuidado',
+        Paleta.cuidadoOscuro,
+        fondoDeAvisoOscuro,
+        noTexto,
+      );
       exigir('icono de error', Paleta.errorOscuro, fondoDeAvisoOscuro, noTexto);
     });
 
     test('el texto del aviso usa el color de la superficie, no el del tono', () {
       // Es lo que sostiene la decisión de arriba. Material garantiza este par.
-      exigir('texto del aviso en claro', esquemaClaro.onSurface, fondoDeAviso,
-          textoNormal);
-      exigir('texto del aviso en oscuro', esquemaOscuro.onSurface,
-          fondoDeAvisoOscuro, textoNormal);
+      exigir(
+        'texto del aviso en claro',
+        esquemaClaro.onSurface,
+        fondoDeAviso,
+        textoNormal,
+      );
+      exigir(
+        'texto del aviso en oscuro',
+        esquemaOscuro.onSurface,
+        fondoDeAvisoOscuro,
+        textoNormal,
+      );
     });
   });
 

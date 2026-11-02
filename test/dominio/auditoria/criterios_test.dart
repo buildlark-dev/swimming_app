@@ -31,9 +31,9 @@ void main() {
         '2000 AL EJERCICIO INVENTADO',
         zona: Zona.a1,
       );
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion]);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion],
+      );
 
       final veredicto = const CriterioBiblioteca().evaluar(plan);
 
@@ -44,9 +44,9 @@ void main() {
 
     test('falla con un ejercicio ambiguo sin estilo', () {
       final sesion = constructor.sesionDeTexto('2000 FLECHA', zona: Zona.a1);
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion]);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion],
+      );
 
       expect(const CriterioBiblioteca().evaluar(plan).cumple, isFalse);
     });
@@ -67,9 +67,9 @@ void main() {
         '2000 Libre técnico',
         zona: Zona.a1,
       );
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion]);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion],
+      );
 
       final veredicto = const CriterioNomenclatura().evaluar(plan);
       expect(veredicto.cumple, isFalse);
@@ -89,9 +89,9 @@ void main() {
 
     test('falla si hay series sin zona asignada', () {
       final sesion = constructor.sesionDeTexto('2000 N');
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion]);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion],
+      );
 
       final veredicto = const CriterioZonas().evaluar(plan);
       expect(veredicto.cumple, isFalse);
@@ -100,9 +100,9 @@ void main() {
     });
 
     test('falla si el plan no tiene series', () {
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: const []);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: const [],
+      );
 
       expect(const CriterioZonas().evaluar(plan).cumple, isFalse);
     });
@@ -120,9 +120,9 @@ void main() {
 
     test('falla con fragmentos sin interpretar', () {
       final sesion = constructor.sesionDeTexto('2000 ¿¿¿???', zona: Zona.a1);
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion]);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion],
+      );
 
       expect(const CriterioSinAmbiguos().evaluar(plan).cumple, isFalse);
     });
@@ -133,9 +133,9 @@ void main() {
         zona: Zona.a1,
         completa: false,
       );
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion]);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion],
+      );
 
       expect(const CriterioSinAmbiguos().evaluar(plan).cumple, isFalse);
     });
@@ -178,7 +178,8 @@ void main() {
       expect(
         veredicto.observacion,
         contains('Filipas'),
-        reason: 'El entrenador tiene derecho a saber qué respalda lo que la '
+        reason:
+            'El entrenador tiene derecho a saber qué respalda lo que la '
             'app le exige: un rango citado, no un número elegido a mano',
       );
     });
@@ -187,19 +188,15 @@ void main() {
       final plan = constructor.planAcumulacionCorrecto();
       final veredicto = const CriterioIntensidadesFase().evaluar(plan);
 
-      expect(
-        veredicto.cumple,
-        isTrue,
-        reason: veredicto.observacion,
-      );
+      expect(veredicto.cumple, isTrue, reason: veredicto.observacion);
       expect(veredicto.observacion, contains('Piramidal'));
     });
 
     test('no se puede evaluar si quedan metros sin zona', () {
       final sesion = constructor.sesionDeTexto('2000 N');
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion]);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion],
+      );
 
       final veredicto = const CriterioIntensidadesFase().evaluar(plan);
       expect(veredicto.cumple, isFalse);
@@ -208,8 +205,8 @@ void main() {
 
     test('una categoría sin ATR cumple por no aplicar', () {
       final plan = constructor.planAcumulacionCorrecto().copiarCon(
-            categoria: Categoria.iniciacion,
-          );
+        categoria: Categoria.iniciacion,
+      );
       final sinFase = Plan(
         nombre: plan.nombre,
         categoria: Categoria.iniciacion,
@@ -240,13 +237,12 @@ void main() {
     });
 
     test('C02 falla si no hay ningún trabajo técnico', () {
-      final sesion = constructor.sesionConZonas(
-        const {Zona.a1: 2000},
-        metrosTecnicosPorZona: const {},
+      final sesion = constructor.sesionConZonas(const {
+        Zona.a1: 2000,
+      }, metrosTecnicosPorZona: const {});
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion],
       );
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion]);
 
       final veredicto = const CriterioTecnicaPrioritaria().evaluar(plan);
       expect(veredicto.cumple, isFalse);
@@ -269,9 +265,9 @@ void main() {
 
     test('falla con una sesión por debajo del rango', () {
       final sesion = constructor.sesionConZonas(const {Zona.a1: 1400});
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion, sesion, sesion]);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion, sesion, sesion],
+      );
 
       final veredicto = const CriterioVolumenCategoria().evaluar(plan);
       expect(veredicto.cumple, isFalse);
@@ -281,9 +277,9 @@ void main() {
 
     test('falla si la frecuencia semanal no es la de la categoría', () {
       final sesion = constructor.sesionConZonas(const {Zona.a1: 2000});
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion]);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion],
+      );
 
       final veredicto = const CriterioVolumenCategoria().evaluar(plan);
       expect(veredicto.cumple, isFalse);
@@ -298,13 +294,13 @@ void main() {
 
   group('C06 transferencia (justificable)', () {
     test('falla con un reparto de estilos muy alejado', () {
-      final sesion = constructor.sesionConZonas(
-        const {Zona.a1: 1200, Zona.a2: 800},
-        estilo: Estilo.espalda,
+      final sesion = constructor.sesionConZonas(const {
+        Zona.a1: 1200,
+        Zona.a2: 800,
+      }, estilo: Estilo.espalda);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion, sesion, sesion],
       );
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion, sesion, sesion]);
 
       final veredicto = const CriterioTransferencia().evaluar(plan);
       expect(veredicto.cumple, isFalse);
@@ -336,9 +332,9 @@ void main() {
     });
 
     test('falla si el plan no tiene microciclos', () {
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(microciclos: const []);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        microciclos: const [],
+      );
 
       expect(const CriterioModelamiento().evaluar(plan).cumple, isFalse);
     });
@@ -390,12 +386,14 @@ void main() {
       expect(Tolerancia.predeterminada.admite(-3.1), isFalse);
     });
 
-    test('una tolerancia más estricta rechaza lo que la predeterminada admite',
-        () {
-      const estricta = Tolerancia(1);
-      expect(estricta.admite(2.0), isFalse);
-      expect(Tolerancia.predeterminada.admite(2.0), isTrue);
-    });
+    test(
+      'una tolerancia más estricta rechaza lo que la predeterminada admite',
+      () {
+        const estricta = Tolerancia(1);
+        expect(estricta.admite(2.0), isFalse);
+        expect(Tolerancia.predeterminada.admite(2.0), isTrue);
+      },
+    );
   });
 
   group('la auditoría completa', () {
@@ -434,7 +432,8 @@ void main() {
       expect(
         resultado.todoEnVerde,
         isTrue,
-        reason: 'En rojo: '
+        reason:
+            'En rojo: '
             '${resultado.enRojo.map((c) => c.toString()).join('\n')}',
       );
     });

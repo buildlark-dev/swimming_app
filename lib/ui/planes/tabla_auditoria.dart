@@ -72,8 +72,8 @@ class _FilaCriterio extends StatelessWidget {
     final color = criterio.cumple
         ? null
         : (criterio.severidad == Severidad.bloqueante
-            ? context.colores.cuidado
-            : context.colores.informativo);
+              ? context.colores.cuidado
+              : context.colores.informativo);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -84,8 +84,8 @@ class _FilaCriterio extends StatelessWidget {
             criterio.cumple
                 ? Icons.check_circle_outline
                 : (criterio.severidad == Severidad.bloqueante
-                    ? Icons.block
-                    : Icons.edit_note),
+                      ? Icons.block
+                      : Icons.edit_note),
             size: 18,
             color: color,
           ),

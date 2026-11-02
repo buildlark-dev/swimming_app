@@ -30,15 +30,17 @@ void main() {
       expect(await sinDestino.guardar(), isFalse);
     });
 
-    test('con repositorio la sesión se guarda y recibe identificador',
-        () async {
-      estado.cambiarObjetivoTecnico('Técnica de espalda');
-      estado.cambiarObjetivoFisiologico('Base aeróbica');
-      estado.escribirParte(TipoParte.inicial, '4x100 AL / 2\'');
+    test(
+      'con repositorio la sesión se guarda y recibe identificador',
+      () async {
+        estado.cambiarObjetivoTecnico('Técnica de espalda');
+        estado.cambiarObjetivoFisiologico('Base aeróbica');
+        estado.escribirParte(TipoParte.inicial, '4x100 AL / 2\'');
 
-      expect(await estado.guardar(), isTrue);
-      expect(estado.sesion.id, isNotNull);
-    });
+        expect(await estado.guardar(), isTrue);
+        expect(estado.sesion.id, isNotNull);
+      },
+    );
 
     test('la sesión guardada conserva los metros', () async {
       estado.escribirParte(TipoParte.inicial, '4x100 AL / 2\'');
@@ -54,10 +56,7 @@ void main() {
       await estado.guardar();
 
       final guardadas = await repositorio.obtenerDePlan('plan-1');
-      expect(
-        guardadas.single.parteDe(TipoParte.inicial).textoOriginal,
-        texto,
-      );
+      expect(guardadas.single.parteDe(TipoParte.inicial).textoOriginal, texto);
     });
 
     test('conserva los fragmentos pendientes', () async {
@@ -100,7 +99,8 @@ void main() {
       expect(
         await estado.guardar(),
         isTrue,
-        reason: 'Lo que no se puede es aprobar un plan con sesiones '
+        reason:
+            'Lo que no se puede es aprobar un plan con sesiones '
             'incompletas, pero guardar un borrador sí',
       );
     });

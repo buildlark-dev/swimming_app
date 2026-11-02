@@ -50,10 +50,12 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
   int _duracion = 90;
   int _dias = 3;
 
-  final TextEditingController _prueba =
-      TextEditingController(text: '100 Libre');
-  final TextEditingController _componente =
-      TextEditingController(text: 'Técnica de eficiencia');
+  final TextEditingController _prueba = TextEditingController(
+    text: '100 Libre',
+  );
+  final TextEditingController _componente = TextEditingController(
+    text: 'Técnica de eficiencia',
+  );
   final TextEditingController _diagnostico = TextEditingController();
   final TextEditingController _lesiones = TextEditingController();
 
@@ -76,20 +78,20 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
       .toList();
 
   PeticionGeneracion get _peticion => PeticionGeneracion(
-        categoria: _categoria,
-        estiloObjetivo: _estilo,
-        pruebaObjetivo: _prueba.text,
-        faseAtr: _categoria.usaAtr ? _fase : null,
-        componenteAcentuado: _componente.text,
-        diasDisponibles: List.generate(
-          _dias,
-          (i) => DateTime.now().add(Duration(days: i)),
-        ),
-        longitudPiscina: _piscina,
-        duracionSesionMinutos: _duracion,
-        diagnosticoTecnico: _lineas(_diagnostico),
-        lesiones: _lineas(_lesiones),
-      );
+    categoria: _categoria,
+    estiloObjetivo: _estilo,
+    pruebaObjetivo: _prueba.text,
+    faseAtr: _categoria.usaAtr ? _fase : null,
+    componenteAcentuado: _componente.text,
+    diasDisponibles: List.generate(
+      _dias,
+      (i) => DateTime.now().add(Duration(days: i)),
+    ),
+    longitudPiscina: _piscina,
+    duracionSesionMinutos: _duracion,
+    diagnosticoTecnico: _lineas(_diagnostico),
+    lesiones: _lineas(_lesiones),
+  );
 
   void _generar() {
     final resultado = _generador.generar(_peticion);
@@ -135,7 +137,8 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
                 etiqueta: 'Categoría',
                 valor: _categoria,
                 opciones: Categoria.values,
-                nombreDe: (c) => '${c.nombre} · ${c.volumenPorSesion} · '
+                nombreDe: (c) =>
+                    '${c.nombre} · ${c.volumenPorSesion} · '
                     '${c.sesionesPorSemana} sesiones',
                 alCambiar: (valor) => setState(() {
                   if (valor == null) return;
@@ -193,7 +196,8 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
                 decoration: const InputDecoration(
                   labelText: 'Componente acentuado de la semana',
                   hintText: 'Técnica de eficiencia, ritmo competitivo…',
-                  helperText: 'Da nombre al microciclo. Cambiarlo cambia el '
+                  helperText:
+                      'Da nombre al microciclo. Cambiarlo cambia el '
                       'plan: es lo que hace que dos semanas no salgan iguales.',
                 ),
                 maxLines: 2,
@@ -231,7 +235,8 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
                 controller: _diagnostico,
                 decoration: const InputDecoration(
                   labelText: 'Errores técnicos observados, uno por línea',
-                  helperText: 'Sin diagnóstico se sigue la progresión técnica '
+                  helperText:
+                      'Sin diagnóstico se sigue la progresión técnica '
                       'estándar. No se inventan errores.',
                 ),
                 maxLines: 3,
@@ -241,7 +246,8 @@ class _PantallaPeticionState extends State<PantallaPeticion> {
                 controller: _lesiones,
                 decoration: const InputDecoration(
                   labelText: 'Lesiones o limitaciones, una por línea',
-                  helperText: 'Se registran y se avisan, pero NO modifican el '
+                  helperText:
+                      'Se registran y se avisan, pero NO modifican el '
                       'plan: la Biblioteca declara qué corrige cada ejercicio, '
                       'no qué está contraindicado. Adaptarlo es tu criterio.',
                 ),
@@ -305,13 +311,15 @@ class _Numero extends StatelessWidget {
       children: [
         Expanded(child: Text('$etiqueta: $valor')),
         IconButton(
-          onPressed:
-              valor - paso >= minimo ? () => alCambiar(valor - paso) : null,
+          onPressed: valor - paso >= minimo
+              ? () => alCambiar(valor - paso)
+              : null,
           icon: const Icon(Icons.remove_circle_outline),
         ),
         IconButton(
-          onPressed:
-              valor + paso <= maximo ? () => alCambiar(valor + paso) : null,
+          onPressed: valor + paso <= maximo
+              ? () => alCambiar(valor + paso)
+              : null,
           icon: const Icon(Icons.add_circle_outline),
         ),
       ],

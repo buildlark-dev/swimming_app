@@ -48,13 +48,15 @@ void main() {
       expect(sesion.estado, EstadoDeSesion.fuera);
     });
 
-    test('si no se puede resolver quién eres, se trata como estar fuera',
-        () async {
-      final sesion = SesionActiva(identidad: _IdentidadFalsa(revienta: true));
-      await _unCiclo();
+    test(
+      'si no se puede resolver quién eres, se trata como estar fuera',
+      () async {
+        final sesion = SesionActiva(identidad: _IdentidadFalsa(revienta: true));
+        await _unCiclo();
 
-      expect(sesion.estado, EstadoDeSesion.fuera);
-    });
+        expect(sesion.estado, EstadoDeSesion.fuera);
+      },
+    );
   });
 
   group('recién creada la cuenta, el rol tarda en llegar', () {
@@ -71,7 +73,8 @@ void main() {
       expect(
         sesion.estado,
         isNot(EstadoDeSesion.fuera),
-        reason: 'Volver al login invita a registrarse otra vez, y la cuenta '
+        reason:
+            'Volver al login invita a registrarse otra vez, y la cuenta '
             'nueva tendría exactamente el mismo problema',
       );
       expect(sesion.estado, EstadoDeSesion.preparando);
@@ -101,18 +104,20 @@ void main() {
       expect(identidad.consultas, greaterThan(1));
     });
 
-    test('si el rol nunca llega, lo dice en lugar de rebotar al login',
-        () async {
-      final sesion = SesionActiva(
-        identidad: _IdentidadFalsa(inicial: const CuentaSinRol('u1')),
-        esperas: rapidas,
-      );
+    test(
+      'si el rol nunca llega, lo dice en lugar de rebotar al login',
+      () async {
+        final sesion = SesionActiva(
+          identidad: _IdentidadFalsa(inicial: const CuentaSinRol('u1')),
+          esperas: rapidas,
+        );
 
-      await Future<void>.delayed(const Duration(milliseconds: 60));
+        await Future<void>.delayed(const Duration(milliseconds: 60));
 
-      expect(sesion.estado, EstadoDeSesion.sinRol);
-      expect(sesion.hayCuenta, isFalse);
-    });
+        expect(sesion.estado, EstadoDeSesion.sinRol);
+        expect(sesion.hayCuenta, isFalse);
+      },
+    );
 
     test('refrescar el token no reinicia la espera para siempre', () async {
       // Comprobar el rol refresca el token a la fuerza, y cada refresco hace
@@ -132,7 +137,8 @@ void main() {
       expect(
         sesion.estado,
         EstadoDeSesion.sinRol,
-        reason: 'Una emisión más no puede devolver la pantalla a «preparando»: '
+        reason:
+            'Una emisión más no puede devolver la pantalla a «preparando»: '
             'eso es el bucle que no terminaba nunca',
       );
     });
@@ -200,25 +206,27 @@ void main() {
   });
 
   group('cambiar de cuenta en el mismo dispositivo', () {
-    test('la cuenta activa pasa a ser la nueva, sin rastro de la anterior',
-        () async {
-      final identidad = _IdentidadFalsa(
-        inicial: CuentaLista(
-          Cuenta(id: 'u-mayor', rol: Rol.nadador, nadadorId: 'n1'),
-        ),
-      );
-      final sesion = SesionActiva(identidad: identidad);
-      await _unCiclo();
+    test(
+      'la cuenta activa pasa a ser la nueva, sin rastro de la anterior',
+      () async {
+        final identidad = _IdentidadFalsa(
+          inicial: CuentaLista(
+            Cuenta(id: 'u-mayor', rol: Rol.nadador, nadadorId: 'n1'),
+          ),
+        );
+        final sesion = SesionActiva(identidad: identidad);
+        await _unCiclo();
 
-      await sesion.cerrarSesion();
-      identidad.entra(
-        CuentaLista(Cuenta(id: 'u-menor', rol: Rol.nadador, nadadorId: 'n2')),
-      );
-      await _unCiclo();
+        await sesion.cerrarSesion();
+        identidad.entra(
+          CuentaLista(Cuenta(id: 'u-menor', rol: Rol.nadador, nadadorId: 'n2')),
+        );
+        await _unCiclo();
 
-      expect(sesion.cuenta!.id, 'u-menor');
-      expect(sesion.cuenta!.nadadorId, 'n2');
-    });
+        expect(sesion.cuenta!.id, 'u-menor');
+        expect(sesion.cuenta!.nadadorId, 'n2');
+      },
+    );
   });
 
   group('el rol decide qué se ve', () {
@@ -254,8 +262,11 @@ void main() {
 Future<void> _unCiclo() => Future<void>.delayed(Duration.zero);
 
 class _IdentidadFalsa implements Identidad {
+  @override
+  Future<void> pedirCambioDeClave() async {}
+
   _IdentidadFalsa({EstadoDeCuenta? inicial, this.revienta = false})
-      : estado = inicial ?? const SinSesion();
+    : estado = inicial ?? const SinSesion();
 
   EstadoDeCuenta estado;
   final bool revienta;

@@ -14,18 +14,17 @@ void main() {
     ReporteDeMolestia? molestia,
     String sesionId = 's1',
     String version = '3.5.0',
-  }) =>
-      RegistroDeSesion(
-        nadadorId: 'n1',
-        planId: 'p1',
-        sesionId: sesionId,
-        versionDePlan: version,
-        realizada: realizada,
-        registradoEn: cuando,
-        rpePercibido: rpe,
-        observaciones: observaciones,
-        molestia: molestia,
-      );
+  }) => RegistroDeSesion(
+    nadadorId: 'n1',
+    planId: 'p1',
+    sesionId: sesionId,
+    versionDePlan: version,
+    realizada: realizada,
+    registradoEn: cuando,
+    rpePercibido: rpe,
+    observaciones: observaciones,
+    molestia: molestia,
+  );
 
   group('R1 — el RPE respeta la escala de Borg', () {
     test('11 no construye el registro', () {
@@ -75,7 +74,8 @@ void main() {
 
   group('R4 — las observaciones se guardan tal cual', () {
     test('con saltos de línea, mayúsculas y acentos', () {
-      const texto = 'ME COSTÓ la tercera serie.\n\nEl hombro bien.\n  Nada más.';
+      const texto =
+          'ME COSTÓ la tercera serie.\n\nEl hombro bien.\n  Nada más.';
       expect(registro(observaciones: texto).observaciones, texto);
     });
 
@@ -93,17 +93,22 @@ void main() {
   });
 
   group('el identificador es determinista (D2)', () {
-    test('mismos datos dan el mismo identificador aunque cambie el contenido',
-        () {
-      expect(registro(rpe: 2).id, registro(rpe: 9).id);
-    });
+    test(
+      'mismos datos dan el mismo identificador aunque cambie el contenido',
+      () {
+        expect(registro(rpe: 2).id, registro(rpe: 9).id);
+      },
+    );
 
     test('cambiar de sesión lo cambia', () {
       expect(registro(sesionId: 's1').id, isNot(registro(sesionId: 's2').id));
     });
 
     test('cambiar de versión de plan lo cambia', () {
-      expect(registro(version: '3.4.1').id, isNot(registro(version: '3.5.0').id));
+      expect(
+        registro(version: '3.4.1').id,
+        isNot(registro(version: '3.5.0').id),
+      );
     });
 
     test('es lo que hace imposible duplicar al reenviar', () {
@@ -131,7 +136,8 @@ void main() {
       expect(
         conDolor.observaciones,
         isNot(contains('hombro')),
-        reason: 'Si viviera dentro del texto libre, encontrarla dependería de '
+        reason:
+            'Si viviera dentro del texto libre, encontrarla dependería de '
             'leer todas las observaciones de todas las sesiones (SC-006)',
       );
     });

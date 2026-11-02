@@ -51,9 +51,16 @@ class SelectorDePerfil extends StatelessWidget {
               children: [
                 const Icon(Icons.badge_outlined),
                 const SizedBox(width: 8),
-                Text(
-                  'Estás viendo la app como',
-                  style: Theme.of(context).textTheme.titleSmall,
+                // **`Expanded`, no un `Text` suelto.** Sin esto la fila se
+                // salía 82 píxeles a 360 puntos, y no lo veía nadie: la
+                // entrada «sesión del día» del banco del tema se monta sin
+                // selector, así que este camino no se medía. Un banco solo
+                // mide los caminos que monta.
+                Expanded(
+                  child: Text(
+                    'Estás viendo la app como',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                 ),
               ],
             ),
@@ -82,9 +89,9 @@ class SelectorDePerfil extends StatelessWidget {
               Text(
                 planes.isEmpty
                     ? 'No hay ningún plan publicado todavía. Genera un '
-                        'microciclo, apruébalo y entrégalo desde el editor.'
+                          'microciclo, apruébalo y entrégalo desde el editor.'
                     : 'Hay planes publicados, pero ninguno asignado a este '
-                        'perfil. Entrégale uno desde el editor.',
+                          'perfil. Entrégale uno desde el editor.',
                 style: TextStyle(color: esquema.onSurfaceVariant),
               ),
             ],
@@ -102,10 +109,9 @@ class SelectorDePerfil extends StatelessWidget {
                     'Sin cuentas todavía: el perfil se elige aquí. Úsalo solo '
                     'con perfiles de prueba o contigo mismo hasta que exista el '
                     'registro de consentimiento.',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: esquema.outline),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: esquema.outline),
                   ),
                 ),
               ],

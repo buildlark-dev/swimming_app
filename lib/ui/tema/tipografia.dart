@@ -60,9 +60,10 @@ abstract final class Tipografia {
       titleMedium: estilo(tituloElemento, FontWeight.w600),
       bodyLarge: estilo(cuerpo, FontWeight.w400, altura: 1.45),
       bodyMedium: estilo(apoyo, FontWeight.w400, altura: 1.45),
-      bodySmall: estilo(menor, FontWeight.w400).copyWith(
-        color: esquema.onSurfaceVariant,
-      ),
+      bodySmall: estilo(
+        menor,
+        FontWeight.w400,
+      ).copyWith(color: esquema.onSurfaceVariant),
       labelLarge: estilo(etiqueta, FontWeight.w600, altura: 1.2),
       labelMedium: estilo(menor, FontWeight.w600, altura: 1.2),
     );

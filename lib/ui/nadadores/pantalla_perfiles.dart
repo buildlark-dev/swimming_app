@@ -114,8 +114,8 @@ class _TarjetaPerfil extends StatelessWidget {
               Text(
                 falta.descripcion,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: context.colores.informativo,
-                    ),
+                  color: context.colores.informativo,
+                ),
               ),
           ],
         ),
@@ -145,11 +145,11 @@ class _DialogoPerfilState extends State<_DialogoPerfil> {
   }
 
   Nadador get _nadador => Nadador(
-        nombre: _nombre.text.trim(),
-        categoria: _categoria,
-        estiloObjetivo: _estilo,
-        pruebaObjetivo: _prueba.text.trim(),
-      );
+    nombre: _nombre.text.trim(),
+    categoria: _categoria,
+    estiloObjetivo: _estilo,
+    pruebaObjetivo: _prueba.text.trim(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -202,8 +202,8 @@ class _DialogoPerfilState extends State<_DialogoPerfil> {
                 child: Text(
                   falta.descripcion,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: context.colores.informativo,
-                      ),
+                    color: context.colores.informativo,
+                  ),
                 ),
               ),
           ],
@@ -215,8 +215,9 @@ class _DialogoPerfilState extends State<_DialogoPerfil> {
           child: const Text('Cancelar'),
         ),
         FilledButton(
-          onPressed:
-              faltas.isEmpty ? () => Navigator.of(context).pop(_nadador) : null,
+          onPressed: faltas.isEmpty
+              ? () => Navigator.of(context).pop(_nadador)
+              : null,
           child: const Text('Guardar'),
         ),
       ],

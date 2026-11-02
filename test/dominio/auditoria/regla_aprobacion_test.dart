@@ -27,10 +27,10 @@ void main() {
   });
 
   Justificacion justificar(String criterioId) => Justificacion(
-        criterioId: criterioId,
-        texto: 'Descenso deliberado por afinación previa a competencia',
-        fecha: DateTime(2026, 9, 25),
-      );
+    criterioId: criterioId,
+    texto: 'Descenso deliberado por afinación previa a competencia',
+    fecha: DateTime(2026, 9, 25),
+  );
 
   group('un plan limpio', () {
     test('se puede aprobar', () {
@@ -65,9 +65,9 @@ void main() {
         '2000 EJERCICIO INVENTADO',
         zona: Zona.a1,
       );
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion, sesion, sesion]);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion, sesion, sesion],
+      );
 
       expect(auditoria.puedeAprobarse(plan), isFalse);
     });
@@ -94,9 +94,9 @@ void main() {
         '2000 EJERCICIO INVENTADO',
         zona: Zona.a1,
       );
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion, sesion, sesion]);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion, sesion, sesion],
+      );
 
       final impedimentos = auditoria.impedimentosPara(plan);
       expect(impedimentos, isNotEmpty);
@@ -107,9 +107,9 @@ void main() {
   group('criterios justificables', () {
     test('sin justificación no se puede aprobar', () {
       final sesion = constructor.sesionConZonas(const {Zona.a1: 1400});
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion, sesion, sesion]);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion, sesion, sesion],
+      );
 
       final impedimentos = auditoria.impedimentosPara(plan);
       expect(impedimentos, isNotEmpty);
@@ -137,9 +137,9 @@ void main() {
 
     test('con todas las justificaciones escritas sí se aprueba', () {
       final sesion = constructor.sesionConZonas(const {Zona.a1: 1400});
-      var plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion, sesion, sesion]);
+      var plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion, sesion, sesion],
+      );
 
       // Se justifican todos los criterios justificables que quedaron en rojo.
       final enRojo = auditoria.evaluar(plan).justificablesEnRojo;
@@ -160,27 +160,26 @@ void main() {
 
   group('sesiones incompletas', () {
     test('impiden aprobar aunque la auditoría esté en verde', () {
-      final sesion = constructor.sesionConZonas(
-        const {Zona.a1: 1200, Zona.a2: 500, Zona.a3: 200, Zona.at: 100},
-        completa: false,
+      final sesion = constructor.sesionConZonas(const {
+        Zona.a1: 1200,
+        Zona.a2: 500,
+        Zona.a3: 200,
+        Zona.at: 100,
+      }, completa: false);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        sesiones: [sesion, sesion, sesion],
       );
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(sesiones: [sesion, sesion, sesion]);
 
       final impedimentos = auditoria.impedimentosPara(plan);
-      expect(
-        impedimentos.any((i) => i.motivo.contains('incompletas')),
-        isTrue,
-      );
+      expect(impedimentos.any((i) => i.motivo.contains('incompletas')), isTrue);
     });
   });
 
   group('inmutabilidad del plan aprobado', () {
     test('un plan aprobado no se puede volver a aprobar', () {
-      final plan = constructor
-          .planAcumulacionCorrecto()
-          .copiarCon(estado: EstadoPlan.aprobado);
+      final plan = constructor.planAcumulacionCorrecto().copiarCon(
+        estado: EstadoPlan.aprobado,
+      );
 
       expect(auditoria.puedeAprobarse(plan), isFalse);
     });
@@ -206,10 +205,7 @@ void main() {
       final publicado = ciclo.publicar(aprobado);
 
       expect(publicado, isA<TransicionHecha>());
-      expect(
-        (publicado as TransicionHecha).plan.estado,
-        EstadoPlan.publicado,
-      );
+      expect((publicado as TransicionHecha).plan.estado, EstadoPlan.publicado);
     });
   });
 

@@ -27,25 +27,23 @@ import 'package:natacion_app/dominio/metodologia/zonas.dart';
 // --------------------------------------------------------------------------
 
 Map<String, dynamic> serieAJson(Serie serie) => <String, dynamic>{
-      'repeticiones': serie.repeticiones,
-      'distancia': serie.distancia,
-      if (serie.tiempoSalida != null)
-        'tiempoSalidaSegundos': serie.tiempoSalida!.inSeconds,
-      'implementos': serie.implementos.map((i) => i.name).toList(),
-      'modificadores': serie.modificadores.map((m) => m.name).toList(),
-      if (serie.ejercicio != null) 'ejercicioNombre': serie.ejercicio!.nombreBase,
-      if (serie.ejercicio != null)
-        'ejercicioEstilo': serie.ejercicio!.estilo.nombre,
-      if (serie.estilo != null) 'estilo': serie.estilo!.nombre,
-      if (serie.bloqueTecnico != null)
-        'bloqueTecnico': serie.bloqueTecnico!.nombre,
-      if (serie.zona != null) 'zona': serie.zona!.abreviatura,
-      if (serie.respiracionCada != null)
-        'respiracionCada': serie.respiracionCada,
-      'origen': serie.origen.name,
-      'camposCorregidos': serie.camposCorregidos.toList(),
-      'textoOriginal': serie.textoOriginal,
-    };
+  'repeticiones': serie.repeticiones,
+  'distancia': serie.distancia,
+  if (serie.tiempoSalida != null)
+    'tiempoSalidaSegundos': serie.tiempoSalida!.inSeconds,
+  'implementos': serie.implementos.map((i) => i.name).toList(),
+  'modificadores': serie.modificadores.map((m) => m.name).toList(),
+  if (serie.ejercicio != null) 'ejercicioNombre': serie.ejercicio!.nombreBase,
+  if (serie.ejercicio != null)
+    'ejercicioEstilo': serie.ejercicio!.estilo.nombre,
+  if (serie.estilo != null) 'estilo': serie.estilo!.nombre,
+  if (serie.bloqueTecnico != null) 'bloqueTecnico': serie.bloqueTecnico!.nombre,
+  if (serie.zona != null) 'zona': serie.zona!.abreviatura,
+  if (serie.respiracionCada != null) 'respiracionCada': serie.respiracionCada,
+  'origen': serie.origen.name,
+  'camposCorregidos': serie.camposCorregidos.toList(),
+  'textoOriginal': serie.textoOriginal,
+};
 
 Serie serieDesdeJson(Map<String, dynamic> json, Biblioteca biblioteca) {
   final nombreEjercicio = json['ejercicioNombre'] as String?;
@@ -88,10 +86,9 @@ Serie serieDesdeJson(Map<String, dynamic> json, Biblioteca biblioteca) {
       (o) => o.name == json['origen'],
       orElse: () => OrigenDato.interpretado,
     ),
-    camposCorregidos:
-        ((json['camposCorregidos'] as List<dynamic>?) ?? const [])
-            .cast<String>()
-            .toSet(),
+    camposCorregidos: ((json['camposCorregidos'] as List<dynamic>?) ?? const [])
+        .cast<String>()
+        .toSet(),
     textoOriginal: json['textoOriginal'] as String? ?? '',
   );
 }
@@ -113,19 +110,21 @@ List<T> _porNombres<T>(
 // --------------------------------------------------------------------------
 
 Map<String, dynamic> parteAJson(Parte parte) => <String, dynamic>{
-      'tipo': parte.tipo.name,
-      'textoOriginal': parte.textoOriginal,
-      'series': parte.series.map(serieAJson).toList(),
-      'fragmentosPendientes': parte.fragmentosPendientes
-          .map((f) => <String, dynamic>{
-                'texto': f.texto,
-                'posicionInicio': f.posicionInicio,
-                'posicionFin': f.posicionFin,
-                'motivo': f.motivo.name,
-                'detalle': f.detalle,
-              })
-          .toList(),
-    };
+  'tipo': parte.tipo.name,
+  'textoOriginal': parte.textoOriginal,
+  'series': parte.series.map(serieAJson).toList(),
+  'fragmentosPendientes': parte.fragmentosPendientes
+      .map(
+        (f) => <String, dynamic>{
+          'texto': f.texto,
+          'posicionInicio': f.posicionInicio,
+          'posicionFin': f.posicionFin,
+          'motivo': f.motivo.name,
+          'detalle': f.detalle,
+        },
+      )
+      .toList(),
+};
 
 Parte parteDesdeJson(Map<String, dynamic> json, Biblioteca biblioteca) {
   final tipo = TipoParte.values.firstWhere(
@@ -143,30 +142,32 @@ Parte parteDesdeJson(Map<String, dynamic> json, Biblioteca biblioteca) {
     fragmentosPendientes:
         ((json['fragmentosPendientes'] as List<dynamic>?) ?? const [])
             .cast<Map<String, dynamic>>()
-            .map((f) => FragmentoPendiente(
-                  texto: f['texto'] as String? ?? '',
-                  posicionInicio: f['posicionInicio'] as int? ?? 0,
-                  posicionFin: f['posicionFin'] as int? ?? 0,
-                  motivo: MotivoPendiente.values.firstWhere(
-                    (m) => m.name == f['motivo'],
-                    orElse: () => MotivoPendiente.terminoDesconocido,
-                  ),
-                  detalle: f['detalle'] as String? ?? '',
-                ))
+            .map(
+              (f) => FragmentoPendiente(
+                texto: f['texto'] as String? ?? '',
+                posicionInicio: f['posicionInicio'] as int? ?? 0,
+                posicionFin: f['posicionFin'] as int? ?? 0,
+                motivo: MotivoPendiente.values.firstWhere(
+                  (m) => m.name == f['motivo'],
+                  orElse: () => MotivoPendiente.terminoDesconocido,
+                ),
+                detalle: f['detalle'] as String? ?? '',
+              ),
+            )
             .toList(),
   );
 }
 
 Map<String, dynamic> sesionAJson(Sesion sesion) => <String, dynamic>{
-      if (sesion.microcicloId != null) 'microcicloId': sesion.microcicloId,
-      if (sesion.fecha != null)
-        'fecha': sesion.fecha!.toIso8601String().split('T').first,
-      'objetivoTecnico': sesion.objetivoTecnico,
-      'objetivoFisiologico': sesion.objetivoFisiologico,
-      if (sesion.rpePrevisto != null) 'rpePrevisto': sesion.rpePrevisto,
-      'variablesMonitoreo': sesion.variablesMonitoreo,
-      'partes': sesion.partes.map(parteAJson).toList(),
-    };
+  if (sesion.microcicloId != null) 'microcicloId': sesion.microcicloId,
+  if (sesion.fecha != null)
+    'fecha': sesion.fecha!.toIso8601String().split('T').first,
+  'objetivoTecnico': sesion.objetivoTecnico,
+  'objetivoFisiologico': sesion.objetivoFisiologico,
+  if (sesion.rpePrevisto != null) 'rpePrevisto': sesion.rpePrevisto,
+  'variablesMonitoreo': sesion.variablesMonitoreo,
+  'partes': sesion.partes.map(parteAJson).toList(),
+};
 
 Sesion sesionDesdeJson(
   Map<String, dynamic> json,
@@ -209,12 +210,14 @@ Map<String, dynamic> planAJson(Plan plan, {bool conSesiones = false}) =>
         'fechaFin': plan.fechaFin!.toIso8601String().split('T').first,
       if (plan.faseAtr != null) 'faseAtr': plan.faseAtr!.nombre,
       'microciclos': plan.microciclos
-          .map((m) => <String, dynamic>{
-                'id': m.id,
-                'nombre': m.nombre,
-                'orden': m.orden,
-                'objetivo': m.objetivo,
-              })
+          .map(
+            (m) => <String, dynamic>{
+              'id': m.id,
+              'nombre': m.nombre,
+              'orden': m.orden,
+              'objetivo': m.objetivo,
+            },
+          )
           .toList(),
       'estado': plan.estado.name,
       'origen': plan.origen.name,
@@ -223,16 +226,17 @@ Map<String, dynamic> planAJson(Plan plan, {bool conSesiones = false}) =>
       if (plan.fechaAprobacion != null)
         'fechaAprobacion': plan.fechaAprobacion!.toIso8601String(),
       'justificaciones': plan.justificaciones
-          .map((j) => <String, dynamic>{
-                'criterioId': j.criterioId,
-                'texto': j.texto,
-                'fecha': j.fecha.toIso8601String(),
-              })
+          .map(
+            (j) => <String, dynamic>{
+              'criterioId': j.criterioId,
+              'texto': j.texto,
+              'fecha': j.fecha.toIso8601String(),
+            },
+          )
           .toList(),
       if (plan.versionAnteriorId != null)
         'versionAnteriorId': plan.versionAnteriorId,
-      if (conSesiones)
-        'sesiones': plan.sesiones.map(sesionAJson).toList(),
+      if (conSesiones) 'sesiones': plan.sesiones.map(sesionAJson).toList(),
     };
 
 Plan planDesdeJson(
@@ -244,11 +248,12 @@ Plan planDesdeJson(
   return Plan(
     id: id,
     nombre: json['nombre'] as String? ?? '',
-    categoria: Categoria.porNombre(json['categoria'] as String? ?? '') ??
+    categoria:
+        Categoria.porNombre(json['categoria'] as String? ?? '') ??
         Categoria.precompetitivo,
     estiloObjetivo:
         Estilo.porNombre(json['estiloObjetivo'] as String? ?? '') ??
-            Estilo.libre,
+        Estilo.libre,
     pruebaObjetivo: json['pruebaObjetivo'] as String? ?? '',
     longitudPiscina: json['longitudPiscina'] as int? ?? 25,
     fechaInicio: json['fechaInicio'] == null
@@ -260,19 +265,21 @@ Plan planDesdeJson(
     faseAtr: FaseAtr.porNombre(json['faseAtr'] as String? ?? ''),
     microciclos: ((json['microciclos'] as List<dynamic>?) ?? const [])
         .cast<Map<String, dynamic>>()
-        .map((m) => Microciclo(
-              id: m['id'] as String? ?? '',
-              nombre: m['nombre'] as String? ?? '',
-              orden: m['orden'] as int? ?? 0,
-              objetivo: m['objetivo'] as String? ?? '',
-            ))
+        .map(
+          (m) => Microciclo(
+            id: m['id'] as String? ?? '',
+            nombre: m['nombre'] as String? ?? '',
+            orden: m['orden'] as int? ?? 0,
+            objetivo: m['objetivo'] as String? ?? '',
+          ),
+        )
         .toList(),
     sesiones: sesiones.isNotEmpty
         ? sesiones
         : ((json['sesiones'] as List<dynamic>?) ?? const [])
-            .cast<Map<String, dynamic>>()
-            .map((s) => sesionDesdeJson(s, biblioteca))
-            .toList(),
+              .cast<Map<String, dynamic>>()
+              .map((s) => sesionDesdeJson(s, biblioteca))
+              .toList(),
     estado: EstadoPlan.values.firstWhere(
       (e) => e.name == json['estado'],
       orElse: () => EstadoPlan.borrador,
@@ -287,12 +294,15 @@ Plan planDesdeJson(
         : DateTime.tryParse(json['fechaAprobacion'] as String),
     justificaciones: ((json['justificaciones'] as List<dynamic>?) ?? const [])
         .cast<Map<String, dynamic>>()
-        .map((j) => Justificacion(
-              criterioId: j['criterioId'] as String? ?? '',
-              texto: j['texto'] as String? ?? '',
-              fecha: DateTime.tryParse(j['fecha'] as String? ?? '') ??
-                  DateTime(2026),
-            ))
+        .map(
+          (j) => Justificacion(
+            criterioId: j['criterioId'] as String? ?? '',
+            texto: j['texto'] as String? ?? '',
+            fecha:
+                DateTime.tryParse(j['fecha'] as String? ?? '') ??
+                DateTime(2026),
+          ),
+        )
         .toList(),
     versionAnteriorId: json['versionAnteriorId'] as String?,
   );
@@ -303,26 +313,30 @@ Plan planDesdeJson(
 // --------------------------------------------------------------------------
 
 Map<String, dynamic> nadadorAJson(Nadador nadador) => <String, dynamic>{
-      'nombre': nadador.nombre,
-      if (nadador.fechaNacimiento != null)
-        'fechaNacimiento':
-            nadador.fechaNacimiento!.toIso8601String().split('T').first,
-      if (nadador.declaraSerMayorDeEdad != null)
-        'declaraSerMayorDeEdad': nadador.declaraSerMayorDeEdad,
-      if (nadador.categoria != null) 'categoria': nadador.categoria!.nombre,
-      if (nadador.estiloObjetivo != null)
-        'estiloObjetivo': nadador.estiloObjetivo!.nombre,
-      'pruebaObjetivo': nadador.pruebaObjetivo,
-      'marcas': nadador.marcas
-          .map((m) => <String, dynamic>{
-                'distancia': m.distancia,
-                'estilo': m.estilo.nombre,
-                'tiempoMilisegundos': m.tiempo.inMilliseconds,
-                'fecha': m.fecha.toIso8601String().split('T').first,
-              })
-          .toList(),
-      'diagnosticoTecnico': nadador.diagnosticoTecnico,
-    };
+  'nombre': nadador.nombre,
+  if (nadador.fechaNacimiento != null)
+    'fechaNacimiento': nadador.fechaNacimiento!
+        .toIso8601String()
+        .split('T')
+        .first,
+  if (nadador.declaraSerMayorDeEdad != null)
+    'declaraSerMayorDeEdad': nadador.declaraSerMayorDeEdad,
+  if (nadador.categoria != null) 'categoria': nadador.categoria!.nombre,
+  if (nadador.estiloObjetivo != null)
+    'estiloObjetivo': nadador.estiloObjetivo!.nombre,
+  'pruebaObjetivo': nadador.pruebaObjetivo,
+  'marcas': nadador.marcas
+      .map(
+        (m) => <String, dynamic>{
+          'distancia': m.distancia,
+          'estilo': m.estilo.nombre,
+          'tiempoMilisegundos': m.tiempo.inMilliseconds,
+          'fecha': m.fecha.toIso8601String().split('T').first,
+        },
+      )
+      .toList(),
+  'diagnosticoTecnico': nadador.diagnosticoTecnico,
+};
 
 Nadador nadadorDesdeJson(Map<String, dynamic> json, {String? id}) {
   return Nadador(
@@ -337,15 +351,19 @@ Nadador nadadorDesdeJson(Map<String, dynamic> json, {String? id}) {
     pruebaObjetivo: json['pruebaObjetivo'] as String? ?? '',
     marcas: ((json['marcas'] as List<dynamic>?) ?? const [])
         .cast<Map<String, dynamic>>()
-        .map((m) => Marca(
-              distancia: m['distancia'] as int? ?? 0,
-              estilo: Estilo.porNombre(m['estilo'] as String? ?? '') ??
-                  Estilo.libre,
-              tiempo:
-                  Duration(milliseconds: m['tiempoMilisegundos'] as int? ?? 0),
-              fecha: DateTime.tryParse(m['fecha'] as String? ?? '') ??
-                  DateTime(2026),
-            ))
+        .map(
+          (m) => Marca(
+            distancia: m['distancia'] as int? ?? 0,
+            estilo:
+                Estilo.porNombre(m['estilo'] as String? ?? '') ?? Estilo.libre,
+            tiempo: Duration(
+              milliseconds: m['tiempoMilisegundos'] as int? ?? 0,
+            ),
+            fecha:
+                DateTime.tryParse(m['fecha'] as String? ?? '') ??
+                DateTime(2026),
+          ),
+        )
         .toList(),
     diagnosticoTecnico:
         ((json['diagnosticoTecnico'] as List<dynamic>?) ?? const [])
@@ -392,7 +410,8 @@ RegistroDeSesion registroDesdeJson(Map<String, dynamic> json) {
     versionDePlan: json['versionDePlan'] as String? ?? '',
     realizada: json['realizada'] as bool? ?? false,
     registradoEn:
-        DateTime.tryParse(json['registradoEn'] as String? ?? '') ?? DateTime(2026),
+        DateTime.tryParse(json['registradoEn'] as String? ?? '') ??
+        DateTime(2026),
     recibidoEn: DateTime.tryParse(json['recibidoEn'] as String? ?? ''),
     rpePercibido: json['rpePercibido'] as int?,
     observaciones: json['observaciones'] as String? ?? '',
@@ -409,23 +428,23 @@ RegistroDeSesion registroDesdeJson(Map<String, dynamic> json) {
 ///
 /// Solo vive en el dispositivo: no tiene sentido fuera de él.
 Map<String, dynamic> envioAJson(EnvioPendiente envio) => <String, dynamic>{
-      'registroId': envio.registroId,
-      'estado': envio.estado.name,
-      'intentos': envio.intentos,
-      if (envio.ultimoIntento != null)
-        'ultimoIntento': envio.ultimoIntento!.toIso8601String(),
-      if (envio.ultimoError != null) 'ultimoError': envio.ultimoError,
-    };
+  'registroId': envio.registroId,
+  'estado': envio.estado.name,
+  'intentos': envio.intentos,
+  if (envio.ultimoIntento != null)
+    'ultimoIntento': envio.ultimoIntento!.toIso8601String(),
+  if (envio.ultimoError != null) 'ultimoError': envio.ultimoError,
+};
 
 EnvioPendiente envioDesdeJson(Map<String, dynamic> json) => EnvioPendiente(
-      registroId: json['registroId'] as String? ?? '',
-      estado: EstadoDeEnvio.values.firstWhere(
-        (e) => e.name == json['estado'],
-        // Ante un estado desconocido se vuelve a pendiente, nunca a enviado:
-        // dar por enviado lo que no se sabe sería perder el dato en silencio.
-        orElse: () => EstadoDeEnvio.pendiente,
-      ),
-      intentos: json['intentos'] as int? ?? 0,
-      ultimoIntento: DateTime.tryParse(json['ultimoIntento'] as String? ?? ''),
-      ultimoError: json['ultimoError'] as String?,
-    );
+  registroId: json['registroId'] as String? ?? '',
+  estado: EstadoDeEnvio.values.firstWhere(
+    (e) => e.name == json['estado'],
+    // Ante un estado desconocido se vuelve a pendiente, nunca a enviado:
+    // dar por enviado lo que no se sabe sería perder el dato en silencio.
+    orElse: () => EstadoDeEnvio.pendiente,
+  ),
+  intentos: json['intentos'] as int? ?? 0,
+  ultimoIntento: DateTime.tryParse(json['ultimoIntento'] as String? ?? ''),
+  ultimoError: json['ultimoError'] as String?,
+);

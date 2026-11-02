@@ -50,14 +50,15 @@ void main() {
 
   group('A10 — un menor sin consentimiento entra igual', () {
     test('terminar sin acudiente no es un fallo', () async {
-      final estado = EstadoAlta(
-        operaciones: _Servidor(esMenor: true),
-        correoDeLaCuenta: 'ana@ejemplo.com',
-        reloj: () => hoy,
-      )
-        ..escribirNombre('Ana María')
-        ..escribirNacimiento(DateTime(2014, 3, 10))
-        ..aceptarTerminos(aceptados: true);
+      final estado =
+          EstadoAlta(
+              operaciones: _Servidor(esMenor: true),
+              correoDeLaCuenta: 'ana@ejemplo.com',
+              reloj: () => hoy,
+            )
+            ..escribirNombre('Ana María')
+            ..escribirNacimiento(DateTime(2014, 3, 10))
+            ..aceptarTerminos(aceptados: true);
 
       final resultado = await estado.terminar();
 
@@ -69,8 +70,9 @@ void main() {
       );
     });
 
-    testWidgets('con el perfil completo y el consentimiento pendiente, entra',
-        (tester) async {
+    testWidgets('con el perfil completo y el consentimiento pendiente, entra', (
+      tester,
+    ) async {
       // Lo que la puerta retiene es el envío. Entrar, ver el plan y anotar
       // siguen funcionando.
       await abrirPuerta(
@@ -106,6 +108,23 @@ void main() {
 }
 
 class _Servidor implements OperacionesDelServidor {
+  // La feature 007 añadió estas dos: aquí no se usan, y lo que importa es
+  // que el doble siga cumpliendo la interfaz.
+  @override
+  Future<PerfilCorregido> corregirPerfil({
+    required String nombre,
+    required DateTime fechaNacimiento,
+    String? pais,
+  }) async => PerfilCorregido(nombre: nombre, esMenor: false);
+
+  @override
+  Future<DatosSuprimidos> suprimirMisDatos() async => const DatosSuprimidos(
+    registrosEliminados: 0,
+    asignacionesRetiradas: 0,
+    perfilEliminado: false,
+    cuentaEliminada: false,
+  );
+
   _Servidor({this.esMenor = false});
 
   final bool esMenor;
@@ -116,8 +135,7 @@ class _Servidor implements OperacionesDelServidor {
     required DateTime fechaNacimiento,
     String? pais,
     required String versionDeTerminos,
-  }) async =>
-      PerfilGuardado(esMenor: esMenor, nadadorId: 'n1');
+  }) async => PerfilGuardado(esMenor: esMenor, nadadorId: 'n1');
 
   @override
   Future<void> pedirConsentimiento({

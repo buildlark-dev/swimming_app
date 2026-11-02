@@ -32,8 +32,10 @@ void main() {
   group('un fallo al conectar no tumba la app', () {
     test('un AssertionError, que es el fallo real de la web', () async {
       final doble = falla(
-        AssertionError('FirebaseOptions cannot be null when creating the '
-            'default app.'),
+        AssertionError(
+          'FirebaseOptions cannot be null when creating the '
+          'default app.',
+        ),
       );
 
       final datos = await ConfiguracionDatos(
@@ -44,7 +46,8 @@ void main() {
       expect(
         datos,
         isNull,
-        reason: 'Un AssertionError es un Error, no una Exception. Atrapar '
+        reason:
+            'Un AssertionError es un Error, no una Exception. Atrapar '
             'solo excepciones es lo que dejó la app en una pantalla de error',
       );
     });
@@ -76,9 +79,7 @@ void main() {
     test('tampoco con los emuladores apagados', () async {
       // El caso de todos los días: se arranca la app y no se levantaron los
       // emuladores. No hay nada que avisar, se trabaja en local.
-      final doble = falla(
-        Exception('Connection refused: localhost:8080'),
-      );
+      final doble = falla(Exception('Connection refused: localhost:8080'));
 
       final datos = await ConfiguracionDatos(
         usarEmuladores: true,

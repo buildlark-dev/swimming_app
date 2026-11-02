@@ -105,17 +105,20 @@ void main() {
       expect(resultado.series.first.esTecnica, isTrue);
     });
 
-    test('los metros se cuentan aunque el ejercicio esté fuera de biblioteca',
-        () {
-      final resultado = analizador.analizar('4x100 EJERCICIO IMAGINARIO');
+    test(
+      'los metros se cuentan aunque el ejercicio esté fuera de biblioteca',
+      () {
+        final resultado = analizador.analizar('4x100 EJERCICIO IMAGINARIO');
 
-      expect(
-        resultado.metros,
-        400,
-        reason: 'El volumen es un hecho aritmético, independiente de que el '
-            'ejercicio sea válido',
-      );
-      expect(resultado.pendientes, isNotEmpty);
-    });
+        expect(
+          resultado.metros,
+          400,
+          reason:
+              'El volumen es un hecho aritmético, independiente de que el '
+              'ejercicio sea válido',
+        );
+        expect(resultado.pendientes, isNotEmpty);
+      },
+    );
   });
 }

@@ -46,8 +46,9 @@ class _FormularioRegistroState extends State<FormularioRegistro> {
     final previo = widget.estado.registroDe(widget.sesion.id);
 
     _observaciones = TextEditingController(text: previo?.observaciones ?? '');
-    _molestia =
-        TextEditingController(text: previo?.molestia?.descripcion ?? '');
+    _molestia = TextEditingController(
+      text: previo?.molestia?.descripcion ?? '',
+    );
     _zona = TextEditingController(text: previo?.molestia?.zonaDelCuerpo ?? '');
     _rpe = previo?.rpePercibido;
     _reportaMolestia = previo?.tieneMolestia ?? false;
@@ -152,10 +153,9 @@ class _FormularioRegistroState extends State<FormularioRegistro> {
               const SizedBox(height: 8),
               Text(
                 'Tu entrenador lo verá señalado. La app no decide nada por él.',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: esquema.onSurfaceVariant),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: esquema.onSurfaceVariant,
+                ),
               ),
             ],
 

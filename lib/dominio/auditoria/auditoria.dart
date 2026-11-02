@@ -52,20 +52,20 @@ class Auditoria {
     Tolerancia tolerancia = Tolerancia.predeterminada,
     List<String> diagnostico = const <String>[],
   }) : criterios = <Criterio>[
-          // Bloqueantes.
-          const CriterioBiblioteca(),
-          const CriterioNomenclatura(),
-          const CriterioZonas(),
-          const CriterioSinAmbiguos(),
-          // Justificables.
-          CriterioTecnicaPrioritaria(tolerancia: tolerancia),
-          CriterioIntensidadesFase(tolerancia: tolerancia),
-          CriterioTecnicaFase(tolerancia: tolerancia),
-          const CriterioVolumenCategoria(),
-          CriterioTransferencia(tolerancia: tolerancia),
-          const CriterioModelamiento(),
-          CriterioDrillsDiagnostico(diagnostico: diagnostico),
-        ];
+         // Bloqueantes.
+         const CriterioBiblioteca(),
+         const CriterioNomenclatura(),
+         const CriterioZonas(),
+         const CriterioSinAmbiguos(),
+         // Justificables.
+         CriterioTecnicaPrioritaria(tolerancia: tolerancia),
+         CriterioIntensidadesFase(tolerancia: tolerancia),
+         CriterioTecnicaFase(tolerancia: tolerancia),
+         const CriterioVolumenCategoria(),
+         CriterioTransferencia(tolerancia: tolerancia),
+         const CriterioModelamiento(),
+         CriterioDrillsDiagnostico(diagnostico: diagnostico),
+       ];
 
   final List<Criterio> criterios;
 
@@ -87,36 +87,44 @@ class Auditoria {
     final resultado = evaluar(plan);
 
     for (final criterio in resultado.bloqueantesEnRojo) {
-      impedimentos.add(ImpedimentoAprobacion(
-        'Incumplimiento no negociable (${criterio.nombre})',
-        criterio.observacion,
-      ));
+      impedimentos.add(
+        ImpedimentoAprobacion(
+          'Incumplimiento no negociable (${criterio.nombre})',
+          criterio.observacion,
+        ),
+      );
     }
 
     for (final criterio in resultado.justificablesEnRojo) {
       final justificacion = plan.justificacionDe(criterio.id);
       if (justificacion == null || !justificacion.esValida) {
-        impedimentos.add(ImpedimentoAprobacion(
-          'Falta justificación escrita (${criterio.nombre})',
-          criterio.observacion,
-        ));
+        impedimentos.add(
+          ImpedimentoAprobacion(
+            'Falta justificación escrita (${criterio.nombre})',
+            criterio.observacion,
+          ),
+        );
       }
     }
 
     final incompletas = plan.sesionesIncompletas;
     if (incompletas.isNotEmpty) {
-      impedimentos.add(ImpedimentoAprobacion(
-        'Sesiones incompletas',
-        '${incompletas.length} de ${plan.sesiones.length} sesiones no están '
-            'completas',
-      ));
+      impedimentos.add(
+        ImpedimentoAprobacion(
+          'Sesiones incompletas',
+          '${incompletas.length} de ${plan.sesiones.length} sesiones no están '
+              'completas',
+        ),
+      );
     }
 
     if (plan.estado.esInmutable) {
-      impedimentos.add(ImpedimentoAprobacion(
-        'El plan ya no es un borrador',
-        'Está en estado ${plan.estado.nombre}. Editarlo crea una versión nueva',
-      ));
+      impedimentos.add(
+        ImpedimentoAprobacion(
+          'El plan ya no es un borrador',
+          'Está en estado ${plan.estado.nombre}. Editarlo crea una versión nueva',
+        ),
+      );
     }
 
     return impedimentos;

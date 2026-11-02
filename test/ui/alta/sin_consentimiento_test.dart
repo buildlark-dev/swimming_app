@@ -17,11 +17,12 @@ import 'package:provider/provider.dart';
 void main() {
   final hoy = DateTime(2026, 10, 21);
 
-  EstadoAlta deAdulto() => EstadoAlta(
-        operaciones: _Servidor(),
-        correoDeLaCuenta: 'adulto@ejemplo.com',
-        reloj: () => hoy,
-      )
+  EstadoAlta deAdulto() =>
+      EstadoAlta(
+          operaciones: _Servidor(),
+          correoDeLaCuenta: 'adulto@ejemplo.com',
+          reloj: () => hoy,
+        )
         ..escribirNombre('Juan Esteban')
         ..escribirNacimiento(DateTime(1990, 4, 12));
 
@@ -55,8 +56,9 @@ void main() {
     expect(find.byKey(const Key('alta-aviso-menor')), findsNothing);
   });
 
-  testWidgets('la palabra «acudiente» no aparece en ningún paso suyo',
-      (tester) async {
+  testWidgets('la palabra «acudiente» no aparece en ningún paso suyo', (
+    tester,
+  ) async {
     final estado = deAdulto();
 
     for (var i = 0; i < estado.totalDePasos; i++) {
@@ -83,14 +85,15 @@ void main() {
 
   test('al terminar, no se pide consentimiento a nadie', () async {
     final servidor = _Servidor();
-    final estado = EstadoAlta(
-      operaciones: servidor,
-      correoDeLaCuenta: 'adulto@ejemplo.com',
-      reloj: () => hoy,
-    )
-      ..escribirNombre('Juan')
-      ..escribirNacimiento(DateTime(1990, 4, 12))
-      ..aceptarTerminos(aceptados: true);
+    final estado =
+        EstadoAlta(
+            operaciones: servidor,
+            correoDeLaCuenta: 'adulto@ejemplo.com',
+            reloj: () => hoy,
+          )
+          ..escribirNombre('Juan')
+          ..escribirNacimiento(DateTime(1990, 4, 12))
+          ..aceptarTerminos(aceptados: true);
 
     await estado.terminar();
 
@@ -99,6 +102,23 @@ void main() {
 }
 
 class _Servidor implements OperacionesDelServidor {
+  // La feature 007 añadió estas dos: aquí no se usan, y lo que importa es
+  // que el doble siga cumpliendo la interfaz.
+  @override
+  Future<PerfilCorregido> corregirPerfil({
+    required String nombre,
+    required DateTime fechaNacimiento,
+    String? pais,
+  }) async => PerfilCorregido(nombre: nombre, esMenor: false);
+
+  @override
+  Future<DatosSuprimidos> suprimirMisDatos() async => const DatosSuprimidos(
+    registrosEliminados: 0,
+    asignacionesRetiradas: 0,
+    perfilEliminado: false,
+    cuentaEliminada: false,
+  );
+
   final solicitudes = <String>[];
 
   @override
@@ -107,8 +127,7 @@ class _Servidor implements OperacionesDelServidor {
     required DateTime fechaNacimiento,
     String? pais,
     required String versionDeTerminos,
-  }) async =>
-      const PerfilGuardado(esMenor: false, nadadorId: 'n1');
+  }) async => const PerfilGuardado(esMenor: false, nadadorId: 'n1');
 
   @override
   Future<void> pedirConsentimiento({

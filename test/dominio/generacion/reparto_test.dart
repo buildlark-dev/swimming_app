@@ -82,34 +82,43 @@ void main() {
   group('determinismo (invariante 7)', () {
     test('repetir el reparto da exactamente lo mismo', () {
       Map<String, int> hacer() => repartirPorRestoMayor(
-            unidades: 241,
-            porcentajes: const {'A1': 25, 'A2': 25, 'A3': 15, 'AT': 10, 'Max': 15, 'Vel': 10},
-            orden: const ['A1', 'A2', 'A3', 'AT', 'Max', 'Vel'],
-          );
+        unidades: 241,
+        porcentajes: const {
+          'A1': 25,
+          'A2': 25,
+          'A3': 15,
+          'AT': 10,
+          'Max': 15,
+          'Vel': 10,
+        },
+        orden: const ['A1', 'A2', 'A3', 'AT', 'Max', 'Vel'],
+      );
 
       expect(hacer(), hacer());
       expect(hacer(), hacer());
     });
 
-    test('el orden de las claves del mapa de entrada no cambia el resultado',
-        () {
-      final unOrden = repartirPorRestoMayor(
-        unidades: 7,
-        porcentajes: const {'A': 33, 'B': 33, 'C': 34},
-        orden: const ['A', 'B', 'C'],
-      );
-      final otroOrden = repartirPorRestoMayor(
-        unidades: 7,
-        porcentajes: const {'C': 34, 'B': 33, 'A': 33},
-        orden: const ['A', 'B', 'C'],
-      );
+    test(
+      'el orden de las claves del mapa de entrada no cambia el resultado',
+      () {
+        final unOrden = repartirPorRestoMayor(
+          unidades: 7,
+          porcentajes: const {'A': 33, 'B': 33, 'C': 34},
+          orden: const ['A', 'B', 'C'],
+        );
+        final otroOrden = repartirPorRestoMayor(
+          unidades: 7,
+          porcentajes: const {'C': 34, 'B': 33, 'A': 33},
+          orden: const ['A', 'B', 'C'],
+        );
 
-      expect(
-        unOrden,
-        otroOrden,
-        reason: 'El desempate lo fija el parámetro `orden`, no el mapa',
-      );
-    });
+        expect(
+          unOrden,
+          otroOrden,
+          reason: 'El desempate lo fija el parámetro `orden`, no el mapa',
+        );
+      },
+    );
   });
 
   group('desempate por orden fijo', () {
@@ -152,7 +161,8 @@ void main() {
       expect(
         ordenDeZonas.toSet(),
         Zona.values.toSet(),
-        reason: 'Una zona fuera del orden de desempate no recibiría metros y '
+        reason:
+            'Una zona fuera del orden de desempate no recibiría metros y '
             'el reparto dejaría de cerrar exacto',
       );
     });

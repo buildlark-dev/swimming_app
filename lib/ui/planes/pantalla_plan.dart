@@ -78,8 +78,9 @@ class _PantallaPlanState extends State<PantallaPlan> {
     );
     if (justificaciones == null) return;
 
-    final conJustificaciones =
-        _plan.copiarCon(justificaciones: justificaciones);
+    final conJustificaciones = _plan.copiarCon(
+      justificaciones: justificaciones,
+    );
     final resultado = _ciclo.aprobar(conJustificaciones);
 
     if (!mounted) return;
@@ -96,9 +97,9 @@ class _PantallaPlanState extends State<PantallaPlan> {
           ),
         );
       case TransicionRechazada(:final impedimentos):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(impedimentos.first.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(impedimentos.first.toString())));
     }
   }
 
@@ -120,8 +121,9 @@ class _PantallaPlanState extends State<PantallaPlan> {
 
     // Segunda comprobación, por si alguien llegó aquí con un identificador que
     // la pantalla no ofreció. No sustituye a la del servidor: la acompaña.
-    final sinPermiso =
-        elegidos.where((id) => !widget.conConsentimiento.contains(id)).toList();
+    final sinPermiso = elegidos
+        .where((id) => !widget.conConsentimiento.contains(id))
+        .toList();
     if (sinPermiso.isNotEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -152,16 +154,16 @@ class _PantallaPlanState extends State<PantallaPlan> {
             content: Text(
               elegidos.isEmpty
                   ? 'Plan publicado. Todavía no es de nadie: asígnalo para que '
-                      'alguien lo vea.'
+                        'alguien lo vea.'
                   : 'Entregado a ${elegidos.length} nadador'
-                      '${elegidos.length == 1 ? '' : 'es'}. Ya lo ven en su app.',
+                        '${elegidos.length == 1 ? '' : 'es'}. Ya lo ven en su app.',
             ),
           ),
         );
       case TransicionRechazada(:final impedimentos):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(impedimentos.first.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(impedimentos.first.toString())));
     }
   }
 
@@ -170,8 +172,7 @@ class _PantallaPlanState extends State<PantallaPlan> {
     final resultado = _auditoria.evaluar(_plan);
     final fase = const ValidacionFase().admiteFase(_plan);
     final duracion = const ValidacionFase().duracionDelBloque(_plan);
-    final alternancia =
-        const ReglaAlternanciaTecnificacion().comprobar(_plan);
+    final alternancia = const ReglaAlternanciaTecnificacion().comprobar(_plan);
 
     return Scaffold(
       appBar: AppBar(
@@ -188,17 +189,17 @@ class _PantallaPlanState extends State<PantallaPlan> {
       ),
       floatingActionButton: switch (_plan.estado) {
         EstadoPlan.borrador => FloatingActionButton.extended(
-            onPressed: _aprobar,
-            icon: const Icon(Icons.verified_outlined),
-            label: const Text('Aprobar'),
-          ),
+          onPressed: _aprobar,
+          icon: const Icon(Icons.verified_outlined),
+          label: const Text('Aprobar'),
+        ),
         // Un plan aprobado todavía no es de nadie. Publicarlo y asignarlo es lo
         // que lo convierte en el entrenamiento de alguien.
         EstadoPlan.aprobado => FloatingActionButton.extended(
-            onPressed: _entregar,
-            icon: const Icon(Icons.send_outlined),
-            label: const Text('Entregar al nadador'),
-          ),
+          onPressed: _entregar,
+          icon: const Icon(Icons.send_outlined),
+          label: const Text('Entregar al nadador'),
+        ),
         EstadoPlan.publicado => null,
       },
       body: ListView(
@@ -239,7 +240,10 @@ class _Cabecera extends StatelessWidget {
           runSpacing: 8,
           children: [
             _Dato(etiqueta: 'Categoría', valor: plan.categoria.nombre),
-            _Dato(etiqueta: 'Estilo objetivo', valor: plan.estiloObjetivo.nombre),
+            _Dato(
+              etiqueta: 'Estilo objetivo',
+              valor: plan.estiloObjetivo.nombre,
+            ),
             if (plan.pruebaObjetivo.isNotEmpty)
               _Dato(etiqueta: 'Prueba', valor: plan.pruebaObjetivo),
             _Dato(etiqueta: 'Piscina', valor: '${plan.longitudPiscina} m'),
@@ -292,10 +296,7 @@ class _Microciclos extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Microciclos',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Microciclos', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             if (plan.microciclos.isEmpty)
               const Text('El plan no tiene microciclos'),
@@ -438,8 +439,9 @@ class _DialogoEntregaState extends State<_DialogoEntrega> {
                               // servidor; esto evita ofrecer una casilla que
                               // va a rebotar, y dice **qué falta** en lugar de
                               // dejar un error genérico después.
-                              final puede = widget.conConsentimiento
-                                  .contains(nadador.id);
+                              final puede = widget.conConsentimiento.contains(
+                                nadador.id,
+                              );
 
                               return CheckboxListTile(
                                 value: puede && _elegidos.contains(nadador.id),
@@ -448,21 +450,21 @@ class _DialogoEntregaState extends State<_DialogoEntrega> {
                                 subtitle: Text(
                                   puede
                                       ? (nadador.categoria?.nombre ??
-                                          'Sin categoría')
+                                            'Sin categoría')
                                       : 'Sin consentimiento del acudiente: '
-                                          'pídelo antes de entregarle un plan',
+                                            'pídelo antes de entregarle un plan',
                                 ),
                                 onChanged: !puede
                                     ? null
                                     : (marcado) => setState(() {
-                                          final id = nadador.id;
-                                          if (id == null) return;
-                                          if (marcado ?? false) {
-                                            _elegidos.add(id);
-                                          } else {
-                                            _elegidos.remove(id);
-                                          }
-                                        }),
+                                        final id = nadador.id;
+                                        if (id == null) return;
+                                        if (marcado ?? false) {
+                                          _elegidos.add(id);
+                                        } else {
+                                          _elegidos.remove(id);
+                                        }
+                                      }),
                               );
                             },
                           ),

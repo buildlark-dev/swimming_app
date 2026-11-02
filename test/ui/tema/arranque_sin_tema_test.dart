@@ -35,7 +35,8 @@ void main() {
       expect(
         tema.extensions,
         isNotEmpty,
-        reason: 'El tema bueno trae los colores del dominio; el de emergencia '
+        reason:
+            'El tema bueno trae los colores del dominio; el de emergencia '
             'no. Si esto falla, la app estaría usando el de emergencia sin que '
             'nadie se entere',
       );

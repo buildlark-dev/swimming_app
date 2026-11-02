@@ -76,14 +76,16 @@ void main() {
         expect(
           avisos,
           hasLength(1),
-          reason: 'Con algo pendiente de enviar tiene que haber un aviso, y '
+          reason:
+              'Con algo pendiente de enviar tiene que haber un aviso, y '
               'uno solo',
         );
 
         expect(
           avisos.single.tono,
           TonoDeAviso.exito,
-          reason: 'Significa que el progreso quedó guardado y que se enviará '
+          reason:
+              'Significa que el progreso quedó guardado y que se enviará '
               'solo. El nadador no ha hecho nada mal y no tiene que hacer '
               'nada: pintarlo de rojo le pide una reacción que no existe',
         );
@@ -112,10 +114,12 @@ void main() {
   group('los cuatro tonos existen y se distinguen', () {
     test('son cuatro, y ninguno es «rojo para todo»', () {
       expect(TonoDeAviso.values, hasLength(4));
-      expect(
-        TonoDeAviso.values.map((t) => t.name).toList(),
-        ['informativo', 'exito', 'cuidado', 'error'],
-      );
+      expect(TonoDeAviso.values.map((t) => t.name).toList(), [
+        'informativo',
+        'exito',
+        'cuidado',
+        'error',
+      ]);
     });
 
     test('cada uno lleva su icono, distinto de los demás', () {
@@ -175,10 +179,11 @@ void main() {
       final patron = RegExp(r'\.(error|errorContainer|onErrorContainer)\b');
       final infracciones = <String>[];
 
-      for (final archivo in Directory('lib')
-          .listSync(recursive: true)
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.dart'))) {
+      for (final archivo
+          in Directory('lib')
+              .listSync(recursive: true)
+              .whereType<File>()
+              .where((f) => f.path.endsWith('.dart'))) {
         final ruta = archivo.path.replaceAll(r'\', '/');
         if (permitidos.any(ruta.contains)) continue;
 
@@ -190,6 +195,24 @@ void main() {
           // `instantanea.error` es el fallo de un `Future`, no un color.
           if (lineas[i].contains('instantanea.error')) continue;
 
+          // **`TonoDeAviso.error` tampoco es un color.** Es el tono del
+          // componente `Aviso`, que esta misma feature creó como la forma
+          // sancionada de decir «algo falló y hay que actuar», y el color lo
+          // aplica `lib/ui/tema/`, que ya está permitido.
+          //
+          // Esto se añadió en la feature 007, cuando `Ajustes` necesitó
+          // reportar tres fallos de verdad —el servidor rechazó la corrección,
+          // no se pudieron leer los datos, la supresión no se pudo hacer— y el
+          // patrón los contó como si hubieran pintado algo de rojo. Tal como
+          // estaba, **ninguna pantalla nueva podía reportar un fallo**, que no
+          // es lo que el inventario de D6 quiso evitar: ese contaba usos de
+          // `colorScheme.error`.
+          //
+          // Lo que esto **no** permite sigue igual: aplicar el color a mano.
+          // Y lo que la 007 no hizo fue pintar de rojo el botón de borrar;
+          // pedir un borrado no es un fallo.
+          if (lineas[i].contains('TonoDeAviso.error')) continue;
+
           if (patron.hasMatch(lineas[i])) {
             infracciones.add('$ruta:${i + 1}  ${lineas[i].trim()}');
           }
@@ -199,7 +222,8 @@ void main() {
       expect(
         infracciones,
         isEmpty,
-        reason: 'Un rojo que sale siempre deja de significar nada, y cuando '
+        reason:
+            'Un rojo que sale siempre deja de significar nada, y cuando '
             'aparezca uno de verdad nadie lo mirará. Si esto que marcas pide '
             'atención sin que nada haya fallado, su tono es **cuidado**; si '
             'solo informa, es **informativo**.\n\n'
@@ -215,7 +239,8 @@ void main() {
         expect(
           File(ruta).readAsStringSync(),
           contains('colorScheme.error'),
-          reason: '$ruta ya no usa el color de error. Si el cambio es bueno, '
+          reason:
+              '$ruta ya no usa el color de error. Si el cambio es bueno, '
               'quítalo de la lista de permitidos',
         );
       }
@@ -232,7 +257,9 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             theme: Tema.claro(),
-            home: Scaffold(body: Aviso(tono: tono, mensaje: 'Mensaje')),
+            home: Scaffold(
+              body: Aviso(tono: tono, mensaje: 'Mensaje'),
+            ),
           ),
         );
         await tester.pump();
@@ -269,6 +296,10 @@ class _Bandeja implements BandejaDeSalida {
 }
 
 class _Registros implements RepositorioRegistros {
+  @override
+  Future<Set<String>> nadadoresConRegistros() async =>
+      _guardados.values.map((r) => r.nadadorId).toSet();
+
   final Map<String, RegistroDeSesion> _guardados = {};
 
   @override

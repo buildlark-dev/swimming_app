@@ -69,8 +69,9 @@ void main() {
       expect(find.text('¿Cómo te llamas?'), findsNothing);
     });
 
-    testWidgets('a la que le falta solo la fecha, también los recorre',
-        (tester) async {
+    testWidgets('a la que le falta solo la fecha, también los recorre', (
+      tester,
+    ) async {
       // Es el caso que de verdad importa: sin fecha **no se sabe si necesita
       // consentimiento**, y eso no se puede dejar así.
       await abrir(
@@ -100,8 +101,9 @@ void main() {
   });
 
   group('C10 — una cuenta antigua que resulta ser de un menor', () {
-    testWidgets('se le pide el acudiente, igual que en un alta nueva',
-        (tester) async {
+    testWidgets('se le pide el acudiente, igual que en un alta nueva', (
+      tester,
+    ) async {
       final servidor = _Servidor(esMenor: true);
       await abrir(tester, perfil: const Perfil(), servidor: servidor);
 
@@ -159,6 +161,23 @@ class _RepositorioQueFalla implements RepositorioPerfil {
 }
 
 class _Servidor implements OperacionesDelServidor {
+  // La feature 007 añadió estas dos: aquí no se usan, y lo que importa es
+  // que el doble siga cumpliendo la interfaz.
+  @override
+  Future<PerfilCorregido> corregirPerfil({
+    required String nombre,
+    required DateTime fechaNacimiento,
+    String? pais,
+  }) async => PerfilCorregido(nombre: nombre, esMenor: false);
+
+  @override
+  Future<DatosSuprimidos> suprimirMisDatos() async => const DatosSuprimidos(
+    registrosEliminados: 0,
+    asignacionesRetiradas: 0,
+    perfilEliminado: false,
+    cuentaEliminada: false,
+  );
+
   _Servidor({this.esMenor = false});
 
   final bool esMenor;
@@ -170,8 +189,7 @@ class _Servidor implements OperacionesDelServidor {
     required DateTime fechaNacimiento,
     String? pais,
     required String versionDeTerminos,
-  }) async =>
-      PerfilGuardado(esMenor: esMenor, nadadorId: 'n1');
+  }) async => PerfilGuardado(esMenor: esMenor, nadadorId: 'n1');
 
   @override
   Future<void> pedirConsentimiento({

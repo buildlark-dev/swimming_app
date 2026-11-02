@@ -74,7 +74,8 @@ void main() {
         expect(
           actual.maximo,
           siguiente.minimo,
-          reason: '${conRitmo[i].abreviatura} termina en ${actual.maximo} '
+          reason:
+              '${conRitmo[i].abreviatura} termina en ${actual.maximo} '
               'pero ${conRitmo[i + 1].abreviatura} empieza en '
               '${siguiente.minimo}. Los bordes de Ginn se cerraron a propósito: '
               'sus niveles 3, 4 y 5 se solapaban en el 100%',
@@ -98,7 +99,8 @@ void main() {
         expect(
           zona.ritmo!.interpolada,
           isFalse,
-          reason: '${zona.abreviatura} sí está publicada: no debe marcarse '
+          reason:
+              '${zona.abreviatura} sí está publicada: no debe marcarse '
               'como deducida',
         );
       }
@@ -111,11 +113,13 @@ void main() {
       expect(Zona.explosivo.seControlaPorTecnica, isTrue);
     });
 
-    test('A1 empieza en el 75% de velocidad crítica, como el nivel 1 de Ginn',
-        () {
-      expect(Zona.a1.ritmo!.minimo, 75);
-      expect(Zona.a1.ritmo!.maximo, 80);
-    });
+    test(
+      'A1 empieza en el 75% de velocidad crítica, como el nivel 1 de Ginn',
+      () {
+        expect(Zona.a1.ritmo!.minimo, 75);
+        expect(Zona.a1.ritmo!.maximo, 80);
+      },
+    );
   });
 
   group('los ritmos de competencia no son zonas (decisión 3)', () {
@@ -150,7 +154,8 @@ void main() {
         expect(
           ritmo.dependeDelConjunto,
           ritmo == RitmoCompetencia.rp8,
-          reason: '${ritmo.abreviatura} está en '
+          reason:
+              '${ritmo.abreviatura} está en '
               '${ritmo.porcentajeCsMinimo}-${ritmo.porcentajeCsMaximo}% de CS',
         );
       }
@@ -170,10 +175,7 @@ void main() {
           greaterThan(ordenados[i].porcentajeCsMinimo),
           reason: 'Nadar 100 es más rápido que nadar 1500',
         );
-        expect(
-          ordenados[i + 1].distancia,
-          lessThan(ordenados[i].distancia),
-        );
+        expect(ordenados[i + 1].distancia, lessThan(ordenados[i].distancia));
       }
     });
 
@@ -249,10 +251,14 @@ void main() {
 
     test('piramidal desciende: Z1 > Z2 > Z3', () {
       final m = ModeloTid.piramidal;
-      expect(m.rangoDe(ZonaTid.z1).minimo,
-          greaterThan(m.rangoDe(ZonaTid.z2).maximo));
-      expect(m.rangoDe(ZonaTid.z2).minimo,
-          greaterThan(m.rangoDe(ZonaTid.z3).maximo));
+      expect(
+        m.rangoDe(ZonaTid.z1).minimo,
+        greaterThan(m.rangoDe(ZonaTid.z2).maximo),
+      );
+      expect(
+        m.rangoDe(ZonaTid.z2).minimo,
+        greaterThan(m.rangoDe(ZonaTid.z3).maximo),
+      );
     });
 
     test('la Acumulación real del entrenador queda fuera del envolvente', () {

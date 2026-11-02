@@ -59,7 +59,8 @@ void main() {
   // saturado y el otro un rosa pálido, y eso el matiz no lo ve. La distancia
   // en CIELAB sí, porque mide las tres dimensiones a la vez.
 
-  double aLineal(double v) => v <= 0.04045 ? v / 12.92 : math.pow((v + 0.055) / 1.055, 2.4) as double;
+  double aLineal(double v) =>
+      v <= 0.04045 ? v / 12.92 : math.pow((v + 0.055) / 1.055, 2.4) as double;
 
   /// El color en CIELAB: claridad, verde-rojo, azul-amarillo.
   (double, double, double) lab(Color c) {
@@ -111,7 +112,8 @@ void main() {
         expect(
           medida,
           lessThanOrEqualTo(mismaFamilia),
-          reason: 'El $nombre se desvía ${medida.toStringAsFixed(0)}° al pasar '
+          reason:
+              'El $nombre se desvía ${medida.toStringAsFixed(0)}° al pasar '
               'a oscuro. Quien aprendió de día qué significa ese color '
               'tendría que volver a aprenderlo de noche',
         );
@@ -162,14 +164,16 @@ void main() {
           expect(
             porMatiz,
             greaterThanOrEqualTo(sinConfundirse),
-            reason: 'En $modo, $a y $b están a solo '
+            reason:
+                'En $modo, $a y $b están a solo '
                 '${porMatiz.toStringAsFixed(0)}° de matiz. Dos avisos que '
                 'dicen cosas distintas tienen que verse distintos',
           );
           expect(
             aLaVista,
             greaterThanOrEqualTo(distanciaMinima),
-            reason: 'En $modo, $a y $b están a '
+            reason:
+                'En $modo, $a y $b están a '
                 '${aLaVista.toStringAsFixed(0)} de distancia a la vista, y '
                 'hace falta $distanciaMinima',
           );
@@ -200,12 +204,18 @@ void main() {
     });
 
     test('cada estado conserva su familia al pasar a oscuro', () {
-      expect(separacion(claro.borrador, oscuro.borrador),
-          lessThanOrEqualTo(mismaFamilia));
-      expect(separacion(claro.aprobado, oscuro.aprobado),
-          lessThanOrEqualTo(mismaFamilia));
-      expect(separacion(claro.publicado, oscuro.publicado),
-          lessThanOrEqualTo(mismaFamilia));
+      expect(
+        separacion(claro.borrador, oscuro.borrador),
+        lessThanOrEqualTo(mismaFamilia),
+      );
+      expect(
+        separacion(claro.aprobado, oscuro.aprobado),
+        lessThanOrEqualTo(mismaFamilia),
+      );
+      expect(
+        separacion(claro.publicado, oscuro.publicado),
+        lessThanOrEqualTo(mismaFamilia),
+      );
     });
   });
 
@@ -277,8 +287,7 @@ void main() {
       // Si el oscuro se quedara sin la extensión, cada pantalla caería al
       // respaldo —que son los colores de claro— y el oscuro se vería mal sin
       // que nada fallara.
-      expect(temaSeguro(Tema.oscuro).extension<ColoresDelDominio>(),
-          isNotNull);
+      expect(temaSeguro(Tema.oscuro).extension<ColoresDelDominio>(), isNotNull);
       expect(temaSeguro(Tema.claro).extension<ColoresDelDominio>(), isNotNull);
     });
   });

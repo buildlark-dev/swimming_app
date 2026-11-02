@@ -94,7 +94,7 @@ const corpus = <CasoCorpus>[
 /// pendientes, porque el propio documento se aparta de su Biblioteca.
 const corpusConDiscrepancia = <CasoCorpus>[
   CasoCorpus(
-    '200 AL CAMBIO POSI',  // nombre retirado en 3.4.1
+    '200 AL CAMBIO POSI', // nombre retirado en 3.4.1
     metros: 200,
     implementos: [Implemento.aletas],
   ),
@@ -114,7 +114,8 @@ void main() {
         expect(
           resultado.metros,
           caso.metros,
-          reason: 'Interpretado como: '
+          reason:
+              'Interpretado como: '
               '${resultado.series.map((s) => s.toString()).join(' | ')}',
         );
       });
@@ -187,7 +188,8 @@ void main() {
         expect(
           resultado.pendientes,
           isEmpty,
-          reason: '"${caso.texto}" dejó pendientes: '
+          reason:
+              '"${caso.texto}" dejó pendientes: '
               '${resultado.pendientes.map((p) => p.toString()).join(', ')}',
         );
       }
@@ -228,7 +230,8 @@ void main() {
         expect(
           resultado.pendientes,
           isNotEmpty,
-          reason: '"$antiguo" ya no está en la Biblioteca. Aceptarlo sería '
+          reason:
+              '"$antiguo" ya no está en la Biblioteca. Aceptarlo sería '
               'corregir por aproximación, que la regla R2 prohíbe',
         );
       }
@@ -262,7 +265,8 @@ void main() {
         expect(
           resultado.pendientes.any((p) => p.motivo.name == 'ambiguo'),
           isTrue,
-          reason: 'Existe en varios estilos: usarlo sin indicar cuál es '
+          reason:
+              'Existe en varios estilos: usarlo sin indicar cuál es '
               'ambiguo. Pendientes: '
               '${resultado.pendientes.map((p) => p.toString()).join(', ')}',
         );
@@ -300,10 +304,11 @@ void main() {
         '200 N (A1)\n300 N (A2)\n100 N (AT)',
       );
 
-      expect(
-        resultado.series.map((s) => s.zona?.abreviatura).toList(),
-        ['A1', 'A2', 'AT'],
-      );
+      expect(resultado.series.map((s) => s.zona?.abreviatura).toList(), [
+        'A1',
+        'A2',
+        'AT',
+      ]);
     });
 
     test('la numeración de serie al principio de línea sí se quita', () {

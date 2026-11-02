@@ -167,7 +167,9 @@ class CriterioSinAmbiguos extends Criterio {
 
 /// C02: la técnica sigue siendo prioritaria (sección 3).
 class CriterioTecnicaPrioritaria extends Criterio {
-  const CriterioTecnicaPrioritaria({this.tolerancia = Tolerancia.predeterminada});
+  const CriterioTecnicaPrioritaria({
+    this.tolerancia = Tolerancia.predeterminada,
+  });
 
   final Tolerancia tolerancia;
 
@@ -475,7 +477,8 @@ class CriterioTransferencia extends Criterio {
     }
 
     final rango = prioridad.rangoObjetivo;
-    final dentro = rango.contiene(objetivo.porcentajeReal) ||
+    final dentro =
+        rango.contiene(objetivo.porcentajeReal) ||
         tolerancia.admite(objetivo.diferencia);
 
     if (dentro) {
@@ -555,8 +558,7 @@ class CriterioDrillsDiagnostico extends Criterio {
   String get id => 'C10_drills_diagnostico';
 
   @override
-  String get nombre =>
-      'Los drills corresponden a errores del diagnóstico';
+  String get nombre => 'Los drills corresponden a errores del diagnóstico';
 
   @override
   Severidad get severidad => Severidad.justificable;
@@ -605,4 +607,3 @@ class CriterioDrillsDiagnostico extends Criterio {
     );
   }
 }
-

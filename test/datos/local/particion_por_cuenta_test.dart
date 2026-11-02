@@ -18,10 +18,8 @@ void main() {
     preferencias = await SharedPreferences.getInstance();
   });
 
-  AlmacenPreferencias almacenDe(String? cuentaId) => AlmacenPreferencias(
-        preferencias: preferencias,
-        cuentaId: cuentaId,
-      );
+  AlmacenPreferencias almacenDe(String? cuentaId) =>
+      AlmacenPreferencias(preferencias: preferencias, cuentaId: cuentaId);
 
   group('dos cuentas en el mismo dispositivo', () {
     test('no se leen lo que escribió la otra', () async {
@@ -84,20 +82,24 @@ void main() {
       expect(await almacen.leerTodo('planes'), isEmpty);
     });
 
-    test('no toca lo de la otra cuenta, porque también es de alguien', () async {
-      await almacenDe('u-a').escribir('registros', 'r1', {'de': 'a'});
-      await almacenDe('u-b').escribir('registros', 'r2', {'de': 'b'});
+    test(
+      'no toca lo de la otra cuenta, porque también es de alguien',
+      () async {
+        await almacenDe('u-a').escribir('registros', 'r1', {'de': 'a'});
+        await almacenDe('u-b').escribir('registros', 'r2', {'de': 'b'});
 
-      await almacenDe('u-a').vaciar();
+        await almacenDe('u-a').vaciar();
 
-      expect(await almacenDe('u-a').leerTodo('registros'), isEmpty);
-      expect(
-        (await almacenDe('u-b').leerTodo('registros')).keys,
-        ['r2'],
-        reason: 'Cerrar la sesión de uno no puede borrar lo del otro. Lo que '
-            'el hermano escribió sin conexión sigue esperando a enviarse',
-      );
-    });
+        expect(await almacenDe('u-a').leerTodo('registros'), isEmpty);
+        expect(
+          (await almacenDe('u-b').leerTodo('registros')).keys,
+          ['r2'],
+          reason:
+              'Cerrar la sesión de uno no puede borrar lo del otro. Lo que '
+              'el hermano escribió sin conexión sigue esperando a enviarse',
+        );
+      },
+    );
 
     test('tras vaciar, la misma cuenta empieza limpia', () async {
       final almacen = almacenDe('u-a');

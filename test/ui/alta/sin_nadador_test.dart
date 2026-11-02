@@ -27,28 +27,31 @@ import 'package:natacion_app/ui/alta/estado_alta.dart';
 void main() {
   final hoy = DateTime(2026, 10, 22);
 
-  EstadoAlta deUnaMenor(_Servidor servidor, {String? nadadorId}) => EstadoAlta(
-        operaciones: servidor,
-        correoDeLaCuenta: 'ana@ejemplo.com',
-        nadadorId: nadadorId,
-        reloj: () => hoy,
-      )
+  EstadoAlta deUnaMenor(_Servidor servidor, {String? nadadorId}) =>
+      EstadoAlta(
+          operaciones: servidor,
+          correoDeLaCuenta: 'ana@ejemplo.com',
+          nadadorId: nadadorId,
+          reloj: () => hoy,
+        )
         ..escribirNombre('Ana María')
         ..escribirNacimiento(DateTime(2014, 3, 10))
         ..aceptarTerminos(aceptados: true)
         ..escribirCorreoDelAcudiente('madre@ejemplo.com');
 
-  test('una cuenta nueva, sin matricular, también recibe su solicitud',
-      () async {
-    // **Este es el caso que fallaba**, y es el de todo el que se da de alta.
-    final servidor = _Servidor();
-    final estado = deUnaMenor(servidor, nadadorId: null);
+  test(
+    'una cuenta nueva, sin matricular, también recibe su solicitud',
+    () async {
+      // **Este es el caso que fallaba**, y es el de todo el que se da de alta.
+      final servidor = _Servidor();
+      final estado = deUnaMenor(servidor, nadadorId: null);
 
-    final resultado = await estado.terminar();
+      final resultado = await estado.terminar();
 
-    expect(resultado, ResultadoDelAlta.listoConSolicitud);
-    expect(servidor.solicitudes, ['madre@ejemplo.com']);
-  });
+      expect(resultado, ResultadoDelAlta.listoConSolicitud);
+      expect(servidor.solicitudes, ['madre@ejemplo.com']);
+    },
+  );
 
   test('el id sale de lo que contesta el servidor, no de la cuenta', () async {
     // Al arrancar el alta no existía ningún nadador. Usar el id que la cuenta
@@ -75,14 +78,15 @@ void main() {
 
   test('a un adulto no se le pide nada, con id o sin él', () async {
     final servidor = _Servidor(esMenor: false);
-    final estado = EstadoAlta(
-      operaciones: servidor,
-      correoDeLaCuenta: 'adulto@ejemplo.com',
-      reloj: () => hoy,
-    )
-      ..escribirNombre('Juan')
-      ..escribirNacimiento(DateTime(1990, 1, 1))
-      ..aceptarTerminos(aceptados: true);
+    final estado =
+        EstadoAlta(
+            operaciones: servidor,
+            correoDeLaCuenta: 'adulto@ejemplo.com',
+            reloj: () => hoy,
+          )
+          ..escribirNombre('Juan')
+          ..escribirNacimiento(DateTime(1990, 1, 1))
+          ..aceptarTerminos(aceptados: true);
 
     expect(await estado.terminar(), ResultadoDelAlta.listo);
     expect(servidor.solicitudes, isEmpty);
@@ -90,6 +94,23 @@ void main() {
 }
 
 class _Servidor implements OperacionesDelServidor {
+  // La feature 007 añadió estas dos: aquí no se usan, y lo que importa es
+  // que el doble siga cumpliendo la interfaz.
+  @override
+  Future<PerfilCorregido> corregirPerfil({
+    required String nombre,
+    required DateTime fechaNacimiento,
+    String? pais,
+  }) async => PerfilCorregido(nombre: nombre, esMenor: false);
+
+  @override
+  Future<DatosSuprimidos> suprimirMisDatos() async => const DatosSuprimidos(
+    registrosEliminados: 0,
+    asignacionesRetiradas: 0,
+    perfilEliminado: false,
+    cuentaEliminada: false,
+  );
+
   _Servidor({this.esMenor = true, this.nadadorIdCreado = 'n1'});
 
   final bool esMenor;
@@ -104,8 +125,7 @@ class _Servidor implements OperacionesDelServidor {
     required DateTime fechaNacimiento,
     String? pais,
     required String versionDeTerminos,
-  }) async =>
-      PerfilGuardado(esMenor: esMenor, nadadorId: nadadorIdCreado);
+  }) async => PerfilGuardado(esMenor: esMenor, nadadorId: nadadorIdCreado);
 
   @override
   Future<void> pedirConsentimiento({

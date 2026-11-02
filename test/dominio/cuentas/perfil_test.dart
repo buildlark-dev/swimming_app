@@ -15,11 +15,11 @@ void main() {
       AceptacionDeTerminos(version: 'v1', aceptadaEn: hoy);
 
   Perfil completo() => Perfil(
-        nombre: 'Juan Esteban Restrepo',
-        fechaNacimiento: DateTime(1995, 4, 12),
-        pais: 'CO',
-        terminos: aceptados(),
-      );
+    nombre: 'Juan Esteban Restrepo',
+    fechaNacimiento: DateTime(1995, 4, 12),
+    pais: 'CO',
+    terminos: aceptados(),
+  );
 
   group('cuándo un perfil está completo', () {
     test('con nombre, fecha y términos, lo está', () {
@@ -49,10 +49,7 @@ void main() {
       final sinFecha = Perfil(nombre: 'Juan', terminos: aceptados());
 
       expect(sinFecha.estaCompleto, isFalse);
-      expect(
-        sinFecha.faltas.map((f) => f.campo),
-        contains('fechaNacimiento'),
-      );
+      expect(sinFecha.faltas.map((f) => f.campo), contains('fechaNacimiento'));
     });
 
     test('sin aceptar los términos, no', () {

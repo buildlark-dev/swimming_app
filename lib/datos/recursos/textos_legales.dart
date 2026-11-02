@@ -29,9 +29,7 @@ class CargadorTextosLegales {
   final Future<String> Function(String) cargar;
 
   /// El texto informativo que lee un acudiente antes de autorizar.
-  Future<String> consentimiento([
-    String version = versionDelConsentimiento,
-  ]) =>
+  Future<String> consentimiento([String version = versionDelConsentimiento]) =>
       cargar('assets/consentimiento/texto_$version.md');
 
   /// Los términos y condiciones que se aceptan en el registro.

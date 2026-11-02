@@ -79,19 +79,19 @@ class EnvioPendiente {
   }
 
   EnvioPendiente marcandoEnviando(DateTime ahora) => EnvioPendiente(
-        registroId: registroId,
-        estado: EstadoDeEnvio.enviando,
-        intentos: intentos,
-        ultimoIntento: ahora,
-        ultimoError: ultimoError,
-      );
+    registroId: registroId,
+    estado: EstadoDeEnvio.enviando,
+    intentos: intentos,
+    ultimoIntento: ahora,
+    ultimoError: ultimoError,
+  );
 
   EnvioPendiente marcandoEnviado() => EnvioPendiente(
-        registroId: registroId,
-        estado: EstadoDeEnvio.enviado,
-        intentos: intentos,
-        ultimoIntento: ultimoIntento,
-      );
+    registroId: registroId,
+    estado: EstadoDeEnvio.enviado,
+    intentos: intentos,
+    ultimoIntento: ultimoIntento,
+  );
 
   /// Vuelve a `pendiente` e incrementa el contador.
   ///

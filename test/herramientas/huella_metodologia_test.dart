@@ -38,7 +38,8 @@ void main() {
       expect(
         huellaDe(conCrLf),
         huellaDe(conLf),
-        reason: 'Una conversión de finales de línea no cambia ni una regla de '
+        reason:
+            'Una conversión de finales de línea no cambia ni una regla de '
             'entrenamiento. Si cambia la huella, la puerta avisa de algo que '
             'no pasó, y quien la vea aprenderá a ignorarla',
       );
@@ -61,9 +62,14 @@ void main() {
 
   group('lo que sí tiene que detectar lo sigue detectando', () {
     test('cambiar una palabra cambia la huella', () {
-      final antes = escribir('antes.md', utf8.encode('Iniciación: 500-800 m\n'));
-      final despues =
-          escribir('despues.md', utf8.encode('Iniciación: 500-900 m\n'));
+      final antes = escribir(
+        'antes.md',
+        utf8.encode('Iniciación: 500-800 m\n'),
+      );
+      final despues = escribir(
+        'despues.md',
+        utf8.encode('Iniciación: 500-900 m\n'),
+      );
 
       expect(huellaDe(despues), isNot(huellaDe(antes)));
     });
@@ -112,7 +118,8 @@ void main() {
       expect(
         huellaDe(conRetorno),
         isNot(huellaDe(sinRetorno)),
-        reason: 'Solo se normaliza la secuencia CRLF. Borrar todo \\r sería '
+        reason:
+            'Solo se normaliza la secuencia CRLF. Borrar todo \\r sería '
             'quitar contenido del documento normativo',
       );
     });
@@ -123,20 +130,27 @@ void main() {
       // La comprobación que la herramienta hace en la puerta de calidad, aquí
       // como prueba, para que un fallo salga en `flutter test` y no solo al
       // acordarse de correr la herramienta.
-      final manifiesto = jsonDecode(
-        File('docs/metodologia/metodologia.json').readAsStringSync(),
-      ) as Map<String, dynamic>;
+      final manifiesto =
+          jsonDecode(
+                File('docs/metodologia/metodologia.json').readAsStringSync(),
+              )
+              as Map<String, dynamic>;
 
       for (final entrada in manifiesto['documentos'] as List<dynamic>) {
         final documento = entrada as Map<String, dynamic>;
         final ruta = documento['ruta'] as String;
         final archivo = File(ruta);
 
-        expect(archivo.existsSync(), isTrue, reason: '$ruta no está en el árbol');
+        expect(
+          archivo.existsSync(),
+          isTrue,
+          reason: '$ruta no está en el árbol',
+        );
         expect(
           huellaDe(archivo),
           documento['sha256'],
-          reason: 'La huella de $ruta no coincide. O cambió una regla de '
+          reason:
+              'La huella de $ruta no coincide. O cambió una regla de '
               'entrenamiento sin subir la versión, o la huella se anotó mal',
         );
       }

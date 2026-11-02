@@ -34,47 +34,61 @@ class ValidacionPeticion {
     List<Impedimento> impedimentos,
   ) {
     if (peticion.pruebaObjetivo.trim().isEmpty) {
-      impedimentos.add(const Impedimento(
-        tipo: TipoImpedimento.datoFaltante,
-        campo: 'pruebaObjetivo',
-        explicacion: 'Falta la prueba objetivo. Sin ella no se puede modelar '
-            'la exigencia del trabajo (sección 4).',
-      ));
+      impedimentos.add(
+        const Impedimento(
+          tipo: TipoImpedimento.datoFaltante,
+          campo: 'pruebaObjetivo',
+          explicacion:
+              'Falta la prueba objetivo. Sin ella no se puede modelar '
+              'la exigencia del trabajo (sección 4).',
+        ),
+      );
     }
 
     if (peticion.componenteAcentuado.trim().isEmpty) {
-      impedimentos.add(const Impedimento(
-        tipo: TipoImpedimento.datoFaltante,
-        campo: 'componenteAcentuado',
-        explicacion: 'Falta el componente acentuado de la semana. Es lo que da '
-            'nombre al microciclo y orienta la selección de ejercicios.',
-      ));
+      impedimentos.add(
+        const Impedimento(
+          tipo: TipoImpedimento.datoFaltante,
+          campo: 'componenteAcentuado',
+          explicacion:
+              'Falta el componente acentuado de la semana. Es lo que da '
+              'nombre al microciclo y orienta la selección de ejercicios.',
+        ),
+      );
     }
 
     if (peticion.diasDisponibles.isEmpty) {
-      impedimentos.add(const Impedimento(
-        tipo: TipoImpedimento.datoFaltante,
-        campo: 'diasDisponibles',
-        explicacion: 'No se declaró ningún día disponible.',
-      ));
+      impedimentos.add(
+        const Impedimento(
+          tipo: TipoImpedimento.datoFaltante,
+          campo: 'diasDisponibles',
+          explicacion: 'No se declaró ningún día disponible.',
+        ),
+      );
     }
 
     if (peticion.longitudPiscina != 25 && peticion.longitudPiscina != 50) {
-      impedimentos.add(Impedimento(
-        tipo: TipoImpedimento.datoFaltante,
-        campo: 'longitudPiscina',
-        explicacion: 'La longitud de piscina debe ser 25 o 50 m, y se declaró '
-            '${peticion.longitudPiscina}.',
-      ));
+      impedimentos.add(
+        Impedimento(
+          tipo: TipoImpedimento.datoFaltante,
+          campo: 'longitudPiscina',
+          explicacion:
+              'La longitud de piscina debe ser 25 o 50 m, y se declaró '
+              '${peticion.longitudPiscina}.',
+        ),
+      );
     }
 
     if (peticion.duracionSesionMinutos <= 0) {
-      impedimentos.add(Impedimento(
-        tipo: TipoImpedimento.datoFaltante,
-        campo: 'duracionSesionMinutos',
-        explicacion: 'La duración de sesión debe ser positiva, y se declaró '
-            '${peticion.duracionSesionMinutos} minutos.',
-      ));
+      impedimentos.add(
+        Impedimento(
+          tipo: TipoImpedimento.datoFaltante,
+          campo: 'duracionSesionMinutos',
+          explicacion:
+              'La duración de sesión debe ser positiva, y se declaró '
+              '${peticion.duracionSesionMinutos} minutos.',
+        ),
+      );
     }
   }
 
@@ -85,22 +99,28 @@ class ValidacionPeticion {
     final categoria = peticion.categoria;
 
     if (peticion.faseAtr != null && !categoria.usaAtr) {
-      impedimentos.add(Impedimento(
-        tipo: TipoImpedimento.faseNoAdmisible,
-        campo: 'faseAtr',
-        explicacion: '${categoria.nombre} no usa el modelo ATR (sección 11), '
-            'así que no se le puede asignar la fase '
-            '${peticion.faseAtr!.nombre}.',
-      ));
+      impedimentos.add(
+        Impedimento(
+          tipo: TipoImpedimento.faseNoAdmisible,
+          campo: 'faseAtr',
+          explicacion:
+              '${categoria.nombre} no usa el modelo ATR (sección 11), '
+              'así que no se le puede asignar la fase '
+              '${peticion.faseAtr!.nombre}.',
+        ),
+      );
     }
 
     if (peticion.faseAtr == null && categoria.usaAtr) {
-      impedimentos.add(Impedimento(
-        tipo: TipoImpedimento.datoFaltante,
-        campo: 'faseAtr',
-        explicacion: '${categoria.nombre} usa el modelo ATR y no se declaró la '
-            'fase. Sin ella no hay distribución de intensidades que aplicar.',
-      ));
+      impedimentos.add(
+        Impedimento(
+          tipo: TipoImpedimento.datoFaltante,
+          campo: 'faseAtr',
+          explicacion:
+              '${categoria.nombre} usa el modelo ATR y no se declaró la '
+              'fase. Sin ella no hay distribución de intensidades que aplicar.',
+        ),
+      );
     }
   }
 
@@ -118,21 +138,21 @@ class ValidacionPeticion {
 
     if (disponibles < diasMinimos) {
       final porFestivos = peticion.diasDisponibles.length - disponibles;
-      impedimentos.add(Impedimento(
-        tipo: TipoImpedimento.frecuenciaImposible,
-        campo: 'diasDisponibles',
-        explicacion: '${peticion.categoria.nombre} pide $esperadas sesiones '
-            'por semana, que necesitan al menos $diasMinimos días, y hay '
-            '$disponibles disponibles'
-            '${porFestivos > 0 ? ' tras descontar $porFestivos festivos' : ''}.',
-      ));
+      impedimentos.add(
+        Impedimento(
+          tipo: TipoImpedimento.frecuenciaImposible,
+          campo: 'diasDisponibles',
+          explicacion:
+              '${peticion.categoria.nombre} pide $esperadas sesiones '
+              'por semana, que necesitan al menos $diasMinimos días, y hay '
+              '$disponibles disponibles'
+              '${porFestivos > 0 ? ' tras descontar $porFestivos festivos' : ''}.',
+        ),
+      );
     }
   }
 
-  void _duracion(
-    PeticionGeneracion peticion,
-    List<Impedimento> impedimentos,
-  ) {
+  void _duracion(PeticionGeneracion peticion, List<Impedimento> impedimentos) {
     if (peticion.duracionSesionMinutos <= 0) return;
 
     final estimacion = EstimacionDuracion(peticion.categoria);
@@ -140,15 +160,18 @@ class ValidacionPeticion {
     final minimo = rango.minimo;
 
     if (!estimacion.cabe(minimo, peticion.duracionSesionMinutos)) {
-      impedimentos.add(Impedimento(
-        tipo: TipoImpedimento.duracionInsuficiente,
-        campo: 'duracionSesionMinutos',
-        explicacion: '${peticion.categoria.nombre} exige al menos $minimo m '
-            'por sesión, que a un ritmo estimado de '
-            '${estimacion.ritmoMetrosPorMinuto} m/min necesitan unos '
-            '${estimacion.minutosPara(minimo)} minutos, y se declararon '
-            '${peticion.duracionSesionMinutos}.',
-      ));
+      impedimentos.add(
+        Impedimento(
+          tipo: TipoImpedimento.duracionInsuficiente,
+          campo: 'duracionSesionMinutos',
+          explicacion:
+              '${peticion.categoria.nombre} exige al menos $minimo m '
+              'por sesión, que a un ritmo estimado de '
+              '${estimacion.ritmoMetrosPorMinuto} m/min necesitan unos '
+              '${estimacion.minutosPara(minimo)} minutos, y se declararon '
+              '${peticion.duracionSesionMinutos}.',
+        ),
+      );
     }
   }
 
@@ -167,13 +190,16 @@ class ValidacionPeticion {
         componente.contains('velocidad') || componente.contains('sprint');
 
     if (acentuaVelocidad && fase.prescritoPara(Zona.velocidad) == 0) {
-      impedimentos.add(Impedimento(
-        tipo: TipoImpedimento.componenteIncoherente,
-        campo: 'componenteAcentuado',
-        explicacion: 'El componente acentuado apunta a velocidad, pero la fase '
-            '${fase.nombre} no le asigna volumen en su distribución '
-            '(sección 12).',
-      ));
+      impedimentos.add(
+        Impedimento(
+          tipo: TipoImpedimento.componenteIncoherente,
+          campo: 'componenteAcentuado',
+          explicacion:
+              'El componente acentuado apunta a velocidad, pero la fase '
+              '${fase.nombre} no le asigna volumen en su distribución '
+              '(sección 12).',
+        ),
+      );
     }
   }
 }

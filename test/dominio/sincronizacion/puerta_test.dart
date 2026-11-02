@@ -15,16 +15,18 @@ import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
 void main() {
   final cuando = DateTime(2026, 10, 15, 7, 30);
 
-  RegistroDeSesion registro({String nadadorId = 'n1', String sesionId = 's1'}) =>
-      RegistroDeSesion(
-        nadadorId: nadadorId,
-        planId: 'p1',
-        sesionId: sesionId,
-        versionDePlan: '3.6.0',
-        realizada: true,
-        registradoEn: cuando,
-        rpePercibido: 7,
-      );
+  RegistroDeSesion registro({
+    String nadadorId = 'n1',
+    String sesionId = 's1',
+  }) => RegistroDeSesion(
+    nadadorId: nadadorId,
+    planId: 'p1',
+    sesionId: sesionId,
+    versionDePlan: '3.6.0',
+    realizada: true,
+    registradoEn: cuando,
+    rpePercibido: 7,
+  );
 
   group('P2 — guardar nunca depende de la puerta', () {
     test('con la puerta cerrada, lo escrito se guarda igual', () async {
@@ -35,7 +37,8 @@ void main() {
       expect(
         await taller.registros.obtener(registro().id),
         isNotNull,
-        reason: 'Garantía G1: escribir no consulta la red ni la puerta. Lo '
+        reason:
+            'Garantía G1: escribir no consulta la red ni la puerta. Lo '
             'que el nadador anota se guarda pase lo que pase',
       );
       expect(await taller.bandeja.pendientes(), hasLength(1));
@@ -65,23 +68,27 @@ void main() {
   });
 
   group('P4 — esperar consentimiento no es fallar', () {
-    test('muchos ciclos con la puerta cerrada dejan los intentos en cero', () async {
-      final taller = _Taller(puertaAbierta: false);
-      await taller.sincronizador.guardar(registro());
+    test(
+      'muchos ciclos con la puerta cerrada dejan los intentos en cero',
+      () async {
+        final taller = _Taller(puertaAbierta: false);
+        await taller.sincronizador.guardar(registro());
 
-      for (var i = 0; i < 25; i++) {
-        await taller.sincronizador.sincronizar();
-      }
+        for (var i = 0; i < 25; i++) {
+          await taller.sincronizador.sincronizar();
+        }
 
-      final enCola = await taller.bandeja.estadoDe(registro().id);
-      expect(
-        enCola!.intentos,
-        0,
-        reason: 'Si contara como fallo, un consentimiento que tarda una semana '
-            'dejaría el envío esperando cinco minutos entre intentos por una '
-            'condición que todavía no se cumple, no por un error',
-      );
-    });
+        final enCola = await taller.bandeja.estadoDe(registro().id);
+        expect(
+          enCola!.intentos,
+          0,
+          reason:
+              'Si contara como fallo, un consentimiento que tarda una semana '
+              'dejaría el envío esperando cinco minutos entre intentos por una '
+              'condición que todavía no se cumple, no por un error',
+        );
+      },
+    );
 
     test('el estado sigue siendo pendiente, sin inventar uno nuevo', () async {
       // Decisión D6: no se añadió ningún estado a EstadoDeEnvio. Un registro
@@ -95,14 +102,17 @@ void main() {
       expect(EstadoDeEnvio.values, hasLength(3));
     });
 
-    test('no se marca como enviando, que sería mentir sobre lo que pasó', () async {
-      final taller = _Taller(puertaAbierta: false);
-      await taller.sincronizador.guardar(registro());
-      await taller.sincronizador.sincronizar();
+    test(
+      'no se marca como enviando, que sería mentir sobre lo que pasó',
+      () async {
+        final taller = _Taller(puertaAbierta: false);
+        await taller.sincronizador.guardar(registro());
+        await taller.sincronizador.sincronizar();
 
-      final enCola = await taller.bandeja.estadoDe(registro().id);
-      expect(enCola!.estado, isNot(EstadoDeEnvio.enviando));
-    });
+        final enCola = await taller.bandeja.estadoDe(registro().id);
+        expect(enCola!.estado, isNot(EstadoDeEnvio.enviando));
+      },
+    );
   });
 
   group('P3 — otorgado el consentimiento, lo retenido sale solo', () {
@@ -196,8 +206,8 @@ void main() {
 /// Todo lo que hace falta para mover un registro, con dobles.
 class _Taller {
   _Taller({required bool puertaAbierta, bool hayRed = true})
-      : puerta = _PuertaFalsa(puertaAbierta),
-        red = _RedFalsa(hayRed) {
+    : puerta = _PuertaFalsa(puertaAbierta),
+      red = _RedFalsa(hayRed) {
     sincronizador = Sincronizador(
       registros: registros,
       bandeja: bandeja,
@@ -259,6 +269,10 @@ class _TransporteQueAnota implements EnvioDeRegistros {
 }
 
 class _RegistrosEnMemoria implements RepositorioRegistros {
+  @override
+  Future<Set<String>> nadadoresConRegistros() async =>
+      _guardados.values.map((r) => r.nadadorId).toSet();
+
   final _guardados = <String, RegistroDeSesion>{};
 
   @override
@@ -269,10 +283,9 @@ class _RegistrosEnMemoria implements RepositorioRegistros {
   Future<List<RegistroDeSesion>> obtenerDePlan(
     String nadadorId,
     String planId,
-  ) async =>
-      _guardados.values
-          .where((r) => r.nadadorId == nadadorId && r.planId == planId)
-          .toList();
+  ) async => _guardados.values
+      .where((r) => r.nadadorId == nadadorId && r.planId == planId)
+      .toList();
 
   @override
   Future<void> guardar(RegistroDeSesion registro) async {
@@ -301,7 +314,8 @@ class _BandejaEnMemoria implements BandejaDeSalida {
       _cola.values.where((e) => e.esperaEnvio).toList();
 
   @override
-  Future<EnvioPendiente?> estadoDe(String registroId) async => _cola[registroId];
+  Future<EnvioPendiente?> estadoDe(String registroId) async =>
+      _cola[registroId];
 
   @override
   Future<void> actualizar(EnvioPendiente envio) async {

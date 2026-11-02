@@ -38,8 +38,10 @@ void main() {
 
     test('registra la versión de metodología cuando se conoce', () {
       final plan = constructor.planAcumulacionCorrecto();
-      final documento =
-          const Exportacion().plan(plan, versionMetodologia: '3.4');
+      final documento = const Exportacion().plan(
+        plan,
+        versionMetodologia: '3.4',
+      );
 
       expect(documento['versionMetodologia'], '3.4');
     });
@@ -72,8 +74,9 @@ void main() {
         categoria: Categoria.precompetitivo,
         estiloObjetivo: Estilo.libre,
       );
-      final datos = const Exportacion().nadador(nadador)['nadador']
-          as Map<String, dynamic>;
+      final datos =
+          const Exportacion().nadador(nadador)['nadador']
+              as Map<String, dynamic>;
 
       const declarados = {
         'nombre',
@@ -89,7 +92,8 @@ void main() {
         expect(
           declarados,
           contains(clave),
-          reason: 'El campo "$clave" no está declarado en la feature. El '
+          reason:
+              'El campo "$clave" no está declarado en la feature. El '
               'principio V exige recolectar solo lo que tiene un uso '
               'declarado',
         );
@@ -158,7 +162,8 @@ void main() {
       expect(
         aprobada.puedeUsarseEnUnPlan,
         isFalse,
-        reason: 'Incorporarla exige editar el documento normativo y subir su '
+        reason:
+            'Incorporarla exige editar el documento normativo y subir su '
             'versión, según el flujo de la constitución',
       );
     });

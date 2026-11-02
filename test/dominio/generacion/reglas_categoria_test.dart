@@ -31,7 +31,8 @@ void main() {
     int duracion = 240,
     int? dias,
   }) {
-    final cuantos = dias ??
+    final cuantos =
+        dias ??
         (categoria.sesionesPorSemana > 7
             ? (categoria.sesionesPorSemana / 2).ceil()
             : categoria.sesionesPorSemana);
@@ -42,8 +43,7 @@ void main() {
       pruebaObjetivo: '100 Libre',
       faseAtr: fase,
       componenteAcentuado: 'Técnica de eficiencia',
-      diasDisponibles:
-          List.generate(cuantos, (i) => DateTime(2026, 10, 5 + i)),
+      diasDisponibles: List.generate(cuantos, (i) => DateTime(2026, 10, 5 + i)),
       longitudPiscina: piscina,
       duracionSesionMinutos: duracion,
     );
@@ -51,9 +51,9 @@ void main() {
 
   group('regla de alternancia de Tecnificación', () {
     test('la sesión 1 es de Pecho y la 2 de Mariposa', () {
-      final resultado = generador.generar(
-        peticion(categoria: Categoria.tecnificacion),
-      ) as MicrocicloGenerado;
+      final resultado =
+          generador.generar(peticion(categoria: Categoria.tecnificacion))
+              as MicrocicloGenerado;
 
       final estilos = resultado.plan.sesiones
           .map((s) => s.todasLasSeries.first.estilo)
@@ -63,42 +63,50 @@ void main() {
     });
 
     test('el plan generado pasa la regla de alternancia', () {
-      final resultado = generador.generar(
-        peticion(categoria: Categoria.tecnificacion),
-      ) as MicrocicloGenerado;
+      final resultado =
+          generador.generar(peticion(categoria: Categoria.tecnificacion))
+              as MicrocicloGenerado;
 
-      final comprobacion =
-          const ReglaAlternanciaTecnificacion().comprobar(resultado.plan);
+      final comprobacion = const ReglaAlternanciaTecnificacion().comprobar(
+        resultado.plan,
+      );
 
       expect(comprobacion.valida, isTrue, reason: comprobacion.motivo);
     });
 
     test('no se le asigna fase ATR', () {
-      final resultado = generador.generar(
-        peticion(categoria: Categoria.tecnificacion),
-      ) as MicrocicloGenerado;
+      final resultado =
+          generador.generar(peticion(categoria: Categoria.tecnificacion))
+              as MicrocicloGenerado;
 
       expect(resultado.plan.faseAtr, isNull);
-      expect(
-        const ValidacionFase().admiteFase(resultado.plan).valida,
-        isTrue,
-      );
+      expect(const ValidacionFase().admiteFase(resultado.plan).valida, isTrue);
     });
   });
 
   group('sesiones dobles en Alto Rendimiento', () {
     test('genera diez sesiones sobre cinco días', () {
-      final resultado = generador.generar(
-        peticion(categoria: Categoria.altoRendimiento, fase: FaseAtr.acumulacion),
-      ) as MicrocicloGenerado;
+      final resultado =
+          generador.generar(
+                peticion(
+                  categoria: Categoria.altoRendimiento,
+                  fase: FaseAtr.acumulacion,
+                ),
+              )
+              as MicrocicloGenerado;
 
       expect(resultado.plan.sesiones, hasLength(10));
     });
 
     test('cada sesión cae dentro del rango de la categoría', () {
-      final resultado = generador.generar(
-        peticion(categoria: Categoria.altoRendimiento, fase: FaseAtr.acumulacion),
-      ) as MicrocicloGenerado;
+      final resultado =
+          generador.generar(
+                peticion(
+                  categoria: Categoria.altoRendimiento,
+                  fase: FaseAtr.acumulacion,
+                ),
+              )
+              as MicrocicloGenerado;
 
       for (final sesion in resultado.plan.sesiones) {
         expect(
@@ -110,9 +118,14 @@ void main() {
     });
 
     test('el microciclo suma 55.000 m', () {
-      final resultado = generador.generar(
-        peticion(categoria: Categoria.altoRendimiento, fase: FaseAtr.acumulacion),
-      ) as MicrocicloGenerado;
+      final resultado =
+          generador.generar(
+                peticion(
+                  categoria: Categoria.altoRendimiento,
+                  fase: FaseAtr.acumulacion,
+                ),
+              )
+              as MicrocicloGenerado;
 
       expect(resultado.plan.metros, 55000);
     });
@@ -122,11 +135,13 @@ void main() {
     test('nivel 3: el volumen de la categoría nunca cede', () {
       for (final categoria in Categoria.values) {
         for (final piscina in [25, 50]) {
-          final p = calcularPresupuesto(peticion(
-            categoria: categoria,
-            fase: categoria.usaAtr ? FaseAtr.realizacion : null,
-            piscina: piscina,
-          ));
+          final p = calcularPresupuesto(
+            peticion(
+              categoria: categoria,
+              fase: categoria.usaAtr ? FaseAtr.realizacion : null,
+              piscina: piscina,
+            ),
+          );
 
           expect(
             categoria.volumenPorSesion.contiene(p.volumenPorSesion),
@@ -138,9 +153,14 @@ void main() {
     });
 
     test('nivel 2: la estructura 40/50/10 nunca cede', () {
-      final resultado = generador.generar(
-        peticion(categoria: Categoria.precompetitivo, fase: FaseAtr.transformacion),
-      ) as MicrocicloGenerado;
+      final resultado =
+          generador.generar(
+                peticion(
+                  categoria: Categoria.precompetitivo,
+                  fase: FaseAtr.transformacion,
+                ),
+              )
+              as MicrocicloGenerado;
 
       for (final sesion in resultado.plan.sesiones) {
         expect(sesion.partes, hasLength(3));
@@ -162,7 +182,8 @@ void main() {
         expect(
           p.porcentajeTecnico,
           greaterThanOrEqualTo(fase.porcentajeTecnico - 3),
-          reason: '${fase.nombre}: '
+          reason:
+              '${fase.nombre}: '
               '${p.porcentajeTecnico.toStringAsFixed(1)}% frente a '
               '${fase.porcentajeTecnico}%',
         );
@@ -177,8 +198,9 @@ void main() {
 
         for (final zona in Zona.values) {
           expect(
-            Tolerancia.predeterminada
-                .admite(p.porcentajeDe(zona) - fase.prescritoPara(zona)),
+            Tolerancia.predeterminada.admite(
+              p.porcentajeDe(zona) - fase.prescritoPara(zona),
+            ),
             isTrue,
             reason: '${fase.nombre} ${zona.abreviatura}',
           );
@@ -188,9 +210,11 @@ void main() {
 
     test('nivel 1: ningún plan generado usa un ejercicio ajeno', () {
       for (final fase in FaseAtr.values) {
-        final resultado = generador.generar(
-          peticion(categoria: Categoria.precompetitivo, fase: fase),
-        ) as MicrocicloGenerado;
+        final resultado =
+            generador.generar(
+                  peticion(categoria: Categoria.precompetitivo, fase: fase),
+                )
+                as MicrocicloGenerado;
 
         for (final sesion in resultado.plan.sesiones) {
           expect(sesion.todosLosPendientes, isEmpty, reason: fase.nombre);
@@ -203,9 +227,14 @@ void main() {
     test('Transformación cuadra aunque A1 no alcance para inicial y final', () {
       // A1 al 30% frente a inicial 40% + final 10% = 50%: la inicial tiene que
       // tomar de A2. Si esto falla, la regla volvió a ser una imposición.
-      final resultado = generador.generar(
-        peticion(categoria: Categoria.precompetitivo, fase: FaseAtr.transformacion),
-      ) as MicrocicloGenerado;
+      final resultado =
+          generador.generar(
+                peticion(
+                  categoria: Categoria.precompetitivo,
+                  fase: FaseAtr.transformacion,
+                ),
+              )
+              as MicrocicloGenerado;
 
       expect(resultado.plan.sesiones, isNotEmpty);
 
@@ -219,9 +248,14 @@ void main() {
     });
 
     test('Realización también cuadra', () {
-      final resultado = generador.generar(
-        peticion(categoria: Categoria.precompetitivo, fase: FaseAtr.realizacion),
-      ) as MicrocicloGenerado;
+      final resultado =
+          generador.generar(
+                peticion(
+                  categoria: Categoria.precompetitivo,
+                  fase: FaseAtr.realizacion,
+                ),
+              )
+              as MicrocicloGenerado;
 
       expect(resultado.plan.metros, 6000);
     });

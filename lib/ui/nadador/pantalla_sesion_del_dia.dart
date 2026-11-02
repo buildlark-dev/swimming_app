@@ -43,10 +43,7 @@ class PantallaSesionDelDia extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (selector != null) ...[
-            selector!,
-            const SizedBox(height: 12),
-          ],
+          if (selector != null) ...[selector!, const SizedBox(height: 12)],
           AvisoSincronizacion(estado: estado),
           const SizedBox(height: Espaciado.minimo),
           UltimaSincronizacion(estado: estado),
@@ -77,18 +74,19 @@ class _Hoy extends StatelessWidget {
     return switch (estado.hoy) {
       SesionDeHoy(:final sesion) => _Sesion(sesion: sesion, estado: estado),
       SinSesionHoy(:final siguiente, :final cuando) => EstadoVacio(
-          icono: Icons.event_available_outlined,
-          titulo: 'Hoy descansas',
-          queHacer: 'Tu próxima sesión es el '
-              '${cuando.day.toString().padLeft(2, '0')}/'
-              '${cuando.month.toString().padLeft(2, '0')}: '
-              '${siguiente.objetivoTecnico}',
-        ),
+        icono: Icons.event_available_outlined,
+        titulo: 'Hoy descansas',
+        queHacer:
+            'Tu próxima sesión es el '
+            '${cuando.day.toString().padLeft(2, '0')}/'
+            '${cuando.month.toString().padLeft(2, '0')}: '
+            '${siguiente.objetivoTecnico}',
+      ),
       SinSesionesPorDelante() => const EstadoVacio(
-          icono: Icons.flag_outlined,
-          titulo: 'No quedan sesiones por delante',
-          queHacer: 'Habla con tu entrenador para el siguiente ciclo.',
-        ),
+        icono: Icons.flag_outlined,
+        titulo: 'No quedan sesiones por delante',
+        queHacer: 'Habla con tu entrenador para el siguiente ciclo.',
+      ),
     };
   }
 }
@@ -195,4 +193,3 @@ class _Parte extends StatelessWidget {
     );
   }
 }
-

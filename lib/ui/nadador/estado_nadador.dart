@@ -16,10 +16,8 @@ import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
 
 class EstadoNadador extends ChangeNotifier {
-  EstadoNadador({
-    required this.sincronizador,
-    DateTime Function()? reloj,
-  }) : _ahora = reloj ?? DateTime.now;
+  EstadoNadador({required this.sincronizador, DateTime Function()? reloj})
+    : _ahora = reloj ?? DateTime.now;
 
   final Sincronizador sincronizador;
   final DateTime Function() _ahora;
@@ -66,7 +64,11 @@ class EstadoNadador extends ChangeNotifier {
     return null;
   }
 
-  void abrirComo(Nadador nadador, {Plan? plan, List<RegistroDeSesion>? registros}) {
+  void abrirComo(
+    Nadador nadador, {
+    Plan? plan,
+    List<RegistroDeSesion>? registros,
+  }) {
     _nadador = nadador;
     _plan = plan;
     _registros = registros ?? const [];
@@ -121,8 +123,9 @@ class EstadoNadador extends ChangeNotifier {
   }
 
   void _recordar(RegistroDeSesion registro) {
-    final restantes =
-        _registros.where((r) => r.sesionId != registro.sesionId).toList();
+    final restantes = _registros
+        .where((r) => r.sesionId != registro.sesionId)
+        .toList();
     _registros = [...restantes, registro];
   }
 }

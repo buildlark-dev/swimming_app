@@ -44,10 +44,7 @@ class PropuestaEjercicio {
   /// Para entrar en un plan tiene que estar antes en la Biblioteca Oficial.
   bool get puedeUsarseEnUnPlan => false;
 
-  PropuestaEjercicio copiarCon({
-    String? id,
-    EstadoPropuesta? estado,
-  }) {
+  PropuestaEjercicio copiarCon({String? id, EstadoPropuesta? estado}) {
     return PropuestaEjercicio(
       id: id ?? this.id,
       nombrePropuesto: nombrePropuesto,
@@ -67,9 +64,8 @@ class RegistroPropuestas {
 
   List<PropuestaEjercicio> get todas => List.unmodifiable(_propuestas);
 
-  List<PropuestaEjercicio> get pendientes => _propuestas
-      .where((p) => p.estado == EstadoPropuesta.pendiente)
-      .toList();
+  List<PropuestaEjercicio> get pendientes =>
+      _propuestas.where((p) => p.estado == EstadoPropuesta.pendiente).toList();
 
   PropuestaEjercicio registrar(PropuestaEjercicio propuesta) {
     final conId = propuesta.copiarCon(id: 'propuesta-${_siguienteId++}');

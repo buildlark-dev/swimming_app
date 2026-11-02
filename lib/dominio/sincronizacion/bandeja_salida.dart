@@ -42,14 +42,14 @@ class Sincronizador {
     required this.transporte,
     this.puerta = const PuertaAbierta(),
     DateTime Function()? reloj,
-  })  :
-        // El reloj se inyecta para poder probar los reintentos sin esperar
-        // minutos reales. Por omisión es el del sistema.
-        _ahora = reloj ?? DateTime.now;
+  }) : // El reloj se inyecta para poder probar los reintentos sin esperar
+       // minutos reales. Por omisión es el del sistema.
+       _ahora = reloj ?? DateTime.now;
 
   final RepositorioRegistros registros;
   final BandejaDeSalida bandeja;
   final EstadoDeRed red;
+
   /// Quién lleva el registro a su destino. Se llama transporte y no «envío»
   /// para no confundirlo con `EnvioPendiente`, que es una entrada de la cola.
   final EnvioDeRegistros transporte;

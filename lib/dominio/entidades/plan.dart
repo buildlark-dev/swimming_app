@@ -174,6 +174,7 @@ class Plan {
     List<Microciclo>? microciclos,
     List<Sesion>? sesiones,
     EstadoPlan? estado,
+
     /// Se acepta por uniformidad de la firma, pero NO se aplica: el origen
     /// solo se fija al construir el plan (FR-026).
     OrigenPlan? origen,

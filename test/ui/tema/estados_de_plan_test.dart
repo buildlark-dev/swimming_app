@@ -37,13 +37,13 @@ void main() {
 
   group('cada estado tiene su propio icono', () {
     test('los tres son distintos', () {
-      final iconos =
-          EstadoPlan.values.map(EstadosDePlan.iconoDe).toSet();
+      final iconos = EstadoPlan.values.map(EstadosDePlan.iconoDe).toSet();
 
       expect(
         iconos,
         hasLength(EstadoPlan.values.length),
-        reason: 'Dos estados con el mismo icono se distinguirían solo por el '
+        reason:
+            'Dos estados con el mismo icono se distinguirían solo por el '
             'color, y en escala de grises no se distinguirían en absoluto',
       );
     });
@@ -108,10 +108,7 @@ void main() {
 
   group('la etiqueta enseña las tres señales', () {
     testWidgets('el nombre, el icono y el color', (tester) async {
-      await montar(
-        tester,
-        const EtiquetaDeEstado(estado: EstadoPlan.aprobado),
-      );
+      await montar(tester, const EtiquetaDeEstado(estado: EstadoPlan.aprobado));
 
       expect(find.text(EstadoPlan.aprobado.nombre), findsOneWidget);
       expect(
@@ -153,10 +150,11 @@ void main() {
     test('hay exactamente tres estados', () {
       // Si la metodología añadiera uno, esto se entera antes que la pantalla.
       expect(EstadoPlan.values, hasLength(3));
-      expect(
-        EstadoPlan.values.map((e) => e.nombre).toList(),
-        ['Borrador', 'Aprobado', 'Publicado'],
-      );
+      expect(EstadoPlan.values.map((e) => e.nombre).toList(), [
+        'Borrador',
+        'Aprobado',
+        'Publicado',
+      ]);
     });
   });
 }

@@ -28,8 +28,10 @@ void main() {
     test('conserva lo que traía el estilo base', () {
       // Si `notacion` perdiera el tamaño o el color, aplicarla a una pantalla
       // la dejaría con la letra por omisión y nadie lo notaría hasta verla.
-      final base = const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)
-          .copyWith(color: const Color(0xFF123456));
+      final base = const TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.bold,
+      ).copyWith(color: const Color(0xFF123456));
       final conCifras = Tipografia.notacion(base);
 
       expect(conCifras.fontSize, 15);
@@ -42,12 +44,11 @@ void main() {
     testWidgets('la sesión del día del nadador', (tester) async {
       // Es el sitio donde más importa: lo que el nadador lee con el teléfono
       // mojado, antes de meterse al agua.
-      final pantalla = pantallasDeLaApp()
-          .firstWhere((p) => p.nombre == 'sesión del día');
-
-      await tester.pumpWidget(
-        MaterialApp(home: pantalla.construir()),
+      final pantalla = pantallasDeLaApp().firstWhere(
+        (p) => p.nombre == 'sesión del día',
       );
+
+      await tester.pumpWidget(MaterialApp(home: pantalla.construir()));
       await tester.pump();
 
       final notacion = tester.widgetList<SelectableText>(

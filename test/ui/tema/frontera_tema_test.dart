@@ -88,7 +88,8 @@ void main() {
       expect(
         infracciones,
         isEmpty,
-        reason: 'Un color escrito a mano es un color que no se adapta al modo '
+        reason:
+            'Un color escrito a mano es un color que no se adapta al modo '
             'oscuro, que nadie comprueba contra el contraste y que hay que '
             'buscar para cambiar. Pásalo a lib/ui/tema/paleta.dart.\n\n'
             '${infracciones.join('\n')}',
@@ -106,7 +107,8 @@ void main() {
       expect(
         infracciones,
         isEmpty,
-        reason: 'El tamaño de letra sale de la escala tipográfica, que es lo '
+        reason:
+            'El tamaño de letra sale de la escala tipográfica, que es lo '
             'que permite respetar el ajuste del sistema.\n\n'
             '${infracciones.join('\n')}',
       );
@@ -114,21 +116,24 @@ void main() {
   });
 
   group('la prueba no pasa por vacía', () {
-    test('lib/ tiene bastantes archivos como para que esto signifique algo',
-        () {
-      final archivos = Directory('lib')
-          .listSync(recursive: true)
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.dart'))
-          .length;
+    test(
+      'lib/ tiene bastantes archivos como para que esto signifique algo',
+      () {
+        final archivos = Directory('lib')
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.dart'))
+            .length;
 
-      expect(
-        archivos,
-        greaterThan(50),
-        reason: 'Si lib/ estuviera casi vacío, no encontrar infracciones no '
-            'demostraría nada',
-      );
-    });
+        expect(
+          archivos,
+          greaterThan(50),
+          reason:
+              'Si lib/ estuviera casi vacío, no encontrar infracciones no '
+              'demostraría nada',
+        );
+      },
+    );
 
     test('el patrón de color caza lo que tiene que cazar', () {
       // Comprobación del propio patrón, para que la tarea T004 no dependa de

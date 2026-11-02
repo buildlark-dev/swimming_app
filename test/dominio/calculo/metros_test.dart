@@ -182,18 +182,28 @@ void main() {
 
   group('volumen frente a la categoría', () {
     test('2.000 m están dentro de Precompetitivo', () {
-      final sesion = construir(inicial: '800 N', central: '1000 N', cierre: '200 N');
-      final comprobacion =
-          CalculoSesion(sesion).comprobarVolumen(Categoria.precompetitivo);
+      final sesion = construir(
+        inicial: '800 N',
+        central: '1000 N',
+        cierre: '200 N',
+      );
+      final comprobacion = CalculoSesion(
+        sesion,
+      ).comprobarVolumen(Categoria.precompetitivo);
 
       expect(comprobacion.dentroDelRango, isTrue);
       expect(comprobacion.diferencia, 0);
     });
 
     test('2.600 m exceden Precompetitivo en 400 m', () {
-      final sesion = construir(inicial: '1000 N', central: '1400 N', cierre: '200 N');
-      final comprobacion =
-          CalculoSesion(sesion).comprobarVolumen(Categoria.precompetitivo);
+      final sesion = construir(
+        inicial: '1000 N',
+        central: '1400 N',
+        cierre: '200 N',
+      );
+      final comprobacion = CalculoSesion(
+        sesion,
+      ).comprobarVolumen(Categoria.precompetitivo);
 
       expect(comprobacion.dentroDelRango, isFalse);
       expect(comprobacion.diferencia, 400);
@@ -201,9 +211,14 @@ void main() {
     });
 
     test('1.400 m se quedan 400 m cortos en Precompetitivo', () {
-      final sesion = construir(inicial: '600 N', central: '600 N', cierre: '200 N');
-      final comprobacion =
-          CalculoSesion(sesion).comprobarVolumen(Categoria.precompetitivo);
+      final sesion = construir(
+        inicial: '600 N',
+        central: '600 N',
+        cierre: '200 N',
+      );
+      final comprobacion = CalculoSesion(
+        sesion,
+      ).comprobarVolumen(Categoria.precompetitivo);
 
       expect(comprobacion.dentroDelRango, isFalse);
       expect(comprobacion.diferencia, -400);
@@ -215,11 +230,15 @@ void main() {
       final maximo = construir(inicial: '2200 N');
 
       expect(
-        CalculoSesion(minimo).comprobarVolumen(Categoria.precompetitivo).dentroDelRango,
+        CalculoSesion(
+          minimo,
+        ).comprobarVolumen(Categoria.precompetitivo).dentroDelRango,
         isTrue,
       );
       expect(
-        CalculoSesion(maximo).comprobarVolumen(Categoria.precompetitivo).dentroDelRango,
+        CalculoSesion(
+          maximo,
+        ).comprobarVolumen(Categoria.precompetitivo).dentroDelRango,
         isTrue,
       );
     });

@@ -56,7 +56,8 @@ class PanelAvisos extends StatelessWidget {
           if (estado.sesion.metros > 0 && desviacion.diferencia.abs() > 10)
             LineaDeAviso(
               icono: Icons.percent,
-              texto: '${desviacion.tipo.nombre}: '
+              texto:
+                  '${desviacion.tipo.nombre}: '
                   '${desviacion.porcentajeReal.toStringAsFixed(0)}% '
                   'frente al ${desviacion.porcentajePrescrito}% prescrito',
               destacada: true,
@@ -66,7 +67,8 @@ class PanelAvisos extends StatelessWidget {
         if (estado.calculo.metrosSinZona > 0)
           LineaDeAviso(
             icono: Icons.help_outline,
-            texto: '${estado.calculo.metrosSinZona} m sin zona asignada. '
+            texto:
+                '${estado.calculo.metrosSinZona} m sin zona asignada. '
                 'La zona la asigna el entrenador, la app no la supone.',
             destacada: true,
           ),
@@ -81,7 +83,8 @@ class PanelAvisos extends StatelessWidget {
           for (final pendiente in pendientes)
             LineaDeAviso(
               icono: _iconoDe(pendiente.motivo),
-              texto: '"${pendiente.texto}" — '
+              texto:
+                  '"${pendiente.texto}" — '
                   '${pendiente.motivo.descripcion}'
                   '${pendiente.detalle.isEmpty ? '' : '. ${pendiente.detalle}'}',
               destacada: true,

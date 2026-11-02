@@ -90,7 +90,9 @@ class PanelEstadoConsentimiento extends StatelessWidget {
           key: Key('consentimiento-${nadador.nadadorId}'),
           leading: Icon(
             nadador.estado.icono,
-            color: nadador.puedeRecibirUnPlan ? esquema.primary : context.colores.informativo,
+            color: nadador.puedeRecibirUnPlan
+                ? esquema.primary
+                : context.colores.informativo,
           ),
           title: Text(nadador.nombre),
           subtitle: Column(
@@ -99,9 +101,9 @@ class PanelEstadoConsentimiento extends StatelessWidget {
               Text(
                 nadador.puedeRecibirUnPlan
                     ? '${nadador.estado.etiqueta} · '
-                        '${nadador.alcances.map((a) => a.clave).join(', ')}'
+                          '${nadador.alcances.map((a) => a.clave).join(', ')}'
                     : '${nadador.estado.etiqueta} · no se le puede publicar '
-                        'un plan',
+                          'un plan',
               ),
               // **De dónde vino.** Un consentimiento declarado por el propio
               // nadador es válido: el formulario sigue exigiendo que el
@@ -123,7 +125,9 @@ class PanelEstadoConsentimiento extends StatelessWidget {
           trailing: TextButton(
             key: Key('pedir-${nadador.nadadorId}'),
             onPressed: () => _pedir(context, nadador),
-            child: Text(nadador.puedeRecibirUnPlan ? 'Volver a pedir' : 'Pedir'),
+            child: Text(
+              nadador.puedeRecibirUnPlan ? 'Volver a pedir' : 'Pedir',
+            ),
           ),
         );
       },

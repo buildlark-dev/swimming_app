@@ -24,7 +24,9 @@ void main() {
   group('el enlace se entiende', () {
     test('un enlace con token', () {
       expect(
-        tokenDelEnlace(Uri.parse('https://app.example/consentimiento?t=abc123')),
+        tokenDelEnlace(
+          Uri.parse('https://app.example/consentimiento?t=abc123'),
+        ),
         'abc123',
       );
     });
@@ -90,8 +92,7 @@ void main() {
       expect(find.byKey(const Key('boton-confirmar')), findsOneWidget);
     });
 
-    testWidgets('sin servidor, lo dice y no enseña formulario',
-        (tester) async {
+    testWidgets('sin servidor, lo dice y no enseña formulario', (tester) async {
       // Enseñar un formulario que no va a funcionar sería peor que no
       // enseñarlo: el acudiente lo rellenaría y no pasaría nada.
       await abrir(tester, operaciones: null);
@@ -164,14 +165,16 @@ void main() {
       expect(
         servidor.canjeados,
         ['el-token-del-enlace'],
-        reason: 'Es el camino entero: el enlace trae un token, el formulario '
+        reason:
+            'Es el camino entero: el enlace trae un token, el formulario '
             'lo rellena un acudiente, y el servidor lo canjea',
       );
       expect(find.textContaining('Queda registrada'), findsOneWidget);
     });
 
-    testWidgets('un enlace que ya no sirve lo dice sin decir por qué',
-        (tester) async {
+    testWidgets('un enlace que ya no sirve lo dice sin decir por qué', (
+      tester,
+    ) async {
       // El servidor no distingue cuál de los tres motivos fue, y aquí tampoco:
       // distinguirlos le diría a quien prueba enlaces cuáles existieron.
       await tester.pumpWidget(
@@ -200,6 +203,23 @@ void main() {
 // ---------------------------------------------------------------------------
 
 class _ServidorQueAcepta implements OperacionesDelServidor {
+  // La feature 007 añadió estas dos: aquí no se usan, y lo que importa es
+  // que el doble siga cumpliendo la interfaz.
+  @override
+  Future<PerfilCorregido> corregirPerfil({
+    required String nombre,
+    required DateTime fechaNacimiento,
+    String? pais,
+  }) async => PerfilCorregido(nombre: nombre, esMenor: false);
+
+  @override
+  Future<DatosSuprimidos> suprimirMisDatos() async => const DatosSuprimidos(
+    registrosEliminados: 0,
+    asignacionesRetiradas: 0,
+    perfilEliminado: false,
+    cuentaEliminada: false,
+  );
+
   final canjeados = <String>[];
 
   @override
@@ -221,8 +241,7 @@ class _ServidorQueAcepta implements OperacionesDelServidor {
     required DateTime fechaNacimiento,
     String? pais,
     required String versionDeTerminos,
-  }) async =>
-      const PerfilGuardado(esMenor: false, nadadorId: 'n1');
+  }) async => const PerfilGuardado(esMenor: false, nadadorId: 'n1');
 
   @override
   Future<void> pedirConsentimiento({

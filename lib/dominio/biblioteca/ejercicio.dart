@@ -43,12 +43,11 @@ class Ejercicio {
     return Ejercicio(
       nombre: nombre,
       nombreBase: (json['nombreBase'] as String?) ?? nombre,
-      estilo: Estilo.porNombre(json['estilo'] as String? ?? '') ??
-          Estilo.general,
+      estilo:
+          Estilo.porNombre(json['estilo'] as String? ?? '') ?? Estilo.general,
       descripcion: json['descripcion'] as String? ?? '',
       errorQueCorrige: json['errorQueCorrige'] as String? ?? '',
-      requiereDesambiguacion:
-          json['requiereDesambiguacion'] as bool? ?? false,
+      requiereDesambiguacion: json['requiereDesambiguacion'] as bool? ?? false,
     );
   }
 

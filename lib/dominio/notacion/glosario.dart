@@ -25,10 +25,10 @@ class TerminoGlosario {
 
 class Glosario {
   Glosario({List<TerminoGlosario> incorporados = const []})
-      : _incorporados = {
-          for (final termino in incorporados)
-            _normalizar(termino.termino): termino,
-        };
+    : _incorporados = {
+        for (final termino in incorporados)
+          _normalizar(termino.termino): termino,
+      };
 
   final Map<String, TerminoGlosario> _incorporados;
 
@@ -117,8 +117,7 @@ class Glosario {
 
   bool estaEnDesuso(String termino) => enDesuso.contains(_normalizar(termino));
 
-  Implemento? implemento(String termino) =>
-      implementos[_normalizar(termino)];
+  Implemento? implemento(String termino) => implementos[_normalizar(termino)];
 
   Modificador? modificador(String termino) =>
       modificadores[_normalizar(termino)];
@@ -130,9 +129,7 @@ class Glosario {
 
   /// Devuelve un glosario nuevo con el término incorporado (FR-006).
   Glosario incorporar(TerminoGlosario termino) {
-    return Glosario(
-      incorporados: [..._incorporados.values, termino],
-    );
+    return Glosario(incorporados: [..._incorporados.values, termino]);
   }
 
   /// Verdadero si el texto contiene una forma de nado prohibida.

@@ -36,7 +36,8 @@ class PantallaMiProgreso extends StatelessWidget {
               child: EstadoVacio(
                 icono: Icons.event_busy_outlined,
                 titulo: 'Todavía no tienes un plan asignado',
-                queHacer: 'Cuando tu entrenador te asigne uno, tu progreso '
+                queHacer:
+                    'Cuando tu entrenador te asigne uno, tu progreso '
                     'aparecerá aquí.',
               ),
             )
@@ -100,7 +101,8 @@ class _Adherencia extends StatelessWidget {
                     children: [
                       Expanded(child: Text(microciclo.nombre)),
                       Text(
-                        progreso.adherenciaPorSemana[microciclo.id]
+                        progreso
+                                .adherenciaPorSemana[microciclo.id]
                                 ?.descripcion ??
                             '',
                         style: const TextStyle(fontWeight: FontWeight.bold),
@@ -133,8 +135,8 @@ class _Entrada extends StatelessWidget {
           entrada.realizada
               ? Icons.check_circle_outline
               : entrada.tieneRespuesta
-                  ? Icons.cancel_outlined
-                  : Icons.radio_button_unchecked,
+              ? Icons.cancel_outlined
+              : Icons.radio_button_unchecked,
           color: entrada.realizada ? esquema.primary : esquema.outline,
         ),
         title: Text(entrada.sesion.objetivoTecnico),
@@ -166,8 +168,11 @@ class _Entrada extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 4),
                 child: Row(
                   children: [
-                    Icon(Icons.healing_outlined,
-                        size: 16, color: context.colores.cuidado),
+                    Icon(
+                      Icons.healing_outlined,
+                      size: 16,
+                      color: context.colores.cuidado,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(

@@ -19,11 +19,11 @@ void main() {
   final hoy = DateTime(2026, 10, 21);
 
   EstadoAlta estadoCon({OperacionesDelServidor? servidor}) => EstadoAlta(
-        operaciones: servidor ?? _ServidorQueAcepta(),
-        correoDeLaCuenta: 'nadador@ejemplo.com',
-        nadadorId: 'n1',
-        reloj: () => hoy,
-      );
+    operaciones: servidor ?? _ServidorQueAcepta(),
+    correoDeLaCuenta: 'nadador@ejemplo.com',
+    nadadorId: 'n1',
+    reloj: () => hoy,
+  );
 
   Future<void> abrir(
     WidgetTester tester,
@@ -133,8 +133,9 @@ void main() {
   });
 
   group('C4 — un menor recorre un paso más', () {
-    testWidgets('al poner una fecha de menor, aparece el del acudiente',
-        (tester) async {
+    testWidgets('al poner una fecha de menor, aparece el del acudiente', (
+      tester,
+    ) async {
       final estado = estadoCon();
       await abrir(tester, estado);
 
@@ -146,7 +147,8 @@ void main() {
       expect(
         estado.totalDePasos,
         5,
-        reason: 'El paso del acudiente aparece en cuanto la fecha dice que es '
+        reason:
+            'El paso del acudiente aparece en cuanto la fecha dice que es '
             'menor, no antes',
       );
       expect(estado.pasos.last, PasoDelAlta.acudiente);
@@ -163,8 +165,9 @@ void main() {
       expect(find.byKey(const Key('alta-aviso-menor')), findsOneWidget);
     });
 
-    testWidgets('si corrige la fecha a una de adulto, el paso desaparece',
-        (tester) async {
+    testWidgets('si corrige la fecha a una de adulto, el paso desaparece', (
+      tester,
+    ) async {
       final estado = estadoCon()
         ..escribirNombre('Ana')
         ..escribirNacimiento(DateTime(2014, 3, 10));
@@ -195,8 +198,9 @@ void main() {
       );
     });
 
-    testWidgets('un menor con correo deja la solicitud emitida',
-        (tester) async {
+    testWidgets('un menor con correo deja la solicitud emitida', (
+      tester,
+    ) async {
       final servidor = _ServidorQueAcepta(esMenor: true);
       final estado = estadoCon(servidor: servidor)
         ..escribirNombre('Ana')
@@ -225,16 +229,16 @@ void main() {
       expect(servidor.solicitudes, isEmpty);
     });
 
-    testWidgets('sin servidor lo dice, y no pierde lo escrito',
-        (tester) async {
-      final estado = EstadoAlta(
-        operaciones: null,
-        correoDeLaCuenta: 'nadador@ejemplo.com',
-        reloj: () => hoy,
-      )
-        ..escribirNombre('Juan')
-        ..escribirNacimiento(DateTime(1995, 4, 12))
-        ..aceptarTerminos(aceptados: true);
+    testWidgets('sin servidor lo dice, y no pierde lo escrito', (tester) async {
+      final estado =
+          EstadoAlta(
+              operaciones: null,
+              correoDeLaCuenta: 'nadador@ejemplo.com',
+              reloj: () => hoy,
+            )
+            ..escribirNombre('Juan')
+            ..escribirNacimiento(DateTime(1995, 4, 12))
+            ..aceptarTerminos(aceptados: true);
 
       final resultado = await estado.terminar();
 
@@ -273,6 +277,23 @@ void main() {
 // ---------------------------------------------------------------------------
 
 class _ServidorQueAcepta implements OperacionesDelServidor {
+  // La feature 007 añadió estas dos: aquí no se usan, y lo que importa es
+  // que el doble siga cumpliendo la interfaz.
+  @override
+  Future<PerfilCorregido> corregirPerfil({
+    required String nombre,
+    required DateTime fechaNacimiento,
+    String? pais,
+  }) async => PerfilCorregido(nombre: nombre, esMenor: false);
+
+  @override
+  Future<DatosSuprimidos> suprimirMisDatos() async => const DatosSuprimidos(
+    registrosEliminados: 0,
+    asignacionesRetiradas: 0,
+    perfilEliminado: false,
+    cuentaEliminada: false,
+  );
+
   _ServidorQueAcepta({this.esMenor = false});
 
   final bool esMenor;

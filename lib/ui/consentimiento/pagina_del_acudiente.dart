@@ -46,7 +46,8 @@ class _PaginaDelAcudienteState extends State<PaginaDelAcudiente> {
     final operaciones = widget.operaciones;
     if (operaciones == null) {
       return const EnlaceQueNoSirve(
-        mensaje: 'No se pudo conectar con el servidor. Inténtelo otra vez en '
+        mensaje:
+            'No se pudo conectar con el servidor. Inténtelo otra vez en '
             'un momento, con el mismo enlace: todavía sirve.',
       );
     }
@@ -59,7 +60,8 @@ class _PaginaDelAcudienteState extends State<PaginaDelAcudiente> {
           // Autorizar sin haber leído qué se autoriza no es consentimiento
           // informado, y enseñar el formulario sin él sería fingir que sí.
           return const EnlaceQueNoSirve(
-            mensaje: 'No se pudo cargar la información que hay que leer antes '
+            mensaje:
+                'No se pudo cargar la información que hay que leer antes '
                 'de autorizar. Inténtelo otra vez en un momento.',
           );
         }

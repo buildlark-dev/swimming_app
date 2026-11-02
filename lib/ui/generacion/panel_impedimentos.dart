@@ -30,7 +30,8 @@ class PanelImpedimentos extends StatelessWidget {
       titulo: impedimentos.length == 1
           ? 'No se puede generar'
           : 'No se puede generar: ${impedimentos.length} motivos',
-      mensaje: 'La metodología prohíbe planificar con datos faltantes. Un plan '
+      mensaje:
+          'La metodología prohíbe planificar con datos faltantes. Un plan '
           'con huecos rellenados a suposición parece válido y no lo es.',
       detalles: [
         const Divider(),
@@ -55,16 +56,14 @@ class PanelImpedimentos extends StatelessWidget {
 
 /// Avisos y supuestos de un plan que sí se generó.
 class PanelAvisosGeneracion extends StatelessWidget {
-  const PanelAvisosGeneracion({
-    super.key,
-    required this.resultado,
-  });
+  const PanelAvisosGeneracion({super.key, required this.resultado});
 
   final MicrocicloGenerado resultado;
 
   @override
   Widget build(BuildContext context) {
-    final hayAlgo = resultado.avisos.isNotEmpty ||
+    final hayAlgo =
+        resultado.avisos.isNotEmpty ||
         resultado.supuestos.isNotEmpty ||
         resultado.vaciosDeBiblioteca.isNotEmpty;
 
@@ -85,7 +84,8 @@ class PanelAvisosGeneracion extends StatelessWidget {
         for (final vacio in resultado.vaciosDeBiblioteca)
           LineaDeAviso(
             icono: Icons.search_off,
-            texto: '$vacio. No se eligió otro ejercicio en su lugar: '
+            texto:
+                '$vacio. No se eligió otro ejercicio en su lugar: '
                 'sustituirlo sería inventar por aproximación.',
           ),
 

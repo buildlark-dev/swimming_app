@@ -21,59 +21,59 @@ import 'package:natacion_app/dominio/metodologia/zonas.dart';
 /// sesión; no la modifica. La relación es en un solo sentido.
 void main() {
   Plan planAprobado() => Plan(
-        id: 'p1',
-        nombre: 'Microciclo de base aeróbica',
-        categoria: Categoria.precompetitivo,
-        estiloObjetivo: Estilo.libre,
-        pruebaObjetivo: '800 Libre',
-        estado: EstadoPlan.aprobado,
-        versionMetodologia: '3.5.0',
-        fechaAprobacion: DateTime(2026, 10, 1),
-        microciclos: const [
-          Microciclo(
-            id: 'm1',
-            nombre: 'Semana 1',
-            orden: 1,
-            objetivo: 'Economía de nado',
-          ),
-        ],
-        sesiones: [
-          for (var i = 1; i <= 3; i++)
-            Sesion(
-              id: 's$i',
-              microcicloId: 'm1',
-              fecha: DateTime(2026, 10, i),
-              objetivoTecnico: 'Técnica de eficiencia',
-              objetivoFisiologico: 'Base aeróbica',
-              partes: [
-                Parte(
-                  tipo: TipoParte.inicial,
-                  series: [
-                    const Serie(
-                      repeticiones: 8,
-                      distancia: 50,
-                      zona: Zona.a1,
-                      estilo: Estilo.libre,
-                    ),
-                  ],
+    id: 'p1',
+    nombre: 'Microciclo de base aeróbica',
+    categoria: Categoria.precompetitivo,
+    estiloObjetivo: Estilo.libre,
+    pruebaObjetivo: '800 Libre',
+    estado: EstadoPlan.aprobado,
+    versionMetodologia: '3.5.0',
+    fechaAprobacion: DateTime(2026, 10, 1),
+    microciclos: const [
+      Microciclo(
+        id: 'm1',
+        nombre: 'Semana 1',
+        orden: 1,
+        objetivo: 'Economía de nado',
+      ),
+    ],
+    sesiones: [
+      for (var i = 1; i <= 3; i++)
+        Sesion(
+          id: 's$i',
+          microcicloId: 'm1',
+          fecha: DateTime(2026, 10, i),
+          objetivoTecnico: 'Técnica de eficiencia',
+          objetivoFisiologico: 'Base aeróbica',
+          partes: [
+            Parte(
+              tipo: TipoParte.inicial,
+              series: [
+                const Serie(
+                  repeticiones: 8,
+                  distancia: 50,
+                  zona: Zona.a1,
+                  estilo: Estilo.libre,
                 ),
-                const Parte(tipo: TipoParte.central),
-                const Parte(tipo: TipoParte.cierre),
               ],
             ),
-        ],
-      );
+            const Parte(tipo: TipoParte.central),
+            const Parte(tipo: TipoParte.cierre),
+          ],
+        ),
+    ],
+  );
 
   RegistroDeSesion respuesta(String sesionId, {int? rpe}) => RegistroDeSesion(
-        nadadorId: 'n1',
-        planId: 'p1',
-        sesionId: sesionId,
-        versionDePlan: '3.5.0',
-        realizada: true,
-        registradoEn: DateTime(2026, 10, 14),
-        rpePercibido: rpe,
-        observaciones: 'Me costó la tercera serie',
-      );
+    nadadorId: 'n1',
+    planId: 'p1',
+    sesionId: sesionId,
+    versionDePlan: '3.5.0',
+    realizada: true,
+    registradoEn: DateTime(2026, 10, 14),
+    rpePercibido: rpe,
+    observaciones: 'Me costó la tercera serie',
+  );
 
   String serializado(Plan plan) =>
       jsonEncode(planAJson(plan, conSesiones: true));
@@ -95,7 +95,8 @@ void main() {
       expect(
         serializado(plan),
         antes,
-        reason: 'Un plan aprobado es inmutable. Si esto falla, el entrenador ya '
+        reason:
+            'Un plan aprobado es inmutable. Si esto falla, el entrenador ya '
             'no puede saber que lo que firmó sigue siendo lo que hay',
       );
     });
@@ -140,7 +141,8 @@ void main() {
       expect(
         viejo.id,
         isNot(nuevo.id),
-        reason: 'Sin esto, un plan corregido haría parecer que el nadador '
+        reason:
+            'Sin esto, un plan corregido haría parecer que el nadador '
             'respondió a series que nunca hizo',
       );
     });

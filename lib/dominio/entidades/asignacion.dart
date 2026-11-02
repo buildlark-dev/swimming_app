@@ -40,8 +40,7 @@ class Asignacion {
   static String idDeterminista({
     required String planId,
     required String nadadorId,
-  }) =>
-      '$planId|$nadadorId';
+  }) => '$planId|$nadadorId';
 
   @override
   bool operator ==(Object other) =>

@@ -40,7 +40,8 @@ class PanelDistribucion extends StatelessWidget {
           children: [
             CabeceraSeccion(
               titulo: 'Distribución del plan',
-              cifra: '${plan.metros} m · '
+              cifra:
+                  '${plan.metros} m · '
                   '${plan.porcentajeTecnico.toStringAsFixed(1)}% técnico',
             ),
 
@@ -158,8 +159,9 @@ class _FilaReparto extends StatelessWidget {
       '(${reparto.diferencia >= 0 ? '+' : ''}'
       '${reparto.diferencia.toStringAsFixed(1)})',
       style: Tipografia.notacion(
-        (Theme.of(context).textTheme.bodySmall ?? const TextStyle())
-            .copyWith(color: color),
+        (Theme.of(context).textTheme.bodySmall ?? const TextStyle()).copyWith(
+          color: color,
+        ),
       ),
     );
 
@@ -251,9 +253,9 @@ class _ModeloDeLaFase extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           'Envolvente de ${modelo.fuente}',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: esquema.onSurfaceVariant,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: esquema.onSurfaceVariant),
         ),
       ],
     );
@@ -261,11 +263,7 @@ class _ModeloDeLaFase extends StatelessWidget {
 }
 
 class _FilaTid extends StatelessWidget {
-  const _FilaTid({
-    required this.tid,
-    required this.real,
-    required this.rango,
-  });
+  const _FilaTid({required this.tid, required this.real, required this.rango});
 
   final ZonaTid tid;
   final double real;
@@ -314,17 +312,13 @@ class _FilaTid extends StatelessWidget {
                 Text(
                   '${rango.desviacion(real) >= 0 ? '+' : ''}'
                   '${rango.desviacion(real).toStringAsFixed(1)} puntos',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: context.colores.cuidado),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: context.colores.cuidado,
+                  ),
                 ),
             ],
           ),
-          Text(
-            tid.descripcion,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          Text(tid.descripcion, style: Theme.of(context).textTheme.bodySmall),
         ],
       ),
     );

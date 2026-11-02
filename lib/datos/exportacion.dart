@@ -30,7 +30,10 @@ class Exportacion {
   }
 
   /// Perfil de nadador con los planes que le corresponden.
-  Map<String, dynamic> nadador(Nadador nadador, {List<Plan> planes = const []}) {
+  Map<String, dynamic> nadador(
+    Nadador nadador, {
+    List<Plan> planes = const [],
+  }) {
     return <String, dynamic>{
       'formato': formatoExportacion,
       'exportadoEl': DateTime.now().toIso8601String(),

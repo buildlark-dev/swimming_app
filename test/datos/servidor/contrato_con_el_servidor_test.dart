@@ -22,13 +22,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:natacion_app/datos/servidor/operaciones.dart';
 
 void main() {
-  final servidor =
-      File('firebase/functions/src/consentimiento.ts').readAsStringSync();
+  final servidor = File(
+    'firebase/functions/src/consentimiento.ts',
+  ).readAsStringSync();
 
   // Lo que `canjear` desempaqueta de `peticion.data`.
   final desde = servidor.indexOf('export const canjear');
-  final bloqueDeCanje =
-      servidor.substring(desde, servidor.indexOf('if (!token)', desde));
+  final bloqueDeCanje = servidor.substring(
+    desde,
+    servidor.indexOf('if (!token)', desde),
+  );
 
   group('canjear — el cuerpo que se manda es el que se lee', () {
     final cuerpo = cuerpoDeCanje(
@@ -56,7 +59,8 @@ void main() {
       expect(
         bloqueDeCanje,
         contains('declaracion'),
-        reason: 'Si el servidor dejara de anidarlos, esto se entera aquí y no '
+        reason:
+            'Si el servidor dejara de anidarlos, esto se entera aquí y no '
             'en el formulario de un acudiente',
       );
     });

@@ -39,7 +39,7 @@ class EjercicioNoEncontrado extends ResultadoBusqueda {
 
 class Biblioteca {
   Biblioteca(List<Ejercicio> ejercicios)
-      : _ejercicios = List.unmodifiable(ejercicios) {
+    : _ejercicios = List.unmodifiable(ejercicios) {
     for (final ejercicio in _ejercicios) {
       final clave = _normalizar(ejercicio.nombreBase);
       _porNombreBase.putIfAbsent(clave, () => <Ejercicio>[]).add(ejercicio);
@@ -67,8 +67,9 @@ class Biblioteca {
     final consulta = _normalizar(nombre);
 
     // El nombre puede venir ya desambiguado: "FLECHA (Espalda)".
-    final coincidencia =
-        RegExp(r'^(.*?)\s*\((.+)\)$').firstMatch(nombre.trim());
+    final coincidencia = RegExp(
+      r'^(.*?)\s*\((.+)\)$',
+    ).firstMatch(nombre.trim());
     if (coincidencia != null) {
       final base = _normalizar(coincidencia.group(1)!);
       final estiloIndicado = Estilo.porNombre(coincidencia.group(2)!);
@@ -93,7 +94,8 @@ class Biblioteca {
     if (candidatos.length == 1) {
       final unico = candidatos.first;
       // Un ejercicio de un solo estilo se acepta aunque no se indique estilo.
-      if (estilo == null || unico.estilo == estilo ||
+      if (estilo == null ||
+          unico.estilo == estilo ||
           unico.estilo == Estilo.general) {
         return EjercicioEncontrado(unico);
       }

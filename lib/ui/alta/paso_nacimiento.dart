@@ -70,7 +70,8 @@ class PasoNacimiento extends StatelessWidget {
           const Aviso(
             tono: TonoDeAviso.informativo,
             claveDelMensaje: Key('alta-aviso-menor'),
-            mensaje: 'Como eres menor de edad, después te pediremos el correo '
+            mensaje:
+                'Como eres menor de edad, después te pediremos el correo '
                 'de tu padre, madre o acudiente para pedirle permiso. Puedes '
                 'usar la app igual mientras tanto.',
           ),
@@ -82,8 +83,18 @@ class PasoNacimiento extends StatelessWidget {
   /// La fecha como la diría alguien, no como la escribe una máquina.
   static String _enPalabras(DateTime fecha) {
     const meses = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+      'enero',
+      'febrero',
+      'marzo',
+      'abril',
+      'mayo',
+      'junio',
+      'julio',
+      'agosto',
+      'septiembre',
+      'octubre',
+      'noviembre',
+      'diciembre',
     ];
 
     return '${fecha.day} de ${meses[fecha.month - 1]} de ${fecha.year}';

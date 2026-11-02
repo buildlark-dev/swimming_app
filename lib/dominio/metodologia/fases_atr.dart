@@ -156,11 +156,11 @@ enum FaseAtr {
   /// otros deportes. Así que esto **avisa**, con la fuente a la vista, y es él
   /// quien decide.
   (int, int) get semanasSegunIssurin => switch (this) {
-        FaseAtr.acumulacion => (2, 6),
-        FaseAtr.transformacion => (2, 4),
-        // Issurin da 8-15 días para el bloque de realización.
-        FaseAtr.realizacion => (1, 2),
-      };
+    FaseAtr.acumulacion => (2, 6),
+    FaseAtr.transformacion => (2, 4),
+    // Issurin da 8-15 días para el bloque de realización.
+    FaseAtr.realizacion => (1, 2),
+  };
 
   /// Verdadero si [semanas] cabe en el rango de Issurin para este bloque.
   bool duracionSegunIssurin(int semanas) {

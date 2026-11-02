@@ -88,9 +88,9 @@ class ProgresoDelNadador {
 
   /// Adherencia del plan completo.
   Adherencia get adherenciaDelPlan => Adherencia(
-        realizadas: plan.sesiones.where(_fueRealizada).length,
-        programadas: plan.sesiones.length,
-      );
+    realizadas: plan.sesiones.where(_fueRealizada).length,
+    programadas: plan.sesiones.length,
+  );
 
   /// Adherencia por microciclo, que es la semana del entrenador.
   Map<String, Adherencia> get adherenciaPorSemana {

@@ -14,5 +14,4 @@
 /// allí.
 library;
 
-export 'reinicio_nativo.dart'
-    if (dart.library.js_interop) 'reinicio_web.dart';
+export 'reinicio_nativo.dart' if (dart.library.js_interop) 'reinicio_web.dart';

@@ -14,7 +14,16 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:natacion_app/datos/memoria/repositorios_memoria.dart';
+import 'package:natacion_app/datos/perfil/repositorio_perfil.dart';
+import 'package:natacion_app/datos/recursos/recursos_iniciales.dart';
+import 'package:natacion_app/dominio/consentimiento/consentimiento.dart';
+import 'package:natacion_app/dominio/consentimiento/constancia.dart';
+import 'package:natacion_app/dominio/datos_personales/derechos_del_titular.dart';
+import 'package:natacion_app/ui/ajustes/pantalla_ajustes.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
+import 'package:natacion_app/dominio/biblioteca/indice_terminos.dart';
+import 'package:natacion_app/dominio/cuentas/cuenta.dart';
+import 'package:natacion_app/ui/hub/hub.dart';
 import 'package:natacion_app/dominio/entidades/envio_pendiente.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/parte.dart';
@@ -57,9 +66,9 @@ class PantallaMedible {
 final DateTime _hoy = DateTime(2026, 10, 20, 7);
 
 Biblioteca _biblioteca() => Biblioteca.desdeJson(
-      jsonDecode(File('assets/biblioteca/ejercicios.json').readAsStringSync())
-          as Map<String, dynamic>,
-    );
+  jsonDecode(File('assets/biblioteca/ejercicios.json').readAsStringSync())
+      as Map<String, dynamic>,
+);
 
 /// Contenido real, no «abc».
 ///
@@ -67,66 +76,66 @@ Biblioteca _biblioteca() => Biblioteca.desdeJson(
 /// 1800-2200 m · 3 sesiones» al 200%, y por eso lo que se monta aquí son las
 /// cadenas que la app enseña de verdad.
 Sesion _sesion({required String id, required DateTime fecha}) => Sesion(
-      id: id,
-      microcicloId: 'm1',
-      fecha: fecha,
-      objetivoTecnico: 'Técnica de eficiencia en Libre',
-      objetivoFisiologico: 'Base aeróbica con énfasis en economía de nado',
-      partes: [
-        const Parte(
-          tipo: TipoParte.inicial,
-          textoOriginal: "4x100 AL / 2'",
-          series: [
-            Serie(
-              repeticiones: 4,
-              distancia: 100,
-              zona: Zona.a1,
-              estilo: Estilo.libre,
-            ),
-          ],
+  id: id,
+  microcicloId: 'm1',
+  fecha: fecha,
+  objetivoTecnico: 'Técnica de eficiencia en Libre',
+  objetivoFisiologico: 'Base aeróbica con énfasis en economía de nado',
+  partes: [
+    const Parte(
+      tipo: TipoParte.inicial,
+      textoOriginal: "4x100 AL / 2'",
+      series: [
+        Serie(
+          repeticiones: 4,
+          distancia: 100,
+          zona: Zona.a1,
+          estilo: Estilo.libre,
         ),
-        const Parte(
-          tipo: TipoParte.central,
-          textoOriginal: '8x50 Libre máx / 1\'30"',
-          series: [
-            Serie(
-              repeticiones: 8,
-              distancia: 50,
-              zona: Zona.resistenciaIntensiva,
-              estilo: Estilo.libre,
-            ),
-          ],
-        ),
-        const Parte(tipo: TipoParte.cierre),
       ],
-    );
+    ),
+    const Parte(
+      tipo: TipoParte.central,
+      textoOriginal: '8x50 Libre máx / 1\'30"',
+      series: [
+        Serie(
+          repeticiones: 8,
+          distancia: 50,
+          zona: Zona.resistenciaIntensiva,
+          estilo: Estilo.libre,
+        ),
+      ],
+    ),
+    const Parte(tipo: TipoParte.cierre),
+  ],
+);
 
 Plan _plan() => Plan(
-      id: 'p1',
-      nombre: 'Microciclo de base aeróbica',
-      categoria: Categoria.precompetitivo,
-      estiloObjetivo: Estilo.libre,
-      pruebaObjetivo: '800 Libre',
-      estado: EstadoPlan.publicado,
-      // **Con fase ATR a propósito.** Sin ella, `repartoPorZona` devuelve una
-      // lista vacía y las siete filas de zonas —con su rampa de color— no se
-      // pintan en ninguna prueba. El banco mediría una pantalla a la que le
-      // falta justo lo que la fase 6 añadió.
-      faseAtr: FaseAtr.acumulacion,
-      versionMetodologia: '3.6.0',
-      microciclos: const [
-        Microciclo(
-          id: 'm1',
-          nombre: 'Semana 1',
-          orden: 1,
-          objetivo: 'Economía de nado',
-        ),
-      ],
-      sesiones: [
-        _sesion(id: 's1', fecha: _hoy),
-        _sesion(id: 's2', fecha: _hoy.add(const Duration(days: 2))),
-      ],
-    );
+  id: 'p1',
+  nombre: 'Microciclo de base aeróbica',
+  categoria: Categoria.precompetitivo,
+  estiloObjetivo: Estilo.libre,
+  pruebaObjetivo: '800 Libre',
+  estado: EstadoPlan.publicado,
+  // **Con fase ATR a propósito.** Sin ella, `repartoPorZona` devuelve una
+  // lista vacía y las siete filas de zonas —con su rampa de color— no se
+  // pintan en ninguna prueba. El banco mediría una pantalla a la que le
+  // falta justo lo que la fase 6 añadió.
+  faseAtr: FaseAtr.acumulacion,
+  versionMetodologia: '3.6.0',
+  microciclos: const [
+    Microciclo(
+      id: 'm1',
+      nombre: 'Semana 1',
+      orden: 1,
+      objetivo: 'Economía de nado',
+    ),
+  ],
+  sesiones: [
+    _sesion(id: 's1', fecha: _hoy),
+    _sesion(id: 's2', fecha: _hoy.add(const Duration(days: 2))),
+  ],
+);
 
 /// El alta, montada en el paso que se quiera mirar.
 ///
@@ -175,147 +184,219 @@ EstadoNadador _estadoNadador() {
   return estado;
 }
 
+/// Lo que la app carga al arrancar, con los dobles de este banco.
+///
+/// Sin Firestore a propósito: la pantalla principal cae entonces en los
+/// repositorios de memoria, que es lo que permite medirla sin servidor.
+RecursosIniciales _recursos() => RecursosIniciales(
+  biblioteca: _biblioteca(),
+  versionMetodologia: '3.6.0',
+  indiceTerminos: IndiceTerminos.vacio(),
+  red: _SinRed(),
+  transporte: _TransporteQuieto(),
+);
+
 /// Las pantallas que se miden.
 ///
 /// No están todas las de `lib/ui/`: están las que alguien abre y recorre. Los
 /// paneles sueltos viajan dentro de ellas.
 List<PantallaMedible> pantallasDeLaApp() => [
-      PantallaMedible(
-        'acceso',
-        () => PantallaAcceso(
-          alEnviar: ({
+  // **La pantalla que todo el mundo ve, y que nadie había medido.**
+  //
+  // `PantallaPrincipal` vivía en `main.dart`, fuera de `lib/ui/`, así que
+  // el cerrojo A15 no la alcanzaba: la barra de pestañas no se había
+  // comprobado ni al 200% de letra, ni en áreas pulsables, ni en oscuro.
+  // Al mudarla a `lib/ui/hub/` en la feature 007, el cerrojo la encontró
+  // en el primer `flutter test`.
+  //
+  // Se monta con los dos roles porque son dos disposiciones distintas: el
+  // entrenador ve unos contenidos y el nadador otros, y medir solo uno
+  // deja el otro sin medir.
+  PantallaMedible(
+    'hub — entrenador',
+    () => PantallaPrincipal(
+      recursos: _recursos(),
+      cuenta: Cuenta(id: 'u1', rol: Rol.entrenador),
+    ),
+  ),
+  PantallaMedible(
+    'hub — nadador',
+    () => PantallaPrincipal(
+      recursos: _recursos(),
+      cuenta: Cuenta(id: 'u2', rol: Rol.nadador, nadadorId: 'n1'),
+    ),
+  ),
+  PantallaMedible(
+    'acceso',
+    () => PantallaAcceso(
+      alEnviar:
+          ({
             required String correo,
             required String clave,
             required ModoDeAcceso modo,
-          }) async =>
-              null,
-        ),
-      ),
-      PantallaMedible(
-        'sesión del día',
-        () => ChangeNotifierProvider<EstadoNadador>.value(
-          value: _estadoNadador(),
-          child: const PantallaSesionDelDia(),
-        ),
-      ),
-      PantallaMedible(
-        'mi progreso',
-        () => ChangeNotifierProvider<EstadoNadador>.value(
-          value: _estadoNadador(),
-          child: const PantallaMiProgreso(),
-        ),
-      ),
-      PantallaMedible(
-        'perfiles',
-        () => PantallaPerfiles(
-          repositorio: RepositorioNadadoresMemoria()
-            ..guardar(
-              const Nadador(
-                id: 'n1',
-                nombre: 'Juan Esteban Restrepo',
-                categoria: Categoria.precompetitivo,
-                estiloObjetivo: Estilo.libre,
-                pruebaObjetivo: '800 Libre',
-              ),
-            ),
-        ),
-      ),
-      PantallaMedible(
-        'editor de sesión',
-        () => ChangeNotifierProvider<EstadoEditor>(
-          create: (_) => EstadoEditor(biblioteca: _biblioteca())
-            ..cambiarObjetivoTecnico('Técnica de eficiencia en Libre')
-            ..escribirParte(TipoParte.inicial, "4x100 AL / 2'"),
-          child: const PantallaEditor(),
-        ),
-      ),
-      PantallaMedible(
-        'petición de plan',
-        () => PantallaPeticion(
-          biblioteca: _biblioteca(),
-          alGenerar: (_) {},
-        ),
-      ),
-      PantallaMedible(
-        'alta — nombre',
-        () => _alta(const Perfil()),
-      ),
-      PantallaMedible(
-        'alta — términos',
-        // El paso de los términos lleva el texto legal entero dentro, que es
-        // el contenido más largo de toda la app. Si algo desborda, es aquí.
-        () => _alta(
-          Perfil(
+          }) async => null,
+    ),
+  ),
+  PantallaMedible(
+    'sesión del día',
+    () => ChangeNotifierProvider<EstadoNadador>.value(
+      value: _estadoNadador(),
+      child: const PantallaSesionDelDia(),
+    ),
+  ),
+  PantallaMedible(
+    'mi progreso',
+    () => ChangeNotifierProvider<EstadoNadador>.value(
+      value: _estadoNadador(),
+      child: const PantallaMiProgreso(),
+    ),
+  ),
+  PantallaMedible(
+    'perfiles',
+    () => PantallaPerfiles(
+      repositorio: RepositorioNadadoresMemoria()
+        ..guardar(
+          const Nadador(
+            id: 'n1',
             nombre: 'Juan Esteban Restrepo',
-            fechaNacimiento: DateTime(1995, 4, 12),
-            pais: 'CO',
+            categoria: Categoria.precompetitivo,
+            estiloObjetivo: Estilo.libre,
+            pruebaObjetivo: '800 Libre',
           ),
-          paso: 3,
         ),
+    ),
+  ),
+  PantallaMedible(
+    'editor de sesión',
+    () => ChangeNotifierProvider<EstadoEditor>(
+      create: (_) => EstadoEditor(biblioteca: _biblioteca())
+        ..cambiarObjetivoTecnico('Técnica de eficiencia en Libre')
+        ..escribirParte(TipoParte.inicial, "4x100 AL / 2'"),
+      child: const PantallaEditor(),
+    ),
+  ),
+  PantallaMedible(
+    'petición de plan',
+    () => PantallaPeticion(biblioteca: _biblioteca(), alGenerar: (_) {}),
+  ),
+  PantallaMedible('alta — nombre', () => _alta(const Perfil())),
+  PantallaMedible(
+    'alta — términos',
+    // El paso de los términos lleva el texto legal entero dentro, que es
+    // el contenido más largo de toda la app. Si algo desborda, es aquí.
+    () => _alta(
+      Perfil(
+        nombre: 'Juan Esteban Restrepo',
+        fechaNacimiento: DateTime(1995, 4, 12),
+        pais: 'CO',
       ),
-      PantallaMedible(
-        'alta — acudiente',
-        // Solo aparece para menores, así que el perfil lleva una fecha de
-        // menor a propósito: con una de adulto, este paso no existiría y la
-        // pantalla no se mediría.
-        () => _alta(
-          Perfil(
-            nombre: 'Ana María Restrepo',
-            fechaNacimiento: DateTime(2014, 3, 10),
-            pais: 'CO',
-            terminos: AceptacionDeTerminos(
-              version: 'v1',
-              aceptadaEn: _hoy,
-            ),
-          ),
-          paso: 4,
+      paso: 3,
+    ),
+  ),
+  PantallaMedible(
+    'alta — acudiente',
+    // Solo aparece para menores, así que el perfil lleva una fecha de
+    // menor a propósito: con una de adulto, este paso no existiría y la
+    // pantalla no se mediría.
+    () => _alta(
+      Perfil(
+        nombre: 'Ana María Restrepo',
+        fechaNacimiento: DateTime(2014, 3, 10),
+        pais: 'CO',
+        terminos: AceptacionDeTerminos(version: 'v1', aceptadaEn: _hoy),
+      ),
+      paso: 4,
+    ),
+  ),
+  PantallaMedible(
+    'confirmación del acudiente',
+    // La añadió la feature 006, y la encontró el cerrojo A15: llevaba
+    // desde la 004 **sin que nadie la midiera**. Es la pantalla que un
+    // acudiente abre en su teléfono para autorizar los datos de su hijo, y
+    // nadie había comprobado que se lea con la letra grande.
+    //
+    // El texto informativo va largo a propósito: es lo que de verdad lleva
+    // dentro, y un texto corto nunca desborda.
+    () => PantallaConfirmacion(
+      versionDelTexto: 'v1',
+      textoInformativo:
+          'Tratamiento de datos personales de menores de edad. '
+          'La información que registra su hijo o hija —asistencia a las '
+          'sesiones, esfuerzo percibido y molestias— se usa únicamente '
+          'para que su entrenador ajuste el entrenamiento. No se comparte '
+          'con terceros, no se usa con fines publicitarios y no se emplea '
+          'para entrenar modelos. Puede retirar esta autorización cuando '
+          'quiera, desde este mismo enlace y sin pasar por el entrenador.',
+      alConfirmar: (_) async => null,
+    ),
+  ),
+  PantallaMedible(
+    'plan',
+    () => PantallaPlan(
+      plan: _plan(),
+      versionMetodologia: '3.6.0',
+      nadadores: const [
+        Nadador(
+          id: 'n1',
+          nombre: 'Juan Esteban Restrepo',
+          categoria: Categoria.precompetitivo,
+          estiloObjetivo: Estilo.libre,
         ),
+      ],
+      conConsentimiento: const {'n1'},
+    ),
+  ),
+  // Ajustes, de la feature 007. Es la pantalla más larga de la app y la que
+  // lleva los textos legales dentro, así que si algo desborda al 200%, es
+  // aquí. Se monta con el perfil de una menor **con constancia de
+  // consentimiento**, que es el caso con más contenido: el de un adulto no
+  // tiene esa sección y la dejaría sin medir.
+  PantallaMedible(
+    'ajustes',
+    () => PantallaAjustes(
+      uid: 'u1',
+      nadadorId: 'n1',
+      repositorioPerfil: _PerfilDePrueba(),
+      constancias: _ConstanciaDePrueba(),
+      derechos: DerechosDelTitular(
+        nadadores: RepositorioNadadoresMemoria(),
+        registros: _RegistrosEnMemoria(),
+        asignaciones: RepositorioAsignacionesMemoria(),
       ),
-      PantallaMedible(
-        'confirmación del acudiente',
-        // La añadió la feature 006, y la encontró el cerrojo A15: llevaba
-        // desde la 004 **sin que nadie la midiera**. Es la pantalla que un
-        // acudiente abre en su teléfono para autorizar los datos de su hijo, y
-        // nadie había comprobado que se lea con la letra grande.
-        //
-        // El texto informativo va largo a propósito: es lo que de verdad lleva
-        // dentro, y un texto corto nunca desborda.
-        () => PantallaConfirmacion(
-          versionDelTexto: 'v1',
-          textoInformativo:
-              'Tratamiento de datos personales de menores de edad. '
-              'La información que registra su hijo o hija —asistencia a las '
-              'sesiones, esfuerzo percibido y molestias— se usa únicamente '
-              'para que su entrenador ajuste el entrenamiento. No se comparte '
-              'con terceros, no se usa con fines publicitarios y no se emplea '
-              'para entrenar modelos. Puede retirar esta autorización cuando '
-              'quiera, desde este mismo enlace y sin pasar por el entrenador.',
-          alConfirmar: (_) async => null,
-        ),
-      ),
-      PantallaMedible(
-        'plan',
-        () => PantallaPlan(
-          plan: _plan(),
-          versionMetodologia: '3.6.0',
-          nadadores: const [
-            Nadador(
-              id: 'n1',
-              nombre: 'Juan Esteban Restrepo',
-              categoria: Categoria.precompetitivo,
-              estiloObjetivo: Estilo.libre,
-            ),
-          ],
-          conConsentimiento: const {'n1'},
-        ),
-      ),
-    ];
+    ),
+  ),
+];
+
+class _PerfilDePrueba implements RepositorioPerfil {
+  @override
+  Future<Perfil> obtener(String uid) async => Perfil(
+    nombre: 'Ana María Restrepo Vélez',
+    fechaNacimiento: DateTime(2014, 3, 7),
+    pais: 'CO',
+    terminos: AceptacionDeTerminos(version: 'v1', aceptadaEn: _hoy),
+  );
+}
+
+class _ConstanciaDePrueba implements LectorDeConstancias {
+  @override
+  Future<ConstanciaDeConsentimiento?> de(String nadadorId) async =>
+      ConstanciaDeConsentimiento(
+        vigente: true,
+        alcances: const {Alcance.datosDeEntrenamiento},
+        versionDelTexto: 'v1',
+        otorgadoEn: _hoy,
+      );
+}
 
 // ---------------------------------------------------------------------------
 // Dobles. Lo mínimo para que las pantallas se pinten.
 // ---------------------------------------------------------------------------
 
 class _RegistrosEnMemoria implements RepositorioRegistros {
+  @override
+  Future<Set<String>> nadadoresConRegistros() async =>
+      _guardados.values.map((r) => r.nadadorId).toSet();
+
   final Map<String, RegistroDeSesion> _guardados = {};
 
   @override

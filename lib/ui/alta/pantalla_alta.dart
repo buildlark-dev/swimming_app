@@ -22,11 +22,7 @@ import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:provider/provider.dart';
 
 class PantallaAlta extends StatelessWidget {
-  const PantallaAlta({
-    super.key,
-    required this.alTerminar,
-    this.alEntrarIgual,
-  });
+  const PantallaAlta({super.key, required this.alTerminar, this.alEntrarIgual});
 
   /// Qué hacer cuando el alta acaba. Lo decide quien monta la pantalla.
   final void Function(ResultadoDelAlta) alTerminar;

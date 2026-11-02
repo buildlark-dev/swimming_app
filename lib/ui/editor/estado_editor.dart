@@ -24,8 +24,8 @@ class EstadoEditor extends ChangeNotifier {
     Categoria categoria = Categoria.precompetitivo,
     this.repositorio,
     this.planId,
-  })  : _analizador = Analizador(biblioteca: biblioteca),
-        _sesion = Sesion() {
+  }) : _analizador = Analizador(biblioteca: biblioteca),
+       _sesion = Sesion() {
     _categoria = categoria;
   }
 
@@ -107,8 +107,9 @@ class EstadoEditor extends ChangeNotifier {
             repeticiones: previa.estaProtegido('repeticiones')
                 ? previa.repeticiones
                 : null,
-            distancia:
-                previa.estaProtegido('distancia') ? previa.distancia : null,
+            distancia: previa.estaProtegido('distancia')
+                ? previa.distancia
+                : null,
             zona: previa.estaProtegido('zona') ? previa.zona : null,
             estilo: previa.estaProtegido('estilo') ? previa.estilo : null,
             camposCorregidos: previa.camposCorregidos,

@@ -35,12 +35,10 @@ class EstimacionDuracion {
 
   final Categoria categoria;
 
-  int get ritmoMetrosPorMinuto =>
-      ritmoMedioMetrosPorMinuto[categoria] ?? 25;
+  int get ritmoMetrosPorMinuto => ritmoMedioMetrosPorMinuto[categoria] ?? 25;
 
   /// Minutos estimados para nadar [metros].
-  int minutosPara(int metros) =>
-      (metros / ritmoMetrosPorMinuto).ceil();
+  int minutosPara(int metros) => (metros / ritmoMetrosPorMinuto).ceil();
 
   /// Metros que caben, como máximo, en [minutos].
   int metrosEn(int minutos) => minutos * ritmoMetrosPorMinuto;

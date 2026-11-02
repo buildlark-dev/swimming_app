@@ -24,10 +24,7 @@ void main() {
 
   group('A12 — el correo del menor no sirve como acudiente', () {
     test('el mismo correo, rechazado', () {
-      expect(
-        revisar(cuenta),
-        MotivoDeCorreoInvalido.esElDelPropioNadador,
-      );
+      expect(revisar(cuenta), MotivoDeCorreoInvalido.esElDelPropioNadador);
     });
 
     test('el mismo correo con otras mayúsculas, también', () {

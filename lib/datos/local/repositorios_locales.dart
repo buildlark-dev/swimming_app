@@ -75,6 +75,12 @@ class RegistrosLocales implements RepositorioRegistros {
       await almacen.borrar(_coleccionBandeja, entrada.key);
     }
   }
+
+  @override
+  Future<Set<String>> nadadoresConRegistros() async {
+    final todos = await almacen.leerTodo(_coleccionRegistros);
+    return todos.values.map(registroDesdeJson).map((r) => r.nadadorId).toSet();
+  }
 }
 
 class BandejaLocal implements BandejaDeSalida {

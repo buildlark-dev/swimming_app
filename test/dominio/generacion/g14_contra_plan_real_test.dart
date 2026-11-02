@@ -37,19 +37,19 @@ void main() {
   const categoriaReal = Categoria.precompetitivo;
 
   PeticionGeneracion equivalente() => PeticionGeneracion(
-        categoria: categoriaReal,
-        estiloObjetivo: Estilo.libre,
-        pruebaObjetivo: '800 Libre',
-        faseAtr: faseReal,
-        componenteAcentuado: 'Técnica de eficiencia y base aeróbica',
-        diasDisponibles: [
-          DateTime(2026, 8, 4),
-          DateTime(2026, 8, 6),
-          DateTime(2026, 8, 8),
-        ],
-        longitudPiscina: 25,
-        duracionSesionMinutos: 90,
-      );
+    categoria: categoriaReal,
+    estiloObjetivo: Estilo.libre,
+    pruebaObjetivo: '800 Libre',
+    faseAtr: faseReal,
+    componenteAcentuado: 'Técnica de eficiencia y base aeróbica',
+    diasDisponibles: [
+      DateTime(2026, 8, 4),
+      DateTime(2026, 8, 6),
+      DateTime(2026, 8, 8),
+    ],
+    longitudPiscina: 25,
+    duracionSesionMinutos: 90,
+  );
 
   group('el microciclo real sirve de patrón', () {
     test('sus datos son los que declara la hoja', () {
@@ -76,7 +76,8 @@ void main() {
         expect(
           categoriaReal.volumenPorSesion.contiene(sesion.metros),
           isTrue,
-          reason: 'El entrenador nada $metrosPorSesionReal m por sesión; '
+          reason:
+              'El entrenador nada $metrosPorSesionReal m por sesión; '
               'la app propone ${sesion.metros} m',
         );
       }
@@ -92,7 +93,8 @@ void main() {
       expect(
         diferencia,
         lessThanOrEqualTo(15),
-        reason: 'Generado $generado m frente a los $metrosPorSesionReal m '
+        reason:
+            'Generado $generado m frente a los $metrosPorSesionReal m '
             'reales: ${diferencia.toStringAsFixed(1)}% de diferencia',
       );
     });
@@ -127,8 +129,11 @@ void main() {
       final agregacion = AgregacionPlan(resultado.plan);
 
       // Su hoja marca las sesiones como A1 y A1-A2: predominio aeróbico bajo.
-      final pctA1 = agregacion.porcentajePorZona[
-              agregacion.porcentajePorZona.keys.first] ??
+      final pctA1 =
+          agregacion.porcentajePorZona[agregacion
+              .porcentajePorZona
+              .keys
+              .first] ??
           0;
 
       expect(

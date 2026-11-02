@@ -61,8 +61,9 @@ void main() {
 
     test('C2 — ya canjeada no sirve, aunque esté en plazo', () {
       expect(
-        solicitud(canjeadaEn: emitida.add(const Duration(hours: 2)))
-            .porQueNoSePuedeCanjear(
+        solicitud(
+          canjeadaEn: emitida.add(const Duration(hours: 2)),
+        ).porQueNoSePuedeCanjear(
           resumenPresentado: resumen,
           ahora: emitida.add(const Duration(days: 1)),
         ),
@@ -104,7 +105,8 @@ void main() {
       expect(
         s.toString(),
         isNot(contains('token-en-claro')),
-        reason: 'Quien tenga acceso de lectura a solicitudes no puede poder '
+        reason:
+            'Quien tenga acceso de lectura a solicitudes no puede poder '
             'fabricar un enlace válido',
       );
     });

@@ -19,19 +19,19 @@ void main() {
   });
 
   Plan planTecnificacion({required List<Sesion> sesiones}) => Plan(
-        nombre: 'Perfeccionamiento técnico',
-        categoria: Categoria.tecnificacion,
-        estiloObjetivo: Estilo.libre,
-        microciclos: const [
-          Microciclo(
-            id: 'm1',
-            nombre: 'Perfeccionamiento de pecho y mariposa',
-            orden: 1,
-            objetivo: 'Técnica',
-          ),
-        ],
-        sesiones: sesiones,
-      );
+    nombre: 'Perfeccionamiento técnico',
+    categoria: Categoria.tecnificacion,
+    estiloObjetivo: Estilo.libre,
+    microciclos: const [
+      Microciclo(
+        id: 'm1',
+        nombre: 'Perfeccionamiento de pecho y mariposa',
+        orden: 1,
+        objetivo: 'Técnica',
+      ),
+    ],
+    sesiones: sesiones,
+  );
 
   group('admisibilidad de la fase ATR', () {
     test('Iniciación no admite fase ATR', () {
@@ -76,10 +76,8 @@ void main() {
   });
 
   group('regla de alternancia de Tecnificación', () {
-    Sesion sesionDeEstilo(Estilo estilo) => constructor.sesionConZonas(
-          const {Zona.a1: 900},
-          estilo: estilo,
-        );
+    Sesion sesionDeEstilo(Estilo estilo) =>
+        constructor.sesionConZonas(const {Zona.a1: 900}, estilo: estilo);
 
     test('cumple con sesión 1 de Pecho y sesión 2 de Mariposa', () {
       final plan = planTecnificacion(
@@ -109,10 +107,7 @@ void main() {
 
     test('falla si la sesión 2 no es de Mariposa', () {
       final plan = planTecnificacion(
-        sesiones: [
-          sesionDeEstilo(Estilo.pecho),
-          sesionDeEstilo(Estilo.libre),
-        ],
+        sesiones: [sesionDeEstilo(Estilo.pecho), sesionDeEstilo(Estilo.libre)],
       );
 
       final resultado = const ReglaAlternanciaTecnificacion().comprobar(plan);
@@ -122,9 +117,7 @@ void main() {
     });
 
     test('falla si el microciclo tiene menos sesiones de las que exige', () {
-      final plan = planTecnificacion(
-        sesiones: [sesionDeEstilo(Estilo.pecho)],
-      );
+      final plan = planTecnificacion(sesiones: [sesionDeEstilo(Estilo.pecho)]);
 
       final resultado = const ReglaAlternanciaTecnificacion().comprobar(plan);
 

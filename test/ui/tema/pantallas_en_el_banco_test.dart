@@ -36,12 +36,14 @@ void main() {
     final raiz = Directory('lib/ui');
     if (!raiz.existsSync()) return encontradas;
 
-    for (final archivo in raiz
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.dart'))) {
-      for (final coincidencia
-          in declaracion.allMatches(archivo.readAsStringSync())) {
+    for (final archivo
+        in raiz
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.dart'))) {
+      for (final coincidencia in declaracion.allMatches(
+        archivo.readAsStringSync(),
+      )) {
         encontradas.add(coincidencia.group(1)!);
       }
     }
@@ -59,7 +61,8 @@ void main() {
     expect(
       fuera,
       isEmpty,
-      reason: 'Estas pantallas no las mide nadie: ni al 200% de letra, ni en '
+      reason:
+          'Estas pantallas no las mide nadie: ni al 200% de letra, ni en '
           'áreas pulsables, ni en oscuro. Añádelas a '
           '`test/ui/tema/ayuda_pantallas.dart` **con contenido realista**: un '
           'texto corto nunca desborda, y lo que desborda es el contenido de '
@@ -75,15 +78,17 @@ void main() {
       expect(
         pantallas,
         contains('PantallaAcceso'),
-        reason: 'Si no encuentra ni la de acceso, el patrón está mal y esta '
+        reason:
+            'Si no encuentra ni la de acceso, el patrón está mal y esta '
             'prueba aprueba cualquier cosa',
       );
       expect(pantallas.length, greaterThanOrEqualTo(7));
     });
 
     test('el banco existe y nombra pantallas', () {
-      final banco =
-          File('test/ui/tema/ayuda_pantallas.dart').readAsStringSync();
+      final banco = File(
+        'test/ui/tema/ayuda_pantallas.dart',
+      ).readAsStringSync();
 
       expect(banco, contains('PantallaMedible'));
       expect(banco, contains('PantallaAcceso'));

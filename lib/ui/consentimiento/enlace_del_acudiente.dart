@@ -29,7 +29,8 @@ String? tokenDelEnlace([Uri? desde]) {
 
   // El camino puede venir como `/consentimiento` o, en una PWA servida desde
   // una subcarpeta, terminado en él.
-  final esDeConsentimiento = url.path.endsWith('/consentimiento') ||
+  final esDeConsentimiento =
+      url.path.endsWith('/consentimiento') ||
       url.path.endsWith('/consentimiento/') ||
       url.fragment.startsWith('/consentimiento');
 

@@ -20,63 +20,56 @@ void main() {
     required DateTime fecha,
     String microcicloId = 'm1',
     int metros = 2000,
-  }) =>
-      Sesion(
-        id: id,
-        microcicloId: microcicloId,
-        fecha: fecha,
-        objetivoTecnico: 'Técnica de eficiencia',
-        objetivoFisiologico: 'Base aeróbica',
-        partes: [
-          Parte(
-            tipo: TipoParte.inicial,
-            series: [
-              Serie(
-                distancia: metros,
-                zona: Zona.a1,
-                estilo: Estilo.libre,
-              ),
-            ],
-          ),
-          const Parte(tipo: TipoParte.central),
-          const Parte(tipo: TipoParte.cierre),
-        ],
-      );
+  }) => Sesion(
+    id: id,
+    microcicloId: microcicloId,
+    fecha: fecha,
+    objetivoTecnico: 'Técnica de eficiencia',
+    objetivoFisiologico: 'Base aeróbica',
+    partes: [
+      Parte(
+        tipo: TipoParte.inicial,
+        series: [Serie(distancia: metros, zona: Zona.a1, estilo: Estilo.libre)],
+      ),
+      const Parte(tipo: TipoParte.central),
+      const Parte(tipo: TipoParte.cierre),
+    ],
+  );
 
   RegistroDeSesion registro({
     required String sesionId,
     required bool realizada,
     int? rpe,
     ReporteDeMolestia? molestia,
-  }) =>
-      RegistroDeSesion(
-        nadadorId: 'n1',
-        planId: 'p1',
-        sesionId: sesionId,
-        versionDePlan: '3.5.0',
-        realizada: realizada,
-        registradoEn: DateTime(2026, 10, 14),
-        rpePercibido: rpe,
-        molestia: molestia,
-      );
+  }) => RegistroDeSesion(
+    nadadorId: 'n1',
+    planId: 'p1',
+    sesionId: sesionId,
+    versionDePlan: '3.5.0',
+    realizada: realizada,
+    registradoEn: DateTime(2026, 10, 14),
+    rpePercibido: rpe,
+    molestia: molestia,
+  );
 
   Plan planDe(List<Sesion> sesiones, {List<Microciclo>? microciclos}) => Plan(
-        id: 'p1',
-        nombre: 'Microciclo de prueba',
-        categoria: Categoria.precompetitivo,
-        estiloObjetivo: Estilo.libre,
-        pruebaObjetivo: '800 Libre',
-        microciclos: microciclos ??
-            const [
-              Microciclo(
-                id: 'm1',
-                nombre: 'Base aeróbica',
-                orden: 1,
-                objetivo: 'Economía de nado',
-              ),
-            ],
-        sesiones: sesiones,
-      );
+    id: 'p1',
+    nombre: 'Microciclo de prueba',
+    categoria: Categoria.precompetitivo,
+    estiloObjetivo: Estilo.libre,
+    pruebaObjetivo: '800 Libre',
+    microciclos:
+        microciclos ??
+        const [
+          Microciclo(
+            id: 'm1',
+            nombre: 'Base aeróbica',
+            orden: 1,
+            objetivo: 'Economía de nado',
+          ),
+        ],
+    sesiones: sesiones,
+  );
 
   group('historial (FR-005a)', () {
     test('de la más reciente a la más antigua', () {
@@ -88,10 +81,7 @@ void main() {
 
       final progreso = ProgresoDelNadador(plan: plan, registros: const []);
 
-      expect(
-        progreso.historial.map((h) => h.sesion.id),
-        ['s2', 's3', 's1'],
-      );
+      expect(progreso.historial.map((h) => h.sesion.id), ['s2', 's3', 's1']);
     });
 
     test('las sesiones sin respuesta también aparecen', () {
@@ -119,9 +109,9 @@ void main() {
 
   group('adherencia (FR-005b)', () {
     Plan planDeSeis() => planDe([
-          for (var i = 1; i <= 6; i++)
-            sesion(id: 's$i', fecha: DateTime(2026, 10, i)),
-        ]);
+      for (var i = 1; i <= 6; i++)
+        sesion(id: 's$i', fecha: DateTime(2026, 10, i)),
+    ]);
 
     test('cuatro de seis realizadas dan «4 de 6»', () {
       final progreso = ProgresoDelNadador(
@@ -132,7 +122,10 @@ void main() {
         ],
       );
 
-      expect(progreso.adherenciaDelPlan, const Adherencia(realizadas: 4, programadas: 6));
+      expect(
+        progreso.adherenciaDelPlan,
+        const Adherencia(realizadas: 4, programadas: 6),
+      );
       expect(progreso.adherenciaDelPlan.descripcion, '4 de 6');
     });
 
@@ -146,7 +139,10 @@ void main() {
     });
 
     test('sin registros, cero de las programadas', () {
-      final progreso = ProgresoDelNadador(plan: planDeSeis(), registros: const []);
+      final progreso = ProgresoDelNadador(
+        plan: planDeSeis(),
+        registros: const [],
+      );
       expect(progreso.adherenciaDelPlan.descripcion, '0 de 6');
     });
 
@@ -173,7 +169,10 @@ void main() {
     });
 
     test('un plan vacío no divide por cero', () {
-      final progreso = ProgresoDelNadador(plan: planDe([]), registros: const []);
+      final progreso = ProgresoDelNadador(
+        plan: planDe([]),
+        registros: const [],
+      );
       expect(progreso.adherenciaDelPlan.porcentaje, 0);
     });
   });
@@ -204,7 +203,8 @@ void main() {
       expect(
         suaves.adherenciaDelPlan,
         duras.adherenciaDelPlan,
-        reason: 'El principio VIII prohíbe combinar carga externa e interna en '
+        reason:
+            'El principio VIII prohíbe combinar carga externa e interna en '
             'un mismo indicador. Una adherencia que ponderara por intensidad '
             'sería exactamente ese indicador',
       );
@@ -226,9 +226,16 @@ void main() {
       ];
 
       expect(
-        ProgresoDelNadador(plan: cortas, registros: registros).adherenciaDelPlan,
-        ProgresoDelNadador(plan: largas, registros: registros).adherenciaDelPlan,
-        reason: 'Es un indicador deliberadamente aburrido. Si alguien lo '
+        ProgresoDelNadador(
+          plan: cortas,
+          registros: registros,
+        ).adherenciaDelPlan,
+        ProgresoDelNadador(
+          plan: largas,
+          registros: registros,
+        ).adherenciaDelPlan,
+        reason:
+            'Es un indicador deliberadamente aburrido. Si alguien lo '
             '«mejora» ponderando por volumen, esta prueba se entera',
       );
     });

@@ -15,18 +15,20 @@ void main() {
   late Analizador analizador;
 
   setUpAll(() {
-    final json = jsonDecode(
-      File('assets/biblioteca/ejercicios.json').readAsStringSync(),
-    ) as Map<String, dynamic>;
+    final json =
+        jsonDecode(File('assets/biblioteca/ejercicios.json').readAsStringSync())
+            as Map<String, dynamic>;
     analizador = Analizador(biblioteca: Biblioteca.desdeJson(json));
   });
 
   group('ejemplo de la sección 14', () {
-    const inicial = '200 N + 200 AL CAMBIO POSI + 200 PULL PL (75N=25 Prog) '
+    const inicial =
+        '200 N + 200 AL CAMBIO POSI + 200 PULL PL (75N=25 Prog) '
         '+ 400 AL (75 Estilo − 25 UW) + 4x100 AL SNK PN / 2\' '
         '+ 8x50 (1L 1Estilo 1>4)';
 
-    const central = '200 AL Pn (1L 50-E) + 100 E\n'
+    const central =
+        '200 AL Pn (1L 50-E) + 100 E\n'
         '200 AL (Coord brazada cada 5\'\') + 100 E\n'
         '200 AL (ROLIDO-Brazada) + 100 E\n'
         '200 PU/Pp E (50 c/brazo) + 100 E\n'
@@ -39,7 +41,8 @@ void main() {
       expect(
         resultado.metros,
         1800,
-        reason: 'Series interpretadas:\n'
+        reason:
+            'Series interpretadas:\n'
             '${resultado.series.map((s) => '  $s').join('\n')}\n'
             'Pendientes:\n'
             '${resultado.pendientes.map((p) => '  $p').join('\n')}',
@@ -51,7 +54,8 @@ void main() {
       expect(
         resultado.metros,
         1500,
-        reason: 'Series interpretadas:\n'
+        reason:
+            'Series interpretadas:\n'
             '${resultado.series.map((s) => '  $s').join('\n')}\n'
             'Pendientes:\n'
             '${resultado.pendientes.map((p) => '  $p').join('\n')}',
@@ -64,13 +68,15 @@ void main() {
     });
 
     test('la sesión completa suma 3.600 m', () {
-      final total = analizador.analizar(inicial).metros +
+      final total =
+          analizador.analizar(inicial).metros +
           analizador.analizar(central).metros +
           analizador.analizar(cierre).metros;
       expect(
         total,
         3600,
-        reason: 'Es el total que el documento normativo declara para esta '
+        reason:
+            'Es el total que el documento normativo declara para esta '
             'sesión. Una diferencia aquí invalida todo lo que se construya '
             'encima.',
       );

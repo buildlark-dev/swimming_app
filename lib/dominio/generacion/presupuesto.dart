@@ -43,9 +43,8 @@ class Presupuesto {
   double get porcentajeTecnico =>
       volumenTotal == 0 ? 0 : (metrosTecnicos * 100) / volumenTotal;
 
-  double porcentajeDe(Zona zona) => volumenTotal == 0
-      ? 0
-      : ((metrosPorZona[zona] ?? 0) * 100) / volumenTotal;
+  double porcentajeDe(Zona zona) =>
+      volumenTotal == 0 ? 0 : ((metrosPorZona[zona] ?? 0) * 100) / volumenTotal;
 
   double porcentajeDeEstilo(Estilo estilo) => volumenTotal == 0
       ? 0
@@ -91,7 +90,11 @@ Presupuesto calcularPresupuesto(PeticionGeneracion peticion) {
   // 1. Volumen por sesión: punto medio del rango, cuantizado a la piscina.
   final rango = categoria.volumenPorSesion;
   final medio = ((rango.minimo + rango.maximo) / 2).round();
-  final volumenPorSesion = _dentroDelRango(cuantizar(medio, unidad), rango, unidad);
+  final volumenPorSesion = _dentroDelRango(
+    cuantizar(medio, unidad),
+    rango,
+    unidad,
+  );
 
   final volumenTotal = volumenPorSesion * sesiones;
   final unidadesTotales = aUnidades(volumenTotal, unidad);
@@ -124,8 +127,11 @@ Presupuesto calcularPresupuesto(PeticionGeneracion peticion) {
   );
 
   // 4. Reparto por estilos según la priorización del estilo objetivo.
-  final metrosPorEstilo =
-      _repartirEstilos(peticion.estiloObjetivo, unidadesTotales, unidad);
+  final metrosPorEstilo = _repartirEstilos(
+    peticion.estiloObjetivo,
+    unidadesTotales,
+    unidad,
+  );
 
   // 5. Reparto entre sesiones.
   final unidadesPorSesion = repartirPorRestoMayor(
@@ -149,7 +155,8 @@ Presupuesto calcularPresupuesto(PeticionGeneracion peticion) {
     metrosTecnicos: metrosTecnicos,
     metrosPorEstilo: metrosPorEstilo,
     metrosPorSesion: metrosPorSesion,
-    porcentajesPorZona: fase?.distribucion ??
+    porcentajesPorZona:
+        fase?.distribucion ??
         <Zona, int>{
           for (final zona in ordenDeZonas) zona: zona == Zona.a1 ? 100 : 0,
         },
@@ -212,8 +219,7 @@ Map<Estilo, int> _repartirEstilos(
   );
 
   for (final estilo in complementarios) {
-    resultado[estilo] =
-        aMetros(entreComplementarios[estilo.name] ?? 0, unidad);
+    resultado[estilo] = aMetros(entreComplementarios[estilo.name] ?? 0, unidad);
   }
 
   return resultado;

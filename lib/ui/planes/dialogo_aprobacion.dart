@@ -84,15 +84,12 @@ class _DialogoAprobacionState extends State<DialogoAprobacion> {
                 // un límite, no una avería (FR-016).
                 Text(
                   'No se puede aprobar',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleSmall
-                      ?.copyWith(color: context.colores.cuidado),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: context.colores.cuidado,
+                  ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Estos incumplimientos no admiten justificación:',
-                ),
+                const Text('Estos incumplimientos no admiten justificación:'),
                 const SizedBox(height: 8),
                 for (final criterio in bloqueantes)
                   _Impedimento(criterio: criterio),

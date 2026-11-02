@@ -18,7 +18,8 @@ enum Estilo {
 
   /// Nombre válido del nado completo (sección 8). Las formas "Libre técnico",
   /// "Pecho asistido" y similares están prohibidas.
-  String get nombreDeNado => this == Estilo.combinado ? 'Nado CI' : 'Nado $nombre';
+  String get nombreDeNado =>
+      this == Estilo.combinado ? 'Nado CI' : 'Nado $nombre';
 
   static Estilo? porNombre(String texto) {
     final buscado = texto.trim().toLowerCase();
@@ -48,8 +49,7 @@ class RangoPorcentaje {
       porcentaje >= minimo && porcentaje <= maximo;
 
   @override
-  String toString() =>
-      minimo == maximo ? '$minimo%' : '$minimo-$maximo%';
+  String toString() => minimo == maximo ? '$minimo%' : '$minimo-$maximo%';
 }
 
 /// Priorización de estilos, aplicable de Precompetitivo en adelante
