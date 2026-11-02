@@ -7,6 +7,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/datos/local/almacen_local.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
 import 'package:natacion_app/dominio/biblioteca/indice_terminos.dart';
 import 'package:natacion_app/datos/perfil/repositorio_perfil.dart';
@@ -31,6 +32,7 @@ import 'package:natacion_app/ui/hub/planes_del_entrenador.dart';
 import 'package:natacion_app/ui/hub/todavia_no.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:natacion_app/ui/nadador/pantalla_mi_progreso.dart';
+import 'package:natacion_app/ui/peticion/peticion_del_nadador.dart';
 import 'package:natacion_app/ui/nadador/pantalla_sesion_del_dia.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:provider/provider.dart';
@@ -45,6 +47,8 @@ class ContextoDelHub {
     required this.indiceTerminos,
     required this.versionMetodologia,
     required this.nadadores,
+    required this.peticiones,
+    required this.almacen,
     required this.editor,
     required this.nadador,
     required this.planes,
@@ -75,6 +79,12 @@ class ContextoDelHub {
   final IndiceTerminos indiceTerminos;
   final String versionMetodologia;
   final RepositorioNadadores nadadores;
+
+  /// Lo que los nadadores piden (feature 008). Nulo sin servidor.
+  final RepositorioPeticiones? peticiones;
+
+  /// El almacén de esta cuenta, para lo que se responde a medias.
+  final AlmacenLocal? almacen;
 
   final EstadoEditor editor;
   final EstadoNadador nadador;
@@ -144,6 +154,12 @@ Widget contenidoDe(Destino destino, Rol rol, ContextoDelHub ctx) {
 Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
   return switch (contenido) {
     Contenido.generadorYEditor => _GenerarDelEntrenador(ctx: ctx),
+    Contenido.peticionDelNadador => PeticionDelNadador(
+      nadadorId: ctx.nadadorId,
+      nadadores: ctx.nadadores,
+      peticiones: ctx.peticiones,
+      almacen: ctx.almacen,
+    ),
     Contenido.planesDelEntrenador => PlanesDelEntrenador(
       queMirar: ctx.queMirar,
       idsQueMirar: ctx.idsQueMirar,

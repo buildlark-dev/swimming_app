@@ -10,6 +10,7 @@
 ///    registros, así que el recorrido del nadador no se podía comprobar.
 library;
 
+import 'package:natacion_app/datos/firestore/peticiones_firestore.dart';
 import 'package:natacion_app/datos/firestore/registros_firestore.dart';
 import 'package:natacion_app/datos/firestore/repositorios_firestore.dart';
 import 'package:natacion_app/datos/local/almacen_local.dart';
@@ -26,6 +27,7 @@ class RepositoriosDelHub {
     required this.asignaciones,
     required this.registrosLocales,
     this.registrosDelServidor,
+    this.peticiones,
   });
 
   /// Los de verdad: con servidor persisten; sin él, no.
@@ -59,6 +61,10 @@ class RepositoriosDelHub {
       // servidor, no el almacén de este dispositivo. Sin servidor no hay a
       // quién preguntar y el resumen cuenta con lo local.
       registrosDelServidor: db == null ? null : RegistrosFirestore(db),
+      // Sin servidor no hay peticiones: no hay a quien pedirle nada ni donde
+      // guardarlo. La pantalla lo dice en lugar de ofrecer una lista que no
+      // lleva a ninguna parte.
+      peticiones: db == null ? null : PeticionesFirestore(db),
     );
   }
 
@@ -72,6 +78,9 @@ class RepositoriosDelHub {
 
   /// Donde el entrenador mira quién ha respondido. Nulo sin servidor.
   final RepositorioRegistros? registrosDelServidor;
+
+  /// Lo que los nadadores piden (feature 008). Nulo sin servidor.
+  final RepositorioPeticiones? peticiones;
 
   /// Lo que el resumen del entrenador consulta para contar «en uso».
   RepositorioRegistros get registrosParaContar =>

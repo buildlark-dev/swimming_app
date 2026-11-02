@@ -99,19 +99,19 @@ recorded while no new plan and no new session appear on any of the swimmer's fiv
 
 > Written first, seen failing first.
 
-- [ ] T021 [P] [US1] Write `test/ui/peticion/lista_de_preguntas_test.dart`: the list asks exactly six things and no more (P1), stroke and event arrive pre-filled from the record (P2), **nothing requires free text** (P3), «No lo sé» is a valid date answer and does not block sending (P4), and the app never asks for category, ATR phase, accentuated component, technical diagnosis or discomfort — five absences, each asserted by searching the screen for the question (P6)
-- [ ] T022 [P] [US1] Write `test/ui/peticion/sin_ficha_test.dart`: a swimmer with no record, or whose record lacks a category or a target event, is told their coach has to complete it and is **not** shown a list that cannot lead to a draft (P7)
-- [ ] T023 [P] [US1] Write `test/dominio/peticiones/nada_llega_al_nadador_test.dart`: sending a request produces no assignment, no session and no plan visible to the swimmer (P18, FR-012), asserted over the repositories rather than over a screen
-- [ ] T024 [US1] Run T021-T023 and record that they fail
+- [X] T021 [P] [US1] Write `test/ui/peticion/lista_de_preguntas_test.dart`: the list asks exactly six things and no more (P1), stroke and event arrive pre-filled from the record (P2), **nothing requires free text** (P3), «No lo sé» is a valid date answer and does not block sending (P4), and the app never asks for category, ATR phase, accentuated component, technical diagnosis or discomfort — five absences, each asserted by searching the screen for the question (P6)
+- [X] T022 [P] [US1] Write `test/ui/peticion/sin_ficha_test.dart`: a swimmer with no record, or whose record lacks a category or a target event, is told their coach has to complete it and is **not** shown a list that cannot lead to a draft (P7)
+- [X] T023 [P] [US1] Write `test/dominio/peticiones/nada_llega_al_nadador_test.dart`: sending a request produces no assignment, no session and no plan visible to the swimmer (P18, FR-012), asserted over the repositories rather than over a screen
+- [X] T024 [US1] Run T021-T023 and record that they fail
 
 ### Implementation for User Story 1
 
-- [ ] T025 [P] [US1] Implement `lib/datos/firestore/peticiones_firestore.dart` against `RepositorioPeticiones`, writing only the fields the client is allowed to write and letting the server set the rest (P13)
-- [ ] T026 [P] [US1] Store the half-answered list through the existing `AlmacenLocal` in `lib/datos/local/repositorios_locales.dart`, so the list is answerable offline and survives closing the app (P5)
-- [ ] T027 [US1] Implement `lib/ui/peticion/lista_de_preguntas.dart` with the six questions in the order of research D10 — stroke, event, competition date, days, duration, pool — all answerable by tapping, with the stroke and event pre-filled from the record
-- [ ] T028 [US1] Wire the swimmer's `Generar` destination to the list in `lib/ui/hub/contenidos.dart`, replacing the "todavía no" content
-- [ ] T029 [US1] Make the app refuse to send while an input the engine needs is missing, saying **which** one (FR-004), without using the error colour — feature 005's FR-016 lock allows it in two screens only
-- [ ] T030 [US1] Add `hub — nadador con petición` to the screen bench in `test/ui/tema/ayuda_pantallas.dart` so the new screens are measured at 200%, in tappable areas and in dark, like every other screen (feature 005's A15 lock)
+- [X] T025 [P] [US1] Implement `lib/datos/firestore/peticiones_firestore.dart` against `RepositorioPeticiones`, writing only the fields the client is allowed to write and letting the server set the rest (P13)
+- [X] T026 [P] [US1] Store the half-answered list through the existing `AlmacenLocal` in `lib/datos/local/repositorios_locales.dart`, so the list is answerable offline and survives closing the app (P5)
+- [X] T027 [US1] Implement `lib/ui/peticion/lista_de_preguntas.dart` with the six questions in the order of research D10 — stroke, event, competition date, days, duration, pool — all answerable by tapping, with the stroke and event pre-filled from the record
+- [X] T028 [US1] Wire the swimmer's `Generar` destination to the list in `lib/ui/hub/contenidos.dart`, replacing the "todavía no" content
+- [X] T029 [US1] Make the app refuse to send while an input the engine needs is missing, saying **which** one (FR-004), without using the error colour — feature 005's FR-016 lock allows it in two screens only
+- [X] T030 [US1] Add `hub — nadador con petición` to the screen bench in `test/ui/tema/ayuda_pantallas.dart` so the new screens are measured at 200%, in tappable areas and in dark, like every other screen (feature 005's A15 lock)
 
 **Checkpoint**: a swimmer can ask. Nothing of theirs changed except that they asked.
 

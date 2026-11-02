@@ -415,6 +415,8 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       indiceTerminos: widget.recursos.indiceTerminos,
       versionMetodologia: widget.recursos.versionMetodologia,
       nadadores: _repos.nadadores,
+      peticiones: _repos.peticiones,
+      almacen: _almacen,
       editor: _editor,
       nadador: _nadador,
       planes: _planes,

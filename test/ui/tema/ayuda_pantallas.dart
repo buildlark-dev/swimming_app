@@ -9,6 +9,7 @@
 /// andamiaje como para no escribirlo dos veces.
 library;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -45,10 +46,13 @@ import 'package:natacion_app/ui/consentimiento/pantalla_confirmacion.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/ui/editor/pantalla_editor.dart';
 import 'package:natacion_app/ui/generacion/pantalla_peticion.dart';
+import 'package:natacion_app/dominio/peticiones/peticion.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:natacion_app/ui/nadador/pantalla_mi_progreso.dart';
 import 'package:natacion_app/ui/nadador/pantalla_sesion_del_dia.dart';
 import 'package:natacion_app/ui/nadadores/pantalla_perfiles.dart';
+import 'package:natacion_app/ui/peticion/estado_de_mi_peticion.dart';
+import 'package:natacion_app/ui/peticion/peticion_del_nadador.dart';
 import 'package:natacion_app/ui/planes/pantalla_plan.dart';
 import 'package:provider/provider.dart';
 
@@ -224,6 +228,46 @@ List<PantallaMedible> pantallasDeLaApp() => [
     () => PantallaPrincipal(
       recursos: _recursos(),
       cuenta: Cuenta(id: 'u2', rol: Rol.nadador, nadadorId: 'n1'),
+    ),
+  ),
+  // La lista de seis preguntas de la feature 008. Se mide aparte del HUB
+  // porque dentro de él solo aparece con servidor, y sin medirla nadie
+  // comprueba que un nadador de nueve años pueda tocar sus chips al 200% de
+  // letra. Ahí es donde vive SC-001.
+  PantallaMedible(
+    'petición — la lista de preguntas',
+    () => PeticionDelNadador(
+      nadadorId: 'n1',
+      nadadores: _nadadores(),
+      peticiones: _PeticionesDePrueba(),
+      hoyParaPruebas: _hoy,
+    ),
+  ),
+  PantallaMedible(
+    'petición — en qué va la mía',
+    () => EstadoDeMiPeticion(
+      peticion: PeticionDePlan(
+        nadadorId: 'n1',
+        enviadaEn: _hoy,
+        respuestas: RespuestasDePeticion(
+          estiloObjetivo: Estilo.libre,
+          pruebaObjetivo: '200 Libre',
+          fechaDeCompetencia: _hoy.add(const Duration(days: 24)),
+          diasDisponibles: [
+            _hoy.add(const Duration(days: 1)),
+            _hoy.add(const Duration(days: 3)),
+          ],
+          duracionSesionMinutos: 90,
+          longitudPiscina: 25,
+        ),
+        estado: EstadoDePeticion.rechazada,
+        // Un motivo de verdad, con la longitud que tendría uno de verdad: un
+        // texto corto no mide el ajuste de línea que el real sí necesita.
+        motivoDelRechazo:
+            'Pediste cinco días y en Precompetitivo son tres. Te armo uno de '
+            'tres y lo subimos cuando veamos cómo te sienta.',
+        respondidaEn: _hoy.add(const Duration(days: 1)),
+      ),
     ),
   ),
   PantallaMedible(
@@ -447,4 +491,41 @@ class _SinRed implements EstadoDeRed {
 class _TransporteQuieto implements EnvioDeRegistros {
   @override
   Future<DateTime> enviar(RegistroDeSesion registro) async => _hoy;
+}
+
+/// La ficha con la que se mide la lista de preguntas. Completa: sin categoría
+/// la pantalla enseñaría el aviso en lugar de las seis preguntas, y mediríamos
+/// un cartel.
+RepositorioNadadores _nadadores() {
+  final repositorio = RepositorioNadadoresMemoria();
+  unawaited(
+    repositorio.guardar(
+      const Nadador(
+        id: 'n1',
+        nombre: 'Juan Esteban Restrepo',
+        categoria: Categoria.precompetitivo,
+        estiloObjetivo: Estilo.libre,
+        pruebaObjetivo: '200 Libre',
+      ),
+    ),
+  );
+  return repositorio;
+}
+
+/// Sin petición mandada, para que lo que se mida sea la lista.
+class _PeticionesDePrueba implements RepositorioPeticiones {
+  @override
+  Future<PeticionDePlan?> miPeticion(String nadadorId) async => null;
+
+  @override
+  Future<List<PeticionDePlan>> cola() async => const [];
+
+  @override
+  Future<void> enviar({
+    required String nadadorId,
+    required RespuestasDePeticion respuestas,
+  }) async {}
+
+  @override
+  Future<void> marcarEnRevision(String nadadorId) async {}
 }
