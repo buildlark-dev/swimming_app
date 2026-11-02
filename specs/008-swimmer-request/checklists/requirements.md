@@ -31,25 +31,25 @@
 
 ## Notes
 
-Las dos aclaraciones quedaron cerradas el 2026-11-02 y están escritas en la sección
-`Clarifications` del spec, con sus consecuencias:
+Both clarifications were closed on 2026-11-02 and are written into the spec's
+`Clarifications` section, with their consequences:
 
-- **La fase ATR se deriva** de la fecha de competencia, con las duraciones de bloque que la
-  sección 12 cita. Trajo una pregunta más al nadador —cuándo compite— y la obligación de que
-  la fase derivada sea **visible y corregible**: una regla que decide metodología y no se
-  puede ver sería criterio delegado por la puerta de atrás.
-- **Las molestias no se preguntan**: se enlazan desde las sesiones de la feature 003. Trajo
-  la obligación de decir de qué fechas salen y de decirlo explícitamente cuando no hay
-  ninguna, porque un hueco en blanco se lee como «no le duele nada».
+- **The ATR phase is derived** from the competition date, using the block durations section 12
+  cites. That brought one more question for the swimmer — when they compete — and the
+  obligation that the derived phase be **visible and changeable**: a rule that decides
+  methodology and cannot be seen would be judgement delegated through the back door.
+- **Discomfort is not asked for**: it is linked from the feature 003 sessions. That brought the
+  obligation to say which dates it comes from, and to say so explicitly when there is none,
+  because a blank space reads as "nothing hurts".
 
-Lo que el prompt maestro o la constitución ya respondían, y por eso no se preguntó: de dónde
-sale la categoría (la ficha), qué se hace sin diagnóstico técnico (progresión estándar, sin
-inventar errores), y si una molestia modifica el plan (no).
+What the master prompt or the constitution already answered, and so was not asked: where the
+category comes from (the record), what happens with no technical diagnosis (standard
+progression, no invented errors), and whether a discomfort modifies the plan (it does not).
 
-Dos cosas para vigilar en `/speckit-plan`, porque son donde esta feature puede hacerse daño:
+Two things to watch in `/speckit-plan`, because they are where this feature can do harm:
 
-1. **La derivación de la fase es una regla de entrenamiento**, así que cae bajo el principio
-   III: prueba antes que implementación, con control negativo. Las fronteras de 8-15 días y
-   2-4 semanas son rangos, no líneas, y el plan tiene que decidir qué pasa en el solape.
-2. **FR-038 dice que la solicitud no copia las molestias.** Es fácil de incumplir sin querer
-   al construir la cola del entrenador, y el incumplimiento es un dato de salud duplicado.
+1. **Deriving the phase is a training rule**, so it falls under principle III: test before
+   implementation, with a negative control. The 8-15 day and 2-4 week boundaries are ranges,
+   not lines, and the plan has to decide what happens in the overlap.
+2. **FR-038 says the request does not copy the discomfort.** That is easy to break by accident
+   while building the coach's queue, and breaking it means a minor's health data duplicated.
