@@ -103,6 +103,7 @@ class Plan {
     this.fechaAprobacion,
     this.justificaciones = const <Justificacion>[],
     this.versionAnteriorId,
+    this.peticionId,
   });
 
   final String? id;
@@ -127,6 +128,18 @@ class Plan {
 
   /// De dónde salió el plan. Se fija al construir y no cambia nunca (FR-026).
   final OrigenPlan origen;
+
+  /// De qué petición de un nadador salió, si salió de una (feature 008).
+  ///
+  /// **`OrigenPlan` no se tocó.** Ese campo responde *cómo* se generó —a mano
+  /// o con el motor— y la respuesta para un borrador nacido de una petición es
+  /// `automatico`, el mismo motor que cualquier otro. *De qué petición* es otra
+  /// pregunta, y mezclarlas haría que las auditorías y las pruebas que ya
+  /// existen razonaran sobre un tercer origen que se comporta como el segundo.
+  ///
+  /// Nulo en un plan que el entrenador generó por su cuenta. Es lo que la cola
+  /// usa para distinguir los dos.
+  final String? peticionId;
 
   /// Se estampa al aprobar, desde `metodologia.json` (FR-026).
   final String? versionMetodologia;
@@ -182,6 +195,7 @@ class Plan {
     DateTime? fechaAprobacion,
     List<Justificacion>? justificaciones,
     String? versionAnteriorId,
+    String? peticionId,
   }) {
     return Plan(
       id: id ?? this.id,
@@ -201,6 +215,7 @@ class Plan {
       fechaAprobacion: fechaAprobacion ?? this.fechaAprobacion,
       justificaciones: justificaciones ?? this.justificaciones,
       versionAnteriorId: versionAnteriorId ?? this.versionAnteriorId,
+      peticionId: peticionId ?? this.peticionId,
     );
   }
 }

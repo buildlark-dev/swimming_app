@@ -37,9 +37,9 @@ Server in `firebase/functions/`, access rules in `firebase/firestore.rules`.
 
 **Purpose**: the places the new code will live, and nothing else
 
-- [ ] T001 Create `lib/dominio/peticiones/` and `test/dominio/peticiones/`, empty, so the pure domain has its folder before anything reaches for it
-- [ ] T002 [P] Create `lib/ui/peticion/` and `test/ui/peticion/`
-- [ ] T003 [P] Add the four-week window as a named constant `ventanaDeMolestias` in `lib/dominio/peticiones/peticion.dart`, with the comment that the number is declared by the spec and not fixed by the methodology, so that changing it is one edit and one test
+- [X] T001 Create `lib/dominio/peticiones/` and `test/dominio/peticiones/`, empty, so the pure domain has its folder before anything reaches for it
+- [X] T002 [P] Create `lib/ui/peticion/` and `test/ui/peticion/`
+- [X] T003 [P] Add the four-week window as a named constant `ventanaDeMolestias` in `lib/dominio/peticiones/peticion.dart`, with the comment that the number is declared by the spec and not fixed by the methodology, so that changing it is one edit and one test
 
 **Checkpoint**: folders exist. No behaviour yet.
 
@@ -56,32 +56,32 @@ in someone else's name.
 
 ### The derivation, test first
 
-- [ ] T004 Write `test/dominio/peticiones/fase_por_fecha_test.dart` **before any implementation**, covering: 15 days → `realizacion`, 16 → `transformacion`, 43 → `transformacion`, 44 → `acumulacion`, 1 → `realizacion`, a date today → no phase, a date in the past → no phase, null → no phase, and a category with `usaAtr == false` → no phase whatever the date (P21, P22, P23)
-- [ ] T005 Run T004 and **see every case fail**. A lock that was never red is not a lock; record in the commit that it was seen failing
-- [ ] T006 Implement `lib/dominio/peticiones/fase_por_fecha.dart` as a total function of (competition date, today, `Categoria`) returning `FaseDerivada`, with the boundaries from research D3: 1-15 → Realización, 16-43 → Transformación, 44+ → Acumulación, and no phase for 0, past, null, or `usaAtr == false`
-- [ ] T007 [P] Write `test/dominio/peticiones/componente_por_fase_test.dart` asserting that the component derived from each phase **passes `ValidacionPeticion`'s coherence check** — in particular that Acumulación never yields a speed component, which that check rejects (P25). Negative control: hand it a speed component in Acumulación and see the check reject it
-- [ ] T008 Implement `lib/dominio/peticiones/componente_por_fase.dart` drawing each component from `FaseAtr.objetivos`, and from the category's emphasis when there is no phase
-- [ ] T009 Add `FaseDerivada` to `lib/dominio/peticiones/peticion.dart` with `fase`, `diasHastaLaCompetencia` and a `porQue` that is **always present and always readable** — «Transformación, porque tu competencia es en 24 días» or «Sin fase: no hay fecha de competencia» (data-model.md)
+- [X] T004 Write `test/dominio/peticiones/fase_por_fecha_test.dart` **before any implementation**, covering: 15 days → `realizacion`, 16 → `transformacion`, 43 → `transformacion`, 44 → `acumulacion`, 1 → `realizacion`, a date today → no phase, a date in the past → no phase, null → no phase, and a category with `usaAtr == false` → no phase whatever the date (P21, P22, P23)
+- [X] T005 Run T004 and **see every case fail**. A lock that was never red is not a lock; record in the commit that it was seen failing
+- [X] T006 Implement `lib/dominio/peticiones/fase_por_fecha.dart` as a total function of (competition date, today, `Categoria`) returning `FaseDerivada`, with the boundaries from research D3: 1-15 → Realización, 16-43 → Transformación, 44+ → Acumulación, and no phase for 0, past, null, or `usaAtr == false`
+- [X] T007 [P] Write `test/dominio/peticiones/componente_por_fase_test.dart` asserting that the component derived from each phase **passes `ValidacionPeticion`'s coherence check** — in particular that Acumulación never yields a speed component, which that check rejects (P25). Negative control: hand it a speed component in Acumulación and see the check reject it
+- [X] T008 Implement `lib/dominio/peticiones/componente_por_fase.dart` drawing each component from `FaseAtr.objetivos`, and from the category's emphasis when there is no phase
+- [X] T009 Add `FaseDerivada` to `lib/dominio/peticiones/peticion.dart` with `fase`, `diasHastaLaCompetencia` and a `porQue` that is **always present and always readable** — «Transformación, porque tu competencia es en 24 días» or «Sin fase: no hay fecha de competencia» (data-model.md)
 
 ### The types
 
-- [ ] T010 [P] Write `test/dominio/peticiones/peticion_test.dart` for the invariants of `PeticionDePlan`: `rechazada` without a non-empty reason is not constructible, `aprobada` implies `planId != null`, and `esperando` implies `respondidaEn == null` and `motivoDelRechazo == null`. Each with a negative control that constructs the forbidden state and expects the throw
-- [ ] T011 Implement `PeticionDePlan` and `EstadoDePeticion` in `lib/dominio/peticiones/peticion.dart` with the four states `esperando` → `enRevision` → `aprobada` | `rechazada`, their Spanish wording from data-model.md, and the invariants from T010
-- [ ] T012 [P] Write `test/dominio/peticiones/respuestas_test.dart` for `RespuestasDePeticion`, quoting the constraints verbatim from data-model.md: `pruebaObjetivo` non-empty after trimming, `diasDisponibles` at least one and **no duplicate days**, `duracionSesionMinutos` between 30 and 180, `longitudPiscina` exactly 25 or 50, `fechaDeCompetencia` nullable because «no lo sé» is a valid answer
-- [ ] T013 Implement `RespuestasDePeticion` in `lib/dominio/peticiones/peticion.dart` with those constraints
-- [ ] T014 Add a `RepositorioPeticiones` interface to `lib/dominio/repositorios/repositorios.dart` — read mine, read the coach's queue, send, close — expressed in domain types only, with no Firestore vocabulary (principle II)
-- [ ] T015 Add a nullable `peticionId` to `Plan` in `lib/dominio/entidades/plan.dart`, leaving `OrigenPlan` untouched (research D5), and extend the existing plan tests to assert that a draft with `peticionId == null` behaves exactly as it does today
+- [X] T010 [P] Write `test/dominio/peticiones/peticion_test.dart` for the invariants of `PeticionDePlan`: `rechazada` without a non-empty reason is not constructible, `aprobada` implies `planId != null`, and `esperando` implies `respondidaEn == null` and `motivoDelRechazo == null`. Each with a negative control that constructs the forbidden state and expects the throw
+- [X] T011 Implement `PeticionDePlan` and `EstadoDePeticion` in `lib/dominio/peticiones/peticion.dart` with the four states `esperando` → `enRevision` → `aprobada` | `rechazada`, their Spanish wording from data-model.md, and the invariants from T010
+- [X] T012 [P] Write `test/dominio/peticiones/respuestas_test.dart` for `RespuestasDePeticion`, quoting the constraints verbatim from data-model.md: `pruebaObjetivo` non-empty after trimming, `diasDisponibles` at least one and **no duplicate days**, `duracionSesionMinutos` between 30 and 180, `longitudPiscina` exactly 25 or 50, `fechaDeCompetencia` nullable because «no lo sé» is a valid answer
+- [X] T013 Implement `RespuestasDePeticion` in `lib/dominio/peticiones/peticion.dart` with those constraints
+- [X] T014 Add a `RepositorioPeticiones` interface to `lib/dominio/repositorios/repositorios.dart` — read mine, read the coach's queue, send, close — expressed in domain types only, with no Firestore vocabulary (principle II)
+- [X] T015 Add a nullable `peticionId` to `Plan` in `lib/dominio/entidades/plan.dart`, leaving `OrigenPlan` untouched (research D5), and extend the existing plan tests to assert that a draft with `peticionId == null` behaves exactly as it does today
 
 ### The access rules, before anything writes
 
-- [ ] T016 Write the rules tests in `firebase/test/` for `peticionesDePlan` **before touching `firestore.rules`**: a swimmer creates their own and **cannot** create one named after another swimmer (P11); a swimmer with an open request **cannot** create a second (P12); no client can write `enviadaEn`, `estado`, `respondidaEn` or `planId`, field by field (P13); the coach reads any, writes none; a swimmer reads only their own
-- [ ] T017 Run T016 and see it fail — with no rule for the collection, Firestore denies by default, so **assert the specific denials and the one permitted create**, otherwise the test passes for the wrong reason
-- [ ] T018 Add `match /peticionesDePlan/{nadadorId}` to `firebase/firestore.rules`, with the document id equal to the swimmer id (research D6) so the one-at-a-time limit is enforced by the rule and not by the screen, plus `match /historial/{peticionId}` as server-write-only
-- [ ] T019 Verify that nothing in the new rules widens `registros`: the coach already reads his community's records (`firebase/firestore.rules` line 222) and this feature needs no more than that (research D7)
+- [X] T016 Write the rules tests in `firebase/test/` for `peticionesDePlan` **before touching `firestore.rules`**: a swimmer creates their own and **cannot** create one named after another swimmer (P11); a swimmer with an open request **cannot** create a second (P12); no client can write `enviadaEn`, `estado`, `respondidaEn` or `planId`, field by field (P13); the coach reads any, writes none; a swimmer reads only their own
+- [X] T017 Run T016 and see it fail — with no rule for the collection, Firestore denies by default, so **assert the specific denials and the one permitted create**, otherwise the test passes for the wrong reason
+- [X] T018 Add `match /peticionesDePlan/{nadadorId}` to `firebase/firestore.rules`, with the document id equal to the swimmer id (research D6) so the one-at-a-time limit is enforced by the rule and not by the screen, plus `match /historial/{peticionId}` as server-write-only
+- [X] T019 Verify that nothing in the new rules widens `registros`: the coach already reads his community's records (`firebase/firestore.rules` line 222) and this feature needs no more than that (research D7)
 
 ### The HUB slot
 
-- [ ] T020 Change the swimmer's `Generar` branch in `reparto` in `lib/dominio/hub/destino.dart` from `TodaviaNo` to a content value, and update `test/dominio/hub/` so the total-function test covers the new pair. The five destinations and their labels do not change — feature 007's label-fitting lock must stay green untouched
+- [X] T020 Change the swimmer's `Generar` branch in `reparto` in `lib/dominio/hub/destino.dart` from `TodaviaNo` to a content value, and update `test/dominio/hub/` so the total-function test covers the new pair. The five destinations and their labels do not change — feature 007's label-fitting lock must stay green untouched
 
 **Checkpoint**: the rule is derived and tested, the types hold their invariants, and **no client
 can write a request it should not**. User stories can begin.
@@ -222,9 +222,9 @@ state can approve its own request
 These are not implementation choices. Each one is the coach's judgement, written down because
 principle IV says software does not make them.
 
-- [ ] T065 **Coach's confirmation**: the derivation boundaries. The app will read 1-15 days as Realización, 16-43 as Transformación, 44+ as Acumulación, taking the **upper bound** of each range Issurin gives, so a swimmer only falls into the earlier phase when past every published window for the later one. The alternative — lower bounds — would put a swimmer ten days out in Transformación, inside the published taper window. **Blocks T006**
-- [ ] T066 **Coach's judgement**: the four-week window for "recent discomfort". It covers one microcycle plus the previous one, and the methodology does not fix a number. Longer shows more and may show what is already resolved; shorter risks missing what matters. **Blocks T040**
-- [ ] T067 **Coach's criterion**: the exact Spanish wording of the four states, seen on a phone with his own swimmers' requests in front of him. The draft wording is «Esperando a tu entrenador», «Tu entrenador la está viendo», «Aprobada», «Tu entrenador respondió». If anything there sounds like a promise, it goes
+- [X] T065 **Coach's confirmation**: the derivation boundaries. The app will read 1-15 days as Realización, 16-43 as Transformación, 44+ as Acumulación, taking the **upper bound** of each range Issurin gives, so a swimmer only falls into the earlier phase when past every published window for the later one. The alternative — lower bounds — would put a swimmer ten days out in Transformación, inside the published taper window. **Blocks T006**
+- [X] T066 **Coach's judgement**: the four-week window for "recent discomfort". It covers one microcycle plus the previous one, and the methodology does not fix a number. Longer shows more and may show what is already resolved; shorter risks missing what matters. **Blocks T040**
+- [X] T067 **Coach's criterion**: the exact Spanish wording of the four states, seen on a phone with his own swimmers' requests in front of him. The draft wording is «Esperando a tu entrenador», «Tu entrenador la está viendo», «Aprobada», «Tu entrenador respondió». If anything there sounds like a promise, it goes
 
 ---
 
