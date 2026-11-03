@@ -58,7 +58,9 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.pumpWidget(
-      MaterialApp(home: Scaffold(body: EstadoDeMiPeticion(peticion: peticion))),
+      MaterialApp(
+        home: Scaffold(body: EstadoDeMiPeticion(peticion: peticion)),
+      ),
     );
     await tester.pumpAndSettle();
   }

@@ -38,9 +38,7 @@ void main() {
     testWidgets('y no hay una séptima', (tester) async {
       await montarPeticion(tester);
 
-      final preguntas = tester
-          .widgetList(find.byType(Pregunta))
-          .length;
+      final preguntas = tester.widgetList(find.byType(Pregunta)).length;
 
       expect(
         preguntas,
@@ -53,36 +51,37 @@ void main() {
   });
 
   group('P6 — lo que NO se le pregunta', () {
-    testWidgets('ni categoría, ni fase, ni componente, ni diagnóstico, ni molestias', (
-      tester,
-    ) async {
-      await montarPeticion(tester);
+    testWidgets(
+      'ni categoría, ni fase, ni componente, ni diagnóstico, ni molestias',
+      (tester) async {
+        await montarPeticion(tester);
 
-      // Cada una de estas cinco ausencias es un requisito. La categoría la
-      // asigna el entrenador; la fase y el componente se derivan; el
-      // diagnóstico es observación suya; las molestias salen de las sesiones.
-      for (final palabra in [
-        'Categoría',
-        'categoría',
-        'Fase',
-        'ATR',
-        'Acumulación',
-        'Transformación',
-        'componente',
-        'Diagnóstico',
-        'diagnóstico',
-        'molesta',
-        'molestia',
-        'duele',
-        'dolor',
-      ]) {
-        expect(
-          find.textContaining(palabra),
-          findsNothing,
-          reason: '«$palabra» no es del nadador y no se le pregunta',
-        );
-      }
-    });
+        // Cada una de estas cinco ausencias es un requisito. La categoría la
+        // asigna el entrenador; la fase y el componente se derivan; el
+        // diagnóstico es observación suya; las molestias salen de las sesiones.
+        for (final palabra in [
+          'Categoría',
+          'categoría',
+          'Fase',
+          'ATR',
+          'Acumulación',
+          'Transformación',
+          'componente',
+          'Diagnóstico',
+          'diagnóstico',
+          'molesta',
+          'molestia',
+          'duele',
+          'dolor',
+        ]) {
+          expect(
+            find.textContaining(palabra),
+            findsNothing,
+            reason: '«$palabra» no es del nadador y no se le pregunta',
+          );
+        }
+      },
+    );
   });
 
   group('P2 — el estilo y la prueba vienen de su ficha', () {

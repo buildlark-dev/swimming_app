@@ -85,7 +85,10 @@ void main() {
     ) async {
       await montar(tester, esperandoAutorizacion: true);
 
-      expect(find.textContaining('no tienes que'), findsWidgets);
+      expect(
+        find.textContaining('No tienes que volver a responder'),
+        findsWidgets,
+      );
     });
 
     testWidgets('lo que respondió sigue a la vista', (tester) async {

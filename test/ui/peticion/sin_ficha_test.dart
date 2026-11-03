@@ -45,7 +45,10 @@ void main() {
         ),
       );
 
-      expect(find.byKey(const Key('peticion-ficha-incompleta')), findsOneWidget);
+      expect(
+        find.byKey(const Key('peticion-ficha-incompleta')),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('lista-de-preguntas')), findsNothing);
     });
 
@@ -61,7 +64,10 @@ void main() {
         ),
       );
 
-      expect(find.byKey(const Key('peticion-ficha-incompleta')), findsOneWidget);
+      expect(
+        find.byKey(const Key('peticion-ficha-incompleta')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('y el aviso dice a quién le toca arreglarlo', (tester) async {

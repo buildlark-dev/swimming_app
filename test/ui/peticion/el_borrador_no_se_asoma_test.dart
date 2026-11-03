@@ -22,8 +22,9 @@ void main() {
     nadadorId: 'n-ana',
     enviadaEn: hoy.subtract(const Duration(days: 1)),
     estado: estado,
-    motivoDelRechazo:
-        estado == EstadoDePeticion.rechazada ? 'Esta semana no.' : null,
+    motivoDelRechazo: estado == EstadoDePeticion.rechazada
+        ? 'Esta semana no.'
+        : null,
     planId: estado == EstadoDePeticion.aprobada ? 'p-1' : null,
     respondidaEn: estado.estaAbierta ? null : hoy,
     respuestas: RespuestasDePeticion(
@@ -121,7 +122,8 @@ void main() {
         expect(
           fuente,
           isNot(contains(prohibido)),
-          reason: '«$prohibido» pondría el borrador en el dispositivo del '
+          reason:
+              '«$prohibido» pondría el borrador en el dispositivo del '
               'nadador',
         );
       }

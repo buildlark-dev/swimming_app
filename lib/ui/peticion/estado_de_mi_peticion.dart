@@ -22,6 +22,7 @@ class EstadoDeMiPeticion extends StatelessWidget {
     required this.peticion,
     this.alPedirDeNuevo,
     this.esperandoAutorizacion = false,
+    this.alReintentar,
   });
 
   final PeticionDePlan peticion;
@@ -33,6 +34,10 @@ class EstadoDeMiPeticion extends StatelessWidget {
   /// **Cambia lo que se dice, no solo lo que se añade**: decirle «le llegó a
   /// tu entrenador» a algo que sigue en el teléfono es mentirle.
   final bool esperandoAutorizacion;
+
+  /// Pide que se intente mandar lo retenido. Nulo cuando no hay nada que
+  /// reintentar.
+  final VoidCallback? alReintentar;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +54,7 @@ class EstadoDeMiPeticion extends StatelessWidget {
         // «le llegó a tu entrenador» sobre algo que sigue en el teléfono
         // enseña a no creerle a la app, y aquí quien lee puede tener nueve
         // años.
-        if (esperandoAutorizacion)
+        if (esperandoAutorizacion) ...[
           const Aviso(
             tono: TonoDeAviso.cuidado,
             icono: Icons.lock_clock_outlined,
@@ -57,10 +62,24 @@ class EstadoDeMiPeticion extends StatelessWidget {
             mensaje:
                 'Tu solicitud está guardada en este teléfono y todavía no ha '
                 'salido: falta que tu acudiente autorice que tus datos se '
-                'guarden. En cuanto autorice, sale sola — no tienes que '
-                'volver a responder nada.',
-          )
-        else
+                'guarden. No tienes que volver a responder nada: cuando '
+                'autorice, toca el botón de abajo y sale.',
+          ),
+          // **El botón no es una comodidad.** Sin él, la promesa de que «sale
+          // sola» no se cumple en un teléfono: la puerta lee el
+          // consentimiento de la caché de Firestore, y hasta que esa caché se
+          // refresque sigue retenida. Lo encontró el Pixel 7; en el navegador
+          // bastaba recargar la página.
+          if (alReintentar != null) ...[
+            const SizedBox(height: Espaciado.corto),
+            FilledButton.icon(
+              key: const Key('ya-autorizo-mi-acudiente'),
+              onPressed: alReintentar,
+              icon: const Icon(Icons.lock_open_outlined),
+              label: const Text('Ya autorizó mi acudiente'),
+            ),
+          ],
+        ] else
           Tarjeta(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +192,10 @@ class _LoQuePediste extends StatelessWidget {
           _Linea('Prueba', respuestas.pruebaObjetivo),
           _Linea('Estilo', respuestas.estiloObjetivo.nombre),
           _Linea('Días por semana', '${respuestas.diasDisponibles.length}'),
-          _Linea('Cada entrenamiento', '${respuestas.duracionSesionMinutos} min'),
+          _Linea(
+            'Cada entrenamiento',
+            '${respuestas.duracionSesionMinutos} min',
+          ),
           _Linea('Piscina', '${respuestas.longitudPiscina} metros'),
           _Linea(
             'Competencia',

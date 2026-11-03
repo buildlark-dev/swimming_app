@@ -157,3 +157,47 @@ feature, not that test.
 4. **C12 last and carefully**: it is the one that protects a minor, and it is the one that has
    to be checked against the server rather than the screen.
 5. C8 again at the end, because a boundary is the first thing a refactor moves.
+
+---
+
+## What the walk actually found
+
+Written down because the walk is the task, and a task whose result is not
+recorded is a task nobody can learn from. Five defects came out of C1 to C12,
+and **four of them were invisible precisely because the app kept working**.
+
+| # | What was wrong | Why no test saw it |
+|---|---|---|
+| 1 | Nobody wrote the request's `estado` or `enviadaEn` | The reader defaults an absent state to `esperando` and an absent date to now. The queue would have shown "now" for a request sent three days ago |
+| 2 | The queue did not reload after answering | The screen held the same list object the fake returned, so the test saw the change without a reload |
+| 3 | Approving did nothing and said nothing | The draft was generated in memory and never saved, so `planId` was null and the server refused. The error went nowhere |
+| 4 | A swimmer with no consent was told "Le llegó" | The fake reported "held" from the first load, so the assertion passed through the initial state rather than the send |
+| 5 | `reintentarLoRetenido` was written, tested, and called by nobody | Unit tests cover the class; nothing covered that somebody calls it |
+
+**Two of those tests were passing for the wrong reason**, and both started
+failing as soon as the fake behaved like the real thing: returning a snapshot
+instead of a live list, and holding only after a send instead of always.
+
+That is the pattern worth carrying to feature 009: a fake that is more
+convenient than the real collaborator does not make the test easier, it makes
+it dishonest.
+
+### And one more, which only the phone could say
+
+C12 on the Pixel 7 found a sixth: **what was held did not leave, and could not
+be made to.**
+
+The gate reads consent from Firestore's local cache — by design, so it can
+answer with no connection — so a guardian authorising on another device does
+not change what the phone believes. On the web this was invisible, because
+reloading the page rebuilds everything and the cache comes back fresh. On a
+phone there is no reload: switching destinations keeps the screen alive in the
+`IndexedStack`, and **even a full restart of the app did not release it**.
+
+Meanwhile the notice promised «En cuanto autorice, sale sola», which was not
+true.
+
+So the retained notice now carries a button — «Ya autorizó mi acudiente» — and
+the wording says to use it. The button is not a convenience: without it the
+promise cannot be kept, and the person waiting is a minor whose request is
+sitting in a phone.

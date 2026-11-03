@@ -149,6 +149,13 @@ class _PeticionDelNadadorState extends State<PeticionDelNadador> {
     });
   }
 
+  /// Vuelve a intentarlo porque el nadador lo pidió: su acudiente ya autorizó,
+  /// y esperar a que una caché se refresque no es una respuesta.
+  Future<void> _reintentar() async {
+    setState(() => _cargando = true);
+    await _cargar();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_cargando) {
@@ -163,6 +170,7 @@ class _PeticionDelNadadorState extends State<PeticionDelNadador> {
       return EstadoDeMiPeticion(
         peticion: peticion,
         esperandoAutorizacion: _retenida,
+        alReintentar: _retenida ? _reintentar : null,
         alPedirDeNuevo: peticion.estaAbierta
             ? null
             : () => setState(() => _peticion = null),
@@ -224,7 +232,8 @@ class _PeticionDelNadadorState extends State<PeticionDelNadador> {
       alEnviarse: (enviada) async {
         var retenida = false;
         try {
-          retenida = await widget.estaRetenida?.call(enviada.nadadorId) ?? false;
+          retenida =
+              await widget.estaRetenida?.call(enviada.nadadorId) ?? false;
         } catch (_) {
           // No saberlo no puede dejar la pantalla a medias.
         }
@@ -245,11 +254,7 @@ class _PeticionDelNadadorState extends State<PeticionDelNadador> {
 /// Una pregunta de la lista. Existe como tipo para poder contarlas: que sean
 /// **seis y no siete** es parte del contrato (P1).
 class Pregunta extends StatelessWidget {
-  const Pregunta({
-    super.key,
-    required this.titulo,
-    required this.respuesta,
-  });
+  const Pregunta({super.key, required this.titulo, required this.respuesta});
 
   final String titulo;
   final Widget respuesta;
@@ -308,7 +313,8 @@ class _ListaDePreguntasState extends State<_ListaDePreguntas> {
       if (guardado == null || !mounted) return;
 
       setState(() {
-        _estilo = Estilo.porNombre(guardado['estilo'] as String? ?? '') ?? _estilo;
+        _estilo =
+            Estilo.porNombre(guardado['estilo'] as String? ?? '') ?? _estilo;
         _prueba = guardado['prueba'] as String? ?? _prueba;
         _duracion = (guardado['duracion'] as num?)?.toInt() ?? _duracion;
         _piscina = (guardado['piscina'] as num?)?.toInt() ?? _piscina;
@@ -329,19 +335,16 @@ class _ListaDePreguntasState extends State<_ListaDePreguntas> {
 
   Future<void> _guardarLoRespondido() async {
     try {
-      await widget.almacen?.escribir(
-        coleccionDeLoRespondido,
-        widget.ficha.id ?? '',
-        {
-          'estilo': _estilo.nombre,
-          'prueba': _prueba,
-          'competencia': _competencia?.toIso8601String(),
-          'noSabeCuando': _noSabeCuando,
-          'dias': _dias.toList()..sort(),
-          'duracion': _duracion,
-          'piscina': _piscina,
-        },
-      );
+      await widget.almacen
+          ?.escribir(coleccionDeLoRespondido, widget.ficha.id ?? '', {
+            'estilo': _estilo.nombre,
+            'prueba': _prueba,
+            'competencia': _competencia?.toIso8601String(),
+            'noSabeCuando': _noSabeCuando,
+            'dias': _dias.toList()..sort(),
+            'duracion': _duracion,
+            'piscina': _piscina,
+          });
     } catch (_) {
       // Guardar es una comodidad, no la petición. Si falla, se sigue.
     }
@@ -560,7 +563,8 @@ class _ListaDePreguntasState extends State<_ListaDePreguntas> {
 
   List<String> _pruebasOfrecidas() {
     final ofrecidas = [
-      for (final distancia in distanciasOfrecidas) '$distancia ${_estilo.nombre}',
+      for (final distancia in distanciasOfrecidas)
+        '$distancia ${_estilo.nombre}',
     ];
 
     // La de su ficha va siempre, aunque no esté en la lista: es la que su
@@ -615,7 +619,10 @@ class _ListaDePreguntasState extends State<_ListaDePreguntas> {
       // Mandada: lo guardado a medias ya no sirve, y dejarlo haria que la
       // siguiente peticion empezara con las respuestas de esta.
       try {
-        await widget.almacen?.borrar(coleccionDeLoRespondido, widget.ficha.id ?? '');
+        await widget.almacen?.borrar(
+          coleccionDeLoRespondido,
+          widget.ficha.id ?? '',
+        );
       } catch (_) {}
 
       if (!mounted) return;

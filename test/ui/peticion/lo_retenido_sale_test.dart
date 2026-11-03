@@ -29,6 +29,30 @@ void main() {
     );
   });
 
+  testWidgets('y el nadador puede pedir que se intente, sin esperar', (
+    tester,
+  ) async {
+    // **Lo encontró el Pixel 7.** En el navegador bastaba recargar la página;
+    // en un teléfono no hay recarga, y ni cambiar de destino ni reiniciar la
+    // app soltaban lo retenido: la puerta lee el consentimiento de la caché
+    // de Firestore, que sigue diciendo que no hay, y retiene —como debe—. El
+    // aviso prometía «en cuanto autorice, sale sola» y no se cumplía.
+    final reintentos = <String>[];
+
+    await montarPeticion(tester, retenida: true, reintentos: reintentos);
+
+    await tester.tap(find.byKey(const Key('enviar-peticion')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('falta-la-autorizacion')), findsOneWidget);
+
+    reintentos.clear();
+    await tester.tap(find.byKey(const Key('ya-autorizo-mi-acudiente')));
+    await tester.pumpAndSettle();
+
+    expect(reintentos, contains('n-ana'));
+  });
+
   testWidgets('y sin nadie a quien reintentar, no revienta', (tester) async {
     await montarPeticion(tester, nadadorId: null, ficha: null);
 
