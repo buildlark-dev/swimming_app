@@ -291,6 +291,101 @@ reading size. `test/ui/hub/etiquetas_caben_test.dart` measures it by comparing
 what each label is painted at against what it would need unconstrained — which
 is the only way to catch a label that ellipsises silently.
 
+## The swimmer's request
+
+A swimmer answers six questions and the coach gets a draft he did not type.
+Added by feature 008; the whole shape of it comes from one finding.
+
+### Why the list is six questions and not eleven
+
+Section 5 of `PROMPT_MAESTRO_V3.4` lists eleven inputs that must exist before
+anything is generated, and `PeticionGeneracion` asks for the same ones. Cross
+them with who actually knows each:
+
+| Input | Where it comes from |
+|---|---|
+| Category | The swimmer's record. The coach assigns it |
+| Target stroke, target event | The record, and the swimmer confirms or changes them |
+| Technical diagnosis | The record. These are errors the coach observed |
+| ATR phase, accentuated component | **Derived.** Nobody can ask a swimmer for these |
+| Days, session duration, pool length | The swimmer |
+| Competition date | The swimmer. A fact, not a judgement |
+| Dates with no service | The club |
+| Injuries or discomfort | **Their recent sessions**, never a new question |
+
+So the swimmer answers five and confirms two. Asking for the rest would be
+asking them to have an opinion on what is not theirs, which is principle IV in
+its most direct form: here the request comes from below.
+
+### Where the draft is generated, and why it matters
+
+**On the coach's device, when he opens the request.** Not on the swimmer's, and
+not on the server.
+
+Not on the swimmer's, because FR-013 says they must not see the draft before
+the signature. If their phone generated it, the plan would be sitting in their
+storage and "cannot see it" would be a property of which screen is shown.
+
+Not on the server, because that would mean reimplementing the generator, and
+the generator *is* the methodology. Two copies of it are two methodologies.
+
+A consequence worth knowing: a request nobody opens leaves no draft anywhere.
+That is also the honest state of affairs.
+
+### The phase derivation
+
+`lib/dominio/peticiones/fase_por_fecha.dart`. Counting back from the
+competition date, using the block durations section 12 of the methodology cites
+(Issurin 2010):
+
+| Days until the competition | Phase |
+|---|---|
+| 1 to 15 | Realización |
+| 16 to 43 | Transformación |
+| 44 or more | Acumulación |
+| 0, past, or none | **No phase.** The coach sets it |
+
+The boundaries are the **upper** bound of each published window. With lower
+bounds, a swimmer ten days out would land in Transformación, inside the
+published taper window, which is the error that costs a competition. Confirmed
+by the coach on 2026-11-02.
+
+The derived phase travels into the draft **with its reason written out**
+("Transformación, porque la competencia es en 24 días") and the coach changes
+it with one tap. A derived phase that could not be seen or corrected would be
+judgement delegated through the back door.
+
+### `peticionesDePlan`, deliberately not `solicitudes`
+
+`solicitudes` already exists: it holds the **consent requests** of feature 004,
+the ones a guardian redeems with a token. Two different things under one name
+in the same database is how a rule gets written against the wrong collection,
+and these rules guard a minor's data.
+
+The document id **is the swimmer id**. That is what makes "one open request at
+a time" a rule the server enforces: with a random id, no Firestore rule could
+count the open ones and the limit would live only in the screen. A closed
+request is overwritten by the next one, and the server archives the old one to
+`historial` first.
+
+Two things that caught us out, both worth remembering:
+
+- A `set()` over an existing document is an **update**, not a create. The
+  one-at-a-time rule has to cover both.
+- **Deleting a document does not delete its subcollections.** A request's
+  `historial` outlives the request. It is why `suprimirDatosDe` deletes the
+  history explicitly before the request itself.
+
+### Discomfort is read, never copied
+
+`LectorDeMolestias` has no write method, and that is the point. The coach sees
+what the swimmer already reported in their sessions, read where it already
+lives, inside a four-week window: a number the coach chose and the methodology
+does not fix. The request stores nothing about it.
+
+When the window holds none, the queue says so out loud. A blank space reads as
+"nothing hurts", and that is an assertion this app cannot make.
+
 ## The visual system
 
 Everything the app looks like is decided in `lib/ui/tema/` and nowhere else.

@@ -208,9 +208,9 @@ state can approve its own request
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T059 [P] Extend `firebase/functions/tools/sembrar-emulador.js` with what the quickstart needs: a swimmer **without valid consent**, a swimmer in a category **without ATR**, and three requests with competition dates at 15, 16 and 44 days out so C8 can be walked without arithmetic by hand
-- [ ] T060 [P] Document the new collection and the derivation in `docs/DEVELOPMENT.md`, including that `peticionesDePlan` is deliberately not called `solicitudes` and why (research D2)
-- [ ] T061 Run the four gates and require all green: `flutter analyze`, `flutter test`, `npm --prefix firebase test`, `npm --prefix firebase/functions test`. **The Dart test count does not go down.** A test from an earlier feature that fails means this feature changed a behaviour it had no business changing: fix this feature, not that test
+- [X] T059 [P] Extend `firebase/functions/tools/sembrar-emulador.js` with what the quickstart needs: a swimmer **without valid consent**, a swimmer in a category **without ATR**, and three requests with competition dates at 15, 16 and 44 days out so C8 can be walked without arithmetic by hand
+- [X] T060 [P] Document the new collection and the derivation in `docs/DEVELOPMENT.md`, including that `peticionesDePlan` is deliberately not called `solicitudes` and why (research D2)
+- [X] T061 Run the four gates and require all green: `flutter analyze`, `flutter test`, `npm --prefix firebase test`, `npm --prefix firebase/functions test`. **The Dart test count does not go down.** A test from an earlier feature that fails means this feature changed a behaviour it had no business changing: fix this feature, not that test
 - [ ] T062 Walk C1 to C12 of [quickstart.md](./quickstart.md) in the browser against the emulators, with both accounts
 - [ ] T063 Walk C12 on the Android emulator as well — it is the one that protects a minor, and feature 007 proved that four defects out of eight were only visible on a phone
 - [ ] T064 [P] Mark feature 008 as merged in `docs/ROADMAP.md` once it is
