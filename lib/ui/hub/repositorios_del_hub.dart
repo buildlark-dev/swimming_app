@@ -99,6 +99,12 @@ class RepositoriosDelHub {
     return repo is PeticionesConPuerta ? repo.estaRetenida(nadadorId) : false;
   }
 
+  /// Vuelve a intentar mandar lo retenido, por si ya hay consentimiento.
+  Future<void> reintentarLoRetenido(String nadadorId) async {
+    final repo = peticiones;
+    if (repo is PeticionesConPuerta) await repo.reintentarLoRetenido(nadadorId);
+  }
+
   /// Lo que el resumen del entrenador consulta para contar «en uso».
   RepositorioRegistros get registrosParaContar =>
       registrosDelServidor ?? registrosLocales;

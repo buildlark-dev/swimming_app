@@ -70,6 +70,8 @@ Future<PeticionesEnMemoria> montarPeticion(
   PeticionDePlan? peticion,
   Object? alEnviarFalla,
   AlmacenLocal? almacen,
+  bool retenida = false,
+  List<String>? reintentos,
 }) async {
   // La lista es larga y un `ListView` no construye lo que no se ve. Con una
   // pantalla alta se monta entera y las aserciones hablan de lo que hay, no de
@@ -103,6 +105,14 @@ Future<PeticionesEnMemoria> montarPeticion(
           nadadorId: nadadorId,
           nadadores: nadadores,
           peticiones: peticiones,
+          // Retenida **solo después de mandarla**, que es como se comporta
+          // de verdad: antes de mandar no hay nada retenido. Con un `true`
+          // fijo, la prueba pasaría por el estado inicial y no vería el
+          // defecto de que al enviar no se vuelve a mirar.
+          estaRetenida: (_) async => retenida && peticiones.enviadas.isNotEmpty,
+          alReintentarLoRetenido: reintentos == null
+              ? null
+              : (nadadorId) async => reintentos.add(nadadorId),
           almacen: almacen,
           hoyParaPruebas: DateTime(2026, 11, 2),
         ),

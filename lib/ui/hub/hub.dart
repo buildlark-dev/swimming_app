@@ -426,6 +426,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       nadadores: _repos.nadadores,
       peticiones: _repos.peticiones,
       estaRetenida: _repos.estaRetenida,
+      alReintentarLoRetenido: _repos.reintentarLoRetenido,
       repositorioPlanes: _repos.planes,
       molestias: _molestias,
       alCerrarPeticion: widget.recursos.operaciones?.cerrarPeticion,

@@ -144,6 +144,36 @@ void main() {
     });
   });
 
+  group('P9 — recién enviada y retenida, **no se dice que llegó**', () {
+    testWidgets('al mandarla sin consentimiento, lo dice en el acto', (
+      tester,
+    ) async {
+      // Lo encontró el recorrido del quickstart. La petición se quedaba en el
+      // teléfono —eso estaba bien— y la pantalla ponía «Le llegó. Él la
+      // revisa cuando pueda». Al enviar no se volvía a mirar si había quedado
+      // retenida, así que el aviso solo aparecía al reabrir la pantalla.
+      await montarPeticion(tester, retenida: true);
+
+      await tester.tap(find.byKey(const Key('enviar-peticion')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('falta-la-autorizacion')), findsOneWidget);
+      expect(find.textContaining('Le llegó'), findsNothing);
+    });
+
+    testWidgets('**control negativo**: con consentimiento sí dice que llegó', (
+      tester,
+    ) async {
+      await montarPeticion(tester);
+
+      await tester.tap(find.byKey(const Key('enviar-peticion')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('falta-la-autorizacion')), findsNothing);
+      expect(find.textContaining('Le llegó'), findsWidgets);
+    });
+  });
+
   group('FR-004 — no se envía a medias, y se dice qué falta', () {
     testWidgets('sin días elegidos, el botón no manda', (tester) async {
       final peticiones = await montarPeticion(tester);

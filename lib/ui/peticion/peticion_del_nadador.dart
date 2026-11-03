@@ -43,6 +43,7 @@ class PeticionDelNadador extends StatefulWidget {
     required this.nadadores,
     this.peticiones,
     this.estaRetenida,
+    this.alReintentarLoRetenido,
     this.almacen,
     this.hoyParaPruebas,
   });
@@ -60,6 +61,10 @@ class PeticionDelNadador extends StatefulWidget {
   /// Si lo que mandó sigue retenido en el dispositivo por falta del
   /// consentimiento del acudiente. Nulo cuando no hay nada que consultar.
   final Future<bool> Function(String nadadorId)? estaRetenida;
+
+  /// Manda lo que quedó retenido, por si el acudiente ya autorizó. Se llama
+  /// al abrir la pantalla, que es el momento en que algo pudo cambiar.
+  final Future<void> Function(String nadadorId)? alReintentarLoRetenido;
 
   /// Donde se guarda lo respondido a medias, para que sobreviva a cerrar la
   /// app (P5). Nulo en pruebas que no lo necesitan.
@@ -97,6 +102,16 @@ class _PeticionDelNadadorState extends State<PeticionDelNadador> {
     if (id == null || id.trim().isEmpty || widget.peticiones == null) {
       if (mounted) setState(() => _cargando = false);
       return;
+    }
+
+    // **Primero se reintenta lo retenido.** Estaba escrito y nadie lo
+    // llamaba: el acudiente autorizaba y la solicitud se quedaba en el
+    // teléfono para siempre. Un requisito implementado y desconectado es un
+    // requisito incumplido.
+    try {
+      await widget.alReintentarLoRetenido?.call(id);
+    } catch (_) {
+      // Si no se puede, sigue retenida. No se pierde.
     }
 
     Nadador? ficha;
@@ -200,7 +215,26 @@ class _PeticionDelNadadorState extends State<PeticionDelNadador> {
       hoy: widget.hoy,
       peticiones: peticiones,
       almacen: widget.almacen,
-      alEnviarse: (enviada) => setState(() => _peticion = enviada),
+      // **Al mandarla se vuelve a mirar si quedó retenida.** Sin esto, a un
+      // menor sin consentimiento la pantalla le decía «Le llegó. Él la revisa
+      // cuando pueda» sobre algo que seguía en su teléfono: el aviso correcto
+      // solo salía al reabrir la pantalla. Lo encontró el recorrido del
+      // quickstart, y es la mitad de P9 que se escapa — decirlo es una cosa,
+      // no decir lo contrario es otra.
+      alEnviarse: (enviada) async {
+        var retenida = false;
+        try {
+          retenida = await widget.estaRetenida?.call(enviada.nadadorId) ?? false;
+        } catch (_) {
+          // No saberlo no puede dejar la pantalla a medias.
+        }
+
+        if (!mounted) return;
+        setState(() {
+          _peticion = enviada;
+          _retenida = retenida;
+        });
+      },
     );
   }
 

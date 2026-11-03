@@ -221,7 +221,7 @@ main().then(() => process.exit(0));
 async function sembrarParaPeticiones() {
   const CLAVE_COMUN = CLAVE;
 
-  async function cuentaDe(correo, nadadorId, rol = 'nadador') {
+  async function cuentaDe(correo, nadadorId, nombreVisible, rol = 'nadador') {
     let cuenta;
     try {
       cuenta = await auth.getUserByEmail(correo);
@@ -232,7 +232,11 @@ async function sembrarParaPeticiones() {
     await auth.setCustomUserClaims(cuenta.uid, { rol });
     await db.collection('usuarios').doc(cuenta.uid).set({
       nadadorId,
-      nombre: nadadorId,
+      // **El perfil completo**, o la puerta del alta los manda a rellenarlo y
+      // nunca llegan a `Generar`. Lo vio el recorrido del quickstart: la
+      // siembra escribía el identificador como nombre y sin fecha.
+      nombre: nombreVisible,
+      fechaNacimiento: '2015-03-11',
       pais: 'CO',
       terminos: { version: 'v1', aceptadaEn: FieldValue.serverTimestamp() },
       perfilCompletadoEn: FieldValue.serverTimestamp(),
@@ -253,6 +257,7 @@ async function sembrarParaPeticiones() {
   const sinPermiso = await cuentaDe(
     'nadador.sinpermiso@ejemplo.test',
     'n-sin-permiso',
+    'Samuel Ríos',
   );
 
   // --- Categoría sin ATR (C9) -------------------------------------------
@@ -270,7 +275,11 @@ async function sembrarParaPeticiones() {
     versionDelTexto: 'v1',
     otorgadoEn: FieldValue.serverTimestamp(),
   });
-  const inicia = await cuentaDe('nadadora.inicia@ejemplo.test', 'n-inicia');
+  const inicia = await cuentaDe(
+    'nadadora.inicia@ejemplo.test',
+    'n-inicia',
+    'Lucía Mesa',
+  );
 
   // --- Los días frontera (C8) -------------------------------------------
   //

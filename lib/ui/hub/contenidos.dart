@@ -52,6 +52,7 @@ class ContextoDelHub {
     required this.peticiones,
     required this.almacen,
     this.estaRetenida,
+    this.alReintentarLoRetenido,
     this.repositorioPlanes,
     this.molestias,
     this.alCerrarPeticion,
@@ -91,6 +92,9 @@ class ContextoDelHub {
 
   /// El almacén de esta cuenta, para lo que se responde a medias.
   final AlmacenLocal? almacen;
+
+  /// Vuelve a intentar mandar lo retenido, por si ya hay consentimiento.
+  final Future<void> Function(String nadadorId)? alReintentarLoRetenido;
 
   /// Donde se guarda el borrador que sale de una petición, antes de firmarlo.
   final RepositorioPlanes? repositorioPlanes;
@@ -178,6 +182,7 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
       nadadores: ctx.nadadores,
       peticiones: ctx.peticiones,
       estaRetenida: ctx.estaRetenida,
+      alReintentarLoRetenido: ctx.alReintentarLoRetenido,
       almacen: ctx.almacen,
     ),
     Contenido.planesDelEntrenador => PlanesDelEntrenador(
