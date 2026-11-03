@@ -21,6 +21,7 @@
 
 import { FieldValue, Firestore } from 'firebase-admin/firestore';
 import { getFirestore } from 'firebase-admin/firestore';
+import { onDocumentCreated } from 'firebase-functions/v2/firestore';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
 
 const COL_PETICIONES = 'peticionesDePlan';
@@ -136,3 +137,44 @@ export const cerrarPeticion = onCall(async (peticion) => {
     motivo: datos['motivo'],
   });
 });
+
+/**
+ * Stamps a new request on arrival.
+ *
+ * **The device writes two fields and nothing else** — the rules enforce that,
+ * because a client that can write its own state can approve its own request.
+ * So `estado` and `enviadaEn` have to be written by somebody, and this is it.
+ *
+ * It was missing until the quickstart was walked. The app worked anyway,
+ * because the reader treats an absent state as `esperando` and an absent date
+ * as now — which is exactly the problem: the coach's queue would have shown
+ * "now" for a request sent three days ago, and nobody would have noticed
+ * because nothing failed.
+ */
+export const alLlegarUnaPeticion = onDocumentCreated(
+  `${COL_PETICIONES}/{nadadorId}`,
+  async (evento) => {
+    const documento = evento.data;
+    if (!documento) return;
+
+    const datos = documento.data() ?? {};
+
+    // Si ya trae estado, no es una petición recién mandada por un nadador:
+    // es el servidor reescribiéndola, o una siembra. No se toca.
+    if (datos['estado']) return;
+
+    await documento.ref.set(
+      {
+        estado: 'esperando',
+        // **La fecha del servidor, nunca la del dispositivo.** Cuándo se mandó
+        // una petición es un hecho, y el reloj de un teléfono es lo que su
+        // dueño haya puesto. Misma razón que la fecha del consentimiento.
+        enviadaEn: FieldValue.serverTimestamp(),
+        motivoDelRechazo: null,
+        planId: null,
+        respondidaEn: null,
+      },
+      { merge: true }
+    );
+  }
+);

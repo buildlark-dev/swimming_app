@@ -10,10 +10,13 @@
 /// que ya estaban. Los cinco destinos del HUB no cambian.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/auditoria/auditoria.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
+import 'package:natacion_app/dominio/entidades/plan.dart';
 
 import 'package:natacion_app/dominio/generacion/resultado.dart';
 import 'package:natacion_app/dominio/metodologia/fases_atr.dart';
@@ -42,6 +45,7 @@ class ColaDelEntrenador extends StatefulWidget {
     required this.peticiones,
     required this.nadadores,
     required this.molestias,
+    required this.planes,
     required this.biblioteca,
     required this.versionMetodologia,
     this.alCerrar,
@@ -51,6 +55,11 @@ class ColaDelEntrenador extends StatefulWidget {
   final RepositorioPeticiones? peticiones;
   final RepositorioNadadores nadadores;
   final LectorDeMolestias? molestias;
+
+  /// Donde se guarda el borrador antes de firmarlo. **Sin esto no hay plan al
+  /// que señalar**, y aprobar no puede hacer nada.
+  final RepositorioPlanes? planes;
+
   final Biblioteca biblioteca;
   final String versionMetodologia;
 
@@ -132,11 +141,22 @@ class _ColaDelEntrenadorState extends State<ColaDelEntrenador> {
         peticion: abierta,
         ficha: _fichas[abierta.nadadorId],
         molestias: widget.molestias,
+        planes: widget.planes,
         biblioteca: widget.biblioteca,
         versionMetodologia: widget.versionMetodologia,
         hoy: widget.hoy,
         alCerrar: widget.alCerrar,
-        alVolver: () => setState(() => _abierta = null),
+        // **Al volver se recarga.** Sin esto, una petición ya respondida
+        // seguía apareciendo en «esperando» y se respondía dos veces: el
+        // servidor la cerraba bien y la pantalla no se enteraba. Lo encontró
+        // el recorrido del quickstart, no una prueba.
+        alVolver: () {
+          setState(() {
+            _abierta = null;
+            _cargando = true;
+          });
+          unawaited(_cargar());
+        },
       );
     }
 
@@ -258,6 +278,7 @@ class _LaPeticionAbierta extends StatefulWidget {
     required this.peticion,
     required this.ficha,
     required this.molestias,
+    required this.planes,
     required this.biblioteca,
     required this.versionMetodologia,
     required this.hoy,
@@ -268,6 +289,7 @@ class _LaPeticionAbierta extends StatefulWidget {
   final PeticionDePlan peticion;
   final Nadador? ficha;
   final LectorDeMolestias? molestias;
+  final RepositorioPlanes? planes;
   final Biblioteca biblioteca;
   final String versionMetodologia;
   final DateTime hoy;
@@ -284,6 +306,7 @@ class _LaPeticionAbiertaState extends State<_LaPeticionAbierta> {
   FaseAtr? _faseElegida;
   List<MolestiaEnlazada>? _molestias;
   bool _faltaElMotivo = false;
+  String? _noSePudoResponder;
 
   @override
   void initState() {
@@ -346,7 +369,10 @@ class _LaPeticionAbiertaState extends State<_LaPeticionAbierta> {
         ),
         const SizedBox(height: Espaciado.amplio),
 
-        _LoQuePidio(respuestas: widget.peticion.respuestas),
+        _LoQuePidio(
+          respuestas: widget.peticion.respuestas,
+          enviadaEn: widget.peticion.enviadaEn,
+        ),
         const SizedBox(height: Espaciado.amplio),
 
         _Molestias(molestias: _molestias),
@@ -366,6 +392,7 @@ class _LaPeticionAbiertaState extends State<_LaPeticionAbierta> {
         _LaRespuesta(
           motivo: _motivo,
           faltaElMotivo: _faltaElMotivo,
+          noSePudoResponder: _noSePudoResponder,
           puedeAprobar: _puedeAprobar(borrador),
           alRechazar: _rechazar,
           alAprobar: () => _aprobar(borrador),
@@ -393,32 +420,94 @@ class _LaPeticionAbiertaState extends State<_LaPeticionAbierta> {
       return;
     }
 
-    setState(() => _faltaElMotivo = false);
-    await widget.alCerrar?.call(
-      nadadorId: widget.peticion.nadadorId,
-      decision: 'rechazada',
-      motivo: motivo,
-    );
-    widget.alVolver();
+    setState(() {
+      _faltaElMotivo = false;
+      _noSePudoResponder = null;
+    });
+
+    try {
+      await widget.alCerrar?.call(
+        nadadorId: widget.peticion.nadadorId,
+        decision: 'rechazada',
+        motivo: motivo,
+      );
+      widget.alVolver();
+    } catch (problema) {
+      _decirQueNoSePudo(problema);
+    }
   }
 
   Future<void> _aprobar(BorradorDePeticion? borrador) async {
     final resultado = borrador?.resultado;
     if (resultado is! MicrocicloGenerado) return;
 
-    await widget.alCerrar?.call(
-      nadadorId: widget.peticion.nadadorId,
-      decision: 'aprobada',
-      planId: resultado.plan.id,
-    );
-    widget.alVolver();
+    try {
+      // **Primero se guarda, después se firma.** El borrador se genera en
+      // memoria al abrir la petición y no existía en ninguna parte: al
+      // aprobar se mandaba un `planId` nulo, el servidor contestaba «una
+      // petición aprobada tiene que señalar a un plan», y la pantalla se
+      // quedaba igual. Lo encontró el recorrido del quickstart.
+      //
+      // Nace en `borrador`, como cualquier salida de la automatización: lo
+      // que la firma mueve a `aprobado` es el ciclo de vida que ya existe
+      // desde la feature 001, no esta pantalla.
+      final planId =
+          resultado.plan.id ??
+          await widget.planes?.guardarBorrador(resultado.plan);
+
+      // **Y se firma de verdad.** Aprobar la petición *es* la firma: dejar el
+      // plan en `borrador` obligaría al entrenador a buscarlo en el editor y
+      // aprobarlo otra vez, con la petición diciendo «Aprobada» mientras
+      // nadie ha firmado nada.
+      //
+      // Entregarlo sigue siendo el acto aparte que vive en `Ver Plan`: firmar
+      // no es entregar.
+      if (planId != null) {
+        final firmado = resultado.plan.copiarCon(
+          id: planId,
+          estado: EstadoPlan.aprobado,
+          fechaAprobacion: widget.hoy,
+        );
+        // La instantánea de auditoría, en el formato que la feature 001
+        // guarda: qué criterios cumplía el plan el día que se firmó.
+        final revisado = Auditoria().evaluar(firmado);
+        await widget.planes?.guardarAprobado(firmado, {
+          'cumpleTodo': revisado.apruebaSinBloqueos,
+          'criterios': {
+            for (final criterio in revisado.criterios)
+              criterio.id: criterio.cumple,
+          },
+        });
+      }
+
+      await widget.alCerrar?.call(
+        nadadorId: widget.peticion.nadadorId,
+        decision: 'aprobada',
+        planId: planId,
+      );
+      widget.alVolver();
+    } catch (problema) {
+      _decirQueNoSePudo(problema);
+    }
+  }
+
+  /// Un botón que no hace nada y no explica por qué es el mismo defecto que
+  /// una pantalla que gira para siempre, con otra cara.
+  void _decirQueNoSePudo(Object problema) {
+    if (!mounted) return;
+    setState(() {
+      _noSePudoResponder =
+          'No se pudo mandar tu respuesta. Inténtalo otra vez cuando vuelva '
+          'la conexión: lo que escribiste no se perdió ($problema).';
+    });
   }
 }
 
 class _LoQuePidio extends StatelessWidget {
-  const _LoQuePidio({required this.respuestas});
+  const _LoQuePidio({required this.respuestas, required this.enviadaEn});
 
   final RespuestasDePeticion respuestas;
+  final DateTime enviadaEn;
 
   @override
   Widget build(BuildContext context) => Tarjeta(
@@ -427,6 +516,13 @@ class _LoQuePidio extends StatelessWidget {
       children: [
         Text('Lo que pidió', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: Espaciado.corto),
+        // **Cuándo la mandó** (FR-019). Estaba en el requisito, el disparador
+        // lo estampa y la pantalla no lo enseñaba: una petición de hace tres
+        // días y una de hace diez minutos se trabajan distinto.
+        Text(
+          'La mandó el ${enviadaEn.day}/${enviadaEn.month}',
+          key: const Key('cuando-la-mando'),
+        ),
         Text(
           '${respuestas.pruebaObjetivo} · ${respuestas.estiloObjetivo.nombre}',
         ),
@@ -596,6 +692,7 @@ class _LaRespuesta extends StatelessWidget {
   const _LaRespuesta({
     required this.motivo,
     required this.faltaElMotivo,
+    required this.noSePudoResponder,
     required this.puedeAprobar,
     required this.alRechazar,
     required this.alAprobar,
@@ -603,6 +700,7 @@ class _LaRespuesta extends StatelessWidget {
 
   final TextEditingController motivo;
   final bool faltaElMotivo;
+  final String? noSePudoResponder;
   final bool puedeAprobar;
   final VoidCallback alRechazar;
   final VoidCallback alAprobar;
@@ -632,6 +730,15 @@ class _LaRespuesta extends StatelessWidget {
             mensaje:
                 'Un rechazo sin motivo deja a quien lo pidió sin saber por '
                 'qué. Escríbele algo, aunque sea corto.',
+          ),
+        ],
+        if (noSePudoResponder != null) ...[
+          const SizedBox(height: Espaciado.corto),
+          Aviso(
+            tono: TonoDeAviso.cuidado,
+            icono: Icons.cloud_off_outlined,
+            claveDelMensaje: const Key('no-se-pudo-responder'),
+            mensaje: noSePudoResponder!,
           ),
         ],
         const SizedBox(height: Espaciado.amplio),

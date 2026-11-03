@@ -132,6 +132,29 @@ void main() {
     });
   });
 
+  group('el disparador escribe lo que el dispositivo no puede', () {
+    // **Lo encontró el recorrido del quickstart, no una prueba.** El documento
+    // de una petición recién mandada tenía solo `nadadorId` y `respuestas`:
+    // las reglas impiden que el cliente escriba nada más, y no había nadie
+    // poniendo el estado ni la fecha. La app funcionaba —el lector da
+    // `esperando` por omisión y la fecha de ahora—, y por eso nadie lo habría
+    // visto: la cola habría enseñado «ahora» para algo mandado hace tres días.
+    test('hay un disparador para las peticiones nuevas', () {
+      expect(servidor, contains('onDocumentCreated'));
+      expect(servidor, contains('alLlegarUnaPeticion'));
+    });
+
+    test('y estampa la fecha con el reloj del servidor', () {
+      expect(
+        servidor,
+        contains('serverTimestamp'),
+        reason:
+            'El reloj de un teléfono es lo que su dueño haya puesto, y cuándo '
+            'se mandó una petición es un hecho',
+      );
+    });
+  });
+
   group('la llamada se llama igual en los dos lados', () {
     test('cerrarPeticion está exportada en el servidor', () {
       expect(servidor, contains('cerrarPeticion'));

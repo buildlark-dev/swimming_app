@@ -52,6 +52,7 @@ class ContextoDelHub {
     required this.peticiones,
     required this.almacen,
     this.estaRetenida,
+    this.repositorioPlanes,
     this.molestias,
     this.alCerrarPeticion,
     required this.editor,
@@ -90,6 +91,9 @@ class ContextoDelHub {
 
   /// El almacén de esta cuenta, para lo que se responde a medias.
   final AlmacenLocal? almacen;
+
+  /// Donde se guarda el borrador que sale de una petición, antes de firmarlo.
+  final RepositorioPlanes? repositorioPlanes;
 
   /// Si lo que mandó sigue retenido en el dispositivo (feature 008).
   final Future<bool> Function(String nadadorId)? estaRetenida;
@@ -293,6 +297,7 @@ class _GenerarDelEntrenadorState extends State<_GenerarDelEntrenador> {
                 peticiones: ctx.peticiones,
                 nadadores: ctx.nadadores,
                 molestias: ctx.molestias,
+                planes: ctx.repositorioPlanes,
                 biblioteca: ctx.biblioteca,
                 versionMetodologia: ctx.versionMetodologia,
                 alCerrar: ctx.alCerrarPeticion,

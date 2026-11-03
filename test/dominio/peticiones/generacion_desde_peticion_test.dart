@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:natacion_app/datos/serializacion.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
@@ -233,6 +234,31 @@ void main() {
         isFalse,
         reason: 'No es que falte la fase: es que lo pedido no cabe',
       );
+    });
+  });
+
+  group('FR-010 — la marca sobrevive a guardar el plan', () {
+    test('`peticionId` viaja en el JSON, en los dos sentidos', () {
+      // Lo encontró el recorrido del quickstart: el plan se guardaba y el
+      // `peticionId` no estaba en el documento. FR-010 se cumplía en memoria
+      // y se perdía al escribir, que es la peor forma de cumplirse.
+      final generado =
+          (generar().resultado as MicrocicloGenerado).plan;
+
+      final json = planAJson(generado);
+      expect(json['peticionId'], 'n-ana');
+
+      expect(planDesdeJson(json, biblioteca()).peticionId, 'n-ana');
+    });
+
+    test('y un plan sin petición no lo lleva', () {
+      final aMano = Plan(
+        nombre: 'Escrito a mano',
+        categoria: Categoria.precompetitivo,
+        estiloObjetivo: Estilo.libre,
+      );
+
+      expect(planAJson(aMano).containsKey('peticionId'), isFalse);
     });
   });
 

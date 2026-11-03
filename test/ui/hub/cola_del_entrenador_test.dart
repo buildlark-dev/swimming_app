@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:natacion_app/datos/memoria/repositorios_memoria.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
+import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/peticiones/molestias_enlazadas.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/metodologia/estilos.dart';
@@ -55,6 +56,7 @@ void main() {
     List<PeticionDePlan> peticiones = const [],
     List<MolestiaEnlazada> molestias = const [],
     bool sinConexion = false,
+    bool alCerrarFalla = false,
   }) async {
     tester.view.physicalSize = const Size(900, 2800);
     tester.view.devicePixelRatio = 1;
@@ -71,7 +73,12 @@ void main() {
       ),
     );
 
-    final repo = _ColaSembrada(peticiones, falla: sinConexion);
+    final repo = _ColaSembrada(
+      peticiones,
+      falla: sinConexion,
+      alCerrarFalla: alCerrarFalla,
+    );
+    final planes = _PlanesSembrados();
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
@@ -86,6 +93,7 @@ void main() {
             biblioteca: bibliotecaDePrueba(),
             versionMetodologia: '3.6.0',
             hoyParaPruebas: hoy,
+            planes: planes,
             alCerrar: repo.cerrar,
           ),
         ),
@@ -93,7 +101,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    return _Cola(repo);
+    return _Cola(repo, planes);
   }
 
   group('P27 — lo que el entrenador ve de cada petición', () {
@@ -102,6 +110,18 @@ void main() {
 
       expect(find.text('Ana María Restrepo'), findsWidgets);
       expect(find.textContaining('200 Libre'), findsWidgets);
+    });
+
+    testWidgets('FR-019 — y cuándo la mandó', (tester) async {
+      // Una petición de hace tres días y una de hace diez minutos se trabajan
+      // distinto. Faltaba: el requisito lo pedía, el disparador del servidor
+      // estampa la fecha y la pantalla no la enseñaba.
+      await montarCola(tester, peticiones: [peticionDe('n-ana')]);
+
+      await tester.tap(find.byKey(const Key('abrir-peticion-n-ana')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('cuando-la-mando')), findsOneWidget);
     });
 
     testWidgets('sin ninguna, lo dice en lugar de quedarse en blanco', (
@@ -242,6 +262,157 @@ void main() {
     });
   });
 
+  group('aprobar guarda el plan, y si falla se dice', () {
+    testWidgets('**el borrador se guarda antes de firmarlo**', (tester) async {
+      // Lo encontró el recorrido del quickstart. El borrador se generaba en
+      // memoria y no se guardaba en ninguna parte, así que al aprobar se
+      // mandaba un `planId` nulo, el servidor respondía «una petición
+      // aprobada tiene que señalar a un plan» y **la pantalla no hacía nada**.
+      final cola = await montarCola(
+        tester,
+        peticiones: [peticionDe('n-ana', competenciaEnDias: 20)],
+      );
+
+      await tester.tap(find.byKey(const Key('abrir-peticion-n-ana')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('aprobar-peticion')));
+      await tester.pumpAndSettle();
+
+      expect(
+        cola.planes.guardados,
+        hasLength(1),
+        reason: 'Sin guardarlo no hay plan al que señalar',
+      );
+      expect(cola.repo.cerradas.single.decision, 'aprobada');
+      expect(cola.repo.cerradas.single.planId, isNotNull);
+    });
+
+    testWidgets('**y queda firmado, no en borrador**', (tester) async {
+      // Dejarlo en `borrador` obligaría al entrenador a buscarlo en el editor
+      // y aprobarlo otra vez, con la petición diciendo «Aprobada» mientras
+      // nadie ha firmado nada. Aprobar la petición *es* la firma.
+      final cola = await montarCola(
+        tester,
+        peticiones: [peticionDe('n-ana', competenciaEnDias: 20)],
+      );
+
+      await tester.tap(find.byKey(const Key('abrir-peticion-n-ana')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('aprobar-peticion')));
+      await tester.pumpAndSettle();
+
+      final guardado = await cola.planes.obtener(
+        cola.repo.cerradas.single.planId!,
+      );
+
+      expect(guardado!.estado, EstadoPlan.aprobado);
+      expect(guardado.fechaAprobacion, isNotNull);
+    });
+
+    testWidgets('pero firmar no es entregar', (tester) async {
+      // Entregarlo es el acto aparte que vive en `Ver Plan`.
+      final cola = await montarCola(
+        tester,
+        peticiones: [peticionDe('n-ana', competenciaEnDias: 20)],
+      );
+
+      await tester.tap(find.byKey(const Key('abrir-peticion-n-ana')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('aprobar-peticion')));
+      await tester.pumpAndSettle();
+
+      final guardado = await cola.planes.obtener(
+        cola.repo.cerradas.single.planId!,
+      );
+
+      expect(
+        guardado!.estado,
+        isNot(EstadoPlan.publicado),
+        reason: 'Publicar es entregar, y eso lo decide él aparte',
+      );
+    });
+
+    testWidgets('y el plan guardado lleva de qué petición salió', (
+      tester,
+    ) async {
+      final cola = await montarCola(
+        tester,
+        peticiones: [peticionDe('n-ana', competenciaEnDias: 20)],
+      );
+
+      await tester.tap(find.byKey(const Key('abrir-peticion-n-ana')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('aprobar-peticion')));
+      await tester.pumpAndSettle();
+
+      final guardado = cola.planes.guardados.single;
+      expect(guardado.peticionId, 'n-ana');
+      expect(guardado.origen, OrigenPlan.automatico);
+    });
+
+    testWidgets('**si el cierre falla, se dice**', (tester) async {
+      // Un botón que no hace nada y no explica por qué es el mismo defecto
+      // que la pantalla que gira para siempre, con otra cara.
+      final cola = await montarCola(
+        tester,
+        peticiones: [peticionDe('n-ana', competenciaEnDias: 20)],
+        alCerrarFalla: true,
+      );
+
+      await tester.tap(find.byKey(const Key('abrir-peticion-n-ana')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('aprobar-peticion')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('no-se-pudo-responder')), findsOneWidget);
+      expect(cola.repo.cerradas, isEmpty);
+    });
+
+    testWidgets('y un rechazo que falla también', (tester) async {
+      final cola = await montarCola(
+        tester,
+        peticiones: [peticionDe('n-ana')],
+        alCerrarFalla: true,
+      );
+
+      await tester.tap(find.byKey(const Key('abrir-peticion-n-ana')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('motivo-del-rechazo')),
+        'Esta semana no.',
+      );
+      await tester.tap(find.byKey(const Key('rechazar-peticion')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('no-se-pudo-responder')), findsOneWidget);
+      expect(cola.repo.cerradas, isEmpty);
+    });
+  });
+
+  group('al responder, la cola se entera', () {
+    testWidgets('**lo respondido deja de estar esperando**', (tester) async {
+      // Lo encontró el recorrido del quickstart, no una prueba: el servidor
+      // cerraba bien la petición y la cola seguía enseñándola en «esperando»,
+      // porque volver a la lista no la recargaba. Se responde dos veces lo
+      // mismo, y la segunda vez el servidor ya no la encuentra.
+      await montarCola(tester, peticiones: [peticionDe('n-ana')]);
+
+      await tester.tap(find.byKey(const Key('abrir-peticion-n-ana')));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('motivo-del-rechazo')),
+        'Esta semana no.',
+      );
+      await tester.tap(find.byKey(const Key('rechazar-peticion')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('cola-esperando')), findsNothing);
+      expect(find.byKey(const Key('cola-respondidas')), findsOneWidget);
+    });
+  });
+
   group('P19 — la misma auditoría que sus propios planes', () {
     testWidgets('el borrador muestra qué criterios cumple y cuáles no', (
       tester,
@@ -312,22 +483,47 @@ void main() {
 }
 
 class _Cola {
-  const _Cola(this.repo);
+  const _Cola(this.repo, this.planes);
   final _ColaSembrada repo;
+  final _PlanesSembrados planes;
 }
 
 class _CierreRegistrado {
-  const _CierreRegistrado(this.nadadorId, this.decision, this.motivo);
+  const _CierreRegistrado(
+    this.nadadorId,
+    this.decision,
+    this.motivo,
+    this.planId,
+  );
   final String nadadorId;
   final String decision;
   final String? motivo;
+  final String? planId;
+}
+
+/// Guarda lo que la cola le mande, para poder comprobar que lo manda.
+class _PlanesSembrados extends RepositorioPlanesMemoria {
+  final List<Plan> guardados = [];
+
+  @override
+  Future<String> guardarBorrador(Plan plan) async {
+    guardados.add(plan);
+    final id = plan.id ?? 'p-generado-${guardados.length}';
+    await super.guardarBorrador(plan.copiarCon(id: id));
+    return id;
+  }
 }
 
 class _ColaSembrada implements RepositorioPeticiones {
-  _ColaSembrada(this._peticiones, {this.falla = false});
+  _ColaSembrada(
+    List<PeticionDePlan> peticiones, {
+    this.falla = false,
+    this.alCerrarFalla = false,
+  }) : _peticiones = List.of(peticiones);
 
   final List<PeticionDePlan> _peticiones;
   final bool falla;
+  final bool alCerrarFalla;
 
   final List<String> abiertas = [];
   final List<_CierreRegistrado> cerradas = [];
@@ -335,7 +531,10 @@ class _ColaSembrada implements RepositorioPeticiones {
   @override
   Future<List<PeticionDePlan>> cola() async {
     if (falla) throw StateError('sin conexión');
-    return _peticiones;
+    // **Una copia, como la devolvería Firestore.** Si se devolviera la misma
+    // lista, la pantalla vería los cambios sin recargar y la prueba de
+    // recarga pasaría sin comprobar nada.
+    return List.of(_peticiones);
   }
 
   @override
@@ -358,7 +557,25 @@ class _ColaSembrada implements RepositorioPeticiones {
     String? planId,
     String? motivo,
   }) async {
-    cerradas.add(_CierreRegistrado(nadadorId, decision, motivo));
+    if (alCerrarFalla) throw StateError('sin conexión');
+    cerradas.add(_CierreRegistrado(nadadorId, decision, motivo, planId));
+
+    // El servidor la cierra de verdad, y la cola tiene que enterarse.
+    final i = _peticiones.indexWhere((p) => p.nadadorId == nadadorId);
+    if (i < 0) return;
+
+    final antes = _peticiones[i];
+    _peticiones[i] = PeticionDePlan(
+      nadadorId: antes.nadadorId,
+      enviadaEn: antes.enviadaEn,
+      respuestas: antes.respuestas,
+      estado: decision == 'aprobada'
+          ? EstadoDePeticion.aprobada
+          : EstadoDePeticion.rechazada,
+      motivoDelRechazo: decision == 'rechazada' ? motivo : null,
+      planId: decision == 'aprobada' ? (planId ?? 'p-1') : null,
+      respondidaEn: DateTime(2026, 11, 3),
+    );
   }
 }
 

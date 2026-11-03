@@ -2,23 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "app-local",
+      "name": "natacion-emuladores",
       "runtimeExecutable": "flutter",
-      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "8085"],
-      "port": 8085
-    },
-    {
-      "name": "app-emuladores",
-      "runtimeExecutable": "flutter",
-      "runtimeArgs": [
-        "run",
-        "-d",
-        "web-server",
-        "--web-port",
-        "8086",
-        "--dart-define=USAR_EMULADORES=true"
-      ],
-      "port": 8086
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "5599", "--dart-define=USAR_EMULADORES=true"],
+      "port": 5599
     }
   ]
 }

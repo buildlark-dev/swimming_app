@@ -236,6 +236,9 @@ Map<String, dynamic> planAJson(Plan plan, {bool conSesiones = false}) =>
           .toList(),
       if (plan.versionAnteriorId != null)
         'versionAnteriorId': plan.versionAnteriorId,
+      // De qué petición de un nadador salió, si salió de una (feature 008).
+      // Sin esto, FR-010 se cumplía en memoria y se perdía al guardar.
+      if (plan.peticionId != null) 'peticionId': plan.peticionId,
       if (conSesiones) 'sesiones': plan.sesiones.map(sesionAJson).toList(),
     };
 
@@ -305,6 +308,7 @@ Plan planDesdeJson(
         )
         .toList(),
     versionAnteriorId: json['versionAnteriorId'] as String?,
+    peticionId: json['peticionId'] as String?,
   );
 }
 
