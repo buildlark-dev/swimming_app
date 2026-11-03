@@ -157,15 +157,15 @@ check **against the server** that nothing arrived, and that the app said why.
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T043 [P] [US4] Write `test/dominio/peticiones/puerta_del_menor_test.dart`: with the consent gate closed, a request does not leave; with it open, what was held leaves **without being written again** (P9, P10). Negative control: a gate that always opens, and see the held case fail
-- [ ] T044 [P] [US4] Write `test/ui/peticion/falta_la_autorizacion_test.dart`: the app says the guardian's authorisation is missing and **nowhere says the request was sent** — asserted by searching the screen for any wording that claims it was
-- [ ] T045 [US4] Run T043-T044 and record that they fail
+- [X] T043 [P] [US4] Write `test/dominio/peticiones/puerta_del_menor_test.dart`: with the consent gate closed, a request does not leave; with it open, what was held leaves **without being written again** (P9, P10). Negative control: a gate that always opens, and see the held case fail
+- [X] T044 [P] [US4] Write `test/ui/peticion/falta_la_autorizacion_test.dart`: the app says the guardian's authorisation is missing and **nowhere says the request was sent** — asserted by searching the screen for any wording that claims it was
+- [X] T045 [US4] Run T043-T044 and record that they fail
 
 ### Implementation for User Story 4
 
-- [ ] T046 [US4] Send through the existing outbox and consent gate — `BandejaDeSalida` plus `PuertaDeConsentimiento`, which `Sincronizador` already consults — and **create no third path off the device** (P8, research D8)
-- [ ] T047 [US4] Decide in code, with a comment that says why, whether `Sincronizador` is generalised beyond session records or mirrored for requests, and keep the decision in one file so it can be reversed. Do not add a state to `EstadoDeEnvio`: a request held for lack of consent **is** a pending request, exactly as feature 003's decision D6 concluded for records
-- [ ] T048 [US4] Make erasure take the requests with it in `firebase/functions/src/datos_personales.ts`, including the `historial` subcollection, with its test in `firebase/functions/test/datos_personales.test.js` (P37, FR-033)
+- [X] T046 [US4] Send through the existing outbox and consent gate — `BandejaDeSalida` plus `PuertaDeConsentimiento`, which `Sincronizador` already consults — and **create no third path off the device** (P8, research D8)
+- [X] T047 [US4] Decide in code, with a comment that says why, whether `Sincronizador` is generalised beyond session records or mirrored for requests, and keep the decision in one file so it can be reversed. Do not add a state to `EstadoDeEnvio`: a request held for lack of consent **is** a pending request, exactly as feature 003's decision D6 concluded for records
+- [X] T048 [US4] Make erasure take the requests with it in `firebase/functions/src/datos_personales.ts`, including the `historial` subcollection, with its test in `firebase/functions/test/datos_personales.test.js` (P37, FR-033)
 
 **Checkpoint**: the new path off the device is as guarded as the one that already existed.
 

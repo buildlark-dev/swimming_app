@@ -21,12 +21,18 @@ class EstadoDeMiPeticion extends StatelessWidget {
     super.key,
     required this.peticion,
     this.alPedirDeNuevo,
+    this.esperandoAutorizacion = false,
   });
 
   final PeticionDePlan peticion;
 
   /// Solo cuando la anterior ya se cerró: con una abierta no se manda otra.
   final VoidCallback? alPedirDeNuevo;
+
+  /// Retenida en el dispositivo porque falta el consentimiento del acudiente.
+  /// **Cambia lo que se dice, no solo lo que se añade**: decirle «le llegó a
+  /// tu entrenador» a algo que sigue en el teléfono es mentirle.
+  final bool esperandoAutorizacion;
 
   @override
   Widget build(BuildContext context) {
@@ -39,28 +45,44 @@ class EstadoDeMiPeticion extends StatelessWidget {
         Text('Tu solicitud', style: textos.headlineSmall),
         const SizedBox(height: Espaciado.amplio),
 
-        Tarjeta(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(_iconoDe(peticion.estado)),
-                  const SizedBox(width: Espaciado.corto),
-                  Expanded(
-                    child: Text(
-                      peticion.estado.comoLoLeeElNadador,
-                      key: const Key('estado-actual'),
-                      style: textos.titleMedium,
+        // **Retenida no es enviada, y la pantalla no las confunde.** Decir
+        // «le llegó a tu entrenador» sobre algo que sigue en el teléfono
+        // enseña a no creerle a la app, y aquí quien lee puede tener nueve
+        // años.
+        if (esperandoAutorizacion)
+          const Aviso(
+            tono: TonoDeAviso.cuidado,
+            icono: Icons.lock_clock_outlined,
+            claveDelMensaje: Key('falta-la-autorizacion'),
+            mensaje:
+                'Tu solicitud está guardada en este teléfono y todavía no ha '
+                'salido: falta que tu acudiente autorice que tus datos se '
+                'guarden. En cuanto autorice, sale sola — no tienes que '
+                'volver a responder nada.',
+          )
+        else
+          Tarjeta(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(_iconoDe(peticion.estado)),
+                    const SizedBox(width: Espaciado.corto),
+                    Expanded(
+                      child: Text(
+                        peticion.estado.comoLoLeeElNadador,
+                        key: const Key('estado-actual'),
+                        style: textos.titleMedium,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: Espaciado.corto),
-              Text(_queSignifica(peticion.estado), style: textos.bodyMedium),
-            ],
+                  ],
+                ),
+                const SizedBox(height: Espaciado.corto),
+                Text(_queSignifica(peticion.estado), style: textos.bodyMedium),
+              ],
+            ),
           ),
-        ),
 
         if (peticion.motivoDelRechazo != null) ...[
           const SizedBox(height: Espaciado.amplio),

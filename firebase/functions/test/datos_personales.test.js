@@ -344,3 +344,58 @@ describe('suprimirDatosDe', () => {
     );
   });
 });
+
+// --- Feature 008: lo que pidio se va con lo suyo (P37, FR-033) ----------
+
+describe('feature 008 — lo que pidio se va con lo suyo', () => {
+  it('P37 — la supresion se lleva la peticion de plan y su historial', async () => {
+  const db = getFirestore();
+  const uid = 'u-ana-peticion';
+  const nadadorId = 'n-ana-peticion';
+
+  await db.collection('usuarios').doc(uid).set({ nadadorId });
+  await db.collection('nadadores').doc(nadadorId).set({ nombre: 'Ana' });
+  await db.collection('peticionesDePlan').doc(nadadorId).set({
+    nadadorId,
+    estado: 'rechazada',
+    motivoDelRechazo: 'Esta semana no.',
+    respuestas: { pruebaObjetivo: '200 Libre' },
+  });
+  await db
+    .collection('peticionesDePlan')
+    .doc(nadadorId)
+    .collection('historial')
+    .doc('h1')
+    .set({ nadadorId, estado: 'aprobada' });
+
+  await suprimirDatosDe(db, uid, { borrarCuenta: false });
+
+  assert.equal(
+    (await db.collection('peticionesDePlan').doc(nadadorId).get()).exists,
+    false,
+    'La peticion lleva lo que el nadador respondio sobre su propio entrenamiento',
+  );
+
+  const historial = await db
+    .collection('peticionesDePlan')
+    .doc(nadadorId)
+    .collection('historial')
+    .get();
+  assert.equal(historial.size, 0, 'El historial de peticiones tambien es suyo');
+});
+
+  it('P37 — y no toca la peticion de otro nadador', async () => {
+  const db = getFirestore();
+
+  await db.collection('usuarios').doc('u-uno').set({ nadadorId: 'n-uno' });
+  await db.collection('peticionesDePlan').doc('n-uno').set({ nadadorId: 'n-uno' });
+  await db.collection('peticionesDePlan').doc('n-otro').set({ nadadorId: 'n-otro' });
+
+  await suprimirDatosDe(db, 'u-uno', { borrarCuenta: false });
+
+  assert.equal(
+    (await db.collection('peticionesDePlan').doc('n-otro').get()).exists,
+    true,
+  );
+});
+});

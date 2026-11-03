@@ -42,6 +42,7 @@ class PeticionDelNadador extends StatefulWidget {
     required this.nadadorId,
     required this.nadadores,
     this.peticiones,
+    this.estaRetenida,
     this.almacen,
     this.hoyParaPruebas,
   });
@@ -55,6 +56,10 @@ class PeticionDelNadador extends StatefulWidget {
   /// guardarlo, y la pantalla lo dice en lugar de ofrecer una lista que no
   /// lleva a ninguna parte.
   final RepositorioPeticiones? peticiones;
+
+  /// Si lo que mandó sigue retenido en el dispositivo por falta del
+  /// consentimiento del acudiente. Nulo cuando no hay nada que consultar.
+  final Future<bool> Function(String nadadorId)? estaRetenida;
 
   /// Donde se guarda lo respondido a medias, para que sobreviva a cerrar la
   /// app (P5). Nulo en pruebas que no lo necesitan.
@@ -73,6 +78,7 @@ class _PeticionDelNadadorState extends State<PeticionDelNadador> {
   bool _cargando = true;
   Nadador? _ficha;
   PeticionDePlan? _peticion;
+  bool _retenida = false;
   String? _noSePudoCargar;
 
   @override
@@ -111,10 +117,18 @@ class _PeticionDelNadadorState extends State<PeticionDelNadador> {
           : '$fallo Y tu solicitud tampoco.';
     }
 
+    var retenida = false;
+    try {
+      retenida = await widget.estaRetenida?.call(id) ?? false;
+    } catch (_) {
+      // No saberlo no puede dejar la pantalla sin aparecer.
+    }
+
     if (!mounted) return;
     setState(() {
       _ficha = ficha;
       _peticion = peticion;
+      _retenida = retenida;
       _noSePudoCargar = fallo;
       _cargando = false;
     });
@@ -133,6 +147,7 @@ class _PeticionDelNadadorState extends State<PeticionDelNadador> {
     if (peticion != null) {
       return EstadoDeMiPeticion(
         peticion: peticion,
+        esperandoAutorizacion: _retenida,
         alPedirDeNuevo: peticion.estaAbierta
             ? null
             : () => setState(() => _peticion = null),

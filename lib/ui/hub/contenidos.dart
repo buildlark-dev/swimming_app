@@ -51,6 +51,7 @@ class ContextoDelHub {
     required this.nadadores,
     required this.peticiones,
     required this.almacen,
+    this.estaRetenida,
     this.molestias,
     this.alCerrarPeticion,
     required this.editor,
@@ -89,6 +90,9 @@ class ContextoDelHub {
 
   /// El almacén de esta cuenta, para lo que se responde a medias.
   final AlmacenLocal? almacen;
+
+  /// Si lo que mandó sigue retenido en el dispositivo (feature 008).
+  final Future<bool> Function(String nadadorId)? estaRetenida;
 
   /// Las molestias que el nadador ya contó en sus sesiones. **Se leen donde
   /// ya viven; esta feature no las copia** (FR-038). Nulo sin servidor.
@@ -169,6 +173,7 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
       nadadorId: ctx.nadadorId,
       nadadores: ctx.nadadores,
       peticiones: ctx.peticiones,
+      estaRetenida: ctx.estaRetenida,
       almacen: ctx.almacen,
     ),
     Contenido.planesDelEntrenador => PlanesDelEntrenador(

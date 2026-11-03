@@ -32,6 +32,12 @@ const COL_REGISTROS = 'registros';
 const COL_ASIGNACIONES = 'asignaciones';
 const COL_CONSENTIMIENTOS = 'consentimientos';
 
+/// Plan requests (feature 008). **Not `solicitudes`**, which holds the consent
+/// requests of feature 004: two different things under one name in the same
+/// database is how a rule gets written against the wrong collection, and these
+/// rules guard a minor's data.
+const COL_PETICIONES = 'peticionesDePlan';
+
 /** Oldest birth date we accept. Anything before this is a typo, not a person. */
 const ANO_MINIMO = 1900;
 
@@ -186,6 +192,13 @@ export async function suprimirDatosDe(
   // 4. Their personal fields on the account document. The document itself is
   //    deleted, link included: there is no account left to link.
   await usuario.delete();
+
+  // 4b. What they asked for, and the history of what they asked before. It
+  //     is theirs: it carries what they answered about their own training.
+  const peticion = db.collection(COL_PETICIONES).doc(nadadorId);
+  const historialDePeticiones = await peticion.collection('historial').get();
+  await Promise.all(historialDePeticiones.docs.map((d) => d.ref.delete()));
+  if ((await peticion.get()).exists) await peticion.delete();
 
   // 5. Revoke the consent, and **leave its `historial` subcollection alone**.
   //    That history is the proof the earlier processing was authorised
