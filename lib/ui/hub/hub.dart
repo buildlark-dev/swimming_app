@@ -16,6 +16,8 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/datos/firestore/molestias_firestore.dart';
+import 'package:natacion_app/dominio/peticiones/molestias_enlazadas.dart';
 import 'package:natacion_app/datos/firestore/consentimientos.dart';
 import 'package:natacion_app/datos/local/almacen_local.dart';
 import 'package:natacion_app/datos/local/repositorios_locales.dart';
@@ -114,6 +116,13 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       widget.recursos.firestore == null
       ? null
       : ConstanciasFirestore(widget.recursos.firestore!);
+
+  /// Las molestias que sus nadadores ya contaron en sus sesiones, para que las
+  /// vea al abrir una petición. **Solo lee**: nada de esta feature las copia
+  /// (FR-038). Nulo sin servidor.
+  late final LectorDeMolestias? _molestias = widget.recursos.firestore == null
+      ? null
+      : MolestiasFirestore(widget.recursos.firestore!);
 
   /// El conmutador de recorrido del modo local. Vive en Ajustes (T053).
   Widget _conmutadorDeRecorrido() => SegmentedButton<Rol>(
@@ -417,6 +426,8 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       nadadores: _repos.nadadores,
       peticiones: _repos.peticiones,
       estaRetenida: _repos.estaRetenida,
+      molestias: _molestias,
+      alCerrarPeticion: widget.recursos.operaciones?.cerrarPeticion,
       almacen: _almacen,
       editor: _editor,
       nadador: _nadador,

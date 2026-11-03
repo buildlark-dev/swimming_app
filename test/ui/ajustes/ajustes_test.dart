@@ -350,6 +350,16 @@ class _ConstanciasQueRevientan implements LectorDeConstancias {
 }
 
 class _Operaciones implements OperacionesDelServidor {
+  // La feature 008 aÃ±adiÃ³ esta operaciÃ³n a la interfaz. Este doble no la
+  // usa: lo que prueba es otro camino.
+  @override
+  Future<void> cerrarPeticion({
+    required String nadadorId,
+    required String decision,
+    String? planId,
+    String? motivo,
+  }) async {}
+
   Map<String, dynamic>? corregido;
   bool guardoPerfilCompleto = false;
   bool suprimio = false;

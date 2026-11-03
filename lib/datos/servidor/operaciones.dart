@@ -141,6 +141,19 @@ abstract class OperacionesDelServidor {
   /// Lo que **no** borra: el registro de que hubo consentimiento, con su fecha.
   /// Es la prueba de que el tratamiento anterior estuvo amparado.
   Future<DatosSuprimidos> suprimirMisDatos();
+
+  /// Cierra una petición de plan: la firma del entrenador (feature 008).
+  ///
+  /// **Pasa por el servidor y no por el cliente** porque la fecha de la
+  /// respuesta y el archivado son suyos: si el cliente pudiera escribirlos, la
+  /// fecha sería una declaración de quien llamó, y un cliente que escribe su
+  /// propio estado puede aprobarse su propia petición.
+  Future<void> cerrarPeticion({
+    required String nadadorId,
+    required String decision,
+    String? planId,
+    String? motivo,
+  });
 }
 
 /// Lo que el servidor contesta al corregir un perfil.
@@ -193,6 +206,33 @@ Map<String, dynamic> cuerpoDeCorreccion({
 /// el servidor, para que una llamada suelta no borre nada.
 Map<String, dynamic> cuerpoDeSupresion() => <String, dynamic>{
   'confirmado': true,
+};
+
+/// El cuerpo que espera `cerrarPeticion` (feature 008).
+///
+/// **Plano, sin anidar.** La lección de la feature 006: el cliente mandaba
+/// los datos del acudiente planos y el servidor los desempaquetaba anidados,
+/// con diez pruebas en verde porque los dobles implementan la interfaz y no el
+/// cable.
+///
+/// Lo que **no** lleva: ni `estado`, ni `respondidaEn`, ni `enviadaEn`. Esos
+/// los escribe el servidor, porque un cliente que puede escribir su propio
+/// estado puede aprobarse su propia petición (P13).
+Map<String, dynamic> cuerpoDeCierre({
+  required String nadadorId,
+  required String decision,
+  String? planId,
+  String? motivo,
+}) => <String, dynamic>{
+  'nadadorId': nadadorId,
+  // Exactamente «aprobada» o «rechazada». El servidor rechaza cualquier otra
+  // cosa: una petición que se queda abierta para siempre por una palabra mal
+  // escrita es peor que un error en voz alta.
+  'decision': decision,
+  // El marcador `?` omite la entrada cuando es nula, que es justo lo que el
+  // servidor espera: una aprobación sin motivo y un rechazo sin plan.
+  'planId': ?planId,
+  'motivo': ?motivo,
 };
 
 class OperacionesFirebase implements OperacionesDelServidor {
@@ -312,6 +352,24 @@ class OperacionesFirebase implements OperacionesDelServidor {
       asignacionesRetiradas: (respuesta?['asignacionesRetiradas'] as int?) ?? 0,
       perfilEliminado: (respuesta?['perfilEliminado'] as bool?) ?? false,
       cuentaEliminada: (respuesta?['cuentaEliminada'] as bool?) ?? false,
+    );
+  }
+
+  @override
+  Future<void> cerrarPeticion({
+    required String nadadorId,
+    required String decision,
+    String? planId,
+    String? motivo,
+  }) async {
+    await _llamar(
+      'cerrarPeticion',
+      cuerpoDeCierre(
+        nadadorId: nadadorId,
+        decision: decision,
+        planId: planId,
+        motivo: motivo,
+      ),
     );
   }
 

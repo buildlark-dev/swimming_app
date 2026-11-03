@@ -180,14 +180,14 @@ one, with no invented dates.
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T049 [P] [US3] Write `test/ui/peticion/estado_de_mi_peticion_test.dart`: each of the four states reads in Spanish without jargon (FR-025), a rejection shows the coach's reason (FR-026), and **no answer date is promised in any state** — asserted by searching for date-like wording, not by eye (FR-027)
-- [ ] T050 [P] [US3] Write `test/ui/peticion/el_borrador_no_se_asoma_test.dart`: in no state before approval does any part of the draft's content appear on the swimmer's screens (P16)
-- [ ] T051 [US3] Run T049-T050 and record that they fail
+- [X] T049 [P] [US3] Write `test/ui/peticion/estado_de_mi_peticion_test.dart`: each of the four states reads in Spanish without jargon (FR-025), a rejection shows the coach's reason (FR-026), and **no answer date is promised in any state** — asserted by searching for date-like wording, not by eye (FR-027)
+- [X] T050 [P] [US3] Write `test/ui/peticion/el_borrador_no_se_asoma_test.dart`: in no state before approval does any part of the draft's content appear on the swimmer's screens (P16)
+- [X] T051 [US3] Run T049-T050 and record that they fail
 
 ### Implementation for User Story 3
 
-- [ ] T052 [US3] Implement `lib/ui/peticion/estado_de_mi_peticion.dart` with the four states and the rejection reason
-- [ ] T053 [US3] Show, when a request is waiting, that another cannot be sent yet and why (FR-032), as information rather than as an error
+- [X] T052 [US3] Implement `lib/ui/peticion/estado_de_mi_peticion.dart` with the four states and the rejection reason
+- [X] T053 [US3] Show, when a request is waiting, that another cannot be sent yet and why (FR-032), as information rather than as an error
 
 **Checkpoint**: all four stories work independently.
 
@@ -198,11 +198,11 @@ one, with no invented dates.
 **Purpose**: closing a request is the server's write, because a client that can write its own
 state can approve its own request
 
-- [ ] T054 Write `test/datos/servidor/contrato_de_peticiones_test.dart` **before the call exists**: a Dart test that reads the TypeScript source of `cerrarPeticion` and compares its field names against the body written in `contracts/peticion_de_plan.md` — flat, with `decision` exactly `"aprobada"` or `"rechazada"` (P39). This test exists because of feature 006: ten green tests of the guardian path, and the client sent flat what the server read nested
-- [ ] T055 Write `firebase/functions/test/peticiones.test.js` against the emulator: the call refuses anyone who is not the coach, refuses a `rechazada` with no reason, requires `planId` on `aprobada`, and archives the answered request to `historial` — each with a negative control (P38)
-- [ ] T056 Run T054-T055 and see them fail
-- [ ] T057 Implement `cerrarPeticion` in `firebase/functions/src/peticiones.ts` with the exact body from the contract, and export it from `firebase/functions/src/index.ts`
-- [ ] T058 Add `cerrarPeticion` to `lib/datos/servidor/operaciones.dart` — the only file in the project that may import `cloud_functions`, as its boundary test enforces
+- [X] T054 Write `test/datos/servidor/contrato_de_peticiones_test.dart` **before the call exists**: a Dart test that reads the TypeScript source of `cerrarPeticion` and compares its field names against the body written in `contracts/peticion_de_plan.md` — flat, with `decision` exactly `"aprobada"` or `"rechazada"` (P39). This test exists because of feature 006: ten green tests of the guardian path, and the client sent flat what the server read nested
+- [X] T055 Write `firebase/functions/test/peticiones.test.js` against the emulator: the call refuses anyone who is not the coach, refuses a `rechazada` with no reason, requires `planId` on `aprobada`, and archives the answered request to `historial` — each with a negative control (P38)
+- [X] T056 Run T054-T055 and see them fail
+- [X] T057 Implement `cerrarPeticion` in `firebase/functions/src/peticiones.ts` with the exact body from the contract, and export it from `firebase/functions/src/index.ts`
+- [X] T058 Add `cerrarPeticion` to `lib/datos/servidor/operaciones.dart` — the only file in the project that may import `cloud_functions`, as its boundary test enforces
 
 ---
 

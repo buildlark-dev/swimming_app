@@ -203,6 +203,16 @@ void main() {
 // ---------------------------------------------------------------------------
 
 class _ServidorQueAcepta implements OperacionesDelServidor {
+  // La feature 008 aÃ±adiÃ³ esta operaciÃ³n a la interfaz. Este doble no la
+  // usa: lo que prueba es otro camino.
+  @override
+  Future<void> cerrarPeticion({
+    required String nadadorId,
+    required String decision,
+    String? planId,
+    String? motivo,
+  }) async {}
+
   // La feature 007 añadió estas dos: aquí no se usan, y lo que importa es
   // que el doble siga cumpliendo la interfaz.
   @override

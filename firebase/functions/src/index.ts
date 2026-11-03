@@ -26,3 +26,4 @@ export { alCrearseUnaCuenta, asignarRol } from './roles';
 export { emitirSolicitud, canjear, revocar } from './consentimiento';
 export { guardarPerfil } from './perfil';
 export { corregirPerfil, suprimirMisDatos } from './datos_personales';
+export { cerrarPeticion } from './peticiones';
