@@ -229,6 +229,9 @@ void main() {
         ),
       ],
       confirmadaEn: DateTime(2026, 10, 31, 20, 15),
+      diasPorSemana: const [1, 3, 5],
+      duracionSesionMinutos: 90,
+      longitudPiscina: 25,
     );
 
     Macrociclo macrociclo({EstructuraConfirmada? cual}) => Macrociclo(
@@ -283,6 +286,9 @@ void main() {
           ),
         ],
         confirmadaEn: DateTime(2026, 10, 31, 20, 15),
+        diasPorSemana: const [1, 3, 5],
+        duracionSesionMinutos: 90,
+        longitudPiscina: 25,
       );
 
       final recuperado = macrocicloDesdeJson(
@@ -296,6 +302,34 @@ void main() {
       // perdería cuál de dos confirmaciones del mismo día fue.
       final recuperado = macrocicloDesdeJson(macrocicloAJson(macrociclo()));
       expect(recuperado.estructura.confirmadaEn, DateTime(2026, 10, 31, 20, 15));
+    });
+
+    test('las tres entradas del motor sobreviven', () {
+      final recuperado = macrocicloDesdeJson(macrocicloAJson(macrociclo()));
+
+      expect(recuperado.estructura.diasPorSemana, [1, 3, 5]);
+      expect(recuperado.estructura.duracionSesionMinutos, 90);
+      expect(recuperado.estructura.longitudPiscina, 25);
+    });
+
+    test('si faltan, falla en lugar de poner un 25 y un 90 por omisión', () {
+      // Las puso el entrenador. Un valor por omisión al leer sería una
+      // suposición nuestra con su firma encima, y el plan generado la
+      // heredaría sin que nada avisara.
+      for (final campo in [
+        'diasPorSemana',
+        'duracionSesionMinutos',
+        'longitudPiscina',
+      ]) {
+        final json = macrocicloAJson(macrociclo());
+        (json['estructura'] as Map<String, dynamic>).remove(campo);
+
+        expect(
+          () => macrocicloDesdeJson(json),
+          throwsA(isA<EstructuraInvalida>()),
+          reason: 'quitar $campo tendría que fallar',
+        );
+      }
     });
 
     test('un documento sin estructura falla con un mensaje legible', () {

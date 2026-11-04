@@ -355,6 +355,9 @@ Map<String, dynamic> estructuraAJson(EstructuraConfirmada estructura) =>
       'modeloDelNadador': estructura.modeloDelNadador,
       'bloques': estructura.bloques.map(bloqueAJson).toList(),
       'confirmadaEn': estructura.confirmadaEn.toIso8601String(),
+      'diasPorSemana': List<int>.from(estructura.diasPorSemana),
+      'duracionSesionMinutos': estructura.duracionSesionMinutos,
+      'longitudPiscina': estructura.longitudPiscina,
     };
 
 Map<String, dynamic> macrocicloAJson(Macrociclo macrociclo) =>
@@ -400,6 +403,14 @@ EstructuraConfirmada estructuraDesdeJson(Map<String, dynamic> json) =>
           .map(bloqueDesdeJson)
           .toList(),
       confirmadaEn: _fechaObligatoria(json['confirmadaEn'], 'confirmadaEn'),
+      // Sin valores por omisión: las tres las puso el entrenador, y un 25 o un
+      // 90 inventados al leer serían una suposición con su firma encima. Si
+      // faltan, la fábrica lo dice.
+      diasPorSemana: ((json['diasPorSemana'] as List<dynamic>?) ?? const [])
+          .map((d) => d is int ? d : -1)
+          .toList(),
+      duracionSesionMinutos: json['duracionSesionMinutos'] as int? ?? 0,
+      longitudPiscina: json['longitudPiscina'] as int? ?? 0,
     );
 
 Macrociclo macrocicloDesdeJson(Map<String, dynamic> json, {String? id}) {

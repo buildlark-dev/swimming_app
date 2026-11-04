@@ -133,6 +133,9 @@ class EstructuraConfirmada {
     required String modeloDelNadador,
     required List<BloqueConfirmado> bloques,
     required DateTime confirmadaEn,
+    required List<int> diasPorSemana,
+    required int duracionSesionMinutos,
+    required int longitudPiscina,
   }) {
     if (modeloDeLaPrueba.trim().isEmpty) {
       throw const EstructuraInvalida(
@@ -178,11 +181,59 @@ class EstructuraConfirmada {
       }
     }
 
+    // Las tres entradas que el motor exige y que ni el esqueleto ni la ficha
+    // dan. **Están aquí y no inventadas porque inventarlas seria ponerlas
+    // bajo su firma.** La regla R3 dice que ante datos faltantes se pregunta;
+    // la sección 5 las cuenta entre las once obligatorias; y solo él sabe
+    // cuántos días a la semana tiene piscina ese nadador.
+    if (diasPorSemana.isEmpty) {
+      throw const EstructuraInvalida(
+        'diasPorSemana',
+        'hace falta al menos un día de entrenamiento a la semana',
+      );
+    }
+
+    if (diasPorSemana.any((d) => d < 1 || d > 7)) {
+      throw const EstructuraInvalida(
+        'diasPorSemana',
+        'los días van de 1 (lunes) a 7 (domingo)',
+      );
+    }
+
+    if (diasPorSemana.toSet().length != diasPorSemana.length) {
+      // Dos veces el mismo día no son dos sesiones: es un día contado dos
+      // veces, y el motor repartiría volumen sobre una sesión que no existe.
+      // La misma comprobación que `RespuestasDePeticion` hace en la 008.
+      throw const EstructuraInvalida(
+        'diasPorSemana',
+        'hay un día repetido',
+      );
+    }
+
+    if (duracionSesionMinutos < 30 || duracionSesionMinutos > 180) {
+      throw const EstructuraInvalida(
+        'duracionSesionMinutos',
+        'tiene que estar entre 30 y 180 minutos',
+      );
+    }
+
+    if (longitudPiscina != 25 && longitudPiscina != 50) {
+      throw const EstructuraInvalida(
+        'longitudPiscina',
+        'solo hay piscinas de 25 o de 50',
+      );
+    }
+
+    final ordenados = [...diasPorSemana]..sort();
+
     return EstructuraConfirmada._(
       modeloDeLaPrueba: modeloDeLaPrueba.trim(),
       modeloDelNadador: modeloDelNadador.trim(),
       bloques: List.unmodifiable(bloques),
       confirmadaEn: confirmadaEn,
+      diasPorSemana: List.unmodifiable(ordenados),
+      duracionSesionMinutos: duracionSesionMinutos,
+      longitudPiscina: longitudPiscina,
     );
   }
 
@@ -191,6 +242,9 @@ class EstructuraConfirmada {
     required this.modeloDelNadador,
     required this.bloques,
     required this.confirmadaEn,
+    required this.diasPorSemana,
+    required this.duracionSesionMinutos,
+    required this.longitudPiscina,
   });
 
   /// Las exigencias reales de la prueba objetivo (sección 4, paso 2).
@@ -211,6 +265,25 @@ class EstructuraConfirmada {
   /// Cuándo confirmó. **La hora del servidor, no la del dispositivo**: es el
   /// registro de un acto suyo, y un reloj de teléfono se puede mover.
   final DateTime confirmadaEn;
+
+  /// Qué días de la semana entrena ese nadador, de 1 (lunes) a 7 (domingo),
+  /// ordenados.
+  ///
+  /// Es del entrenador y no se deriva de `categoria.sesionesPorSemana`: la
+  /// categoría dice cuántas sesiones pide la metodología, no qué días tiene
+  /// piscina este nadador. Suponerlo pondría tres de las once entradas
+  /// obligatorias de la sección 5 bajo su firma sin que él las dijera.
+  final List<int> diasPorSemana;
+
+  /// Cuánto dura cada sesión. Entre 30 y 180 minutos, el mismo rango que la
+  /// feature 008 fijó para lo que pide el nadador.
+  final int duracionSesionMinutos;
+
+  /// 25 o 50 metros.
+  final int longitudPiscina;
+
+  /// Cuántas sesiones a la semana salen de los días que él declaró.
+  int get sesionesPorSemana => diasPorSemana.length;
 
   /// Los bloques cuya duración se sale de la ventana publicada de su fase.
   ///
@@ -344,13 +417,51 @@ class ImpedimentoDelMacrociclo {
   String toString() => '$mesocicloId: $porQue';
 }
 
-/// Por qué todavía no se puede firmar este macrociclo (M14).
+/// Los mesociclos que el macrociclo nombra y que no están en la lista dada.
 ///
-/// **Un mesociclo que no viene en la lista cuenta como impedimento.**
-/// Comprobar solo que los presentes están aprobados pasaría en vacío con una
-/// lista incompleta, y el macrociclo quedaría firmado señalando a un mesociclo
-/// que nadie miró. Es la misma clase de fallo que la feature 008 encontró tres
-/// veces: verde por la razón equivocada.
+/// **Son dos preguntas distintas y confundirlas cuesta.** Esta es «¿tengo
+/// delante todo lo que este macrociclo dice tener?», y se contesta antes de
+/// firmar, cuando sus mesociclos están en borrador con toda la razón.
+/// [impedimentosParaAprobar] contesta la otra: «¿el estado guardado es
+/// coherente?».
+///
+/// La primera versión de este archivo las tenía juntas, y la prueba de
+/// «un macrociclo derivado por el motor pasa la auditoría» se puso roja
+/// señalando los tres mesociclos como impedimento por estar en borrador —que
+/// es exactamente lo que son recién derivados—. El cerrojo estaba bien; la
+/// pregunta estaba mal planteada.
+///
+/// Que un mesociclo ausente cuente **es la mitad que importa**: revisar solo
+/// los presentes pasaría en vacío con una lista incompleta, y el macrociclo
+/// quedaría firmado señalando a uno que nadie miró.
+List<ImpedimentoDelMacrociclo> mesociclosQueFaltan({
+  required Macrociclo macrociclo,
+  required List<Plan> mesociclos,
+}) {
+  final presentes = {
+    for (final plan in mesociclos)
+      if (plan.id != null) plan.id!,
+  };
+
+  return [
+    for (final id in macrociclo.mesociclos)
+      if (!presentes.contains(id))
+        ImpedimentoDelMacrociclo(
+          id,
+          'no se pudo leer el mesociclo, así que no se sabe si está listo',
+        ),
+  ];
+}
+
+/// Por qué el estado de este macrociclo no es coherente con el de sus
+/// mesociclos (M14).
+///
+/// **Un macrociclo no se queda firmado mientras una parte suya no lo está.**
+/// Se comprueba sobre lo guardado, no antes de firmar: antes de firmar todo
+/// está en borrador por definición.
+///
+/// Un mesociclo que no viene en la lista cuenta como impedimento, por lo mismo
+/// que en [mesociclosQueFaltan].
 List<ImpedimentoDelMacrociclo> impedimentosParaAprobar({
   required Macrociclo macrociclo,
   required List<Plan> mesociclos,

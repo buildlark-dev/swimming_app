@@ -55,6 +55,9 @@ EstructuraConfirmada estructura({List<BloqueConfirmado>? bloques}) =>
             ),
           ],
       confirmadaEn: d(1),
+      diasPorSemana: const [1, 3, 5],
+      duracionSesionMinutos: 90,
+      longitudPiscina: 25,
     );
 
 Macrociclo macrociclo({
@@ -151,6 +154,9 @@ void main() {
           modeloDelNadador: 'Crol dominante.',
           bloques: [bloque(desde: d(1), hasta: d(10))],
           confirmadaEn: d(1),
+          diasPorSemana: const [1, 3, 5],
+          duracionSesionMinutos: 90,
+          longitudPiscina: 25,
         ),
         throwsA(isA<EstructuraInvalida>()),
       );
@@ -163,6 +169,9 @@ void main() {
           modeloDelNadador: '',
           bloques: [bloque(desde: d(1), hasta: d(10))],
           confirmadaEn: d(1),
+          diasPorSemana: const [1, 3, 5],
+          duracionSesionMinutos: 90,
+          longitudPiscina: 25,
         ),
         throwsA(isA<EstructuraInvalida>()),
       );
@@ -174,6 +183,9 @@ void main() {
         modeloDelNadador: '  Crol dominante.  ',
         bloques: [bloque(desde: d(1), hasta: d(10))],
         confirmadaEn: d(1),
+        diasPorSemana: const [1, 3, 5],
+        duracionSesionMinutos: 90,
+        longitudPiscina: 25,
       );
       expect(e.modeloDeLaPrueba, '200 libre.');
       expect(e.modeloDelNadador, 'Crol dominante.');
@@ -271,6 +283,64 @@ void main() {
     });
   });
 
+  group('las tres entradas que el motor exige y nadie deriva', () {
+    // Días por semana, duración y piscina. **No se suponen**: la sección 5 las
+    // cuenta entre las once obligatorias, y solo el entrenador sabe qué días
+    // tiene piscina este nadador. Derivarlas de `categoria.sesionesPorSemana`
+    // pondría tres entradas inventadas bajo su firma.
+    EstructuraConfirmada con({
+      List<int> dias = const [1, 3, 5],
+      int minutos = 90,
+      int piscina = 25,
+    }) => EstructuraConfirmada(
+      modeloDeLaPrueba: '200 libre.',
+      modeloDelNadador: 'Crol dominante.',
+      bloques: [bloque(desde: d(1), hasta: d(10))],
+      confirmadaEn: d(1),
+      diasPorSemana: dias,
+      duracionSesionMinutos: minutos,
+      longitudPiscina: piscina,
+    );
+
+    test('sin ningún día de entrenamiento no se puede construir', () {
+      expect(() => con(dias: const []), throwsA(isA<EstructuraInvalida>()));
+    });
+
+    test('un día fuera de la semana no se puede construir', () {
+      expect(() => con(dias: const [0]), throwsA(isA<EstructuraInvalida>()));
+      expect(() => con(dias: const [8]), throwsA(isA<EstructuraInvalida>()));
+    });
+
+    test('un día repetido no se puede construir', () {
+      // Dos veces el martes no son dos sesiones: es un día contado dos veces,
+      // y el motor repartiría volumen sobre una sesión que no existe.
+      expect(
+        () => con(dias: const [2, 2, 4]),
+        throwsA(isA<EstructuraInvalida>()),
+      );
+    });
+
+    test('los días se guardan ordenados', () {
+      expect(con(dias: const [5, 1, 3]).diasPorSemana, [1, 3, 5]);
+    });
+
+    test('una duración fuera de 30 a 180 minutos no se puede construir', () {
+      expect(() => con(minutos: 29), throwsA(isA<EstructuraInvalida>()));
+      expect(() => con(minutos: 181), throwsA(isA<EstructuraInvalida>()));
+      expect(() => con(minutos: 30), returnsNormally);
+      expect(() => con(minutos: 180), returnsNormally);
+    });
+
+    test('una piscina que no es de 25 ni de 50 no se puede construir', () {
+      expect(() => con(piscina: 33), throwsA(isA<EstructuraInvalida>()));
+      expect(() => con(piscina: 50), returnsNormally);
+    });
+
+    test('las sesiones por semana salen de los días que él declaró', () {
+      expect(con(dias: const [1, 2, 4, 6]).sesionesPorSemana, 4);
+    });
+  });
+
   group('BloqueConfirmado', () {
     test('un bloque que no avanza en el tiempo no se puede construir', () {
       expect(
@@ -315,6 +385,55 @@ void main() {
       // porque el motor prohíbe la fase en esas categorías.
       final sinFase = bloque(fase: null, desde: d(1), hasta: d(10));
       expect(sinFase.fase, isNull);
+    });
+  });
+
+  group('mesociclosQueFaltan: tengo delante lo que el macrociclo nombra', () {
+    final m = macrociclo(mesociclos: const ['plan-a', 'plan-b']);
+
+    test('con los dos delante no falta ninguno, aunque estén en borrador', () {
+      // **Esta es la distinción que costó una prueba roja.** Antes de firmar,
+      // los mesociclos están en borrador por definición: es lo que se va a
+      // firmar. Confundirlo con «no está aprobado» hacía que un macrociclo
+      // recién derivado se declarara imposible de firmar.
+      expect(
+        mesociclosQueFaltan(
+          macrociclo: m,
+          mesociclos: [
+            mesociclo(id: 'plan-a', estado: EstadoPlan.borrador),
+            mesociclo(id: 'plan-b', estado: EstadoPlan.borrador),
+          ],
+        ),
+        isEmpty,
+      );
+    });
+
+    test('uno que no vino en la lista sí falta', () {
+      final faltan = mesociclosQueFaltan(
+        macrociclo: m,
+        mesociclos: [mesociclo(id: 'plan-a', estado: EstadoPlan.borrador)],
+      );
+
+      expect(faltan, hasLength(1));
+      expect(faltan.single.toString(), contains('plan-b'));
+    });
+
+    test('un plan sin identificador no cuenta como presente', () {
+      // Un plan que no se ha guardado no es el mesociclo que el macrociclo
+      // nombra: nombra un id, y este no tiene ninguno.
+      expect(
+        mesociclosQueFaltan(
+          macrociclo: m,
+          mesociclos: [
+            const Plan(
+              nombre: 'Sin guardar',
+              categoria: Categoria.competitivo,
+              estiloObjetivo: Estilo.libre,
+            ),
+          ],
+        ),
+        hasLength(2),
+      );
     });
   });
 

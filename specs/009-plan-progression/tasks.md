@@ -170,7 +170,7 @@ be pointed at, the amendment was used to skip a rule rather than restate it.
 
 ### Tests for User Story 1 — written first
 
-- [ ] T019 [US1] `test/dominio/macrociclo/esqueleto_propuesto_test.dart`, before the function
+- [X] T019 [US1] `test/dominio/macrociclo/esqueleto_propuesto_test.dart`, before the function
       exists: a competition 14 weeks out gives three blocks counted **backwards** —
       Realización last and ending at the competition, Transformación before it, Acumulación
       filling what remains; a competition 15 days out gives Realización only;
@@ -180,72 +180,72 @@ be pointed at, the amendment was used to skip a rule rather than restate it.
       competition today or in the past gives no skeleton and says why; every block's `porQue`
       is non-empty and reads like the data model's example, «Realización, las últimas 2 semanas
       antes de la competencia».
-- [ ] T020 [US1] Negative control for T019: shift one boundary by a day and confirm the
+- [X] T020 [US1] Negative control for T019: shift one boundary by a day and confirm the
       boundary tests go red. Feature 008's phase derivation took two attempts to get its
       boundaries right; they were the part worth checking twice.
-- [ ] T021 [P] [US1] `test/dominio/macrociclo/esqueleto_avisa_test.dart`: a block outside
+- [X] T021 [P] [US1] `test/dominio/macrociclo/esqueleto_avisa_test.dart`: a block outside
       `FaseAtr.semanasSegunIssurin` produces a warning **and the skeleton is still returned**
       (M5, FR-012). Section 12 says swimming uses longer phases than the general literature,
       so a four-week Realización warns and generates.
-- [ ] T022 [P] [US1] `test/dominio/macrociclo/falta_en_la_ficha_test.dart`: with a `Nadador`
+- [X] T022 [P] [US1] `test/dominio/macrociclo/falta_en_la_ficha_test.dart`: with a `Nadador`
       whose `faltas` is non-empty, the app returns what is missing and **no skeleton** (M7,
       rule R3). Deriving on gaps would put the coach's signature on a guess.
-- [ ] T023 [US1] `test/dominio/macrociclo/los_modelos_no_se_derivan_test.dart`: the event model
+- [X] T023 [US1] `test/dominio/macrociclo/los_modelos_no_se_derivan_test.dart`: the event model
       and the swimmer model are never produced from `categoria`, `edad` or any other field.
       The test asserts the proposal function has no way to fill them — it does not return them
       at all (M4, FR-007, constitution v2.0.0).
 
 ### Implementation for User Story 1
 
-- [ ] T024 [US1] Implement `lib/dominio/macrociclo/esqueleto_propuesto.dart`: a **total**
+- [X] T024 [US1] Implement `lib/dominio/macrociclo/esqueleto_propuesto.dart`: a **total**
       function of (`fechaDeCompetencia`, `hoy`, `categoria`) returning the proposed blocks with
       their reasons and any warnings, counting backwards from the competition using
       `FaseAtr.semanasSegunIssurin`. Same shape as `faseParaCompetencia`, and for the same
       reason: methodology decided without the coach present must carry its reason with it.
       Count **whole dates**, as `_diasEnteros` does, so the time of day cannot change a block.
-- [ ] T025 [US1] Pre-fill the models in the proposal's input only from the swimmer's own record
+- [X] T025 [US1] Pre-fill the models in the proposal's input only from the swimmer's own record
       — `diagnosticoTecnico`, `pruebaObjetivo`, `marcas` — **and from nothing else** (M4,
       FR-008). Those are observations the coach already made; offering them back is showing him
       his own work.
-- [ ] T026 [US1] Build the structure confirmation: `EstructuraConfirmada` is assembled from
+- [X] T026 [US1] Build the structure confirmation: `EstructuraConfirmada` is assembled from
       what the coach typed and the skeleton as he left it, with `confirmadaEn` from the
       server's clock and not the device's (data model).
-- [ ] T027 [US1] **The storage lock, written before the screen that would break it.**
+- [X] T027 [US1] **The storage lock, written before the screen that would break it.**
       `test/dominio/macrociclo/nada_se_guarda_antes_test.dart`: propose a skeleton, then assert
       the macrocycle, plan **and** session repositories are all empty — over the repositories,
       not over the screen. Feature 008 learned twice that a thing not being shown says nothing
       about whether it exists (M10, SC-010, D10).
-- [ ] T028 [US1] Negative control for T027: make the proposal save a draft, confirm the test
+- [X] T028 [US1] Negative control for T027: make the proposal save a draft, confirm the test
       goes red, revert. Written down in the test's doc comment, because this is the lock most
       likely to be broken later by a convenient preview.
-- [ ] T029 [US1] `test/dominio/macrociclo/derivacion_determinista_test.dart`: derive **twice**
+- [X] T029 [US1] `test/dominio/macrociclo/derivacion_determinista_test.dart`: derive **twice**
       from the same structure and the same record and compare the two results field by field.
       **Never against a stored fixture** — a fixture would hide an input read from the clock,
       which is the trap feature 008 wrote down (M12, SC-003).
-- [ ] T030 [US1] Implement `lib/dominio/macrociclo/derivar_macrociclo.dart`: one
+- [X] T030 [US1] Implement `lib/dominio/macrociclo/derivar_macrociclo.dart`: one
       `PeticionGeneracion` per microcycle through the feature 002 `Generador`, with
       `componenteParaFase` supplying the accentuated component so the engine's own coherence
       check passes **by construction**; group the results into mesocycle `Plan`s, each with one
       `faseAtr`, its `macrocicloId` and its `ordenEnElMacrociclo` (M8, M9, D4).
-- [ ] T031 [US1] Stamp `versionMetodologia` on the macrocycle and on every mesocycle from
+- [X] T031 [US1] Stamp `versionMetodologia` on the macrocycle and on every mesocycle from
       `CargadorVersionMetodologia` (`lib/datos/recursos/version_metodologia.dart`), with a test
       that no level is left with `versionDesconocida` when the manifest is present (M11,
       FR-011, SC-002).
-- [ ] T032 [US1] Test and implement: the derived macrocycle and every one of its mesocycles are
+- [X] T032 [US1] Test and implement: the derived macrocycle and every one of its mesocycles are
       born `EstadoPlan.borrador` (M13, FR-015), and no further confirmation is asked between
       levels (M8, FR-003, SC-001) — the test counts the confirmations the flow requires and
       expects exactly one.
-- [ ] T033 [US1] Test in `test/dominio/macrociclo/aprobar_el_macrociclo_test.dart` using
+- [X] T033 [US1] Test in `test/dominio/macrociclo/aprobar_el_macrociclo_test.dart` using
       `test/dominio/auditoria/ayuda_planes.dart`: a mesocycle that fails the section 16 audit
       blocks approval of the whole macrocycle, and the audit is **the same one** every other
       plan passes, not a lighter one (M13, M14).
-- [ ] T034 [US1] Implement approval as **one act** for the coach however many mesocycles there
+- [X] T034 [US1] Implement approval as **one act** for the coach however many mesocycles there
       are (M15), driving the existing `CicloVidaPlan.aprobar` per mesocycle, with the macrocycle
       moving only once all of them did.
-- [ ] T035 [US1] Test: delivery is **all or nothing** (M16). A swimmer seeing four of seven
+- [X] T035 [US1] Test: delivery is **all or nothing** (M16). A swimmer seeing four of seven
       mesocycles is worse than seeing none, so the test interrupts delivery midway and asserts
       the swimmer has nothing rather than part.
-- [ ] T036 [US1] Implement delivery — publish and assign each mesocycle in one act (D5) — and
+- [X] T036 [US1] Implement delivery — publish and assign each mesocycle in one act (D5) — and
       test that **signing is not delivering** (M17, FR-037): an approved macrocycle leaves the
       swimmer with nothing new.
 - [ ] T037 [US1] `lib/ui/macrociclo/estructura.dart`: the proposed skeleton, every part of it
@@ -577,6 +577,25 @@ it.
   running and are measured at T084 instead; they were green at feature 008's merge.
 - `[P]` means different files and no unfinished dependency.
 - Commit per task or per logical group, and stop at the checkpoints to walk what exists.
+- **Found while building T026's save path, and out of this feature's scope** (recorded here
+  because it has no other home yet): saving a plan **never writes its sessions to Firestore**.
+  `RepositorioPlanesFirestore.guardarBorrador` and `guardarAprobado` persist only
+  `planAJson(plan)`, which excludes `sesiones`; the `sesiones` subcollection is written
+  exclusively by `RepositorioSesionesFirestore.guardar`, whose only caller is the editor
+  (`lib/ui/editor/estado_editor.dart:171`), one session at a time by hand. So a plan the engine
+  generated and code saved lands in Firestore with no sessions — most visibly feature 008's
+  coach queue (`lib/ui/hub/cola_del_entrenador.dart:456` and `:474`), where an approved plan
+  from a swimmer's request is stored with its microcycles and not one session. Nothing throws,
+  because `RepositorioPlanesMemoria` keeps the whole object in memory and every Dart test
+  passes. Feature 009 writes its sessions explicitly in `guardarElMacrociclo`, so it is not
+  affected; feature 008 is, and the two implementations disagree about what "save a plan"
+  means, which is the kind of gap that produces exactly this.
+- **One design mistake worth recording**, because the test caught it and the shape recurs:
+  `impedimentosParaAprobar` originally answered two questions at once — "do I have everything
+  this macrocycle names?" and "is the stored state coherent?" Used before signing, it reported
+  all three freshly derived mesocycles as impediments for being in `borrador`, which is exactly
+  what they are at that point. Split into `mesociclosQueFaltan` (presence, checked before
+  signing) and `impedimentosParaAprobar` (state, M14).
 - **Every fake must behave like the real collaborator.** Feature 008 had three tests pass for
   the wrong reason, and each went red only once the fake stopped being convenient: a
   `pumpWidget` that reused the same `State`, a queue fake that returned the same list instance
