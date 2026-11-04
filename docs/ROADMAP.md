@@ -18,7 +18,7 @@ was lost. A roadmap that lives in a chat is not a roadmap.
 | **005** Visual theme and component system | One place for colour, type, spacing and the repeated components; light and dark; measured contrast | Merged |
 | **006** Account sign-up and consent at registration | Name, exact age and country in short steps; T&C accepted on the way in; the minor's guardian is asked for consent | Merged |
 | **007** The HUB and the two journeys | Five tabs — `Generar`, `Ver Plan`, `Home`, `Análisis`, `Ajustes` — arranged per role, plus Home and the settings screen where a person governs their own account | Merged |
-| **008** The swimmer's request | A checklist that becomes a draft, the draft reaches the coach's queue, and nothing leaves without his signature | Planned |
+| **008** The swimmer's request | A checklist that becomes a draft, the draft reaches the coach's queue, and nothing leaves without his signature | Merged |
 | **009** Ver Plan and progression | Macrocycle and mesocycle, revealed as the swimmer completes sessions | Planned |
 | **010** Análisis | The detailed journey, and asking the coach for feedback | Planned |
 
