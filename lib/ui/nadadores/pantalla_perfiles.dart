@@ -12,11 +12,25 @@ import 'package:natacion_app/dominio/metodologia/estilos.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/ui/componentes/campo.dart';
 import 'package:natacion_app/ui/componentes/estado_vacio.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
 
 class PantallaPerfiles extends StatefulWidget {
-  const PantallaPerfiles({super.key, required this.repositorio});
+  const PantallaPerfiles({
+    super.key,
+    required this.repositorio,
+    this.alEmpezarUnMacrociclo,
+  });
 
   final RepositorioNadadores repositorio;
+
+  /// Empezar un macrociclo para este nadador (feature 009).
+  ///
+  /// La acción vive **en la ficha del nadador** porque un macrociclo es de un
+  /// nadador: sacarla a un menú general obligaría a elegirlo después, y es lo
+  /// primero que hay que saber. Nula cuando no hay a dónde ir, y entonces la
+  /// tarjeta no ofrece nada: un control deshabilitado como señuelo está
+  /// prohibido desde la feature 007 (H12).
+  final void Function(Nadador)? alEmpezarUnMacrociclo;
 
   @override
   State<PantallaPerfiles> createState() => _PantallaPerfilesState();
@@ -73,7 +87,10 @@ class _PantallaPerfilesState extends State<PantallaPerfiles> {
                     queHacer: 'Crea el primero con el botón «Nuevo perfil».',
                   ),
                 for (final nadador in _nadadores)
-                  _TarjetaPerfil(nadador: nadador),
+                  _TarjetaPerfil(
+                    nadador: nadador,
+                    alEmpezarUnMacrociclo: widget.alEmpezarUnMacrociclo,
+                  ),
               ],
             ),
     );
@@ -81,9 +98,13 @@ class _PantallaPerfilesState extends State<PantallaPerfiles> {
 }
 
 class _TarjetaPerfil extends StatelessWidget {
-  const _TarjetaPerfil({required this.nadador});
+  const _TarjetaPerfil({
+    required this.nadador,
+    this.alEmpezarUnMacrociclo,
+  });
 
   final Nadador nadador;
+  final void Function(Nadador)? alEmpezarUnMacrociclo;
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +138,18 @@ class _TarjetaPerfil extends StatelessWidget {
                   color: context.colores.informativo,
                 ),
               ),
+            if (alEmpezarUnMacrociclo != null) ...[
+              const SizedBox(height: Espaciado.corto),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  key: Key('empezar-macrociclo-${nadador.id ?? ''}'),
+                  onPressed: () => alEmpezarUnMacrociclo!(nadador),
+                  icon: const Icon(Icons.view_timeline_outlined),
+                  label: const Text('Empezar un macrociclo'),
+                ),
+              ),
+            ],
           ],
         ),
       ),

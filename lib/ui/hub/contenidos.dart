@@ -17,6 +17,7 @@ import 'package:natacion_app/dominio/consentimiento/constancia.dart';
 import 'package:natacion_app/dominio/cuentas/cuenta.dart';
 import 'package:natacion_app/dominio/datos_personales/derechos_del_titular.dart';
 import 'package:natacion_app/dominio/entidades/asignacion.dart';
+import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/generacion/resultado.dart';
 import 'package:natacion_app/dominio/hub/destino.dart';
@@ -65,6 +66,7 @@ class ContextoDelHub {
     this.queMirar = QueMirar.todos,
     this.idsQueMirar,
     this.alQuitarElFiltro,
+    this.alEmpezarUnMacrociclo,
     this.alMirar,
     required this.irAVerPlan,
     required this.alGenerar,
@@ -130,6 +132,13 @@ class ContextoDelHub {
   final Future<void> Function() alRevisarPlan;
   final Future<void> Function(Plan, List<String>) alEntregar;
 
+  /// Empezar un macrociclo para un nadador (feature 009).
+  ///
+  /// **La navegación la hace el HUB**, que es quien tiene los repositorios.
+  /// Pasarlos por aquí habría metido tres campos más en un contexto que ya
+  /// lleva treinta, para que esta función los volviera a repartir.
+  final void Function(Nadador)? alEmpezarUnMacrociclo;
+
   /// Lo que `Ajustes` necesita. Todo de quien está dentro y de nadie más.
   final String uid;
   final String? nadadorId;
@@ -194,6 +203,7 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
       nadadores: ctx.nadadores,
       versionMetodologia: ctx.versionMetodologia,
       alEntregar: ctx.alEntregar,
+      alEmpezarUnMacrociclo: ctx.alEmpezarUnMacrociclo,
     ),
     Contenido.homeDelEntrenador => HomeDelEntrenador(
       resumen: ctx.resumenDelEntrenador,

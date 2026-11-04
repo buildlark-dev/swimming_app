@@ -248,26 +248,26 @@ be pointed at, the amendment was used to skip a rule rather than restate it.
 - [X] T036 [US1] Implement delivery — publish and assign each mesocycle in one act (D5) — and
       test that **signing is not delivering** (M17, FR-037): an approved macrocycle leaves the
       swimmer with nothing new.
-- [ ] T037 [US1] `lib/ui/macrociclo/estructura.dart`: the proposed skeleton, every part of it
+- [X] T037 [US1] `lib/ui/macrociclo/estructura.dart`: the proposed skeleton, every part of it
       editable — number of blocks, their phases, their lengths — each block showing **why** it
       came out that way, and the two model fields for the coach to fill.
-- [ ] T038 [US1] `lib/ui/macrociclo/revisar_macrociclo.dart`: what he reviews before signing —
+- [X] T038 [US1] `lib/ui/macrociclo/revisar_macrociclo.dart`: what he reviews before signing —
       the mesocycles, their phases, their dates, their methodology version, and the audit
       table that `lib/ui/planes/tabla_auditoria.dart` already renders.
-- [ ] T039 [US1] Widget test `test/ui/macrociclo/estructura_editable_test.dart`: change the
+- [X] T039 [US1] Widget test `test/ui/macrociclo/estructura_editable_test.dart`: change the
       number of blocks, then a phase, then a length, and all three take effect (M3, C2). If any
       part is fixed, the proposal is a decision.
-- [ ] T040 [US1] Widget test `test/ui/macrociclo/los_modelos_son_suyos_test.dart`: what the
+- [X] T040 [US1] Widget test `test/ui/macrociclo/los_modelos_son_suyos_test.dart`: what the
       coach already wrote on the swimmer's record is offered back, and **nothing else is
       filled in** (M4, C3). If fatigue tolerance or motivation arrives pre-written, the app
       derived what the constitution reserves to him.
-- [ ] T041 [US1] Widget test: a block outside the published ranges shows its warning and the
+- [X] T041 [US1] Widget test: a block outside the published ranges shows its warning and the
       generate control **stays enabled** (M5, C7).
-- [ ] T042 [US1] Add `PantallaEstructura` and `PantallaRevisarMacrociclo` to the bench in
+- [X] T042 [US1] Add `PantallaEstructura` and `PantallaRevisarMacrociclo` to the bench in
       `test/ui/tema/ayuda_pantallas.dart`, mounted with a realistic three-block skeleton — not
       an empty one. `test/ui/tema/pantallas_en_el_banco_test.dart` will fail until they are
       listed, and the feature 005 lesson is that a bench only measures the paths it mounts.
-- [ ] T043 [US1] Wire the entry point into `lib/ui/hub/planes_del_entrenador.dart`: start a
+- [X] T043 [US1] Wire the entry point into `lib/ui/hub/planes_del_entrenador.dart`: start a
       macrocycle for a swimmer, from where his plans already are.
 
 **Checkpoint**: a coach can produce, review, sign and deliver a whole macrocycle from one

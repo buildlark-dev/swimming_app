@@ -38,6 +38,8 @@ import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
 import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
+import 'package:natacion_app/ui/macrociclo/estructura.dart';
+import 'package:natacion_app/ui/macrociclo/revisar_macrociclo.dart';
 import 'package:natacion_app/ui/hub/contenidos.dart';
 import 'package:natacion_app/ui/hub/repositorios_del_hub.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
@@ -373,6 +375,46 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     _editor.abrirGenerado(generado.plan);
   }
 
+  /// Empezar un macrociclo para un nadador (feature 009).
+  ///
+  /// Los dos actos van en dos pantallas: confirmar la estructura y, con lo
+  /// guardado, revisar para firmar y entregar. **La navegación está aquí**
+  /// porque el HUB es quien tiene los repositorios.
+  Future<void> _empezarUnMacrociclo(Nadador ficha) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (contextoDeLaRuta) => PantallaEstructura(
+          ficha: ficha,
+          biblioteca: widget.recursos.biblioteca,
+          indiceTerminos: widget.recursos.indiceTerminos,
+          versionMetodologia: widget.recursos.versionMetodologia,
+          hoy: DateTime.now(),
+          planes: _repos.planes,
+          sesiones: _repos.sesiones,
+          macrociclos: _repos.macrociclos,
+          alVolver: () => Navigator.of(contextoDeLaRuta).pop(),
+          alConfirmar: (guardado) => Navigator.of(
+            contextoDeLaRuta,
+          ).pushReplacement<void, void>(
+            MaterialPageRoute(
+              builder: (contextoDeLaRevision) => PantallaRevisarMacrociclo(
+                guardado: guardado,
+                hoy: DateTime.now(),
+                planes: _repos.planes,
+                asignaciones: _repos.asignaciones,
+                macrociclos: _repos.macrociclos,
+                alVolver: () => Navigator.of(contextoDeLaRevision).pop(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Al volver, los planes del HUB cambiaron: hay mesociclos nuevos.
+    if (mounted) await _cargar();
+  }
+
   @override
   void dispose() {
     _editor.dispose();
@@ -448,6 +490,11 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       alGenerar: _abrirGenerado,
       alRevisarPlan: _revisarPlan,
       alEntregar: _entregar,
+      // Sin servidor no se ofrece: un macrociclo que no se puede guardar es
+      // una pantalla que no puede terminar lo que empieza (H12).
+      alEmpezarUnMacrociclo: widget.recursos.firestore == null
+          ? null
+          : _empezarUnMacrociclo,
       selectorDePerfil: _selector,
       uid: widget.cuenta?.id ?? '',
       nadadorId: widget.cuenta?.nadadorId,

@@ -54,6 +54,12 @@ import 'package:natacion_app/ui/nadadores/pantalla_perfiles.dart';
 import 'package:natacion_app/ui/peticion/estado_de_mi_peticion.dart';
 import 'package:natacion_app/ui/peticion/peticion_del_nadador.dart';
 import 'package:natacion_app/ui/planes/pantalla_plan.dart';
+import 'package:natacion_app/dominio/macrociclo/derivar_macrociclo.dart';
+import 'package:natacion_app/dominio/macrociclo/esqueleto_propuesto.dart';
+import 'package:natacion_app/dominio/macrociclo/guardar_macrociclo.dart';
+import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
+import 'package:natacion_app/ui/macrociclo/estructura.dart';
+import 'package:natacion_app/ui/macrociclo/revisar_macrociclo.dart';
 import 'package:provider/provider.dart';
 
 /// Una pantalla con nombre, para que el fallo diga cuál.
@@ -409,7 +415,110 @@ List<PantallaMedible> pantallasDeLaApp() => [
       ),
     ),
   ),
+
+  // Las dos pantallas del macrociclo (feature 009).
+  //
+  // **Montadas con contenido, no vacías.** La de estructura se abre con la
+  // fecha puesta para que el banco mida los tres bloques editables con sus
+  // razones, que es donde está el contenido largo: «Acumulación, las primeras
+  // 8 semanas: es la base, y se queda con lo que no es transformación ni
+  // afinación» al 200% de letra en un teléfono de 360 puntos.
+  //
+  // Montarla sin fecha habría medido una tarjeta y dos frases, y la 005 ya
+  // enseñó lo que eso cuesta: con un plan sin fase ATR, media pantalla del
+  // plan no se pintaba en ninguna prueba, y al añadir la fase aparecieron dos
+  // desbordes que llevaban ahí desde la feature 002.
+  PantallaMedible(
+    'macrociclo — estructura',
+    () => PantallaEstructura(
+      ficha: _nadadorDePrueba,
+      biblioteca: _biblioteca(),
+      versionMetodologia: '3.6.0',
+      hoy: _hoy,
+      competenciaInicial: _hoy.add(const Duration(days: 97)),
+      planes: RepositorioPlanesMemoria(),
+      sesiones: RepositorioSesionesMemoria(),
+      macrociclos: RepositorioMacrociclosMemoria(),
+      alConfirmar: (_) {},
+    ),
+  ),
+  PantallaMedible(
+    'macrociclo — revisar',
+    () => PantallaRevisarMacrociclo(
+      guardado: _macrocicloParaElBanco(),
+      hoy: _hoy,
+      planes: RepositorioPlanesMemoria(),
+      asignaciones: RepositorioAsignacionesMemoria(),
+      macrociclos: RepositorioMacrociclosMemoria(),
+    ),
+  ),
 ];
+
+/// La ficha con la que se mide: completa y con anotaciones del entrenador, que
+/// es el caso con más texto en los dos modelos.
+const Nadador _nadadorDePrueba = Nadador(
+  id: 'n1',
+  nombre: 'Ana María Restrepo Vélez',
+  categoria: Categoria.precompetitivo,
+  estiloObjetivo: Estilo.libre,
+  pruebaObjetivo: '200 Libre',
+  diagnosticoTecnico: [
+    'pierde el agarre al fatigarse',
+    'respiración tardía en el segundo 50',
+  ],
+);
+
+/// Un macrociclo derivado de verdad, para medir la pantalla de revisión.
+///
+/// Se construye sin tocar repositorios: `derivarMacrociclo` es síncrono y puro,
+/// y `MacrocicloGuardado` es un objeto de valor. El banco necesita
+/// constructores síncronos, así que los identificadores se ponen a mano — es
+/// lo único que el almacenamiento habría añadido.
+MacrocicloGuardado _macrocicloParaElBanco() {
+  final competencia = _hoy.add(const Duration(days: 97));
+
+  final propuesto = esqueletoParaMacrociclo(
+    fechaDeCompetencia: competencia,
+    hoy: _hoy,
+    categoria: Categoria.precompetitivo,
+  );
+
+  final derivado =
+      derivarMacrociclo(
+            estructura: EstructuraConfirmada(
+              modeloDeLaPrueba:
+                  '200 libre: umbral alto sostenido, viraje rápido y los '
+                  'últimos 25 sin perder la frecuencia.',
+              modeloDelNadador:
+                  'Crol dominante, pierde el agarre al fatigarse, recupera '
+                  'bien entre series y responde a los retos cortos.',
+              bloques: propuesto.bloques,
+              confirmadaEn: _hoy,
+              diasPorSemana: const [1, 3, 5],
+              duracionSesionMinutos: 90,
+              longitudPiscina: 25,
+            ),
+            ficha: _nadadorDePrueba,
+            biblioteca: _biblioteca(),
+            versionMetodologia: '3.6.0',
+            nombre: 'Hacia el Departamental de fin de año',
+            fechaDeCompetencia: competencia,
+          )
+          as MacrocicloDerivado;
+
+  const ids = ['p1', 'p2', 'p3'];
+
+  return MacrocicloGuardado(
+    macrociclo: derivado.macrocicloConLosIds(ids).copiarCon(id: 'macro-1'),
+    mesociclos: [
+      for (var i = 0; i < derivado.mesociclos.length; i++)
+        derivado.mesociclos[i].copiarCon(
+          id: ids[i],
+          macrocicloId: 'macro-1',
+        ),
+    ],
+  );
+}
 
 class _PerfilDePrueba implements RepositorioPerfil {
   @override

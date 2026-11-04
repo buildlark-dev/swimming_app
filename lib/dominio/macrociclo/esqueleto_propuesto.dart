@@ -258,6 +258,61 @@ EsqueletoPropuesto esqueletoParaMacrociclo({
   );
 }
 
+/// Un bloque tal como el entrenador lo deja: su fase y cuántas semanas dura.
+typedef BloqueEditado = ({FaseAtr? fase, int semanas});
+
+/// Recompone el esqueleto con lo que el entrenador cambió (M3, FR-005).
+///
+/// **Sin esto, «editable» sería una palabra.** Los bloques son contiguos y van
+/// contados hacia atrás desde la competencia, así que cambiar la duración de
+/// uno mueve los demás: no se puede editar un bloque suelto sin recolocar la
+/// cadena. Esta función es la que hace que cambiar el número de bloques, sus
+/// fases o sus semanas produzca una estructura válida en lugar de una con
+/// huecos.
+///
+/// Lo que decide él y lo que sale de aquí: él pone fases y semanas, y de ahí
+/// salen las fechas. El día de la competencia no se mueve nunca —es el ancla—,
+/// así que **alargar la preparación la hace empezar antes**, no acabar después.
+/// Es lo correcto: lo que él está decidiendo es cuánto dura la preparación.
+///
+/// La razón de cada bloque dice que la puso él. Un `porQue` que siguiera
+/// diciendo «las últimas 2 semanas antes de la competencia» cuando él las
+/// cambió a cuatro sería la app atribuyéndose una decisión suya.
+List<BloqueConfirmado> recomponerElEsqueleto({
+  required List<BloqueEditado> bloques,
+  required DateTime fechaDeCompetencia,
+}) {
+  if (bloques.isEmpty) return const [];
+
+  final competencia = _soloLaFecha(fechaDeCompetencia);
+  final recompuestos = <BloqueConfirmado>[];
+
+  // Hacia atrás, igual que la propuesta: el último termina el día de competir.
+  var hasta = competencia;
+
+  for (final bloque in bloques.reversed) {
+    final dias = bloque.semanas * 7;
+    final desde = hasta.subtract(Duration(days: dias - 1));
+
+    recompuestos.insert(
+      0,
+      BloqueConfirmado(
+        fase: bloque.fase,
+        desde: desde,
+        hasta: hasta,
+        porQue: bloque.fase == null
+            ? 'Sin fase: ${_enSemanas(dias)}, puestas por el entrenador.'
+            : '${bloque.fase!.nombre}, ${_enSemanas(dias)}, '
+                  'puestas por el entrenador.',
+      ),
+    );
+
+    hasta = desde.subtract(const Duration(days: 1));
+  }
+
+  return recompuestos;
+}
+
 /// Lo que falta en la ficha para poder empezar un macrociclo (M7, regla R3).
 ///
 /// **Ante datos faltantes se pregunta, no se supone.** Un esqueleto construido

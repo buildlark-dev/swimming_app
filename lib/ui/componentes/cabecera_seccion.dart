@@ -47,7 +47,19 @@ class CabeceraSeccion extends StatelessWidget {
             children: [
               Icon(icono, size: Espaciado.iconoEnLinea),
               const SizedBox(width: Espaciado.corto),
-              Text(titulo, style: estilo ?? texto.titleMedium),
+              // El `Flexible` **no es opcional**, por lo mismo que en
+              // `_Contenido` de `boton.dart`: sin él, un título largo se sale
+              // del `Row` en lugar de pasar a la línea siguiente.
+              //
+              // Llevaba aquí desde la feature 005 sin dar la cara porque
+              // todos los títulos que había eran cortos. Lo destapó la feature
+              // 009 al poner «El esqueleto que propone la app»: 15 píxeles
+              // fuera al 130% de letra y 172 al 200%, en un teléfono de 360.
+              // El banco solo mide los caminos que monta, y hasta ahora
+              // ninguno montaba un título largo.
+              Flexible(
+                child: Text(titulo, style: estilo ?? texto.titleMedium),
+              ),
             ],
           );
 
