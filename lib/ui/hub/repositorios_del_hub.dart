@@ -10,6 +10,9 @@
 ///    registros, así que el recorrido del nadador no se podía comprobar.
 library;
 
+import 'package:natacion_app/datos/firestore/consentimientos.dart';
+import 'package:natacion_app/datos/firestore/peticiones_firestore.dart';
+import 'package:natacion_app/datos/peticiones/peticiones_con_puerta.dart';
 import 'package:natacion_app/datos/firestore/registros_firestore.dart';
 import 'package:natacion_app/datos/firestore/repositorios_firestore.dart';
 import 'package:natacion_app/datos/local/almacen_local.dart';
@@ -26,6 +29,7 @@ class RepositoriosDelHub {
     required this.asignaciones,
     required this.registrosLocales,
     this.registrosDelServidor,
+    this.peticiones,
   });
 
   /// Los de verdad: con servidor persisten; sin él, no.
@@ -59,6 +63,19 @@ class RepositoriosDelHub {
       // servidor, no el almacén de este dispositivo. Sin servidor no hay a
       // quién preguntar y el resumen cuenta con lo local.
       registrosDelServidor: db == null ? null : RegistrosFirestore(db),
+      // Sin servidor no hay peticiones: no hay a quien pedirle nada ni donde
+      // guardarlo. La pantalla lo dice en lugar de ofrecer una lista que no
+      // lleva a ninguna parte.
+      // **Pasando por la puerta del menor.** No es un tercer camino para
+      // salir del dispositivo: es el mismo que la 003 montó para los
+      // registros, con la puerta que la 004 construyó.
+      peticiones: db == null
+          ? null
+          : PeticionesConPuerta(
+              servidor: PeticionesFirestore(db),
+              puerta: PuertaFirestore(db),
+              almacen: almacen,
+            ),
     );
   }
 
@@ -72,6 +89,21 @@ class RepositoriosDelHub {
 
   /// Donde el entrenador mira quién ha respondido. Nulo sin servidor.
   final RepositorioRegistros? registrosDelServidor;
+
+  /// Lo que los nadadores piden (feature 008). Nulo sin servidor.
+  final RepositorioPeticiones? peticiones;
+
+  /// Si lo que mandó un nadador sigue retenido en el dispositivo.
+  Future<bool> estaRetenida(String nadadorId) async {
+    final repo = peticiones;
+    return repo is PeticionesConPuerta ? repo.estaRetenida(nadadorId) : false;
+  }
+
+  /// Vuelve a intentar mandar lo retenido, por si ya hay consentimiento.
+  Future<void> reintentarLoRetenido(String nadadorId) async {
+    final repo = peticiones;
+    if (repo is PeticionesConPuerta) await repo.reintentarLoRetenido(nadadorId);
+  }
 
   /// Lo que el resumen del entrenador consulta para contar «en uso».
   RepositorioRegistros get registrosParaContar =>

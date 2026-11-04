@@ -207,36 +207,31 @@ void main() {
     });
   });
 
-  group('H11 y H12 — su Generar todavía no', () {
-    testWidgets('dice qué llegará y no tiene ni un control', (tester) async {
+  group('su Generar ya no dice «todavía no» (feature 008)', () {
+    testWidgets('el hueco que la 007 dejó está lleno', (tester) async {
+      // Era un `TodaviaNo` con su texto y sin un solo control, porque un
+      // destino que no hace nada no debe tener botones que parezcan hacer
+      // algo. La feature 008 lo llenó, que es para lo que el hueco estaba.
       await abrirHub(tester, await montarHub(rol: Rol.nadador));
 
       await tester.tap(find.text(Destino.generar.etiqueta).last);
       await tester.pumpAndSettle();
 
-      final vacio = find.byKey(const Key('todavia-no'));
-      expect(vacio, findsOneWidget);
-      expect(find.textContaining('pedir tu entrenamiento'), findsWidgets);
+      expect(find.byKey(const Key('todavia-no')), findsNothing);
+    });
 
-      // **Dentro del destino**, ni un control pulsable. Ni uno apagado como
-      // señuelo. Se busca dentro y no en la pantalla entera a propósito: la
-      // tira de sesión de arriba no es contenido de este destino.
-      for (final control in [
-        ElevatedButton,
-        FilledButton,
-        TextButton,
-        OutlinedButton,
-        IconButton,
-        Checkbox,
-        Switch,
-        InkWell,
-      ]) {
-        expect(
-          find.descendant(of: vacio, matching: find.byType(control)),
-          findsNothing,
-          reason: 'Un $control en un destino que todavía no hace nada',
-        );
-      }
+    testWidgets('sin servidor lo dice, en lugar de ofrecer una lista vacía', (
+      tester,
+    ) async {
+      // En las pruebas del HUB no hay repositorio de peticiones, que es lo
+      // mismo que pasa en modo local: no hay a quién mandarle nada.
+      await abrirHub(tester, await montarHub(rol: Rol.nadador));
+
+      await tester.tap(find.text(Destino.generar.etiqueta).last);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('peticion-sin-servidor')), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
     });
   });
 }

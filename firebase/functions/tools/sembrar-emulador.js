@@ -179,6 +179,14 @@ async function main() {
     registradoEn: new Date().toISOString(),
   });
 
+  // 6. Lo que la feature 008 necesita para poder recorrer su quickstart.
+  //
+  // Nada de esto se puede montar a mano con la app delante: hacen falta un
+  // nadador **sin consentimiento vigente** —que la app, bien hecha, impide
+  // crear—, uno en una categoría **sin ATR**, y fechas de competencia justo
+  // en los días frontera de la derivación.
+  await sembrarParaPeticiones();
+
   // **El rol se vuelve a poner al final, y no es redundante.** El disparador
   // `alCrearseUnaCuenta` corre cuando la cuenta se crea y escribe el rol por
   // omisión, así que pisa el que se asignó arriba: el entrenador entraba como
@@ -195,3 +203,157 @@ async function main() {
 }
 
 main().then(() => process.exit(0));
+
+/**
+ * Lo que hace falta para recorrer el quickstart de la feature 008.
+ *
+ * Son tres cosas que **no se pueden preparar desde la app**, y por eso viven
+ * aquí:
+ *
+ * - Un nadador **sin consentimiento vigente**. La app, bien hecha, no deja
+ *   crear uno: el alta pide el consentimiento. Sin él no se puede comprobar
+ *   que su petición se queda en el teléfono (C12).
+ * - Un nadador en una categoría **sin ATR**, para ver que su borrador no lleva
+ *   fase y que la app lo dice en lugar de dejar el hueco (C9).
+ * - Tres peticiones con la competencia a **15, 16 y 44 días**, que son los
+ *   días frontera de la derivación (C8). A mano, esas fechas se calculan mal.
+ */
+async function sembrarParaPeticiones() {
+  const CLAVE_COMUN = CLAVE;
+
+  async function cuentaDe(correo, nadadorId, nombreVisible, rol = 'nadador') {
+    let cuenta;
+    try {
+      cuenta = await auth.getUserByEmail(correo);
+      await auth.updateUser(cuenta.uid, { password: CLAVE_COMUN });
+    } catch (_) {
+      cuenta = await auth.createUser({ email: correo, password: CLAVE_COMUN });
+    }
+    await auth.setCustomUserClaims(cuenta.uid, { rol });
+    await db.collection('usuarios').doc(cuenta.uid).set({
+      nadadorId,
+      // **El perfil completo**, o la puerta del alta los manda a rellenarlo y
+      // nunca llegan a `Generar`. Lo vio el recorrido del quickstart: la
+      // siembra escribía el identificador como nombre y sin fecha.
+      nombre: nombreVisible,
+      fechaNacimiento: '2015-03-11',
+      pais: 'CO',
+      terminos: { version: 'v1', aceptadaEn: FieldValue.serverTimestamp() },
+      perfilCompletadoEn: FieldValue.serverTimestamp(),
+    });
+    return cuenta;
+  }
+
+  // --- Sin consentimiento vigente (C12) ---------------------------------
+  await db.collection('nadadores').doc('n-sin-permiso').set({
+    nombre: 'Samuel Ríos',
+    fechaNacimiento: '2015-03-11',
+    categoria: 'precompetitivo',
+    estiloObjetivo: 'libre',
+    pruebaObjetivo: '100 Libre',
+  });
+  // **A propósito no se le siembra consentimiento.** La ausencia es el dato.
+  await db.collection('consentimientos').doc('n-sin-permiso').delete();
+  const sinPermiso = await cuentaDe(
+    'nadador.sinpermiso@ejemplo.test',
+    'n-sin-permiso',
+    'Samuel Ríos',
+  );
+
+  // --- Categoría sin ATR (C9) -------------------------------------------
+  await db.collection('nadadores').doc('n-inicia').set({
+    nombre: 'Lucía Mesa',
+    fechaNacimiento: '2018-09-02',
+    categoria: 'iniciacion',
+    estiloObjetivo: 'libre',
+    pruebaObjetivo: '50 Libre',
+  });
+  await db.collection('consentimientos').doc('n-inicia').set({
+    nadadorId: 'n-inicia',
+    vigente: true,
+    alcances: ['datosDeEntrenamiento'],
+    versionDelTexto: 'v1',
+    otorgadoEn: FieldValue.serverTimestamp(),
+  });
+  const inicia = await cuentaDe(
+    'nadadora.inicia@ejemplo.test',
+    'n-inicia',
+    'Lucía Mesa',
+  );
+
+  // --- Los días frontera (C8) -------------------------------------------
+  //
+  // 15 → Realización, 16 → Transformación, 44 → Acumulación. Son las tres
+  // fronteras que la derivación tiene que acertar; lo de en medio se deduce.
+  const enDias = (dias) => {
+    const cuando = new Date();
+    cuando.setDate(cuando.getDate() + dias);
+    return cuando.toISOString();
+  };
+
+  const fronteras = [
+    { id: 'n-frontera-15', nombre: 'Frontera 15 días', dias: 15 },
+    { id: 'n-frontera-16', nombre: 'Frontera 16 días', dias: 16 },
+    { id: 'n-frontera-44', nombre: 'Frontera 44 días', dias: 44 },
+  ];
+
+  for (const quien of fronteras) {
+    await db.collection('nadadores').doc(quien.id).set({
+      nombre: quien.nombre,
+      fechaNacimiento: '2011-01-15',
+      categoria: 'precompetitivo',
+      estiloObjetivo: 'libre',
+      pruebaObjetivo: '200 Libre',
+    });
+    await db.collection('consentimientos').doc(quien.id).set({
+      nadadorId: quien.id,
+      vigente: true,
+      alcances: ['datosDeEntrenamiento'],
+      versionDelTexto: 'v1',
+      otorgadoEn: FieldValue.serverTimestamp(),
+    });
+
+    // La petición ya mandada, para que la cola tenga las tres esperando.
+    await db.collection('peticionesDePlan').doc(quien.id).set({
+      nadadorId: quien.id,
+      estado: 'esperando',
+      enviadaEn: FieldValue.serverTimestamp(),
+      respuestas: {
+        estiloObjetivo: 'Libre',
+        pruebaObjetivo: '200 Libre',
+        fechaDeCompetencia: enDias(quien.dias),
+        diasDisponibles: [enDias(1), enDias(3), enDias(5)],
+        duracionSesionMinutos: 90,
+        longitudPiscina: 25,
+      },
+    });
+  }
+
+  // --- Una molestia reciente de Ana, para C12 ----------------------------
+  //
+  // La cola la enseña con su fecha, leída de donde ya vive. Si esta siembra
+  // escribiera algo en `peticionesDePlan`, estaría violando FR-038 justo en
+  // la herramienta que sirve para comprobarlo.
+  await db.collection('registros').doc('r-ana-molestia').set({
+    nadadorId: 'n-ana',
+    planId: 'p-publicado',
+    sesionId: 's-2',
+    versionDePlan: '3.6.0',
+    realizada: true,
+    rpePercibido: 7,
+    molestia: {
+      descripcion: 'Me molesta al sacar el brazo',
+      zonaDelCuerpo: 'Hombro derecho',
+    },
+    registradoEn: new Date().toISOString(),
+  });
+
+  console.log(
+    `Sin permiso: nadador.sinpermiso@ejemplo.test  (uid ${sinPermiso.uid}, ficha n-sin-permiso, SIN consentimiento)`,
+  );
+  console.log(
+    `Sin ATR:     nadadora.inicia@ejemplo.test  (uid ${inicia.uid}, ficha n-inicia, Iniciación)`,
+  );
+  console.log('Fronteras:  3 peticiones esperando, a 15, 16 y 44 días');
+  console.log('Molestia:   Ana contó una hace un momento, para ver la cola');
+}

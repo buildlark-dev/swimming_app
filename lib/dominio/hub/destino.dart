@@ -47,6 +47,10 @@ enum Contenido {
   /// recién generado se revisa sin cambiar de destino.
   generadorYEditor,
 
+  /// La lista corta de preguntas, y en qué va lo que el nadador pidió
+  /// (feature 008). Seis preguntas: las únicas que él puede responder.
+  peticionDelNadador,
+
   /// Sus planes, con búsqueda y filtro por nadador, y el panel de nadadores.
   planesDelEntrenador,
 
@@ -106,13 +110,7 @@ QueHay reparto(Destino destino, Rol rol) {
     case Destino.generar:
       return esEntrenador
           ? const Contiene(Contenido.generadorYEditor)
-          : const TodaviaNo(
-              loQueLlegara:
-                  'Desde aquí podrás pedir tu entrenamiento: '
-                  'responderás unas preguntas y tu entrenador recibirá la '
-                  'solicitud para prepararlo y firmarlo.',
-              feature: '008',
-            );
+          : const Contiene(Contenido.peticionDelNadador);
 
     case Destino.verPlan:
       return esEntrenador

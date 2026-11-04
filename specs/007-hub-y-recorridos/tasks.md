@@ -188,7 +188,7 @@ cada una puede cambiar está dicho (FR-033, decisión D12).
 - [X] T060 [P] Extender `test/ui/tema/pantallas_en_el_banco_test.dart` de la feature 005 con las pantallas nuevas: ninguna declara color, medida ni tipografía propios (FR-034)
 - [X] T061 Pasar las cuatro puertas: `flutter analyze` limpio, `flutter test` en verde, `npm --prefix firebase test` en verde y `dart run tool/verificar_metodologia.dart` con las huellas coincidiendo
 - [X] T062 [P] Actualizar `docs/DEVELOPMENT.md`: añadir el HUB y los dos recorridos, y **poner al día la lista «What is built»**, que se quedó en la feature 003 y no nombra cuentas, consentimiento, tema visual ni alta
-- [ ] T063 [P] Marcar la feature 007 como fusionada en `docs/ROADMAP.md` cuando lo esté
+- [X] T063 [P] Marcar la feature 007 como fusionada en `docs/ROADMAP.md` cuando lo esté
 - [X] T064 Recorrer C1 a C14 de [quickstart.md](./quickstart.md) en el navegador, con las dos cuentas. **C9 y C11 son los que importan**: que corregir un apellido no mueva la constancia, y que la supresión diga qué sobrevive antes del segundo paso
 
 ---

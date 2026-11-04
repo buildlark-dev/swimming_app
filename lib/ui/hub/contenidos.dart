@@ -7,6 +7,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/datos/local/almacen_local.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
 import 'package:natacion_app/dominio/biblioteca/indice_terminos.dart';
 import 'package:natacion_app/datos/perfil/repositorio_perfil.dart';
@@ -25,12 +26,15 @@ import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/ui/editor/pantalla_editor.dart';
 import 'package:natacion_app/ui/generacion/pantalla_peticion.dart';
 import 'package:natacion_app/ui/ajustes/pantalla_ajustes.dart';
+import 'package:natacion_app/dominio/peticiones/molestias_enlazadas.dart';
+import 'package:natacion_app/ui/hub/cola_del_entrenador.dart';
 import 'package:natacion_app/ui/hub/home_del_entrenador.dart';
 import 'package:natacion_app/ui/hub/home_del_nadador.dart';
 import 'package:natacion_app/ui/hub/planes_del_entrenador.dart';
 import 'package:natacion_app/ui/hub/todavia_no.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:natacion_app/ui/nadador/pantalla_mi_progreso.dart';
+import 'package:natacion_app/ui/peticion/peticion_del_nadador.dart';
 import 'package:natacion_app/ui/nadador/pantalla_sesion_del_dia.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:provider/provider.dart';
@@ -45,6 +49,13 @@ class ContextoDelHub {
     required this.indiceTerminos,
     required this.versionMetodologia,
     required this.nadadores,
+    required this.peticiones,
+    required this.almacen,
+    this.estaRetenida,
+    this.alReintentarLoRetenido,
+    this.repositorioPlanes,
+    this.molestias,
+    this.alCerrarPeticion,
     required this.editor,
     required this.nadador,
     required this.planes,
@@ -75,6 +86,28 @@ class ContextoDelHub {
   final IndiceTerminos indiceTerminos;
   final String versionMetodologia;
   final RepositorioNadadores nadadores;
+
+  /// Lo que los nadadores piden (feature 008). Nulo sin servidor.
+  final RepositorioPeticiones? peticiones;
+
+  /// El almacén de esta cuenta, para lo que se responde a medias.
+  final AlmacenLocal? almacen;
+
+  /// Vuelve a intentar mandar lo retenido, por si ya hay consentimiento.
+  final Future<void> Function(String nadadorId)? alReintentarLoRetenido;
+
+  /// Donde se guarda el borrador que sale de una petición, antes de firmarlo.
+  final RepositorioPlanes? repositorioPlanes;
+
+  /// Si lo que mandó sigue retenido en el dispositivo (feature 008).
+  final Future<bool> Function(String nadadorId)? estaRetenida;
+
+  /// Las molestias que el nadador ya contó en sus sesiones. **Se leen donde
+  /// ya viven; esta feature no las copia** (FR-038). Nulo sin servidor.
+  final LectorDeMolestias? molestias;
+
+  /// Cierra una petición a través del servidor. Nulo sin servidor.
+  final AlCerrarPeticion? alCerrarPeticion;
 
   final EstadoEditor editor;
   final EstadoNadador nadador;
@@ -144,6 +177,14 @@ Widget contenidoDe(Destino destino, Rol rol, ContextoDelHub ctx) {
 Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
   return switch (contenido) {
     Contenido.generadorYEditor => _GenerarDelEntrenador(ctx: ctx),
+    Contenido.peticionDelNadador => PeticionDelNadador(
+      nadadorId: ctx.nadadorId,
+      nadadores: ctx.nadadores,
+      peticiones: ctx.peticiones,
+      estaRetenida: ctx.estaRetenida,
+      alReintentarLoRetenido: ctx.alReintentarLoRetenido,
+      almacen: ctx.almacen,
+    ),
     Contenido.planesDelEntrenador => PlanesDelEntrenador(
       queMirar: ctx.queMirar,
       idsQueMirar: ctx.idsQueMirar,
@@ -226,6 +267,11 @@ class _GenerarDelEntrenadorState extends State<_GenerarDelEntrenador> {
                 label: Text('Editor'),
                 icon: Icon(Icons.edit_note_outlined),
               ),
+              ButtonSegment(
+                value: 2,
+                label: Text('Solicitudes'),
+                icon: Icon(Icons.inbox_outlined),
+              ),
             ],
             selected: {_cual},
             onSelectionChanged: (cual) => setState(() => _cual = cual.first),
@@ -247,6 +293,19 @@ class _GenerarDelEntrenadorState extends State<_GenerarDelEntrenador> {
               ChangeNotifierProvider<EstadoEditor>.value(
                 value: ctx.editor,
                 child: PantallaEditor(alRevisarPlan: ctx.alRevisarPlan),
+              ),
+              // La cola vive aquí, junto al generador y el editor, y no en un
+              // sexto destino: los cinco del HUB no cambian, y con ellos se
+              // quedan quietos los cerrojos de la feature 007 —incluido el
+              // que mide si las cinco etiquetas caben a 320 px.
+              ColaDelEntrenador(
+                peticiones: ctx.peticiones,
+                nadadores: ctx.nadadores,
+                molestias: ctx.molestias,
+                planes: ctx.repositorioPlanes,
+                biblioteca: ctx.biblioteca,
+                versionMetodologia: ctx.versionMetodologia,
+                alCerrar: ctx.alCerrarPeticion,
               ),
             ],
           ),

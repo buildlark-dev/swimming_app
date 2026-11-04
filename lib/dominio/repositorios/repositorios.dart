@@ -15,6 +15,7 @@ import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
+import 'package:natacion_app/dominio/peticiones/peticion.dart';
 
 /// Fallo al acceder a los datos, expresado en términos del dominio.
 class FalloDeDatos implements Exception {
@@ -205,4 +206,31 @@ abstract class Identidad {
   /// el teléfono lo comparten hermanos. El correo ya está verificado desde el
   /// alta.
   Future<void> pedirCambioDeClave();
+}
+
+/// Las peticiones de plan de los nadadores (feature 008).
+///
+/// **El nadador solo manda; el estado lo escribe el servidor.** Por eso aquí
+/// no hay un `guardar` general: hay `enviar`, que es lo único que un
+/// dispositivo de nadador puede hacer, y `cerrar`, que pasa por el servidor.
+/// Un cliente que pudiera escribir su propio estado podría aprobarse su propia
+/// petición.
+///
+/// Contrato: `specs/008-swimmer-request/contracts/peticion_de_plan.md`.
+abstract class RepositorioPeticiones {
+  /// La petición abierta de este nadador, si tiene una. Nula si no.
+  Future<PeticionDePlan?> miPeticion(String nadadorId);
+
+  /// Lo que le llegó al entrenador. Lectura: la cola no se escribe mirándola.
+  Future<List<PeticionDePlan>> cola();
+
+  /// Manda una petición nueva. Falla si ya hay una abierta de ese nadador, y
+  /// **lo comprueban las reglas**, no esta implementación.
+  Future<void> enviar({
+    required String nadadorId,
+    required RespuestasDePeticion respuestas,
+  });
+
+  /// El entrenador la abre: pasa a `enRevision`. Lo mueve él y nadie más.
+  Future<void> marcarEnRevision(String nadadorId);
 }

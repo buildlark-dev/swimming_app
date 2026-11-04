@@ -257,6 +257,73 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // --- Peticiones de plan (feature 008) --------------------------------
+    //
+    // **No confundir con `solicitudes`**, que son las de consentimiento de la
+    // feature 004. Dos cosas distintas con el mismo nombre en la misma base es
+    // como se escribe una regla contra la coleccion equivocada, y estas reglas
+    // guardan datos de un menor. Por eso esta se llama distinto (decision D2).
+    //
+    // **El identificador del documento es el del nadador.** Esa es la pieza
+    // que convierte «una peticion abierta a la vez» en algo que la regla puede
+    // comprobar: con un identificador aleatorio ninguna regla podria contar
+    // las abiertas, y el limite viviria solo en la pantalla.
+    match /peticionesDePlan/{nadadorId} {
+
+      // Abierta = esperando o en revision. Un documento recien creado todavia
+      // no tiene estado —lo pone el servidor— y cuenta como abierto.
+      function estaAbierta(datos) {
+        return datos.get('estado', 'esperando') in ['esperando', 'enRevision'];
+      }
+
+      allow read: if esEntrenador() || soyEseNadador(nadadorId);
+
+      // Una peticion recien mandada: **solo manda**, nada mas. Ni estado, ni
+      // fecha de envio, ni plan, ni fecha de respuesta. Un cliente que pudiera
+      // escribir su propio estado podria aprobarse su propia peticion (P13).
+      //
+      // Y la puerta del menor (P9): la bandeja del dispositivo ya lo retiene,
+      // y esto es lo que lo sostiene cuando el dispositivo miente.
+      function mandaLaSuya() {
+        return soyEseNadador(nadadorId)
+            && request.resource.data.nadadorId == nadadorId
+            && request.resource.data.keys().hasOnly(['nadadorId', 'respuestas'])
+            && tieneConsentimientoVigente(nadadorId);
+      }
+
+      allow create: if mandaLaSuya();
+
+      allow update: if
+            // El nadador reutiliza su documento cuando la anterior ya se
+            // cerro. Es la misma escritura que un `create`, sobre un documento
+            // que existe: **el documento se llama como el, asi que no hay otro
+            // donde ponerla**. El servidor ya archivo la cerrada en
+            // `historial`, asi que no se pierde lo que pidio (P12).
+            (mandaLaSuya() && !estaAbierta(resource.data))
+
+            // Lo unico que el entrenador cambia desde el cliente es abrirla.
+            // Cerrar —aprobar o rechazar— pasa por el servidor, que es quien
+            // pone la fecha y quien archiva: si el cliente pudiera, la fecha
+            // seria una declaracion suya.
+            || (esEntrenador()
+                && request.resource.data.diff(resource.data)
+                     .affectedKeys().hasOnly(['estado'])
+                && resource.data.get('estado', 'esperando') == 'esperando'
+                && request.resource.data.estado == 'enRevision');
+
+      // Nadie borra una peticion desde el cliente. El nadador que se
+      // arrepiente se lo dice a su entrenador, que la rechaza; borrarla
+      // dejaria sin rastro lo que se pidio.
+      allow delete: if false;
+
+      // El historial lo escribe el servidor al cerrar. Se lee igual que el
+      // documento del que cuelga.
+      match /historial/{peticionId} {
+        allow read: if esEntrenador() || soyEseNadador(nadadorId);
+        allow write: if false;
+      }
+    }
+
     // --- Vinculo cuenta <-> perfil de nadador ----------------------------
 
     match /usuarios/{uid} {

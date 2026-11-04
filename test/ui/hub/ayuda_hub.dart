@@ -29,7 +29,23 @@ import 'package:natacion_app/ui/hub/hub.dart';
 import 'package:natacion_app/ui/hub/repositorios_del_hub.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-final DateTime hoy = DateTime(2026, 10, 27, 7);
+/// Hoy **de verdad**, no una fecha escrita a mano.
+///
+/// Estaba fijada en `DateTime(2026, 10, 27, 7)`, y el 2 de noviembre de 2026
+/// cuatro pruebas del recorrido del nadador se pusieron rojas sin que nadie
+/// tocara el código: las sesiones del plan de prueba se construyen a partir de
+/// esta fecha, y la pantalla del nadador solo muestra las que no han pasado.
+/// Pasado ese día, el plan sembrado no tenía ni una sesión por delante.
+///
+/// Una prueba que se rompe sola en una fecha del calendario no está
+/// comprobando lo que dice comprobar. Se ancla al día de hoy, a las 7 de la
+/// mañana, para que siga habiendo sesión del día cualquier día que se corra.
+final DateTime hoy = DateTime(
+  DateTime.now().year,
+  DateTime.now().month,
+  DateTime.now().day,
+  7,
+);
 
 Biblioteca bibliotecaDePrueba() => Biblioteca.desdeJson(
   jsonDecode(File('assets/biblioteca/ejercicios.json').readAsStringSync())

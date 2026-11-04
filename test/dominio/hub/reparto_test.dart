@@ -91,7 +91,11 @@ void main() {
       }
     });
 
-    test('H13 — los «todavía no» son exactamente dos', () {
+    test('H13 — ya solo queda un «todavía no»', () {
+      // Eran dos. La feature 008 llenó el `Generar` del nadador, que es para
+      // lo que el hueco estaba: el reparto es una función total y «todavía no»
+      // era una respuesta, no un sitio vacío. Queda el Análisis del
+      // entrenador, que espera a la 010.
       final esperando = <String>[
         for (final rol in Rol.values)
           for (final destino in Destino.values)
@@ -101,23 +105,29 @@ void main() {
 
       expect(
         esperando..sort(),
-        ['analisis/entrenador', 'generar/nadador'],
+        ['analisis/entrenador'],
         reason:
             'El Análisis del nadador NO es uno de ellos: lleva dentro «Mi '
             'progreso» de la feature 003 (FR-031)',
       );
     });
 
-    test('H13 — y cada uno dice qué feature lo trae', () {
-      final generarDelNadador = reparto(Destino.generar, Rol.nadador);
+    test('H13 — y dice qué feature lo trae', () {
       final analisisDelEntrenador = reparto(Destino.analisis, Rol.entrenador);
 
-      expect((generarDelNadador as TodaviaNo).feature, '008');
       expect((analisisDelEntrenador as TodaviaNo).feature, '010');
+      expect(analisisDelEntrenador.loQueLlegara, isNotEmpty);
+    });
 
-      for (final queHay in [generarDelNadador, analisisDelEntrenador]) {
-        expect(queHay.loQueLlegara, isNotEmpty);
-      }
+    test('el Generar del nadador es su petición (feature 008)', () {
+      expect(
+        reparto(Destino.generar, Rol.nadador),
+        isA<Contiene>().having(
+          (c) => c.contenido,
+          'contenido',
+          Contenido.peticionDelNadador,
+        ),
+      );
     });
 
     test('FR-031 — el Análisis del nadador es «Mi progreso»', () {
