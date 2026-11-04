@@ -49,6 +49,7 @@ import 'package:natacion_app/ui/generacion/pantalla_peticion.dart';
 import 'package:natacion_app/dominio/peticiones/peticion.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:natacion_app/ui/nadador/pantalla_mi_progreso.dart';
+import 'package:natacion_app/ui/nadador/mi_macrociclo.dart';
 import 'package:natacion_app/ui/nadador/pantalla_sesion_del_dia.dart';
 import 'package:natacion_app/ui/nadadores/pantalla_perfiles.dart';
 import 'package:natacion_app/ui/peticion/estado_de_mi_peticion.dart';
@@ -442,6 +443,27 @@ List<PantallaMedible> pantallasDeLaApp() => [
       alConfirmar: (_) {},
     ),
   ),
+  // El `Ver Plan` del nadador, con un macrociclo de catorce semanas entregado
+  // y algunas sesiones ya marcadas.
+  //
+  // **Es la pantalla más larga de la app** y la que más controles de plegado
+  // lleva: catorce semanas, cuarenta y dos sesiones, cada una con su
+  // `ExpansionTile`. Si uno de esos controles no alcanza el área pulsable al
+  // 200% de letra, el contenido es alcanzable en teoría y no en la práctica
+  // (M22). Y la lista de pendientes crece con lo que el nadador no marcó, así
+  // que se monta con dos sin marcar para que ese aviso también se mida.
+  PantallaMedible(
+    'macrociclo — el del nadador',
+    () => PantallaMiMacrociclo(
+      nadadorId: 'n1',
+      macrociclos: _MacrociclosDelBanco(),
+      planes: _PlanesDelBanco(),
+      registros: _RegistrosDelBanco(),
+      // Dentro del segundo mesociclo, con sesiones pasadas sin marcar.
+      hoy: _hoy.add(const Duration(days: 60)),
+      sinMacrociclo: const SizedBox.shrink(),
+    ),
+  ),
   PantallaMedible(
     'macrociclo — revisar',
     () => PantallaRevisarMacrociclo(
@@ -544,6 +566,117 @@ class _ConstanciaDePrueba implements LectorDeConstancias {
 // ---------------------------------------------------------------------------
 // Dobles. Lo mínimo para que las pantallas se pinten.
 // ---------------------------------------------------------------------------
+
+/// El macrociclo del banco, ya entregado y con identificadores.
+///
+/// Los tres dobles de abajo responden **al instante y sin `Future` pendiente**:
+/// el banco monta las pantallas con dos bombeos, y un doble que tardara dejaría
+/// la pantalla midiendo su `CircularProgressIndicator` en lugar de su
+/// contenido. Eso es la trampa que la feature 005 documenta: un banco que mide
+/// un `Column` de juguete siempre pasa.
+MacrocicloGuardado _entregadoParaElBanco() {
+  final guardado = _macrocicloParaElBanco();
+
+  return MacrocicloGuardado(
+    macrociclo: guardado.macrociclo.copiarCon(estado: EstadoPlan.publicado),
+    mesociclos: [
+      for (final mesociclo in guardado.mesociclos)
+        mesociclo.copiarCon(estado: EstadoPlan.publicado),
+    ],
+  );
+}
+
+class _MacrociclosDelBanco implements RepositorioMacrociclos {
+  @override
+  Future<List<Macrociclo>> deNadador(String nadadorId) async => [
+    _entregadoParaElBanco().macrociclo,
+  ];
+
+  @override
+  Future<Macrociclo?> obtener(String id) async =>
+      _entregadoParaElBanco().macrociclo;
+
+  @override
+  Future<String> guardarBorrador(Macrociclo macrociclo) async => 'macro-1';
+
+  @override
+  Future<void> guardarAprobado(Macrociclo m, Map<String, dynamic> a) async {}
+
+  @override
+  Future<void> publicar(String id) async {}
+
+  @override
+  Future<Map<String, dynamic>> exportar(String id) async => {};
+}
+
+class _PlanesDelBanco implements RepositorioPlanes {
+  @override
+  Future<Plan?> obtener(String id) async {
+    for (final mesociclo in _entregadoParaElBanco().mesociclos) {
+      if (mesociclo.id == id) return mesociclo;
+    }
+    return null;
+  }
+
+  @override
+  Future<List<Plan>> listar({Categoria? categoria, EstadoPlan? estado}) async =>
+      _entregadoParaElBanco().mesociclos;
+
+  @override
+  Future<String> guardarBorrador(Plan plan) async => plan.id ?? 'p1';
+
+  @override
+  Future<void> guardarAprobado(Plan p, Map<String, dynamic> a) async {}
+
+  @override
+  Future<Plan> crearVersionDesde(String id) async =>
+      _entregadoParaElBanco().mesociclos.first;
+
+  @override
+  Future<Map<String, dynamic>> exportar(String id) async => {};
+}
+
+/// Dos sesiones marcadas del primer mesociclo, para que la portada enseñe una
+/// adherencia de verdad y la lista de pendientes no llegue vacía.
+class _RegistrosDelBanco implements RepositorioRegistros {
+  @override
+  Future<List<RegistroDeSesion>> obtenerDePlan(
+    String nadadorId,
+    String planId,
+  ) async {
+    if (planId != 'p1') return const [];
+
+    final sesiones = _entregadoParaElBanco().mesociclos.first.sesiones;
+    return [
+      for (final sesion in sesiones.take(2))
+        RegistroDeSesion(
+          nadadorId: nadadorId,
+          planId: planId,
+          sesionId: sesion.id ?? '',
+          versionDePlan: '3.6.0',
+          realizada: true,
+          registradoEn: _hoy,
+          rpePercibido: 6,
+          observaciones: 'Me costó el último 100, pero lo saqué.',
+        ),
+    ];
+  }
+
+  @override
+  Future<RegistroDeSesion?> obtener(String id) async => null;
+
+  @override
+  Future<void> guardar(RegistroDeSesion registro) async {}
+
+  @override
+  Future<Map<String, dynamic>> exportar(String nadadorId) async => {};
+
+  @override
+  Future<void> eliminarDe(String nadadorId) async {}
+
+  @override
+  Future<Set<String>> nadadoresConRegistros() async => {'n1'};
+}
 
 class _RegistrosEnMemoria implements RepositorioRegistros {
   @override

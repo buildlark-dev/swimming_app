@@ -56,6 +56,7 @@ class PantallaPrincipal extends StatefulWidget {
     this.cuenta,
     this.modoLocal = false,
     this.repositorios,
+    this.hoyParaPruebas,
     this.alElegirApariencia,
   });
 
@@ -78,6 +79,14 @@ class PantallaPrincipal extends StatefulWidget {
   /// esto el recorrido del nadador no se podía comprobar: los repositorios se
   /// creaban dentro del estado y no había forma de sembrar ni un nadador.
   final RepositoriosDelHub? repositorios;
+
+  /// Para pruebas: qué día es hoy.
+  ///
+  /// En la app no se pasa y es `DateTime.now()`. Existe porque una prueba
+  /// anclada al día real se pone roja sola: pasó en la feature 007 con cuatro
+  /// pruebas del HUB que fallaron el 2026-11-02 sin que nadie tocara el
+  /// código.
+  final DateTime? hoyParaPruebas;
 
   @override
   State<PantallaPrincipal> createState() => _PantallaPrincipalState();
@@ -495,6 +504,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       alEmpezarUnMacrociclo: widget.recursos.firestore == null
           ? null
           : _empezarUnMacrociclo,
+      macrociclos: widget.recursos.firestore == null ? null : _repos.macrociclos,
+      registrosDelNadador: _repos.registrosLocales,
+      hoy: widget.hoyParaPruebas ?? DateTime.now(),
       selectorDePerfil: _selector,
       uid: widget.cuenta?.id ?? '',
       nadadorId: widget.cuenta?.nadadorId,

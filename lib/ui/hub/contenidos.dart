@@ -36,6 +36,7 @@ import 'package:natacion_app/ui/hub/todavia_no.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:natacion_app/ui/nadador/pantalla_mi_progreso.dart';
 import 'package:natacion_app/ui/peticion/peticion_del_nadador.dart';
+import 'package:natacion_app/ui/nadador/mi_macrociclo.dart';
 import 'package:natacion_app/ui/nadador/pantalla_sesion_del_dia.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:provider/provider.dart';
@@ -67,6 +68,9 @@ class ContextoDelHub {
     this.idsQueMirar,
     this.alQuitarElFiltro,
     this.alEmpezarUnMacrociclo,
+    this.macrociclos,
+    this.registrosDelNadador,
+    required this.hoy,
     this.alMirar,
     required this.irAVerPlan,
     required this.alGenerar,
@@ -139,6 +143,20 @@ class ContextoDelHub {
   /// lleva treinta, para que esta función los volviera a repartir.
   final void Function(Nadador)? alEmpezarUnMacrociclo;
 
+  /// Los macrociclos, para que el nadador lea el suyo. Nulo sin servidor, y
+  /// entonces `Ver Plan` enseña su sesión de hoy, que es lo que la feature 003
+  /// le dio.
+  final RepositorioMacrociclos? macrociclos;
+
+  /// Lo que el nadador escribió, para calcular su progreso. Es el repositorio
+  /// **local**: lo que escribió es suyo y está en su dispositivo primero.
+  final RepositorioRegistros? registrosDelNadador;
+
+  /// Hoy. Entra como dato y no como `DateTime.now()` dentro de la pantalla
+  /// para que una prueba pueda fijarlo: la feature 007 tuvo cuatro pruebas
+  /// del HUB que se pusieron rojas solas al cambiar el día.
+  final DateTime hoy;
+
   /// Lo que `Ajustes` necesita. Todo de quien está dentro y de nadie más.
   final String uid;
   final String? nadadorId;
@@ -210,10 +228,26 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
       noSePudoContar: ctx.noSePudoContar,
       alMirar: ctx.alMirar,
     ),
-    Contenido.sesionDelDia => ChangeNotifierProvider<EstadoNadador>.value(
-      value: ctx.nadador,
-      child: PantallaSesionDelDia(selector: ctx.selectorDePerfil),
-    ),
+    // `Ver Plan` del nadador (feature 009): su macrociclo entero, y **su
+    // sesión de hoy cuando no tiene ninguno** (M23). La sesión de hoy se
+    // construye igual que antes, con su provider: lo que cambió es que va
+    // dentro, como respaldo, en lugar de ser el contenido del destino.
+    Contenido.miMacrociclo => ctx.macrociclos == null || ctx.nadadorId == null
+        ? ChangeNotifierProvider<EstadoNadador>.value(
+            value: ctx.nadador,
+            child: PantallaSesionDelDia(selector: ctx.selectorDePerfil),
+          )
+        : PantallaMiMacrociclo(
+            nadadorId: ctx.nadadorId!,
+            macrociclos: ctx.macrociclos!,
+            planes: ctx.repositorioPlanes!,
+            registros: ctx.registrosDelNadador!,
+            hoy: ctx.hoy,
+            sinMacrociclo: ChangeNotifierProvider<EstadoNadador>.value(
+              value: ctx.nadador,
+              child: PantallaSesionDelDia(selector: ctx.selectorDePerfil),
+            ),
+          ),
     Contenido.miProgreso => ChangeNotifierProvider<EstadoNadador>.value(
       value: ctx.nadador,
       child: const PantallaMiProgreso(),

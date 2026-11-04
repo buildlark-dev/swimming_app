@@ -57,8 +57,20 @@ enum Contenido {
   /// Los cuatro números del entrenador.
   homeDelEntrenador,
 
-  /// La sesión de hoy: cumplida, esfuerzo, observaciones, molestia aparte.
-  sesionDelDia,
+  /// El camino completo, desplegado y abierto en el día de hoy (feature 009).
+  ///
+  /// **Aquí dentro vive la sesión de hoy que la feature 003 entregó.** Era un
+  /// contenido propio —`sesionDelDia`— y dejó de serlo: cuando el nadador no
+  /// tiene macrociclo, esta pantalla enseña su sesión de hoy, porque una
+  /// jerarquía vacía sería peor que lo que ya tenía (M23).
+  ///
+  /// Se quitó del enum en lugar de dejarlo ahí sin destino. La prueba «todo
+  /// contenido declarado le toca a alguien» lo habría cazado, y con razón: un
+  /// identificador para algo que ya no es el contenido de ningún destino es un
+  /// concepto muerto, como el `BotonSecundario` que se quitó en la 005.
+  /// `PantallaSesionDelDia` sigue existiendo, sigue en el banco de pantallas y
+  /// se sigue abriendo; lo que cambió es por dónde.
+  miMacrociclo,
 
   /// El recorrido del nadador, que la feature 003 entregó como «Mi progreso».
   miProgreso,
@@ -113,9 +125,15 @@ QueHay reparto(Destino destino, Rol rol) {
           : const Contiene(Contenido.peticionDelNadador);
 
     case Destino.verPlan:
+      // Desde la feature 009, `Ver Plan` del nadador es su macrociclo entero
+      // y no solo la sesión de hoy. **Sin macrociclo, esa pantalla enseña la
+      // sesión de hoy**, que es lo que la 003 le dio: el reparto no puede
+      // decidirlo aquí porque no sabe si lo tiene, y adivinarlo desde esta
+      // función sería meterle una consulta al almacenamiento a algo que es
+      // Dart puro a propósito.
       return esEntrenador
           ? const Contiene(Contenido.planesDelEntrenador)
-          : const Contiene(Contenido.sesionDelDia);
+          : const Contiene(Contenido.miMacrociclo);
 
     case Destino.home:
       return esEntrenador

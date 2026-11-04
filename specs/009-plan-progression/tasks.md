@@ -286,51 +286,51 @@ nothing hidden.
 
 ### Tests for User Story 2 — written first
 
-- [ ] T044 [US2] `test/dominio/macrociclo/progreso_en_el_macrociclo_test.dart`:
+- [X] T044 [US2] `test/dominio/macrociclo/progreso_en_el_macrociclo_test.dart`:
       `mesocicloActual` is the mesocycle whose dates contain today and null when none does;
       `hechas` holds the session ids with a record marked `realizada`; `pendientes` holds
       sessions dated before today and not marked, **in date order**; `proxima` is the first
       session dated today or later. And the one that matters: **nothing is written anywhere** —
       the test asserts the repositories are untouched after reading progress (D7).
-- [ ] T045 [US2] Negative control for T044: have the computation cache its result to the
+- [X] T045 [US2] Negative control for T044: have the computation cache its result to the
       repository, confirm the no-write assertion goes red, revert. A stored copy is a second
       thing that can disagree with the swimmer's own record, and the record is the one they
       wrote.
 
 ### Implementation for User Story 2
 
-- [ ] T046 [US2] Implement `lib/dominio/macrociclo/progreso_en_el_macrociclo.dart` —
+- [X] T046 [US2] Implement `lib/dominio/macrociclo/progreso_en_el_macrociclo.dart` —
       `ProgresoEnElMacrociclo`, computed at read time from the feature 003 records, extending
       upward what `ProgresoDelNadador` already does for one plan (D7). Pure Dart.
-- [ ] T047 [US2] Add `Contenido.miMacrociclo` to `lib/dominio/hub/destino.dart` and point
+- [X] T047 [US2] Add `Contenido.miMacrociclo` to `lib/dominio/hub/destino.dart` and point
       `reparto(Destino.verPlan, Rol.nadador)` at it. **`Contenido.sesionDelDia` stays
       reachable** as the screen's own fallback (M23), so no feature 003 behaviour is lost;
       update `test/dominio/hub/reparto_test.dart` (lines 82 and 147) and
       `test/dominio/hub/destinos_test.dart` to match, keeping the property that no content of
       the other role appears in a route.
-- [ ] T048 [US2] `lib/ui/nadador/mi_macrociclo.dart`: the structure rendered **unfolded** —
+- [X] T048 [US2] `lib/ui/nadador/mi_macrociclo.dart`: the structure rendered **unfolded** —
       mesocycles, names, objectives, dates — with **any** session expandable on a tap,
       including one six weeks out (M18, FR-020).
-- [ ] T049 [US2] Widget test `test/ui/nadador/mi_macrociclo_test.dart`: the view opens
+- [X] T049 [US2] Widget test `test/ui/nadador/mi_macrociclo_test.dart`: the view opens
       positioned at **today**, not at week one (M19, FR-021, C9). Fourteen weeks of folded
       sessions is still a long list.
-- [ ] T050 [P] [US2] Widget test: a session six weeks out expands on a tap and shows its parts
+- [X] T050 [P] [US2] Widget test: a session six weeks out expands on a tap and shows its parts
       (M18). Nothing is hidden.
-- [ ] T051 [P] [US2] Widget test: the swimmer is told the plan may change according to how they
+- [X] T051 [P] [US2] Widget test: the swimmer is told the plan may change according to how they
       respond, in Spanish and without jargon (M21, FR-018), and sees which mesocycle they are
       working and where today falls (M20, FR-017).
-- [ ] T052 [P] [US2] Widget test: a swimmer with **no** macrocycle gets what feature 003 gives
+- [X] T052 [P] [US2] Widget test: a swimmer with **no** macrocycle gets what feature 003 gives
       them — the session of the day — and is **not** shown an empty hierarchy (M23, FR-004 of
       US2's scenarios).
-- [ ] T053 [P] [US2] Widget test: a swimmer who reaches the last session is told the cycle
+- [X] T053 [P] [US2] Widget test: a swimmer who reaches the last session is told the cycle
       finished and that the next one is their coach's to prepare, rather than being left on an
       empty screen (spec edge case).
-- [ ] T054 [US2] Add `PantallaMiMacrociclo` to `test/ui/tema/ayuda_pantallas.dart` mounted with
+- [X] T054 [US2] Add `PantallaMiMacrociclo` to `test/ui/tema/ayuda_pantallas.dart` mounted with
       a fourteen-week macrocycle, and confirm the expand controls pass
       `test/ui/tema/tamano_de_letra_test.dart` at 200% and
       `test/ui/tema/area_pulsable_test.dart` (M22, FR-022). A disclosure control a nine-year-old
       cannot hit makes the content reachable in principle and not in practice.
-- [ ] T055 [US2] Wire `Contenido.miMacrociclo` into `lib/ui/hub/contenidos.dart` beside the
+- [X] T055 [US2] Wire `Contenido.miMacrociclo` into `lib/ui/hub/contenidos.dart` beside the
       existing swimmer content, reusing the `EstadoNadador` provider the other swimmer screens
       get.
 
