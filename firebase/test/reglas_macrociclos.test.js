@@ -279,13 +279,122 @@ test('lo entregado no se borra', async () => {
   );
 });
 
+// --- M24 en el servidor: el dia de la sesion ------------------------------
+//
+// El cerrojo principal vive en el dominio, donde se construye el registro.
+// Esto es el respaldo: que ni una peticion escrita a mano pueda registrar una
+// sesion cuyo dia no ha llegado.
+//
+// **Con su caso positivo**, que es el que importa: una sesion pasada se
+// registra. Sin el, esta seccion pasaria entera contra una regla que negara
+// todo, que es la leccion de la 008 otra vez.
+
+async function sembrarSesion({ fecha, planId = 'p1', sesionId = 's1' }) {
+  await entorno.withSecurityRulesDisabled(async (sinReglas) => {
+    const db = sinReglas.firestore();
+    await db.collection('usuarios').doc('u-ana').set({ nadadorId: 'n-ana' });
+    await db.collection('consentimientos').doc('n-ana').set({ vigente: true });
+    await db.collection('planes').doc(planId).set({ estado: 'publicado' });
+    await db
+      .collection('planes')
+      .doc(planId)
+      .collection('sesiones')
+      .doc(sesionId)
+      .set(fecha === null ? {} : { fecha });
+  });
+}
+
+const registro = (extra = {}) => ({
+  nadadorId: 'n-ana',
+  planId: 'p1',
+  sesionId: 's1',
+  versionDePlan: '3.6.0',
+  realizada: true,
+  registradoEn: new Date().toISOString(),
+  observaciones: '',
+  ...extra,
+});
+
+const elDia = (cuantosDias) => {
+  const d = new Date();
+  d.setDate(d.getDate() + cuantosDias);
+  return d.toISOString().split('T')[0];
+};
+
+test('el nadador registra una sesion que ya paso', async () => {
+  await sembrarSesion({ fecha: elDia(-3) });
+  await assertSucceeds(
+    ana().collection('registros').doc('r-1').set(registro()),
+  );
+});
+
+test('y la de hoy', async () => {
+  // La frontera. Si la regla comparara instantes en lugar de dias, la sesion
+  // de hoy fechada a las 00:00 seguiria pasando, pero la de hoy por la tarde
+  // no: por eso se compara por dia.
+  await sembrarSesion({ fecha: elDia(0) });
+  await assertSucceeds(
+    ana().collection('registros').doc('r-1').set(registro()),
+  );
+});
+
+test('pero NO la de manana', async () => {
+  await sembrarSesion({ fecha: elDia(1) });
+  await assertFails(ana().collection('registros').doc('r-1').set(registro()));
+});
+
+test('ni la de dentro de un mes', async () => {
+  await sembrarSesion({ fecha: elDia(30) });
+  await assertFails(ana().collection('registros').doc('r-1').set(registro()));
+});
+
+test('tampoco editando uno que ya existia', async () => {
+  // Crear y actualizar se comprueban por separado: dejar el update abierto
+  // permitiria crear un registro de una sesion pasada y cambiarle el
+  // `sesionId` a una futura.
+  await sembrarSesion({ fecha: elDia(-3) });
+  await entorno.withSecurityRulesDisabled(async (sinReglas) => {
+    await sinReglas
+      .firestore()
+      .collection('registros')
+      .doc('r-1')
+      .set(registro());
+  });
+
+  await entorno.withSecurityRulesDisabled(async (sinReglas) => {
+    await sinReglas
+      .firestore()
+      .collection('planes')
+      .doc('p1')
+      .collection('sesiones')
+      .doc('s2')
+      .set({ fecha: elDia(5) });
+  });
+
+  await assertFails(
+    ana().collection('registros').doc('r-1').update({ sesionId: 's2' }),
+  );
+});
+
+test('una sesion sin fecha en el documento no bloquea el registro', async () => {
+  // **Y esto es deliberado, no un descuido.** Hoy los planes generados llegan
+  // a Firestore sin sus sesiones —solo el editor las escribe, una a una—, asi
+  // que exigir que el documento exista y traiga fecha dejaria a los nadadores
+  // de la feature 003 sin poder registrar nada. Ese hueco es un defecto
+  // aparte, anotado en el tasks.md de la 009.
+  await sembrarSesion({ fecha: null });
+  await assertSucceeds(
+    ana().collection('registros').doc('r-1').set(registro()),
+  );
+});
+
 // Un recuento, para que no pase lo de la 008: si manana alguien borra las
 // positivas, esta prueba lo dice.
 test('la suite tiene al menos siete pruebas que TIENEN que pasar', () => {
   const fuente = fs.readFileSync(__filename, 'utf8');
   const positivas = fuente.match(/assertSucceeds/g) || [];
   assert.ok(
-    positivas.length >= 7,
+    positivas.length >= 10,
     `solo hay ${positivas.length} assertSucceeds: una suite de reglas sin ` +
       'casos positivos pasa entera contra una coleccion sin regla',
   );

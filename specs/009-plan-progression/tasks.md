@@ -353,28 +353,28 @@ the app lie, and then the readjustment is modelling a fiction.
 
 ### Tests for User Story 3 — written first
 
-- [ ] T056 [US3] `test/dominio/macrociclo/puede_marcarse_test.dart`, before the function
+- [X] T056 [US3] `test/dominio/macrociclo/puede_marcarse_test.dart`, before the function
       exists: a session dated today → `si`; dated tomorrow → `todaviaNo` with «Todavía no llega
       ese día»; dated yesterday → `si`; with `fecha == null` → `sinFecha` with «Esta sesión no
       tiene día asignado». `Sesion.fecha` is nullable, so `sinFecha` is a real case and not a
       defensive branch: the app does not guess when something was meant to happen (M28).
-- [ ] T057 [US3] Negative control for T056: make the comparison use `isAfter` on the full
+- [X] T057 [US3] Negative control for T056: make the comparison use `isAfter` on the full
       `DateTime` instead of whole dates, and confirm a session dated today at 23:00 breaks the
       `si` case. The same trap `_diasEnteros` exists to avoid.
-- [ ] T058 [US3] `test/dominio/macrociclo/marcar_por_cualquier_via_test.dart`: the lock is
+- [X] T058 [US3] `test/dominio/macrociclo/marcar_por_cualquier_via_test.dart`: the lock is
       exercised **through the record-saving path and not through the screen** (M24, SC-006) —
       build a `RegistroDeSesion` with `realizada: true` for a future session and assert the
       save path refuses it. A lock that only lives in a widget is a lock on one door of three.
 
 ### Implementation for User Story 3
 
-- [ ] T059 [US3] Implement `lib/dominio/macrociclo/puede_marcarse.dart`: a pure function over
+- [X] T059 [US3] Implement `lib/dominio/macrociclo/puede_marcarse.dart`: a pure function over
       the session's date and today, returning `si` / `todaviaNo` / `sinFecha` with the exact
       Spanish the swimmer reads. No repository, no screen (D6).
-- [ ] T060 [US3] Apply the check where the record is built, in
+- [X] T060 [US3] Apply the check where the record is built, in
       `lib/ui/nadador/estado_nadador.dart` and `lib/ui/nadador/formulario_registro.dart`, so a
       future-dated record is never constructed — not merely never submitted.
-- [ ] T061 [US3] Server backstop in `firebase/firestore.rules`: deny create and update on
+- [X] T061 [US3] Server backstop in `firebase/firestore.rules`: deny create and update on
       `registros` when the session's `fecha` is after `request.time`, via
       `get(/databases/$(database)/documents/planes/$(planId)/sesiones/$(sesionId))`. First
       confirm `sesionAJson` actually stores `fecha` in that document; if it does not, say so in
@@ -382,15 +382,15 @@ the app lie, and then the readjustment is modelling a fiction.
 - [ ] T062 [US3] Rules test for T061 in `firebase/test/reglas_macrociclos.test.js`, **with an
       `assertSucceeds` for a past-dated session** alongside the denial for a future one.
       Without the success case the test would pass against a rule that denied everything.
-- [ ] T063 [US3] Test in `test/dominio/sincronizacion/`: the outbox never carries a
+- [X] T063 [US3] Test in `test/dominio/sincronizacion/`: the outbox never carries a
       future-dated record, so T061 is a backstop and not a retry loop. A permanently rejected
       write that the outbox retries for ever is worse than the thing it was guarding against.
-- [ ] T064 [P] [US3] Test: a session dated today or earlier can **always** be marked, whatever
+- [X] T064 [P] [US3] Test: a session dated today or earlier can **always** be marked, whatever
       happened to the ones before it (M25, FR-025). This is the coach's decision of 2026-11-04
       and the test is its record.
 - [ ] T065 [P] [US3] Test: marking a session while earlier ones are outstanding reports **which
       ones** are outstanding (M26, FR-026). It shows the gap; it does not deny the fact.
-- [ ] T066 [P] [US3] Test: an outstanding session stays markable later (M27, FR-027). A skipped
+- [X] T066 [P] [US3] Test: an outstanding session stays markable later (M27, FR-027). A skipped
       day is not a closed door.
 - [ ] T067 [US3] Surface the three messages in `lib/ui/nadador/mi_macrociclo.dart`, with a
       widget test for each: the refusal with its reason, the outstanding list, and the
@@ -596,6 +596,14 @@ it.
   all three freshly derived mesocycles as impediments for being in `borrador`, which is exactly
   what they are at that point. Split into `mesociclosQueFaltan` (presence, checked before
   signing) and `impedimentosParaAprobar` (state, M14).
+- **T062's negative control is NOT done, and the rule is not trusted until it is.**
+  The rules suite passes 132/132 with `elDiaDeLaSesionYaLlego` in place, but the control that
+  would make those passes mean something — removing the call from `registros` create/update and
+  watching «pero NO la de manana» go red — was attempted and the mutation did not apply
+  cleanly, so it proved nothing. Until it has been run and seen red, treat the four denial
+  cases in `firebase/test/reglas_macrociclos.test.js` as unverified: this is exactly the shape
+  of failure T017 found, where 13 of 20 rules tests passed against a collection with no rule
+  at all. Run it before the PR.
 - **Every fake must behave like the real collaborator.** Feature 008 had three tests pass for
   the wrong reason, and each went red only once the fake stopped being convenient: a
   `pumpWidget` that reused the same `State`, a queue fake that returned the same list instance

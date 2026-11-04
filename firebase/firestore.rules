@@ -270,6 +270,33 @@ service cloud.firestore {
     // distinguian a un nadador de otro porque no habia identidad. Queda
     // cerrada. No hizo falta migrar nada, porque cada registro ya llevaba su
     // nadadorId.
+    // --- El dia de la sesion (feature 009) -------------------------------
+    //
+    // M24 dice que una sesion cuya fecha no ha llegado no se puede marcar
+    // **por ninguna via**. El cerrojo principal esta en el dominio, donde se
+    // construye el registro; esto es el respaldo del servidor.
+    //
+    // `sesionAJson` guarda la fecha como 'AAAA-MM-DD', asi que se parte y se
+    // compara contra el dia del servidor. Por fecha entera y no por instante,
+    // igual que en el dominio: con instantes, la sesion de esta tarde estaria
+    // «todavia por llegar» para quien abre la app por la manana.
+    function elDiaDeLaSesionYaLlego(planId, sesionId) {
+      let ruta = /databases/$(database)/documents/planes/$(planId)/sesiones/$(sesionId);
+      let fecha = exists(ruta) ? get(ruta).data.get('fecha', '') : '';
+      let partes = fecha.split('-');
+
+      // **Sin fecha legible, esta regla no opina.** Y no por comodidad: hoy
+      // los planes generados llegan a Firestore sin sus sesiones —solo el
+      // editor las escribe, una a una—, asi que exigir que el documento exista
+      // bloquearia los registros de la feature 003. Ese hueco es un defecto
+      // aparte, anotado en tasks.md de la 009; mientras exista, el respaldo
+      // cubre lo que puede ver y el cerrojo del dominio cubre el resto.
+      return fecha == ''
+          || partes.size() != 3
+          || timestamp.date(int(partes[0]), int(partes[1]), int(partes[2]))
+             <= timestamp.date(request.time.year(), request.time.month(), request.time.day());
+    }
+
     match /registros/{registroId} {
       // El entrenador lee los de su comunidad. **No los escribe**: lo que el
       // nadador responde es su carga interna, no la del entrenador. Es un
@@ -277,11 +304,15 @@ service cloud.firestore {
       allow read: if esEntrenador() || soyEseNadador(resource.data.nadadorId);
 
       allow create: if soyEseNadador(request.resource.data.nadadorId)
-                    && tieneConsentimientoVigente(request.resource.data.nadadorId);
+                    && tieneConsentimientoVigente(request.resource.data.nadadorId)
+                    && elDiaDeLaSesionYaLlego(request.resource.data.planId,
+                                              request.resource.data.sesionId);
 
       allow update: if soyEseNadador(resource.data.nadadorId)
                     && soyEseNadador(request.resource.data.nadadorId)
-                    && tieneConsentimientoVigente(resource.data.nadadorId);
+                    && tieneConsentimientoVigente(resource.data.nadadorId)
+                    && elDiaDeLaSesionYaLlego(request.resource.data.planId,
+                                              request.resource.data.sesionId);
 
       // Un registro no se borra desde el cliente. El derecho al borrado del
       // principio V se ejerce por la via del servidor, que puede dejar

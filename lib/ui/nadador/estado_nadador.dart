@@ -12,6 +12,7 @@ import 'package:natacion_app/dominio/calculo/sesion_del_dia.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
+import 'package:natacion_app/dominio/macrociclo/puede_marcarse.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
 
@@ -80,7 +81,9 @@ class EstadoNadador extends ChangeNotifier {
   /// **No consulta la red** (garantía G1): escribe en el dispositivo y encola.
   /// Después intenta enviar, y si no hay señal el registro queda pendiente y el
   /// aviso aparece. Escribir no puede fallar por falta de conexión.
-  Future<void> responder({
+  /// Devuelve si se pudo, y cuando no, **por qué**, para que la pantalla lo
+  /// diga en lugar de quedarse quieta.
+  Future<SePuedeMarcar> responder({
     required Sesion sesion,
     required bool realizada,
     int? rpePercibido,
@@ -89,7 +92,20 @@ class EstadoNadador extends ChangeNotifier {
   }) async {
     final nadadorActual = _nadador;
     final planActual = _plan;
-    if (nadadorActual == null || planActual == null) return;
+    if (nadadorActual == null || planActual == null) return const Si();
+
+    // **El cerrojo va aquí, donde se construye el registro** (M24, SC-006).
+    //
+    // «Por cualquier vía» significa esto: no que la pantalla esconda el botón,
+    // sino que el registro de una sesión futura **no llegue a existir**. Un
+    // cerrojo que viviera solo en un widget sería un cerrojo en una puerta de
+    // tres, y la feature 009 añade dos vías nuevas a esta misma sesión.
+    //
+    // Se comprueba para cualquier respuesta y no solo para «la hice»: decir
+    // «no la hice» de la sesión de mañana también es hablar de un día que no
+    // ha pasado.
+    final puede = puedeMarcarse(sesion: sesion, hoy: _ahora());
+    if (!puede.si) return puede;
 
     final registro = RegistroDeSesion(
       nadadorId: nadadorActual.id ?? '',
@@ -108,6 +124,7 @@ class EstadoNadador extends ChangeNotifier {
 
     // Intento inmediato. Si no hay red, el registro ya está a salvo.
     await sincronizar();
+    return const Si();
   }
 
   /// Intenta vaciar la bandeja y actualiza el aviso.
