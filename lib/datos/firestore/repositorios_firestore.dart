@@ -21,6 +21,10 @@ const String coleccionPlanes = 'planes';
 const String coleccionSesiones = 'sesiones';
 const String coleccionNadadores = 'nadadores';
 
+/// El nivel de encima del plan (feature 009). Guarda referencias a planes y la
+/// estructura que el entrenador confirmó, no contenido.
+const String coleccionMacrociclos = 'macrociclos';
+
 class RepositorioPlanesFirestore implements RepositorioPlanes {
   RepositorioPlanesFirestore(this._db, this._biblioteca, this._sesiones);
 

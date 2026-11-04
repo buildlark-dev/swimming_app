@@ -11,6 +11,7 @@
 library;
 
 import 'package:natacion_app/datos/firestore/consentimientos.dart';
+import 'package:natacion_app/datos/firestore/macrociclos_firestore.dart';
 import 'package:natacion_app/datos/firestore/peticiones_firestore.dart';
 import 'package:natacion_app/datos/peticiones/peticiones_con_puerta.dart';
 import 'package:natacion_app/datos/firestore/registros_firestore.dart';
@@ -27,6 +28,7 @@ class RepositoriosDelHub {
     required this.sesiones,
     required this.nadadores,
     required this.asignaciones,
+    required this.macrociclos,
     required this.registrosLocales,
     this.registrosDelServidor,
     this.peticiones,
@@ -58,6 +60,11 @@ class RepositoriosDelHub {
       asignaciones: db == null
           ? RepositorioAsignacionesMemoria()
           : RepositorioAsignacionesFirestore(db),
+      // El nivel de encima del plan (feature 009). Sin servidor va en memoria,
+      // igual que los planes: se puede trabajar en local y no persiste.
+      macrociclos: db == null
+          ? RepositorioMacrociclosMemoria()
+          : RepositorioMacrociclosFirestore(db),
       registrosLocales: RegistrosLocales(almacen),
       // Para saber quién ha respondido algo hace falta leer la colección del
       // servidor, no el almacén de este dispositivo. Sin servidor no hay a
@@ -83,6 +90,11 @@ class RepositoriosDelHub {
   final RepositorioSesiones sesiones;
   final RepositorioNadadores nadadores;
   final RepositorioAsignaciones asignaciones;
+
+  /// Los macrociclos (feature 009). **No hay uno de mesociclos**: un mesociclo
+  /// es un `Plan` y lo guarda `planes`, con el ciclo de vida y el linaje de
+  /// versiones que ya tiene probados (decisión D1).
+  final RepositorioMacrociclos macrociclos;
 
   /// Donde el nadador escribe. **Primero el dispositivo**, siempre.
   final RepositorioRegistros registrosLocales;

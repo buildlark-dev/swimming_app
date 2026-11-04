@@ -167,6 +167,61 @@ service cloud.firestore {
       }
     }
 
+    // --- Macrociclos (feature 009) ---------------------------------------
+    //
+    // El nivel de encima del plan. Guarda **referencias y no contenido**: los
+    // ids de sus mesociclos, que son planes y tienen sus propias reglas arriba.
+    //
+    // Dos cosas que no se parecen a los planes:
+    //
+    // 1. **Un macrociclo es de un nadador** y lo dice en el documento, asi que
+    //    la lectura del nadador no necesita pasar por `asignaciones`: se
+    //    comprueba con el campo. La entrega sigue viviendo en las
+    //    asignaciones, una por mesociclo, que es donde esta la puerta de
+    //    consentimiento (FR-013).
+    // 2. **El nadador no escribe aqui nunca.** Ni su propio macrociclo. Un
+    //    macrociclo es trabajo del entrenador y nada de el es del nadador para
+    //    cambiarlo.
+    function macrocicloExistenteEsInmutable() {
+      return resource != null && estadoEsInmutable(resource.data.estado);
+    }
+
+    function esLaAprobacionDelMacrociclo() {
+      return resource.data.estado == 'borrador'
+          && request.resource.data.estado == 'aprobado';
+    }
+
+    function esLaEntregaDelMacrociclo() {
+      return resource.data.estado == 'aprobado'
+          && request.resource.data.estado == 'publicado'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado']);
+    }
+
+    match /macrociclos/{macrocicloId} {
+      // El nadador lee **el suyo y solo cuando esta entregado**. Las dos
+      // condiciones por separado, igual que en los planes: un borrador no es
+      // de nadie todavia, y un aprobado esta firmado pero no entregado.
+      allow read: if esEntrenador()
+                  || (soyEseNadador(resource.data.nadadorId)
+                      && resource.data.estado == 'publicado');
+
+      allow create: if esEntrenador()
+                    && request.resource.data.estado == 'borrador';
+
+      // El estado solo avanza por su camino: borrador -> aprobado ->
+      // publicado. Un borrador que pudiera saltar a publicado dejaria llegar
+      // a un nadador un macrociclo que el entrenador nunca firmo.
+      allow update: if esEntrenador()
+                    && (
+                      (request.resource.data.estado == resource.data.estado
+                       && !macrocicloExistenteEsInmutable())
+                      || esLaAprobacionDelMacrociclo()
+                      || esLaEntregaDelMacrociclo()
+                    );
+
+      allow delete: if esEntrenador() && !macrocicloExistenteEsInmutable();
+    }
+
     // --- Asignaciones ----------------------------------------------------
     //
     // A quien se le entrego un plan. Una por nadador, con identificador

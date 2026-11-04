@@ -54,16 +54,16 @@ Three things, written here because a task list is where they get acted on rather
 
 **Purpose**: a baseline, and the one sentence of vocabulary that decision D1 costs.
 
-- [ ] T001 Run the four gates before touching anything and record the Dart test count in this
+- [X] T001 Run the four gates before touching anything and record the Dart test count in this
       file's Notes section: `flutter analyze`, `flutter test`, `npm --prefix firebase test`,
       `npm --prefix firebase/functions test`. A red test later is then this feature's, not a
       mystery.
-- [ ] T002 [P] Write decision D1 into the library doc comment of
+- [X] T002 [P] Write decision D1 into the library doc comment of
       `lib/dominio/entidades/plan.dart`: a `Plan` with one `faseAtr` and several `microciclos`
       **is** a mesocycle, `Macrociclo` is the level above it, and that is why FR-031 lands on
       a type that already has a lifecycle, an audit and a version lineage. Without this the
       next feature rediscovers it.
-- [ ] T003 [P] Add `const String coleccionMacrociclos = 'macrociclos';` beside the existing
+- [X] T003 [P] Add `const String coleccionMacrociclos = 'macrociclos';` beside the existing
       collection constants in `lib/datos/firestore/repositorios_firestore.dart` (lines 20-22).
 
 ---
@@ -75,7 +75,7 @@ Three things, written here because a task list is where they get acted on rather
 **⚠️ CRITICAL**: no user story work begins until this phase is complete — all four need the
 `Macrociclo` type and its repository.
 
-- [ ] T004 Write the invariant tests FIRST in `test/dominio/macrociclo/macrociclo_test.dart`,
+- [X] T004 Write the invariant tests FIRST in `test/dominio/macrociclo/macrociclo_test.dart`,
       and watch them fail because the file they test does not exist: a `Macrociclo` with an
       empty `mesociclos` list is **not constructible** ("it would be a name with nothing in
       it"); its mesocycle ids are **unique and ordered** ("order is the preparation's order,
@@ -85,7 +85,7 @@ Three things, written here because a task list is where they get acted on rather
       `BloqueConfirmado` with `hasta` not after `desde` is rejected, and consecutive blocks
       "do not overlap and leave no gaps"; a `BloqueConfirmado` with an empty `porQue` is
       rejected.
-- [ ] T005 Create `lib/dominio/macrociclo/macrociclo.dart` with the three pure-Dart types, each
+- [X] T005 Create `lib/dominio/macrociclo/macrociclo.dart` with the three pure-Dart types, each
       field carrying its constraint from `data-model.md` verbatim in the doc comment:
       `Macrociclo` — `id` `String?` "Null until stored, like `Plan`"; `nadadorId` `String`
       "Required, non-empty. A macrocycle is for one swimmer (groups are out of scope)";
@@ -100,53 +100,53 @@ Three things, written here because a task list is where they get acted on rather
       `BloqueConfirmado` — `fase` `FaseAtr?` "Null only for categories that do not use ATR";
       `desde`, `hasta` `DateTime` "`hasta` after `desde`"; `porQue` `String` "Always present,
       always readable".
-- [ ] T006 Negative control for T004, one invariant at a time: remove the guard, confirm the
+- [X] T006 Negative control for T004, one invariant at a time: remove the guard, confirm the
       matching test goes red, restore it. Record in the test file's doc comment which four
       guards were checked this way. A green invariant test that was never seen red is a
       decoration.
-- [ ] T007 [P] Confirm `test/dominio/arquitectura_test.dart` already walks
+- [X] T007 [P] Confirm `test/dominio/arquitectura_test.dart` already walks
       `lib/dominio/macrociclo/` for the Flutter and Firebase import ban; if it enumerates
       folders by name rather than walking, add the new one and say so in its doc comment.
-- [ ] T008 Add the two nullable fields to `Plan` in `lib/dominio/entidades/plan.dart` and to
+- [X] T008 Add the two nullable fields to `Plan` in `lib/dominio/entidades/plan.dart` and to
       `copiarCon`: `macrocicloId` `String?` "Which macrocycle it belongs to. Null for a plan
       that stands alone — one from a feature 008 request, or written by hand", and
       `ordenEnElMacrociclo` `int?` "Its position. Null when it stands alone". Nothing else on
       `Plan` changes — that is the whole point of D1.
-- [ ] T009 Test in `test/dominio/entidades/plan_mesociclo_test.dart`: a draft built by
+- [X] T009 Test in `test/dominio/entidades/plan_mesociclo_test.dart`: a draft built by
       `generarDesdePeticion` has `macrocicloId == null` and `ordenEnElMacrociclo == null`, and
       feature 008's locks still pass untouched (run
       `test/dominio/peticiones/nada_llega_al_nadador_test.dart` and
       `test/dominio/entidades/plan_inmutable_test.dart` in the same gate).
-- [ ] T010 Carry the two new fields through `planAJson` and `planDesdeJson` in
+- [X] T010 Carry the two new fields through `planAJson` and `planDesdeJson` in
       `lib/datos/serializacion.dart`, with a round-trip test in
       `test/datos/serializacion_test.dart` that a plan with both set survives and one with
       both null comes back null rather than zero.
-- [ ] T011 Add `macrocicloAJson` and `macrocicloDesdeJson` to `lib/datos/serializacion.dart`,
+- [X] T011 Add `macrocicloAJson` and `macrocicloDesdeJson` to `lib/datos/serializacion.dart`,
       with a round-trip test covering a macrocycle with a block that has `fase == null`.
-- [ ] T012 Declare `RepositorioMacrociclos` in `lib/dominio/repositorios/repositorios.dart`:
+- [X] T012 Declare `RepositorioMacrociclos` in `lib/dominio/repositorios/repositorios.dart`:
       `obtener(String id)`, `deNadador(String nadadorId)`, `guardarBorrador(Macrociclo)`
       returning the assigned id, `guardarAprobado(Macrociclo, Map<String, dynamic> auditoria)`,
       and `exportar(String id)`. No signature mentions a Firestore type (the file's own rule).
-- [ ] T013 [P] Implement `RepositorioMacrociclosMemoria` in
+- [X] T013 [P] Implement `RepositorioMacrociclosMemoria` in
       `lib/datos/memoria/repositorios_memoria.dart`, **returning a snapshot and not the stored
       list instance** — feature 008 had a queue fake that handed back the same list and a test
       passed for it.
-- [ ] T014 [P] Implement `lib/datos/firestore/macrociclos_firestore.dart` against
+- [X] T014 [P] Implement `lib/datos/firestore/macrociclos_firestore.dart` against
       `coleccionMacrociclos`, following `RepositorioPlanesFirestore`'s shape.
-- [ ] T015 Add `match /macrociclos/{macrocicloId}` to `firebase/firestore.rules`: the coach
+- [X] T015 Add `match /macrociclos/{macrocicloId}` to `firebase/firestore.rules`: the coach
       creates, and only in `borrador`; the state only advances `borrador → aprobado →
       publicado` and never skips a step, reusing the existing `cambiaElEstado`,
       `esLaAprobacion` and `esLaEntrega` helpers; a swimmer **reads only their own** and writes
       nothing, ever; `allow delete` only for the coach and only on a draft.
-- [ ] T016 Rules tests in `firebase/test/reglas_macrociclos.test.js`, and **write the
+- [X] T016 Rules tests in `firebase/test/reglas_macrociclos.test.js`, and **write the
       `assertSucceeds` cases as well as the denials**: the coach creating a draft, approving,
       delivering, and the owning swimmer reading a published one must all succeed. Feature 008
       shipped 18 of 24 green against a collection that had no rule at all, because
       default-deny makes every denial pass.
-- [ ] T017 Negative control for T016: point the suite at a collection name that has no rule and
+- [X] T017 Negative control for T016: point the suite at a collection name that has no rule and
       confirm the six `assertSucceeds` cases fail. Then point it back. This is the only way to
       know the suite is testing the rule and not the default.
-- [ ] T018 Wire `macrociclos` into `RepositoriosDelHub` in `lib/ui/hub/repositorios_del_hub.dart`
+- [X] T018 Wire `macrociclos` into `RepositoriosDelHub` in `lib/ui/hub/repositorios_del_hub.dart`
       and its `.de` factory — Firestore when there is a database, memory when there is not —
       and make it seedable from a test, like the others.
 
@@ -571,7 +571,10 @@ it.
 ## Notes
 
 - Total: **90 tasks**. US1 25, US2 12, US3 13, US4 11; 15 foundational, 3 setup, 11 polish.
-- **Baseline test counts (T001)**: _to be filled in before any other task._
+- **Baseline test counts (T001)**, taken on 2026-11-04 before any other task:
+  `flutter analyze` → no issues. `flutter test` → **1595 passing**. The two npm suites
+  (`npm --prefix firebase test`, `npm --prefix firebase/functions test`) need the emulator
+  running and are measured at T084 instead; they were green at feature 008's merge.
 - `[P]` means different files and no unfinished dependency.
 - Commit per task or per logical group, and stop at the checkpoints to walk what exists.
 - **Every fake must behave like the real collaborator.** Feature 008 had three tests pass for

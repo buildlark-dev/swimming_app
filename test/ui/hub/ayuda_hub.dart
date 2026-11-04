@@ -21,6 +21,7 @@ import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/parte.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
+import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/metodologia/estilos.dart';
@@ -121,6 +122,7 @@ Future<Widget> montarHub({
   List<Nadador> nadadores = const [nadadorDePrueba],
   List<Asignacion> asignaciones = const [],
   List<RegistroDeSesion> registros = const [],
+  List<Macrociclo> macrociclos = const [],
   bool modoLocal = false,
   String? nadadorIdDeLaCuenta = 'n1',
   bool planesQueFallan = false,
@@ -145,6 +147,14 @@ Future<Widget> montarHub({
   }
 
   final repoRegistros = _RegistrosSembrados(registros);
+
+  // Sembrable como los demás (feature 009). Un macrociclo entregado se siembra
+  // con `guardarAprobado`, que lo guarda con el estado que traiga: `publicado`
+  // si es lo que se quiere probar.
+  final repoMacrociclos = RepositorioMacrociclosMemoria();
+  for (final macrociclo in macrociclos) {
+    await repoMacrociclos.guardarAprobado(macrociclo, const {});
+  }
 
   final recursos = RecursosIniciales(
     biblioteca: bibliotecaDePrueba(),
@@ -174,6 +184,7 @@ Future<Widget> montarHub({
         sesiones: RepositorioSesionesMemoria(),
         nadadores: repoNadadores,
         asignaciones: repoAsignaciones,
+        macrociclos: repoMacrociclos,
         registrosLocales: repoRegistros,
         registrosDelServidor: repoRegistros,
       ),

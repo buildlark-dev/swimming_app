@@ -10,6 +10,7 @@ import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/asignacion.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
+import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 
@@ -99,6 +100,83 @@ class RepositorioPlanesMemoria implements RepositorioPlanes {
     if (plan == null) throw FalloDeDatos('No existe el plan $id');
     return planAJson(plan, conSesiones: true);
   }
+}
+
+class RepositorioMacrociclosMemoria implements RepositorioMacrociclos {
+  final Map<String, Macrociclo> _macrociclos = {};
+  final Map<String, Map<String, dynamic>> _auditorias = {};
+  int _siguienteId = 1;
+
+  @override
+  Future<Macrociclo?> obtener(String id) async => _macrociclos[id];
+
+  @override
+  Future<List<Macrociclo>> deNadador(String nadadorId) async {
+    // **Una copia, no la lista guardada.** La feature 008 tuvo un doble de la
+    // cola que devolvía siempre la misma instancia, y una prueba pasaba por
+    // eso: la pantalla mutaba lo que el repositorio tenía dentro y las dos
+    // coincidían siempre. Un doble más cómodo que el colaborador real no hace
+    // la prueba más fácil, la hace deshonesta.
+    return _macrociclos.values
+        .where((m) => m.nadadorId == nadadorId)
+        .toList(growable: false)
+        .reversed
+        .toList();
+  }
+
+  @override
+  Future<String> guardarBorrador(Macrociclo macrociclo) async {
+    if (macrociclo.estado.esInmutable) {
+      throw const FalloDeDatos(
+        'Un macrociclo aprobado o publicado no se sobrescribe: '
+        'reajustarlo versiona sus mesociclos',
+      );
+    }
+
+    final id = macrociclo.id ?? 'macro-${_siguienteId++}';
+    _macrociclos[id] = macrociclo.copiarCon(id: id);
+    return id;
+  }
+
+  @override
+  Future<void> guardarAprobado(
+    Macrociclo macrociclo,
+    Map<String, dynamic> auditoria,
+  ) async {
+    final id = macrociclo.id;
+    if (id == null) {
+      throw const FalloDeDatos(
+        'Un macrociclo aprobado debe tener identificador',
+      );
+    }
+    _macrociclos[id] = macrociclo;
+    _auditorias[id] = auditoria;
+  }
+
+  Map<String, dynamic>? auditoriaDe(String id) => _auditorias[id];
+
+  @override
+  Future<void> publicar(String id) async {
+    final macrociclo = _macrociclos[id];
+    if (macrociclo == null) throw FalloDeDatos('No existe el macrociclo $id');
+    if (macrociclo.estado != EstadoPlan.aprobado) {
+      throw const FalloDeDatos(
+        'Solo se entrega un macrociclo firmado: firmar no es entregar',
+      );
+    }
+    _macrociclos[id] = macrociclo.copiarCon(estado: EstadoPlan.publicado);
+  }
+
+  @override
+  Future<Map<String, dynamic>> exportar(String id) async {
+    final macrociclo = _macrociclos[id];
+    if (macrociclo == null) throw FalloDeDatos('No existe el macrociclo $id');
+    return macrocicloAJson(macrociclo);
+  }
+
+  /// Cuántos hay guardados. Lo usa el cerrojo M10, que comprueba que **no hay
+  /// ninguno** antes de que el entrenador confirme.
+  int get cuantosHay => _macrociclos.length;
 }
 
 class RepositorioSesionesMemoria implements RepositorioSesiones {

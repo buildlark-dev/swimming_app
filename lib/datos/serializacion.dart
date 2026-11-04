@@ -17,6 +17,7 @@ import 'package:natacion_app/dominio/entidades/parte.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/serie.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
+import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/metodologia/estilos.dart';
 import 'package:natacion_app/dominio/metodologia/fases_atr.dart';
@@ -239,6 +240,13 @@ Map<String, dynamic> planAJson(Plan plan, {bool conSesiones = false}) =>
       // De qué petición de un nadador salió, si salió de una (feature 008).
       // Sin esto, FR-010 se cumplía en memoria y se perdía al guardar.
       if (plan.peticionId != null) 'peticionId': plan.peticionId,
+      // De qué macrociclo es mesociclo, si es de uno (feature 009). Ausentes
+      // en un plan que va por su cuenta, y ausente no es cero: un
+      // `ordenEnElMacrociclo` que volviera como 0 pondría un plan suelto en
+      // cabeza de una preparación a la que no pertenece.
+      if (plan.macrocicloId != null) 'macrocicloId': plan.macrocicloId,
+      if (plan.ordenEnElMacrociclo != null)
+        'ordenEnElMacrociclo': plan.ordenEnElMacrociclo,
       if (conSesiones) 'sesiones': plan.sesiones.map(sesionAJson).toList(),
     };
 
@@ -309,6 +317,118 @@ Plan planDesdeJson(
         .toList(),
     versionAnteriorId: json['versionAnteriorId'] as String?,
     peticionId: json['peticionId'] as String?,
+    macrocicloId: json['macrocicloId'] as String?,
+    ordenEnElMacrociclo: json['ordenEnElMacrociclo'] as int?,
+  );
+}
+
+// --------------------------------------------------------------------------
+// Macrociclo (feature 009)
+// --------------------------------------------------------------------------
+//
+// **Guarda referencias y no contenido**: ids de mesociclos, no sus sesiones.
+// Las sesiones viven en la subcolección de cada plan y se leen de ahí.
+//
+// Al leer se reconstruye **pasando por las fábricas que validan**, así que un
+// documento corrupto sale como `MacrocicloInvalido` o `EstructuraInvalida`
+// —excepciones del dominio, con un mensaje que se le puede enseñar a alguien—
+// y no como un macrociclo a medias que la pantalla pinta vacío. El repositorio
+// las traduce a `FalloDeDatos`.
+//
+// Lo que **no** se hace es castear a tipos que pueden fallar: la feature 008
+// dejó la pantalla de Ajustes girando para siempre por un `as Timestamp?`
+// sobre un String. Aquí todo entra con `as X?` sobre tipos de JSON y con
+// `tryParse`.
+
+String _soloFecha(DateTime fecha) => fecha.toIso8601String().split('T').first;
+
+Map<String, dynamic> bloqueAJson(BloqueConfirmado bloque) => <String, dynamic>{
+  if (bloque.fase != null) 'fase': bloque.fase!.nombre,
+  'desde': _soloFecha(bloque.desde),
+  'hasta': _soloFecha(bloque.hasta),
+  'porQue': bloque.porQue,
+};
+
+Map<String, dynamic> estructuraAJson(EstructuraConfirmada estructura) =>
+    <String, dynamic>{
+      'modeloDeLaPrueba': estructura.modeloDeLaPrueba,
+      'modeloDelNadador': estructura.modeloDelNadador,
+      'bloques': estructura.bloques.map(bloqueAJson).toList(),
+      'confirmadaEn': estructura.confirmadaEn.toIso8601String(),
+    };
+
+Map<String, dynamic> macrocicloAJson(Macrociclo macrociclo) =>
+    <String, dynamic>{
+      'nadadorId': macrociclo.nadadorId,
+      'nombre': macrociclo.nombre,
+      'estructura': estructuraAJson(macrociclo.estructura),
+      'mesociclos': List<String>.from(macrociclo.mesociclos),
+      'fechaDeCompetencia': _soloFecha(macrociclo.fechaDeCompetencia),
+      'versionMetodologia': macrociclo.versionMetodologia,
+      'estado': macrociclo.estado.name,
+    };
+
+/// Una fecha que no se pudo leer es un fallo, no un cero.
+///
+/// Devolver `DateTime(2026)` por defecto pondría un bloque en una fecha
+/// inventada y la estructura pasaría las invariantes con fechas falsas.
+DateTime _fechaObligatoria(Object? valor, String campo) {
+  final texto = valor is String ? DateTime.tryParse(valor) : null;
+  if (texto == null) {
+    throw EstructuraInvalida(campo, 'no se pudo leer la fecha');
+  }
+  return texto;
+}
+
+BloqueConfirmado bloqueDesdeJson(Map<String, dynamic> json) =>
+    BloqueConfirmado(
+      // Nula a propósito en las categorías que no usan ATR (M6). Ausente y
+      // «no reconocida» se tratan igual, porque las dos dan bloque sin fase y
+      // el motor prohíbe la fase donde no toca.
+      fase: FaseAtr.porNombre(json['fase'] as String? ?? ''),
+      desde: _fechaObligatoria(json['desde'], 'desde'),
+      hasta: _fechaObligatoria(json['hasta'], 'hasta'),
+      porQue: json['porQue'] as String? ?? '',
+    );
+
+EstructuraConfirmada estructuraDesdeJson(Map<String, dynamic> json) =>
+    EstructuraConfirmada(
+      modeloDeLaPrueba: json['modeloDeLaPrueba'] as String? ?? '',
+      modeloDelNadador: json['modeloDelNadador'] as String? ?? '',
+      bloques: ((json['bloques'] as List<dynamic>?) ?? const [])
+          .cast<Map<String, dynamic>>()
+          .map(bloqueDesdeJson)
+          .toList(),
+      confirmadaEn: _fechaObligatoria(json['confirmadaEn'], 'confirmadaEn'),
+    );
+
+Macrociclo macrocicloDesdeJson(Map<String, dynamic> json, {String? id}) {
+  final estructura = json['estructura'] as Map<String, dynamic>?;
+  if (estructura == null) {
+    throw const MacrocicloInvalido(
+      'estructura',
+      'un macrociclo sin la estructura que el entrenador confirmó no se '
+          'puede reconstruir, y derivarla nosotros sería inventarla',
+    );
+  }
+
+  return Macrociclo(
+    id: id,
+    nadadorId: json['nadadorId'] as String? ?? '',
+    nombre: json['nombre'] as String? ?? '',
+    estructura: estructuraDesdeJson(estructura),
+    mesociclos: ((json['mesociclos'] as List<dynamic>?) ?? const [])
+        .map((e) => e.toString())
+        .toList(),
+    fechaDeCompetencia: _fechaObligatoria(
+      json['fechaDeCompetencia'],
+      'fechaDeCompetencia',
+    ),
+    versionMetodologia: json['versionMetodologia'] as String? ?? '',
+    estado: EstadoPlan.values.firstWhere(
+      (e) => e.name == json['estado'],
+      orElse: () => EstadoPlan.borrador,
+    ),
   );
 }
 

@@ -14,6 +14,7 @@ import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
+import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/peticiones/peticion.dart';
 
@@ -42,6 +43,44 @@ abstract class RepositorioPlanes {
   Future<Plan> crearVersionDesde(String idAprobado);
 
   /// Exporta el plan completo en un formato legible sin la app (FR-031).
+  Future<Map<String, dynamic>> exportar(String id);
+}
+
+/// Los macrociclos: el nivel de encima del plan (feature 009).
+///
+/// **No hay `RepositorioMesociclos`.** Un mesociclo es un `Plan`, así que lo
+/// guarda y lo versiona `RepositorioPlanes`, con el ciclo de vida y el linaje
+/// que ya tiene probados desde la feature 001 (decisión D1).
+///
+/// Lo que el nadador puede hacer aquí es **leer el suyo**. Un macrociclo es
+/// trabajo del entrenador y nada de él es del nadador para cambiarlo, así que
+/// esta interfaz no ofrece ninguna escritura que un dispositivo de nadador
+/// pueda llamar, y las reglas lo comprueban aparte.
+///
+/// Contrato: `specs/009-plan-progression/contracts/macrociclo_y_progresion.md`.
+abstract class RepositorioMacrociclos {
+  Future<Macrociclo?> obtener(String id);
+
+  /// Los de un nadador, del más reciente al más antiguo.
+  Future<List<Macrociclo>> deNadador(String nadadorId);
+
+  /// Guarda un borrador. Devuelve el identificador asignado.
+  Future<String> guardarBorrador(Macrociclo macrociclo);
+
+  /// Guarda un macrociclo ya firmado, con su instantánea de auditoría.
+  ///
+  /// La instantánea viaja aquí por la misma razón que en los planes: la
+  /// auditoría de la sección 16 es parte de lo que se firmó, no un informe
+  /// aparte que se pueda perder.
+  Future<void> guardarAprobado(
+    Macrociclo macrociclo,
+    Map<String, dynamic> auditoria,
+  );
+
+  /// Mueve el macrociclo a publicado. **Firmar no es entregar.**
+  Future<void> publicar(String id);
+
+  /// Exporta el macrociclo completo en un formato legible sin la app.
   Future<Map<String, dynamic>> exportar(String id);
 }
 

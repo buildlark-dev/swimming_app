@@ -5,8 +5,10 @@ import 'package:natacion_app/datos/memoria/repositorios_memoria.dart';
 import 'package:natacion_app/datos/serializacion.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
+import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/metodologia/estilos.dart';
+import 'package:natacion_app/dominio/metodologia/fases_atr.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 
 import '../dominio/auditoria/ayuda_planes.dart';
@@ -205,6 +207,166 @@ void main() {
       expect(nueva.estado, EstadoPlan.borrador);
       expect(nueva.versionAnteriorId, 'plan-aprobado');
       expect(nueva.metros, aprobado.metros);
+    });
+  });
+
+  group('ida y vuelta del macrociclo (feature 009)', () {
+    EstructuraConfirmada estructura() => EstructuraConfirmada(
+      modeloDeLaPrueba: '200 libre: umbral alto, viraje y salida.',
+      modeloDelNadador: 'Crol dominante, pierde el agarre al fatigarse.',
+      bloques: [
+        BloqueConfirmado(
+          fase: FaseAtr.acumulacion,
+          desde: DateTime(2026, 11, 1),
+          hasta: DateTime(2026, 11, 28),
+          porQue: 'Acumulación, las primeras 4 semanas.',
+        ),
+        BloqueConfirmado(
+          fase: FaseAtr.realizacion,
+          desde: DateTime(2026, 11, 29),
+          hasta: DateTime(2026, 12, 13),
+          porQue: 'Realización, las últimas 2 semanas antes de competir.',
+        ),
+      ],
+      confirmadaEn: DateTime(2026, 10, 31, 20, 15),
+    );
+
+    Macrociclo macrociclo({EstructuraConfirmada? cual}) => Macrociclo(
+      nadadorId: 'n-ana',
+      nombre: 'Hacia el Departamental',
+      estructura: cual ?? estructura(),
+      mesociclos: const ['plan-a', 'plan-b'],
+      fechaDeCompetencia: DateTime(2026, 12, 13),
+      versionMetodologia: '3.6.0',
+    );
+
+    test('conserva la estructura que el entrenador confirmó', () {
+      final recuperado = macrocicloDesdeJson(macrocicloAJson(macrociclo()));
+
+      expect(recuperado.estructura.modeloDeLaPrueba, contains('umbral alto'));
+      expect(recuperado.estructura.modeloDelNadador, contains('agarre'));
+      expect(recuperado.estructura.bloques, hasLength(2));
+      expect(recuperado.estructura.bloques.first.fase, FaseAtr.acumulacion);
+      expect(recuperado.estructura.bloques.last.porQue, contains('2 semanas'));
+    });
+
+    test('conserva el orden de los mesociclos', () {
+      final m = Macrociclo(
+        nadadorId: 'n-ana',
+        nombre: 'Hacia el Departamental',
+        estructura: estructura(),
+        mesociclos: const ['plan-z', 'plan-a', 'plan-m'],
+        fechaDeCompetencia: DateTime(2026, 12, 13),
+        versionMetodologia: '3.6.0',
+      );
+
+      expect(macrocicloDesdeJson(macrocicloAJson(m)).mesociclos, [
+        'plan-z',
+        'plan-a',
+        'plan-m',
+      ]);
+    });
+
+    test('un bloque sin fase vuelve sin fase', () {
+      // M6: en Iniciación y Tecnificación la fase nula es la respuesta
+      // correcta. Si la ida y vuelta le pusiera una, el motor rechazaría el
+      // plan al regenerarlo y nadie sabría por qué.
+      final sinFase = EstructuraConfirmada(
+        modeloDeLaPrueba: 'Familiarización con el medio.',
+        modeloDelNadador: 'Empieza ahora, flota bien.',
+        bloques: [
+          BloqueConfirmado(
+            fase: null,
+            desde: DateTime(2026, 11, 1),
+            hasta: DateTime(2026, 12, 13),
+            porQue: 'Sin fase: Iniciación no trabaja por fases ATR.',
+          ),
+        ],
+        confirmadaEn: DateTime(2026, 10, 31, 20, 15),
+      );
+
+      final recuperado = macrocicloDesdeJson(
+        macrocicloAJson(macrociclo(cual: sinFase)),
+      );
+      expect(recuperado.estructura.bloques.single.fase, isNull);
+    });
+
+    test('la hora de la confirmación sobrevive, no solo el día', () {
+      // Es el registro de un acto del entrenador. Guardar solo el día
+      // perdería cuál de dos confirmaciones del mismo día fue.
+      final recuperado = macrocicloDesdeJson(macrocicloAJson(macrociclo()));
+      expect(recuperado.estructura.confirmadaEn, DateTime(2026, 10, 31, 20, 15));
+    });
+
+    test('un documento sin estructura falla con un mensaje legible', () {
+      // **No vuelve a medias.** Un macrociclo sin la estructura confirmada no
+      // se puede reconstruir, y derivarla aquí sería inventar lo que el
+      // entrenador decidió.
+      final json = macrocicloAJson(macrociclo())..remove('estructura');
+      expect(
+        () => macrocicloDesdeJson(json),
+        throwsA(isA<MacrocicloInvalido>()),
+      );
+    });
+
+    test('una fecha ilegible falla en lugar de inventar un día', () {
+      // Con un `DateTime(2026)` por defecto, el bloque caería en una fecha
+      // falsa y pasaría las invariantes. Esto es lo que la feature 008
+      // aprendió con el `as Timestamp?` sobre un String, salvo que aquí el
+      // fallo se nombra en lugar de dejar la pantalla girando.
+      final json = macrocicloAJson(macrociclo());
+      (json['estructura'] as Map<String, dynamic>)['confirmadaEn'] = 'ayer';
+      expect(
+        () => macrocicloDesdeJson(json),
+        throwsA(isA<EstructuraInvalida>()),
+      );
+    });
+  });
+
+  group('el plan guarda de qué macrociclo es mesociclo', () {
+    test('ida y vuelta de los dos campos nuevos', () {
+      final mesociclo = constructor.planAcumulacionCorrecto().copiarCon(
+        macrocicloId: 'macro-1',
+        ordenEnElMacrociclo: 2,
+      );
+
+      final recuperado = planDesdeJson(
+        planAJson(mesociclo, conSesiones: true),
+        cargarBibliotecaReal(),
+      );
+
+      expect(recuperado.macrocicloId, 'macro-1');
+      expect(recuperado.ordenEnElMacrociclo, 2);
+    });
+
+    test('un plan suelto vuelve suelto, y el orden vuelve nulo y no cero', () {
+      // **Cero es una posición y nulo es «no pertenece a ninguno».** Si el
+      // orden ausente volviera como 0, un plan suelto quedaría en cabeza de
+      // una preparación a la que no pertenece.
+      final recuperado = planDesdeJson(
+        planAJson(constructor.planAcumulacionCorrecto()),
+        cargarBibliotecaReal(),
+      );
+
+      expect(recuperado.macrocicloId, isNull);
+      expect(recuperado.ordenEnElMacrociclo, isNull);
+    });
+
+    test('el orden cero sí se guarda cuando es de verdad el primero', () {
+      // El control de que la prueba de arriba no pasa porque el cero se
+      // tire siempre.
+      final primero = constructor.planAcumulacionCorrecto().copiarCon(
+        macrocicloId: 'macro-1',
+        ordenEnElMacrociclo: 0,
+      );
+
+      expect(
+        planDesdeJson(
+          planAJson(primero),
+          cargarBibliotecaReal(),
+        ).ordenEnElMacrociclo,
+        0,
+      );
     });
   });
 

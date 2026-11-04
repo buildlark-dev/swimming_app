@@ -2,6 +2,24 @@
 ///
 /// Fuentes normativas: secciones 11 a 13 de
 /// `docs/metodologia/PROMPT_MAESTRO_V3.4.md`.
+///
+/// **Un `Plan` con una `faseAtr` y varios `microciclos` *es* un mesociclo**
+/// (feature 009, decisión D1). El nivel que falta no es ese: es el de encima,
+/// `Macrociclo`, que vive en `lib/dominio/macrociclo/macrociclo.dart` y solo
+/// guarda referencias —ids de planes— más la estructura que el entrenador
+/// confirmó.
+///
+/// Lo que ya tiene este tipo es exactamente lo que un mesociclo necesita: una
+/// fase, sus semanas, sus sesiones, el ciclo `borrador → aprobado →
+/// publicado`, la auditoría de la sección 16, `versionAnteriorId` con
+/// `crearVersionDesde`, y el sello de metodología. Por eso FR-031 —el
+/// mesociclo es la unidad que recibe versión nueva al reajustar— cae sobre un
+/// tipo que ya lleva ese linaje probado desde la feature 001, en lugar de
+/// obligar a reconstruirlo en un tipo paralelo.
+///
+/// Queda escrito aquí porque el proyecto llevaba ocho features construyendo
+/// mesociclos y llamándolos planes, y sin esta nota la siguiente lo vuelve a
+/// descubrir.
 library;
 
 import 'package:natacion_app/dominio/entidades/sesion.dart';
@@ -104,6 +122,8 @@ class Plan {
     this.justificaciones = const <Justificacion>[],
     this.versionAnteriorId,
     this.peticionId,
+    this.macrocicloId,
+    this.ordenEnElMacrociclo,
   });
 
   final String? id;
@@ -149,6 +169,21 @@ class Plan {
 
   /// Presente cuando el plan nace de editar uno aprobado (FR-025).
   final String? versionAnteriorId;
+
+  /// A qué macrociclo pertenece este mesociclo (feature 009).
+  ///
+  /// **Nulo en un plan que va por su cuenta**: uno nacido de una petición de la
+  /// feature 008, o escrito a mano. Los dos conviven: un macrociclo que llega
+  /// después no se traga un plan que ya se firmó solo.
+  final String? macrocicloId;
+
+  /// Su posición dentro del macrociclo. Nula cuando va por su cuenta.
+  ///
+  /// La posición vive aquí y el orden vive también en `Macrociclo.mesociclos`,
+  /// que es la lista ordenada. Son dos vistas del mismo hecho a propósito: la
+  /// lista es la que manda al leer el macrociclo, y este campo es lo que
+  /// permite situar un mesociclo que se leyó solo.
+  final int? ordenEnElMacrociclo;
 
   int get metros => sesiones.fold(0, (total, sesion) => total + sesion.metros);
 
@@ -196,6 +231,8 @@ class Plan {
     List<Justificacion>? justificaciones,
     String? versionAnteriorId,
     String? peticionId,
+    String? macrocicloId,
+    int? ordenEnElMacrociclo,
   }) {
     return Plan(
       id: id ?? this.id,
@@ -216,6 +253,8 @@ class Plan {
       justificaciones: justificaciones ?? this.justificaciones,
       versionAnteriorId: versionAnteriorId ?? this.versionAnteriorId,
       peticionId: peticionId ?? this.peticionId,
+      macrocicloId: macrocicloId ?? this.macrocicloId,
+      ordenEnElMacrociclo: ordenEnElMacrociclo ?? this.ordenEnElMacrociclo,
     );
   }
 }
