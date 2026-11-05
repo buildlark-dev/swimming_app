@@ -19,15 +19,26 @@ was lost. A roadmap that lives in a chat is not a roadmap.
 | **006** Account sign-up and consent at registration | Name, exact age and country in short steps; T&C accepted on the way in; the minor's guardian is asked for consent | Merged |
 | **007** The HUB and the two journeys | Five tabs — `Generar`, `Ver Plan`, `Home`, `Análisis`, `Ajustes` — arranged per role, plus Home and the settings screen where a person governs their own account | Merged |
 | **008** The swimmer's request | A checklist that becomes a draft, the draft reaches the coach's queue, and nothing leaves without his signature | Merged |
-| **009** Ver Plan and progression | Macrocycle and mesocycle, revealed as the swimmer completes sessions | Planned |
+| **009** Ver Plan and progression | The macrocycle, confirmed once and delivered whole; the swimmer annotates it as they go, and a readjustment versions what changed | In review |
 | **010** Análisis | The detailed journey, and asking the coach for feedback | Planned |
 
 ## What each of the later ones is waiting on
 
-**009 is larger than it looks.** The domain has `Microciclo` and nothing above it:
-neither `Macrociclo` nor `Mesociclo` exists. Section 18 of the methodology also
-requires staged construction with the coach's confirmation between stages, so the
-progressive reveal fits the methodology — but it has to be designed, not assumed.
+**009 turned out to be smaller than it looked, for one reason.** It was written
+here as needing both `Macrociclo` and `Mesociclo`, since the domain had
+`Microciclo` and nothing above it. Reading the code found that **a `Plan` is
+already a mesocycle** — one ATR phase, several microcycles, its own lifecycle,
+audit, version lineage and methodology stamp. The project had been building
+mesocycles since feature 001 and calling them plans, so only the level above was
+new.
+
+The progressive reveal was dropped, and by the coach's own decision: the swimmer
+gets the whole macrocycle from day one, because seeing the whole road is worth
+more than the suspense of unlocking it. Section 18's staged construction was
+revisited at the same time and the constitution was amended to v2.0.0 — what it
+requires is the decision point, not the number of phases, and a deterministic
+engine does not degrade over a long output the way a language model does. So one
+confirmation remains, on the structure, and the rest derives.
 
 **010 touches video**, which is out of scope today and carries its own consent
 scope (`Alcance.video`, modelled in 004 precisely for this). Whether the feedback

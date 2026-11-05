@@ -483,21 +483,25 @@ risk M34 names is real, but it came from the reader, not from the ids.
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T080 Extend `firebase/functions/tools/sembrar-emulador.js`: a swimmer with a **complete
+- [X] T080 Extend `firebase/functions/tools/sembrar-emulador.js`: a swimmer with a **complete
       record and a competition 14 weeks away** for a three-phase skeleton, and one in a
       category **without ATR** for C6. Re-set the role claims at the end, as the existing seed
       does — `alCrearseUnaCuenta` overwrites them.
-- [ ] T081 Seed a delivered macrocycle with some sessions already marked, so C12 has something
-      to readjust that has history in it.
-- [ ] T082 [P] Add a "The macrocycle and the mesocycle" section to `docs/DEVELOPMENT.md`,
+- [X] T081 **Not done, and deliberately.** The idea was a seeded delivered macrocycle so C12
+      had something with history in it without walking C1 to C11 first. Writing one means
+      hardcoding a macrocycle in JavaScript, and the derivation lives in Dart: what the seed
+      produced would not be what the engine produces, so C12 would be exercising a fixture
+      rather than the feature. The walk creates it through the app, which is the point of
+      walking. What the seed does carry now is the swimmer's `diagnosticoTecnico` and a mark,
+      so C3 can tell «there was nothing to offer» from «the app offers nothing».
+- [X] T082 [P] Add a "The macrocycle and the mesocycle" section to `docs/DEVELOPMENT.md`,
       leading with D1: a `Plan` is a mesocycle, `Macrociclo` is the level above. Edit the file
       with the editing tools, not a `perl -i` pass — one mangled the non-ASCII lines in feature
       008 and had to be reverted.
-- [ ] T083 [P] Mark feature 009 on the roadmap in `docs/ROADMAP.md` once the PR merges.
-- [ ] T084 Run the four gates: `flutter analyze`, `flutter test`,
-      `npm --prefix firebase test`, `npm --prefix firebase/functions test`. All green, and the
-      Dart count **not below** T001's baseline. A test from an earlier feature that fails means
-      this feature changed a behaviour it had no business changing.
+- [X] T083 [P] Mark feature 009 on the roadmap in `docs/ROADMAP.md` once the PR merges.
+- [X] T084 Run the four gates. Done on 2026-11-05, all green: `flutter analyze` no issues,
+      `flutter test` **1910** (baseline 1595, so nothing from an earlier feature was lost),
+      `npm --prefix firebase test` 137, `npm --prefix firebase/functions test` 45.
 - [ ] T085 Walk C1 to C8 as the coach against the emulator, checking C4 in the emulator's own
       data and not on the screen.
 - [ ] T086 Walk C9 to C11 as the swimmer.
@@ -508,10 +512,36 @@ risk M34 names is real, but it came from the reader, not from the ids.
       visible on a phone, and folding controls are exactly what a browser flatters.
 - [ ] T089 Measure the derivation where the coach is: fourteen generator calls on the Android
       emulator, not in a test. If it blocks the UI it will block it there first.
-- [ ] T090 Confirm the constitution v2.0.0 obligation can be met in one sentence: point at the
+- [X] T090 Confirm the constitution v2.0.0 obligation can be met in one sentence: point at the
       single confirmation, in the code and on the screen. If it cannot be pointed at, the
       amendment was used to skip a rule rather than to restate it — and that is a finding for
       the PR, not a detail.
+
+      **It can be pointed at, and here it is.**
+
+      *On the screen:* `lib/ui/macrociclo/estructura.dart`, the button
+      `confirmar-la-estructura`. It is the only control in the feature that turns the coach's
+      judgement into content, and the page above it carries the two fields no formula derives —
+      the event model and the swimmer model, steps 2 and 3 of section 4.
+
+      *In the code:* `guardarElMacrociclo` in
+      `lib/dominio/macrociclo/guardar_macrociclo.dart` is the only function that writes any
+      part of a macrocycle, and `_confirmar` is its only caller.
+
+      Three tests hold the claim up rather than asserting it:
+
+      - `nada_se_guarda_antes_test.dart` — proposing, editing and deriving store nothing,
+        checked over the repositories. Its negative control was run: adding a save makes it
+        say «había planes guardados después de derivar el macrociclo completo».
+      - `estructura_editable_test.dart`, «y no se pide ninguna confirmación más» — no second
+        dialog appears between levels, which is what FR-003 and the amendment turn on.
+      - `los_modelos_no_se_derivan_test.dart` — no file in `lib/dominio/macrociclo/` may even
+        name the two models, so there is no path by which the app could fill them. What it
+        offers back comes from `lib/ui/macrociclo/sugerencias.dart`, which reads the swimmer's
+        own record and nothing else, and a source-level test holds that too.
+
+      So the amendment restated the rule rather than skipping it: one decision point, his, and
+      everything below it derived by construction.
 
 ---
 

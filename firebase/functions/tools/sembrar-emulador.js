@@ -53,6 +53,22 @@ async function main() {
       categoria: 'precompetitivo',
       estiloObjetivo: 'libre',
       pruebaObjetivo: '800 Libre',
+      // Observaciones del entrenador, que es lo unico de lo que la app puede
+      // pre-rellenar los dos modelos del macrociclo (feature 009, M4). Sin
+      // esto, C3 del quickstart mide un campo vacio: no se ve la diferencia
+      // entre «no habia nada que ofrecer» y «la app no ofrece nada».
+      diagnosticoTecnico: [
+        'pierde el agarre al fatigarse',
+        'respiracion tardia en el segundo 50',
+      ],
+      marcas: [
+        {
+          distancia: 800,
+          estilo: 'libre',
+          tiempoMilisegundos: 11 * 60 * 1000 + 42 * 1000,
+          fecha: '2026-09-12',
+        },
+      ],
     });
     // La fecha como **marca de tiempo**, que es lo que escribe el servidor.
     // Con texto, la app se comía un `TypeError` al leerla y `Ajustes` de un
