@@ -379,7 +379,7 @@ the app lie, and then the readjustment is modelling a fiction.
       `get(/databases/$(database)/documents/planes/$(planId)/sesiones/$(sesionId))`. First
       confirm `sesionAJson` actually stores `fecha` in that document; if it does not, say so in
       the task notes rather than writing a rule that reads a field that is not there.
-- [ ] T062 [US3] Rules test for T061 in `firebase/test/reglas_macrociclos.test.js`, **with an
+- [X] T062 [US3] Rules test for T061 in `firebase/test/reglas_macrociclos.test.js`, **with an
       `assertSucceeds` for a past-dated session** alongside the denial for a future one.
       Without the success case the test would pass against a rule that denied everything.
 - [X] T063 [US3] Test in `test/dominio/sincronizacion/`: the outbox never carries a
@@ -412,26 +412,44 @@ without touching what the swimmer already recorded.
 **Independent Test**: readjust a delivered macrocycle with sessions already marked, and check
 both that the swimmer sees what changed and that their records are still reachable.
 
-**⚠️ Start with T069. It fails today, against code that is already in `main`.**
+**⚠️ Start with T069.** It failed against the code as it was — though not for the reason the
+plan recorded: see T070.
+
+**And one correction to the plan's own "What to watch":** the claim that `crearVersionDesde`
+assigns new session ids was wrong. `Sesion.copiarCon(id: null)` keeps the id. The orphaning
+risk M34 names is real, but it came from the reader, not from the ids.
 
 ### Tests for User Story 4 — written first
 
-- [ ] T069 [US4] **The quiet one.** `test/dominio/macrociclo/el_reajuste_no_se_come_el_historial_test.dart`:
+- [X] T069 [US4] **The quiet one.** `test/dominio/macrociclo/el_reajuste_no_se_come_el_historial_test.dart`:
       with `RegistroDeSesion` records for several of a mesocycle's sessions, version that
       mesocycle, then assert every record is still **reachable** from the new version's
       sessions. The assertion is on **reachability, not on the write succeeding** — records are
       keyed by `sesionId`, and a new version with new ids orphans them while every write
       returns fine (M34, FR-035, SC-008, D8).
-- [ ] T070 [US4] **Fix the defect T069 exposes.** `RepositorioPlanesFirestore.crearVersionDesde`
-      in `lib/datos/firestore/repositorios_firestore.dart:143` copies every session with
-      `sesion.copiarCon(id: null)`, so each new version assigns new session ids and blanks the
-      swimmer's history with nothing failing. Decide per D8 — stable session ids across
-      versions, or carrying the records explicitly — implement it, and write the reason in the
-      method's doc comment so the next person does not restore the old line as a tidy-up.
-- [ ] T071 [US4] Negative control for T069: restore `copiarCon(id: null)`, confirm the test
+- [X] T070 [US4] **Fix the defect T069 exposes**, and the diagnosis needed correcting first.
+      It was recorded as: `crearVersionDesde` copies every session with
+      `sesion.copiarCon(id: null)`, so each new version assigns new session ids. **That half
+      was wrong.** `Sesion.copiarCon` resolves `id ?? this.id`, so passing null keeps the id —
+      the line reads as if it renames the sessions and does not. T071's negative control
+      caught it by staying green with the mutation applied. The behaviour was already right,
+      by accident of that signature, while the line said the opposite.
+      What was actually broken, and is fixed:
+      **the reader** — records are stored against the plan they were written in, and after
+      versioning nothing went looking for them, so progress read the new plan and found zero;
+      and **the two implementations disagreed** — the in-memory one wrote its plan map
+      directly, so the new version's sessions were never registered and `obtenerDePlan` on the
+      new plan came back empty.
+      Fixed with `lib/dominio/macrociclo/registros_del_linaje.dart`, which reads backwards
+      along `versionAnteriorId` without touching, copying or renaming anything the swimmer
+      wrote, plus routing both `crearVersionDesde` implementations through `guardarBorrador`.
+      The trap itself is now pinned in `test/dominio/entidades/plan_mesociclo_test.dart`:
+      `copiarCon(id: null)` does not clear a field, and reading it as if it did cost a
+      diagnosis.
+- [X] T071 [US4] Negative control for T069: restore `copiarCon(id: null)`, confirm the test
       goes red, apply the fix again. This is the one lock in the feature whose absence produces
       no error message at all.
-- [ ] T072 [US4] Test that `CicloVidaPlan.crearVersionDesde`
+- [X] T072 [US4] Test that `CicloVidaPlan.crearVersionDesde`
       (`lib/dominio/entidades/ciclo_vida_plan.dart:80`) agrees with the Firestore path on
       session identity. Two version paths that disagree means the defect comes back through
       whichever one the test does not use.

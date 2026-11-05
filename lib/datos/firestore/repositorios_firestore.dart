@@ -168,12 +168,35 @@ class RepositorioPlanesFirestore implements RepositorioPlanes {
       versionAnteriorId: idAprobado,
     );
 
-    final idNuevo = await guardarBorrador(nueva);
-
-    // Las sesiones se copian a la subcolección del plan nuevo.
-    for (final sesion in aprobado.sesiones) {
-      await _sesiones.guardar(idNuevo, sesion.copiarCon(id: null));
-    }
+    // **Las sesiones conservan su identificador, y eso no es un detalle.**
+    //
+    // Los `RegistroDeSesion` del nadador apuntan a `sesionId`. Si una versión
+    // nueva estrenara identificadores, lo que el nadador anotó dejaría de
+    // emparejar con las sesiones que tiene delante y el reajuste le vaciaría el
+    // historial **sin que nada fallara**: todas las escrituras devuelven bien.
+    //
+    // Aquí había un bucle que escribía cada sesión con
+    // `sesion.copiarCon(id: null)`. **Leído de corrido parece que las
+    // renombra, y no lo hace**: `Sesion.copiarCon` resuelve `id ?? this.id`, así
+    // que pasar nulo conserva el identificador que ya tenía. El
+    // comportamiento era el correcto por accidente de esa firma, y la línea
+    // decía lo contrario.
+    //
+    // Se quita el bucle y se pasan las sesiones por `guardarBorrador`, que
+    // desde la 009 es quien las escribe. Un camino en lugar de dos, y lo que
+    // el código hace coincide con lo que parece hacer.
+    //
+    // Que dos versiones tengan sesiones con el mismo identificador no choca:
+    // son subcolecciones distintas, una por plan. Y lo que permite encontrar
+    // los registros de las versiones anteriores es `registrosDelLinaje`, que
+    // lee hacia atrás por `versionAnteriorId` sin tocar nada de lo que el
+    // nadador escribió.
+    //
+    // Lo vigila
+    // `test/dominio/macrociclo/el_reajuste_no_se_come_el_historial_test.dart`.
+    final idNuevo = await guardarBorrador(
+      nueva.copiarCon(sesiones: aprobado.sesiones),
+    );
 
     return nueva.copiarCon(id: idNuevo, sesiones: aprobado.sesiones);
   }

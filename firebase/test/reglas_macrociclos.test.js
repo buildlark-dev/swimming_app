@@ -288,6 +288,14 @@ test('lo entregado no se borra', async () => {
 // **Con su caso positivo**, que es el que importa: una sesion pasada se
 // registra. Sin el, esta seccion pasaria entera contra una regla que negara
 // todo, que es la leccion de la 008 otra vez.
+//
+// Control negativo hecho el 2026-11-04: sustituyendo `elDiaDeLaSesionYaLlego`
+// por una funcion que devuelve `true` siempre, se ponen rojas exactamente las
+// tres negaciones —«pero NO la de manana», «ni la de dentro de un mes» y
+// «tampoco editando uno que ya existia»— y las positivas siguen verdes. Al
+// primer intento la mutacion no se aplico y el control no demostro nada: en
+// `sed` basico `\(` es un grupo y no un parentesis literal, asi que el patron
+// nunca encajaba y las pruebas pasaban por eso.
 
 async function sembrarSesion({ fecha, planId = 'p1', sesionId = 's1' }) {
   await entorno.withSecurityRulesDisabled(async (sinReglas) => {

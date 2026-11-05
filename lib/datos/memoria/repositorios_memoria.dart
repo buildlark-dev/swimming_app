@@ -103,7 +103,6 @@ class RepositorioPlanesMemoria implements RepositorioPlanes {
     }
 
     final nueva = Plan(
-      id: 'plan-${_siguienteId++}',
       nombre: aprobado.nombre,
       categoria: aprobado.categoria,
       estiloObjetivo: aprobado.estiloObjetivo,
@@ -120,8 +119,13 @@ class RepositorioPlanesMemoria implements RepositorioPlanes {
       versionAnteriorId: idAprobado,
     );
 
-    _planes[nueva.id!] = nueva;
-    return nueva;
+    // Por `guardarBorrador` y no escribiendo el mapa a mano: así las sesiones
+    // de la versión nueva quedan guardadas donde se leen, **con el mismo
+    // identificador que tenían**, igual que en Firestore. Escribir el mapa
+    // directamente dejaba las sesiones sin registrar y hacía que esta
+    // implementación y la real no coincidieran.
+    final id = await guardarBorrador(nueva);
+    return (await obtener(id))!;
   }
 
   @override
