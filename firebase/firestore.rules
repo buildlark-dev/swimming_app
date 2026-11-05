@@ -197,6 +197,24 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado']);
     }
 
+    // El reajuste (feature 009, M31 y M32).
+    //
+    // **Es la unica escritura permitida sobre un macrociclo entregado**, y la
+    // razon es que un reajuste no cambia lo que el entrenador firmo: cambia a
+    // que versiones de sus mesociclos apunta, y deja el aviso para el nadador.
+    // Lo firmado —la estructura, el nombre, la fecha de competencia, el sello
+    // de metodologia— sigue intacto, y eso es lo que `hasOnly` comprueba.
+    //
+    // El estado **no se toca**: el macrociclo sigue publicado. Pasarlo otra vez
+    // por la firma lo devolveria a `aprobado`, que es retroceder en el ciclo de
+    // vida, y lo que firmo entonces sigue firmado.
+    function esElReajuste() {
+      return resource.data.estado == 'publicado'
+          && request.resource.data.estado == 'publicado'
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['mesociclos', 'ultimoReajuste']);
+    }
+
     match /macrociclos/{macrocicloId} {
       // El nadador lee **el suyo y solo cuando esta entregado**. Las dos
       // condiciones por separado, igual que en los planes: un borrador no es
@@ -217,6 +235,7 @@ service cloud.firestore {
                        && !macrocicloExistenteEsInmutable())
                       || esLaAprobacionDelMacrociclo()
                       || esLaEntregaDelMacrociclo()
+                      || esElReajuste()
                     );
 
       allow delete: if esEntrenador() && !macrocicloExistenteEsInmutable();

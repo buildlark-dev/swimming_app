@@ -18,6 +18,7 @@ import 'package:natacion_app/dominio/auditoria/auditoria.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/macrociclo/guardar_macrociclo.dart';
 import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
+import 'package:natacion_app/dominio/macrociclo/reajuste.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/componentes/boton.dart';
@@ -63,6 +64,54 @@ class _PantallaRevisarMacrocicloState extends State<PantallaRevisarMacrociclo> {
 
   bool _trabajando = false;
   String? _problema;
+
+  /// Qué bloques marcó para reajustar. Vacío mientras no marque nada: no hay
+  /// reajuste por omisión.
+  final Set<String> _aReajustar = <String>{};
+
+  Future<void> _reajustar() async {
+    setState(() {
+      _trabajando = true;
+      _problema = null;
+    });
+
+    try {
+      final reajustado = await reajustarElMacrociclo(
+        macrociclo: _macrociclo,
+        mesociclos: _mesociclos,
+        cualesSeReajustan: _aReajustar,
+        planes: widget.planes,
+        macrociclos_: widget.macrociclos,
+        hoy: widget.hoy,
+      );
+
+      // **Dos actos, otra vez.** Las versiones nuevas nacen en borrador: hasta
+      // que no se firman y se entregan, el nadador sigue con lo que tenía.
+      await firmarYEntregarElReajuste(
+        reajustado: reajustado,
+        planes: widget.planes,
+        asignaciones: widget.asignaciones,
+        hoy: widget.hoy,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _macrociclo = reajustado.macrociclo;
+        _mesociclos = [
+          for (final mesociclo in reajustado.mesociclos)
+            mesociclo.copiarCon(estado: EstadoPlan.publicado),
+        ];
+        _aReajustar.clear();
+        _trabajando = false;
+      });
+    } on Object catch (problema) {
+      if (!mounted) return;
+      setState(() {
+        _problema = 'No se reajustó nada: $problema';
+        _trabajando = false;
+      });
+    }
+  }
 
   RevisionDelMacrociclo get _revision =>
       revisarElMacrociclo(macrociclo: _macrociclo, mesociclos: _mesociclos);
@@ -317,12 +366,67 @@ class _PantallaRevisarMacrocicloState extends State<PantallaRevisarMacrociclo> {
                 ],
               )
             else
-              Aviso(
-                tono: TonoDeAviso.exito,
-                mensaje:
-                    'Entregado. El nadador ya ve el camino completo en Ver '
-                    'Plan.',
-                claveDelMensaje: const Key('ya-entregado'),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Aviso(
+                    tono: TonoDeAviso.exito,
+                    mensaje:
+                        'Entregado. El nadador ya ve el camino completo en '
+                        'Ver Plan.',
+                    claveDelMensaje: const Key('ya-entregado'),
+                  ),
+
+                  // El reajuste (M30, sección 4 paso 8). **Se entra por aquí
+                  // y por ningún disparador automático**: la app no reajusta
+                  // por clara que parezca la adherencia.
+                  const SizedBox(height: Espaciado.seccion),
+                  const CabeceraSeccion(
+                    titulo: 'Reajustar',
+                    icono: Icons.tune_outlined,
+                  ),
+                  const SizedBox(height: Espaciado.corto),
+                  Text(
+                    'Marque los bloques que quiere volver a generar con lo '
+                    'que ha visto. Cada uno recibe una versión nueva; lo que '
+                    'el nadador ya anotó no se toca, y se le avisa una vez.',
+                    style: texto.bodySmall,
+                  ),
+                  const SizedBox(height: Espaciado.normal),
+
+                  for (var i = 0; i < _mesociclos.length; i++)
+                    CheckboxListTile(
+                      key: Key('reajustar-$i'),
+                      value: _aReajustar.contains(_mesociclos[i].id),
+                      onChanged: _trabajando
+                          ? null
+                          : (marcado) => setState(() {
+                              final id = _mesociclos[i].id;
+                              if (id == null) return;
+                              if (marcado ?? false) {
+                                _aReajustar.add(id);
+                              } else {
+                                _aReajustar.remove(id);
+                              }
+                            }),
+                      title: Text('Bloque ${i + 1}: ${_mesociclos[i].nombre}'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+
+                  const SizedBox(height: Espaciado.normal),
+                  BotonPrincipal(
+                    clave: const Key('reajustar-el-macrociclo'),
+                    etiqueta: _aReajustar.length <= 1
+                        ? 'Reajustar el bloque marcado'
+                        : 'Reajustar los ${_aReajustar.length} bloques '
+                              'marcados',
+                    icono: Icons.tune_outlined,
+                    trabajando: _trabajando,
+                    alPulsar: _aReajustar.isEmpty || _trabajando
+                        ? null
+                        : _reajustar,
+                  ),
+                ],
               ),
 
             const SizedBox(height: Espaciado.generoso),

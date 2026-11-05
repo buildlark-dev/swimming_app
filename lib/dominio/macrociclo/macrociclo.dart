@@ -292,6 +292,52 @@ class EstructuraConfirmada {
       bloques.where((b) => !b.cabeEnLaVentanaPublicada).toList();
 }
 
+/// Que el entrenador ajustó una parte, dicho **una vez** (M32, FR-034).
+///
+/// Un reajuste puede mover tres mesociclos; el nadador se entera una vez y no
+/// tres. Y se entera **sin comparar versiones**: lo que lee es qué bloque
+/// cambió y cuándo, no un diff.
+class ReajusteAnunciado {
+  factory ReajusteAnunciado({
+    required DateTime hechoEn,
+    required List<int> bloquesAjustados,
+  }) {
+    if (bloquesAjustados.isEmpty) {
+      throw const MacrocicloInvalido(
+        'bloquesAjustados',
+        'un reajuste que no movió nada no es un reajuste',
+      );
+    }
+
+    final ordenados = [...bloquesAjustados.toSet()]..sort();
+    return ReajusteAnunciado._(hechoEn: hechoEn, bloquesAjustados: ordenados);
+  }
+
+  const ReajusteAnunciado._({
+    required this.hechoEn,
+    required this.bloquesAjustados,
+  });
+
+  final DateTime hechoEn;
+
+  /// Las posiciones de los bloques que cambiaron, **empezando en 1**, que es
+  /// como el nadador las ve en pantalla.
+  final List<int> bloquesAjustados;
+
+  /// En español y sin jerga: ni «mesociclo», ni «versión», ni «macrociclo».
+  String get comoSeLeElNadador {
+    if (bloquesAjustados.length == 1) {
+      return 'Tu entrenador ajustó el bloque ${bloquesAjustados.single} de tu '
+          'plan.';
+    }
+
+    final todos = bloquesAjustados.map((b) => '$b').toList();
+    final ultimo = todos.removeLast();
+    return 'Tu entrenador ajustó los bloques ${todos.join(', ')} y $ultimo de '
+        'tu plan.';
+  }
+}
+
 class Macrociclo {
   factory Macrociclo({
     String? id,
@@ -302,6 +348,7 @@ class Macrociclo {
     required DateTime fechaDeCompetencia,
     required String versionMetodologia,
     EstadoPlan estado = EstadoPlan.borrador,
+    ReajusteAnunciado? ultimoReajuste,
   }) {
     if (nadadorId.trim().isEmpty) {
       throw const MacrocicloInvalido(
@@ -344,6 +391,7 @@ class Macrociclo {
       fechaDeCompetencia: fechaDeCompetencia,
       versionMetodologia: versionMetodologia.trim(),
       estado: estado,
+      ultimoReajuste: ultimoReajuste,
     );
   }
 
@@ -356,6 +404,7 @@ class Macrociclo {
     required this.fechaDeCompetencia,
     required this.versionMetodologia,
     required this.estado,
+    required this.ultimoReajuste,
   });
 
   /// Nulo hasta que se guarda, como en `Plan`.
@@ -386,6 +435,11 @@ class Macrociclo {
   /// publicado`. No hay un ciclo nuevo porque no hace falta uno nuevo.
   final EstadoPlan estado;
 
+  /// El último reajuste, si hubo uno. **Uno solo**: lo que el nadador necesita
+  /// saber es que su entrenador ajustó una parte, no la lista histórica de
+  /// todas las veces (M32).
+  final ReajusteAnunciado? ultimoReajuste;
+
   Macrociclo copiarCon({
     String? id,
     String? nombre,
@@ -394,6 +448,7 @@ class Macrociclo {
     DateTime? fechaDeCompetencia,
     String? versionMetodologia,
     EstadoPlan? estado,
+    ReajusteAnunciado? ultimoReajuste,
   }) => Macrociclo(
     id: id ?? this.id,
     nadadorId: nadadorId,
@@ -403,6 +458,7 @@ class Macrociclo {
     fechaDeCompetencia: fechaDeCompetencia ?? this.fechaDeCompetencia,
     versionMetodologia: versionMetodologia ?? this.versionMetodologia,
     estado: estado ?? this.estado,
+    ultimoReajuste: ultimoReajuste ?? this.ultimoReajuste,
   );
 }
 

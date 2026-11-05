@@ -143,6 +143,31 @@ class RepositorioMacrociclosFirestore implements RepositorioMacrociclos {
   }
 
   @override
+  Future<void> anunciarElReajuste(
+    String id, {
+    required List<String> mesociclos,
+    required ReajusteAnunciado aviso,
+  }) async {
+    try {
+      // **Solo estos dos campos.** La regla de Firestore acepta el reajuste
+      // únicamente cuando lo que cambia es a qué versiones apunta y el aviso;
+      // mandar el documento entero la haría fallar, y con razón: lo que el
+      // entrenador firmó es inmutable.
+      await _macrociclos.doc(id).update(<String, dynamic>{
+        'mesociclos': List<String>.from(mesociclos),
+        'ultimoReajuste': <String, dynamic>{
+          'hechoEn': aviso.hechoEn.toIso8601String(),
+          'bloquesAjustados': List<int>.from(aviso.bloquesAjustados),
+        },
+      });
+    } on FirebaseException catch (e) {
+      throw FalloDeDatos(
+        'No se pudo anunciar el reajuste del macrociclo $id: ${e.message}',
+      );
+    }
+  }
+
+  @override
   Future<Map<String, dynamic>> exportar(String id) async {
     final macrociclo = await obtener(id);
     if (macrociclo == null) {

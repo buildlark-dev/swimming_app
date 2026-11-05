@@ -80,6 +80,20 @@ abstract class RepositorioMacrociclos {
   /// Mueve el macrociclo a publicado. **Firmar no es entregar.**
   Future<void> publicar(String id);
 
+  /// Apunta el macrociclo entregado a las versiones nuevas de sus mesociclos y
+  /// deja el aviso para el nadador (M31, M32).
+  ///
+  /// Es **una escritura** por reajuste, por muchos mesociclos que haya movido:
+  /// de ahí que el nadador se entere una vez. Y es la única escritura que se
+  /// permite sobre un macrociclo entregado, porque el reajuste es un acto del
+  /// entrenador sobre lo que ya entregó: no cambia lo que firmó, cambia a qué
+  /// versión apunta.
+  Future<void> anunciarElReajuste(
+    String id, {
+    required List<String> mesociclos,
+    required ReajusteAnunciado aviso,
+  });
+
   /// Exporta el macrociclo completo en un formato legible sin la app.
   Future<Map<String, dynamic>> exportar(String id);
 }

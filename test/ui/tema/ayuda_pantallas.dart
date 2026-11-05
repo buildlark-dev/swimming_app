@@ -606,6 +606,13 @@ class _MacrociclosDelBanco implements RepositorioMacrociclos {
   Future<void> publicar(String id) async {}
 
   @override
+  Future<void> anunciarElReajuste(
+    String id, {
+    required List<String> mesociclos,
+    required ReajusteAnunciado aviso,
+  }) async {}
+
+  @override
   Future<Map<String, dynamic>> exportar(String id) async => {};
 }
 

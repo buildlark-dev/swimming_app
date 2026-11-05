@@ -202,6 +202,26 @@ class RepositorioMacrociclosMemoria implements RepositorioMacrociclos {
   }
 
   @override
+  Future<void> anunciarElReajuste(
+    String id, {
+    required List<String> mesociclos,
+    required ReajusteAnunciado aviso,
+  }) async {
+    final macrociclo = _macrociclos[id];
+    if (macrociclo == null) throw FalloDeDatos('No existe el macrociclo $id');
+    if (macrociclo.estado != EstadoPlan.publicado) {
+      throw const FalloDeDatos(
+        'Solo se reajusta un macrociclo que ya se entregó: lo que no ha '
+        'llegado al nadador se cambia antes de firmarlo',
+      );
+    }
+    _macrociclos[id] = macrociclo.copiarCon(
+      mesociclos: mesociclos,
+      ultimoReajuste: aviso,
+    );
+  }
+
+  @override
   Future<Map<String, dynamic>> exportar(String id) async {
     final macrociclo = _macrociclos[id];
     if (macrociclo == null) throw FalloDeDatos('No existe el macrociclo $id');

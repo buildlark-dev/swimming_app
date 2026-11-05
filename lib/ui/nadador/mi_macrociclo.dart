@@ -281,6 +281,26 @@ class _PantallaMiMacrocicloState extends State<PantallaMiMacrociclo> {
         children: [
           _Portada(macrociclo: _macrociclo!, progreso: progreso),
 
+          // FR-034, M32: ve que su entrenador ajustó esa parte, **sin tener
+          // que comparar versiones**. Una frase, no un diff.
+          if (_macrociclo!.ultimoReajuste != null) ...[
+            const SizedBox(height: Espaciado.normal),
+            Aviso(
+              tono: TonoDeAviso.informativo,
+              titulo: 'Tu entrenador ajustó tu plan',
+              mensaje: _macrociclo!.ultimoReajuste!.comoSeLeElNadador,
+              claveDelMensaje: const Key('tu-entrenador-ajusto'),
+              detalles: const [
+                LineaDeAviso(
+                  icono: Icons.info_outline,
+                  texto:
+                      'Lo que ya habías anotado sigue ahí: esto cambia lo que '
+                      'viene, no lo que hiciste.',
+                ),
+              ],
+            ),
+          ],
+
           if (progreso.pendientes.isNotEmpty) ...[
             const SizedBox(height: Espaciado.normal),
             _LoQuePendiente(pendientes: progreso.pendientes),
@@ -651,9 +671,7 @@ class _SesionPlegada extends StatelessWidget {
                       sesion: sesion,
                       hoy: hoy,
                     ).comoSeLeExplica,
-                    claveDelMensaje: Key(
-                      'todavia-no-${sesion.id ?? 'sin-id'}',
-                    ),
+                    claveDelMensaje: Key('todavia-no-${sesion.id ?? 'sin-id'}'),
                   ),
               ],
             ],

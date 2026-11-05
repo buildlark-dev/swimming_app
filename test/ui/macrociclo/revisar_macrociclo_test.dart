@@ -196,6 +196,89 @@ void main() {
       expect(aviso, 1, reason: 'se avisó más de una vez de una sola entrega');
     });
 
+    testWidgets('reajustar está detrás de la entrega, no antes', (
+      tester,
+    ) async {
+      // M30 y sección 4 paso 8: no hay disparador automático, y el reajuste no
+      // se ofrece sobre lo que todavía no ha llegado al nadador —eso se cambia
+      // antes de firmarlo.
+      await abrir(tester);
+      expect(find.byKey(const Key('reajustar-el-macrociclo')), findsNothing);
+
+      await tester.ensureVisible(
+        find.byKey(const Key('firmar-el-macrociclo')),
+      );
+      await tester.tap(find.byKey(const Key('firmar-el-macrociclo')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('reajustar-el-macrociclo')), findsNothing);
+
+      await tester.ensureVisible(
+        find.byKey(const Key('entregar-el-macrociclo')),
+      );
+      await tester.tap(find.byKey(const Key('entregar-el-macrociclo')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('reajustar-el-macrociclo')), findsOneWidget);
+    });
+
+    testWidgets('sin marcar ningún bloque no se puede reajustar', (
+      tester,
+    ) async {
+      await abrir(tester);
+      await tester.ensureVisible(
+        find.byKey(const Key('firmar-el-macrociclo')),
+      );
+      await tester.tap(find.byKey(const Key('firmar-el-macrociclo')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('entregar-el-macrociclo')),
+      );
+      await tester.tap(find.byKey(const Key('entregar-el-macrociclo')));
+      await tester.pumpAndSettle();
+
+      final boton = tester.widget<FilledButton>(
+        find.byKey(const Key('reajustar-el-macrociclo')),
+      );
+      expect(boton.onPressed, isNull);
+    });
+
+    testWidgets('marcar un bloque y reajustar deja su versión nueva', (
+      tester,
+    ) async {
+      await abrir(tester);
+      await tester.ensureVisible(
+        find.byKey(const Key('firmar-el-macrociclo')),
+      );
+      await tester.tap(find.byKey(const Key('firmar-el-macrociclo')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('entregar-el-macrociclo')),
+      );
+      await tester.tap(find.byKey(const Key('entregar-el-macrociclo')));
+      await tester.pumpAndSettle();
+
+      final antes = (await repos.planes.listar()).map((p) => p.id).toSet();
+
+      await tester.ensureVisible(find.byKey(const Key('reajustar-1')));
+      await tester.tap(find.byKey(const Key('reajustar-1')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('reajustar-el-macrociclo')),
+      );
+      await tester.tap(find.byKey(const Key('reajustar-el-macrociclo')));
+      await tester.pumpAndSettle();
+
+      final despues = (await repos.planes.listar()).map((p) => p.id).toSet();
+      expect(
+        despues.difference(antes),
+        hasLength(1),
+        reason: 'el reajuste no dejó una versión nueva, o dejó más de una',
+      );
+
+      // Y el macrociclo lleva el aviso para el nadador, una vez.
+      final enElAlmacen = await repos.macrociclos.obtener('macro-1');
+      expect(enElAlmacen?.ultimoReajuste?.bloquesAjustados, [2]);
+    });
+
     testWidgets('y al terminar se dice que ya lo ve', (tester) async {
       await abrir(tester);
 

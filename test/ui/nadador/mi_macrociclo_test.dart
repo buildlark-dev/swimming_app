@@ -22,6 +22,7 @@ import 'package:natacion_app/dominio/entidades/envio_pendiente.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
+import 'package:natacion_app/dominio/macrociclo/reajuste.dart';
 import 'package:natacion_app/ui/nadador/mi_macrociclo.dart';
 import 'package:natacion_app/ui/tema/tema.dart';
 
@@ -444,6 +445,52 @@ void main() {
       await abrir(tester);
 
       expect(find.byKey(const Key('lo-que-quedo-pendiente')), findsNothing);
+    });
+  });
+
+  group('FR-034 — el nadador ve que su entrenador ajustó esa parte', () {
+    testWidgets('sin reajuste no se le dice nada', (tester) async {
+      await abrir(tester);
+      expect(find.byKey(const Key('tu-entrenador-ajusto')), findsNothing);
+    });
+
+    testWidgets('con un reajuste, lo lee en una frase', (tester) async {
+      // Sin comparar versiones: lo que lee es qué bloque cambió.
+      final macro = await entregado();
+      await reajustarElMacrociclo(
+        macrociclo: macro.macrociclo,
+        mesociclos: macro.mesociclos,
+        cualesSeReajustan: {macro.mesociclos[1].id!},
+        planes: repos.planes,
+        macrociclos_: repos.macrociclos,
+        hoy: hoyDePrueba,
+      );
+
+      conPantallaAlta(tester);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: Tema.claro(),
+          home: Scaffold(
+            body: PantallaMiMacrociclo(
+              nadadorId: 'n-ana',
+              macrociclos: repos.macrociclos,
+              planes: repos.planes,
+              registros: registros,
+              hoy: hoyDePrueba,
+              sinMacrociclo: const Text('Tu sesión de hoy'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('tu-entrenador-ajusto')))
+            .data!,
+        'Tu entrenador ajustó el bloque 2 de tu plan.',
+      );
+      expect(find.textContaining('sigue ahí'), findsOneWidget);
     });
   });
 

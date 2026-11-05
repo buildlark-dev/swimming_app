@@ -456,24 +456,24 @@ risk M34 names is real, but it came from the reader, not from the ids.
 
 ### Implementation for User Story 4
 
-- [ ] T073 [US4] Implement `lib/dominio/macrociclo/reajuste.dart`: a readjustment creates a new
+- [X] T073 [US4] Implement `lib/dominio/macrociclo/reajuste.dart`: a readjustment creates a new
       version of each affected mesocycle through the existing `crearVersionDesde` lineage (M31,
       FR-030, FR-031), carrying `macrocicloId` and `ordenEnElMacrociclo` forward.
-- [ ] T074 [US4] Test and implement: a readjustment touching several mesocycles is **one act**
+- [X] T074 [US4] Test and implement: a readjustment touching several mesocycles is **one act**
       for the coach and **one notice** to the swimmer, not one per mesocycle (M32, FR-032,
       C13).
-- [ ] T075 [US4] Test and implement: the app states which version of each mesocycle the swimmer
+- [X] T075 [US4] Test and implement: the app states which version of each mesocycle the swimmer
       is currently on, without the coach working it out (M33, FR-033).
-- [ ] T076 [US4] Test: **only the coach readjusts**, and the app never readjusts on its own,
+- [X] T076 [US4] Test: **only the coach readjusts**, and the app never readjusts on its own,
       however clear the adherence data looks (M30, FR-029). Section 4 step 8 is his judgement,
       not a trigger.
-- [ ] T077 [US4] Test: a readjustment passes the section 16 audit before it reaches the swimmer
+- [X] T077 [US4] Test: a readjustment passes the section 16 audit before it reaches the swimmer
       and does not reach them without his signature (M35, FR-036, FR-037), using the same audit
       path as T033.
-- [ ] T078 [US4] Widget test: the swimmer opens their plan and sees that their coach adjusted
+- [X] T078 [US4] Widget test: the swimmer opens their plan and sees that their coach adjusted
       that part, **without comparing versions themselves** (FR-034), and the readjustment
       notice reads in Spanish without jargon.
-- [ ] T079 [US4] Rules: a swimmer cannot create a macrocycle version or move one between
+- [X] T079 [US4] Rules: a swimmer cannot create a macrocycle version or move one between
       states, with its test and its `assertSucceeds` counterpart in
       `firebase/test/reglas_macrociclos.test.js`.
 

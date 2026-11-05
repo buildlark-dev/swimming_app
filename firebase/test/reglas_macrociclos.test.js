@@ -279,6 +279,84 @@ test('lo entregado no se borra', async () => {
   );
 });
 
+// --- El reajuste sobre un macrociclo entregado (M31, M32) -----------------
+//
+// Es la unica escritura que se permite sobre un macrociclo publicado, y solo
+// cambia a que versiones apunta mas el aviso. Lo firmado sigue intacto.
+
+const unReajuste = {
+  mesociclos: ['plan-a', 'plan-c'],
+  ultimoReajuste: {
+    hechoEn: '2026-12-04T10:00:00.000',
+    bloquesAjustados: [2],
+  },
+};
+
+test('el entrenador reajusta un macrociclo entregado', async () => {
+  await sembrarMacrociclo({ estado: 'publicado' });
+  await assertSucceeds(
+    elEntrenador().collection(COLECCION).doc('macro-1').update(unReajuste),
+  );
+});
+
+test('el reajuste NO puede tocar lo que el entrenador firmo', async () => {
+  // La estructura, el nombre, la fecha o el sello de metodologia: eso es lo
+  // que firmo, y sigue firmado.
+  await sembrarMacrociclo({ estado: 'publicado' });
+
+  for (const tocado of [
+    { nombre: 'Otro nombre' },
+    { fechaDeCompetencia: '2027-05-01' },
+    { versionMetodologia: '9.9.9' },
+    // Una estructura **distinta**: escribir la misma no es un cambio, y el
+    // `diff` no la ve. La primera version de esta prueba reescribia la misma y
+    // pasaba, con razon.
+    {
+      estructura: {
+        ...estructura(),
+        modeloDelNadador: 'Otra cosa que el no dijo.',
+      },
+    },
+  ]) {
+    await assertFails(
+      elEntrenador()
+        .collection(COLECCION)
+        .doc('macro-1')
+        .update({ ...unReajuste, ...tocado }),
+    );
+  }
+});
+
+test('el reajuste no mueve el estado del macrociclo', async () => {
+  // Devolverlo a `aprobado` seria retroceder en el ciclo de vida.
+  await sembrarMacrociclo({ estado: 'publicado' });
+  await assertFails(
+    elEntrenador()
+      .collection(COLECCION)
+      .doc('macro-1')
+      .update({ ...unReajuste, estado: 'aprobado' }),
+  );
+});
+
+test('el nadador NO reajusta su macrociclo', async () => {
+  // M30: reajusta el entrenador. Ni el nadador ni la app.
+  await sembrarVinculos();
+  await sembrarMacrociclo({ estado: 'publicado' });
+  await assertFails(
+    ana().collection(COLECCION).doc('macro-1').update(unReajuste),
+  );
+});
+
+test('un macrociclo sin entregar no se reajusta: se cambia y ya', async () => {
+  // Lo que no ha llegado al nadador no hace falta versionarlo. Esta negacion
+  // existe para que la regla del reajuste no sea una puerta de atras para
+  // editar un borrador saltandose su propio camino.
+  await sembrarMacrociclo({ estado: 'aprobado' });
+  await assertFails(
+    elEntrenador().collection(COLECCION).doc('macro-1').update(unReajuste),
+  );
+});
+
 // --- M24 en el servidor: el dia de la sesion ------------------------------
 //
 // El cerrojo principal vive en el dominio, donde se construye el registro.
@@ -402,7 +480,7 @@ test('la suite tiene al menos siete pruebas que TIENEN que pasar', () => {
   const fuente = fs.readFileSync(__filename, 'utf8');
   const positivas = fuente.match(/assertSucceeds/g) || [];
   assert.ok(
-    positivas.length >= 10,
+    positivas.length >= 11,
     `solo hay ${positivas.length} assertSucceeds: una suite de reglas sin ` +
       'casos positivos pasa entera contra una coleccion sin regla',
   );

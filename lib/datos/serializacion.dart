@@ -369,6 +369,13 @@ Map<String, dynamic> macrocicloAJson(Macrociclo macrociclo) =>
       'fechaDeCompetencia': _soloFecha(macrociclo.fechaDeCompetencia),
       'versionMetodologia': macrociclo.versionMetodologia,
       'estado': macrociclo.estado.name,
+      if (macrociclo.ultimoReajuste != null)
+        'ultimoReajuste': <String, dynamic>{
+          'hechoEn': macrociclo.ultimoReajuste!.hechoEn.toIso8601String(),
+          'bloquesAjustados': List<int>.from(
+            macrociclo.ultimoReajuste!.bloquesAjustados,
+          ),
+        },
     };
 
 /// Una fecha que no se pudo leer es un fallo, no un cero.
@@ -440,6 +447,30 @@ Macrociclo macrocicloDesdeJson(Map<String, dynamic> json, {String? id}) {
       (e) => e.name == json['estado'],
       orElse: () => EstadoPlan.borrador,
     ),
+    ultimoReajuste: _reajusteDesdeJson(
+      json['ultimoReajuste'] as Map<String, dynamic>?,
+    ),
+  );
+}
+
+/// El aviso de reajuste, si hay uno.
+///
+/// Ausente es lo normal: la mayoría de los macrociclos no se reajustan. Lo que
+/// no se hace es inventarlo, porque sería decirle al nadador que su entrenador
+/// cambió algo que no cambió.
+ReajusteAnunciado? _reajusteDesdeJson(Map<String, dynamic>? json) {
+  if (json == null) return null;
+
+  final bloques = ((json['bloquesAjustados'] as List<dynamic>?) ?? const [])
+      .map((b) => b is int ? b : -1)
+      .where((b) => b > 0)
+      .toList();
+
+  if (bloques.isEmpty) return null;
+
+  return ReajusteAnunciado(
+    hechoEn: _fechaObligatoria(json['hechoEn'], 'hechoEn'),
+    bloquesAjustados: bloques,
   );
 }
 
