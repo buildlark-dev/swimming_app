@@ -438,7 +438,7 @@ List<PantallaMedible> pantallasDeLaApp() => [
       hoy: _hoy,
       competenciaInicial: _hoy.add(const Duration(days: 97)),
       planes: RepositorioPlanesMemoria(),
-      sesiones: RepositorioSesionesMemoria(),
+
       macrociclos: RepositorioMacrociclosMemoria(),
       alConfirmar: (_) {},
     ),

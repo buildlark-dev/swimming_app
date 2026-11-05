@@ -17,7 +17,7 @@ library;
 import 'package:natacion_app/dominio/auditoria/auditoria.dart';
 import 'package:natacion_app/dominio/entidades/asignacion.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
-import 'package:natacion_app/dominio/entidades/sesion.dart';
+
 import 'package:natacion_app/dominio/macrociclo/derivar_macrociclo.dart';
 import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
@@ -55,7 +55,6 @@ class MacrocicloGuardado {
 Future<MacrocicloGuardado> guardarElMacrociclo({
   required MacrocicloDerivado derivado,
   required RepositorioPlanes planes,
-  required RepositorioSesiones sesiones,
   required RepositorioMacrociclos macrociclos,
 }) async {
   final guardados = <Plan>[];
@@ -63,17 +62,19 @@ Future<MacrocicloGuardado> guardarElMacrociclo({
   for (final mesociclo in derivado.mesociclos) {
     final planId = await planes.guardarBorrador(mesociclo);
 
-    // Las sesiones, una por una, porque cada una es un documento. El id que
-    // devuelve el almacenamiento es **el que los registros del nadador van a
-    // referenciar**: de ahí que un reajuste que los cambie le deje el
-    // historial en blanco (M34).
-    final conId = <Sesion>[];
-    for (final sesion in mesociclo.sesiones) {
-      final sesionId = await sesiones.guardar(planId, sesion);
-      conId.add(sesion.copiarCon(id: sesionId));
-    }
-
-    guardados.add(mesociclo.copiarCon(id: planId, sesiones: conId));
+    // **Las sesiones las escribe `guardarBorrador`**, y se vuelven a leer para
+    // recoger el identificador que el almacenamiento les asignó: es el que los
+    // registros del nadador van a referenciar, y de ahí que un reajuste que lo
+    // cambie le deje el historial en blanco (M34).
+    //
+    // Esta función las escribía aparte, porque cuando se escribió guardar un
+    // plan **no** guardaba sus sesiones —un defecto de la feature 008 que la
+    // 009 encontró y arregló—. Con el arreglo puesto, escribirlas aquí otra
+    // vez las duplicaría: las sesiones del motor llegan sin id, así que cada
+    // escritura crearía documentos nuevos y el nadador vería la semana
+    // repetida.
+    final conSusIds = await planes.obtener(planId);
+    guardados.add(conSusIds ?? mesociclo.copiarCon(id: planId));
   }
 
   final macrociclo = derivado.macrocicloConLosIds([

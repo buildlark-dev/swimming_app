@@ -49,7 +49,7 @@ class PantallaEstructura extends StatefulWidget {
     required this.versionMetodologia,
     required this.hoy,
     required this.planes,
-    required this.sesiones,
+
     required this.macrociclos,
     required this.alConfirmar,
     this.indiceTerminos,
@@ -73,7 +73,7 @@ class PantallaEstructura extends StatefulWidget {
   final DateTime hoy;
 
   final RepositorioPlanes planes;
-  final RepositorioSesiones sesiones;
+
   final RepositorioMacrociclos macrociclos;
   final IndiceTerminos? indiceTerminos;
 
@@ -270,7 +270,7 @@ class _PantallaEstructuraState extends State<PantallaEstructura> {
           final guardado = await guardarElMacrociclo(
             derivado: derivado,
             planes: widget.planes,
-            sesiones: widget.sesiones,
+
             macrociclos: widget.macrociclos,
           );
           if (!mounted) return;

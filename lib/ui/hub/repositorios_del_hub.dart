@@ -51,7 +51,10 @@ class RepositoriosDelHub {
 
     return RepositoriosDelHub(
       planes: db == null
-          ? RepositorioPlanesMemoria()
+          // Con el mismo repositorio de sesiones que el resto, para que
+          // guardar un plan y leer sus sesiones hablen del mismo sitio —como
+          // en Firestore.
+          ? RepositorioPlanesMemoria(sesiones: sesiones)
           : RepositorioPlanesFirestore(db, recursos.biblioteca, sesiones),
       sesiones: sesiones,
       nadadores: db == null

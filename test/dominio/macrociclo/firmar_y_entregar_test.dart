@@ -74,8 +74,11 @@ void main() {
   late RepositorioAsignacionesMemoria asignaciones;
 
   setUp(() {
-    planes = RepositorioPlanesMemoria();
+    // Conectados, como en la app: guardar un plan escribe sus sesiones, y se
+    // leen del mismo sitio. Sin conectarlos, el repositorio de planes se crea
+    // el suyo y esta prueba miraría un almacén vacío que nadie usa.
     sesiones = RepositorioSesionesMemoria();
+    planes = RepositorioPlanesMemoria(sesiones: sesiones);
     macrociclos = RepositorioMacrociclosMemoria();
     asignaciones = RepositorioAsignacionesMemoria();
   });
@@ -111,7 +114,7 @@ void main() {
     return guardarElMacrociclo(
       derivado: resultado as MacrocicloDerivado,
       planes: planes,
-      sesiones: sesiones,
+
       macrociclos: macrociclos,
     );
   }

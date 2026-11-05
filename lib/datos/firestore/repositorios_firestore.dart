@@ -82,15 +82,38 @@ class RepositorioPlanesFirestore implements RepositorioPlanes {
       final datos = planAJson(plan);
       final id = plan.id;
 
-      if (id == null) {
-        final referencia = await _planes.add(datos);
-        return referencia.id;
-      }
+      final asignado = id == null
+          ? (await _planes.add(datos)).id
+          : await _planes.doc(id).set(datos).then((_) => id);
 
-      await _planes.doc(id).set(datos);
-      return id;
+      await _guardarLasSesiones(asignado, plan);
+      return asignado;
     } on FirebaseException catch (e) {
       throw FalloDeDatos('No se pudo guardar el plan: ${e.message}');
+    }
+  }
+
+  /// Escribe las sesiones del plan en su subcolección.
+  ///
+  /// **Esto faltaba, y era un defecto de la feature 008.** `planAJson` no
+  /// incluye `sesiones` —en Firestore cada sesión es un documento aparte—, así
+  /// que guardar un plan guardaba el plan y nada de lo que lleva dentro. Las
+  /// sesiones las escribía solo el editor, una a una, cuando el entrenador
+  /// abría cada una a mano. Un plan generado por el motor y guardado por
+  /// código llegaba aquí **sin una sola sesión**, y el caso más claro era la
+  /// cola de la 008: un plan aprobado desde la petición de un nadador quedaba
+  /// con sus microciclos y con nada dentro.
+  ///
+  /// No fallaba nada porque `RepositorioPlanesMemoria` guardaba el objeto
+  /// entero y todas las pruebas Dart pasaban. El contrato de las dos
+  /// implementaciones está fijado en
+  /// `test/datos/el_plan_se_guarda_con_sus_sesiones_test.dart`.
+  ///
+  /// Una sesión con identificador se sobrescribe y una sin él se crea, así que
+  /// volver a guardar el mismo plan no duplica nada.
+  Future<void> _guardarLasSesiones(String planId, Plan plan) async {
+    for (final sesion in plan.sesiones) {
+      await _sesiones.guardar(planId, sesion);
     }
   }
 
@@ -109,6 +132,9 @@ class RepositorioPlanesFirestore implements RepositorioPlanes {
         ...planAJson(plan),
         'auditoriaAlAprobar': auditoria,
       });
+      // Lo firmado se guarda con lo que lleva dentro. Sin esto, firmar un plan
+      // generado dejaba firmado un plan vacío.
+      await _guardarLasSesiones(id, plan);
     } on FirebaseException catch (e) {
       throw FalloDeDatos('No se pudo aprobar el plan: ${e.message}');
     }

@@ -15,9 +15,37 @@ import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 
 class RepositorioPlanesMemoria implements RepositorioPlanes {
+  /// Las sesiones van por un repositorio aparte, **como en Firestore**.
+  ///
+  /// Antes no: este repositorio guardaba el objeto `Plan` entero en un mapa,
+  /// sesiones incluidas, y con eso pasaban todas las pruebas Dart mientras
+  /// Firestore perdía las sesiones de cualquier plan guardado por código. El
+  /// doble era más cómodo que el colaborador real, y eso no hace la prueba más
+  /// fácil: la hace deshonesta.
+  ///
+  /// Se puede inyectar el mismo que use el resto de la app, para que lo que se
+  /// guarde por aquí se lea por allá. Si no se inyecta, se crea uno propio: lo
+  /// que no puede pasar es que las sesiones no tengan identificador, porque es
+  /// lo que los registros del nadador referencian.
+  RepositorioPlanesMemoria({RepositorioSesiones? sesiones})
+    : _sesiones = sesiones ?? RepositorioSesionesMemoria();
+
+  final RepositorioSesiones _sesiones;
+
   final Map<String, Plan> _planes = {};
   final Map<String, Map<String, dynamic>> _auditorias = {};
   int _siguienteId = 1;
+
+  /// Escribe las sesiones del plan y devuelve las que quedaron, con su
+  /// identificador.
+  Future<List<Sesion>> _guardarLasSesiones(String planId, Plan plan) async {
+    final conId = <Sesion>[];
+    for (final sesion in plan.sesiones) {
+      final id = await _sesiones.guardar(planId, sesion);
+      conId.add(sesion.copiarCon(id: id));
+    }
+    return conId;
+  }
 
   @override
   Future<Plan?> obtener(String id) async => _planes[id];
@@ -41,7 +69,8 @@ class RepositorioPlanesMemoria implements RepositorioPlanes {
     }
 
     final id = plan.id ?? 'plan-${_siguienteId++}';
-    _planes[id] = plan.copiarCon(id: id);
+    final conSesiones = await _guardarLasSesiones(id, plan);
+    _planes[id] = plan.copiarCon(id: id, sesiones: conSesiones);
     return id;
   }
 
@@ -54,7 +83,8 @@ class RepositorioPlanesMemoria implements RepositorioPlanes {
     if (id == null) {
       throw const FalloDeDatos('Un plan aprobado debe tener identificador');
     }
-    _planes[id] = plan;
+    final conSesiones = await _guardarLasSesiones(id, plan);
+    _planes[id] = plan.copiarCon(sesiones: conSesiones);
     _auditorias[id] = auditoria;
   }
 

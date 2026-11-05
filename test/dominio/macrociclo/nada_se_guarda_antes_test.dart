@@ -53,8 +53,11 @@ void main() {
   late RepositorioMacrociclosMemoria macrociclos;
 
   setUp(() {
-    planes = RepositorioPlanesMemoria();
+    // Conectados, como en la app: guardar un plan escribe sus sesiones, y se
+    // leen del mismo sitio. Sin conectarlos, el repositorio de planes se crea
+    // el suyo y esta prueba miraría un almacén vacío que nadie usa.
     sesiones = RepositorioSesionesMemoria();
+    planes = RepositorioPlanesMemoria(sesiones: sesiones);
     macrociclos = RepositorioMacrociclosMemoria();
   });
 
@@ -176,7 +179,7 @@ void main() {
       final guardado = await guardarElMacrociclo(
         derivado: derivado,
         planes: planes,
-        sesiones: sesiones,
+
         macrociclos: macrociclos,
       );
 
@@ -198,7 +201,7 @@ void main() {
       final guardado = await guardarElMacrociclo(
         derivado: derivar(confirmar(proponer())),
         planes: planes,
-        sesiones: sesiones,
+
         macrociclos: macrociclos,
       );
 
@@ -214,7 +217,7 @@ void main() {
       final guardado = await guardarElMacrociclo(
         derivado: derivar(confirmar(proponer())),
         planes: planes,
-        sesiones: sesiones,
+
         macrociclos: macrociclos,
       );
 
@@ -228,7 +231,7 @@ void main() {
       final guardado = await guardarElMacrociclo(
         derivado: derivar(confirmar(proponer())),
         planes: planes,
-        sesiones: sesiones,
+
         macrociclos: macrociclos,
       );
 
@@ -244,7 +247,7 @@ void main() {
       final guardado = await guardarElMacrociclo(
         derivado: derivar(confirmar(proponer())),
         planes: planes,
-        sesiones: sesiones,
+
         macrociclos: macrociclos,
       );
 

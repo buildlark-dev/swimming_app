@@ -50,7 +50,7 @@ const Nadador fichaCompleta = Nadador(
 class RepositoriosDelMacrociclo {
   RepositoriosDelMacrociclo();
 
-  final planes = RepositorioPlanesMemoria();
+  late final planes = RepositorioPlanesMemoria(sesiones: sesiones);
   final sesiones = RepositorioSesionesMemoria();
   final macrociclos = RepositorioMacrociclosMemoria();
   final asignaciones = RepositorioAsignacionesMemoria();
@@ -69,7 +69,6 @@ Widget montarEstructura({
     versionMetodologia: '3.6.0',
     hoy: hoyDePrueba,
     planes: repos.planes,
-    sesiones: repos.sesiones,
     macrociclos: repos.macrociclos,
     alConfirmar: alConfirmar ?? (_) {},
   ),
@@ -119,7 +118,6 @@ Future<MacrocicloGuardado> macrocicloGuardado(
   return guardarElMacrociclo(
     derivado: derivado as MacrocicloDerivado,
     planes: repos.planes,
-    sesiones: repos.sesiones,
     macrociclos: repos.macrociclos,
   );
 }

@@ -577,8 +577,23 @@ it.
   running and are measured at T084 instead; they were green at feature 008's merge.
 - `[P]` means different files and no unfinished dependency.
 - Commit per task or per logical group, and stop at the checkpoints to walk what exists.
-- **Found while building T026's save path, and out of this feature's scope** (recorded here
-  because it has no other home yet): saving a plan **never writes its sessions to Firestore**.
+- **FIXED in this branch** (the coach asked for it to be fixed here rather than deferred).
+  `RepositorioPlanesFirestore.guardarBorrador` and `guardarAprobado` now write the plan's
+  sessions to its subcollection, and `RepositorioPlanesMemoria` routes sessions through a
+  `RepositorioSesiones` too, so the two implementations stop disagreeing about what "save a
+  plan" means. The contract is pinned in
+  `test/datos/el_plan_se_guarda_con_sus_sesiones_test.dart`, run over both implementations
+  (one of them a double with Firestore's split storage, so it loses sessions exactly as
+  Firestore did), plus a source-level lock on the real implementation in
+  `test/datos/firestore/el_plan_firestore_guarda_sus_sesiones_test.dart` — `cloud_firestore`
+  needs platform channels, so `flutter test` cannot reach the emulator.
+  `guardarElMacrociclo` no longer writes sessions separately: with the fix in place that
+  would duplicate them, because engine sessions arrive without ids and every write would
+  create new documents. **Still to confirm on the emulator** during the walk: approve a
+  request from the coach's queue and read `planes/{id}/sesiones`.
+  The defect as it was:
+- **Found while building T026's save path**: saving a plan **never wrote its sessions to
+  Firestore**.
   `RepositorioPlanesFirestore.guardarBorrador` and `guardarAprobado` persist only
   `planAJson(plan)`, which excludes `sesiones`; the `sesiones` subcollection is written
   exclusively by `RepositorioSesionesFirestore.guardar`, whose only caller is the editor

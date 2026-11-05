@@ -399,7 +399,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
           versionMetodologia: widget.recursos.versionMetodologia,
           hoy: DateTime.now(),
           planes: _repos.planes,
-          sesiones: _repos.sesiones,
+
           macrociclos: _repos.macrociclos,
           alVolver: () => Navigator.of(contextoDeLaRuta).pop(),
           alConfirmar: (guardado) => Navigator.of(

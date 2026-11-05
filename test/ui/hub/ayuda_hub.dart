@@ -130,7 +130,8 @@ Future<Widget> montarHub({
 }) async {
   SharedPreferences.setMockInitialValues({});
 
-  final repoPlanes = RepositorioPlanesMemoria();
+  final repoSesiones = RepositorioSesionesMemoria();
+  final repoPlanes = RepositorioPlanesMemoria(sesiones: repoSesiones);
   for (final plan in planes) {
     // `guardarAprobado` guarda el plan tal cual, con el estado que traiga.
     await repoPlanes.guardarAprobado(plan, const {});
@@ -181,7 +182,7 @@ Future<Widget> montarHub({
             : listarSinSesiones
             ? (ultimoRepoComoFirestore = PlanesComoFirestore(planes))
             : repoPlanes,
-        sesiones: RepositorioSesionesMemoria(),
+        sesiones: repoSesiones,
         nadadores: repoNadadores,
         asignaciones: repoAsignaciones,
         macrociclos: repoMacrociclos,
