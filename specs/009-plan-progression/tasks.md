@@ -388,14 +388,14 @@ the app lie, and then the readjustment is modelling a fiction.
 - [X] T064 [P] [US3] Test: a session dated today or earlier can **always** be marked, whatever
       happened to the ones before it (M25, FR-025). This is the coach's decision of 2026-11-04
       and the test is its record.
-- [ ] T065 [P] [US3] Test: marking a session while earlier ones are outstanding reports **which
+- [X] T065 [P] [US3] Test: marking a session while earlier ones are outstanding reports **which
       ones** are outstanding (M26, FR-026). It shows the gap; it does not deny the fact.
 - [X] T066 [P] [US3] Test: an outstanding session stays markable later (M27, FR-027). A skipped
       day is not a closed door.
-- [ ] T067 [US3] Surface the three messages in `lib/ui/nadador/mi_macrociclo.dart`, with a
+- [X] T067 [US3] Surface the three messages in `lib/ui/nadador/mi_macrociclo.dart`, with a
       widget test for each: the refusal with its reason, the outstanding list, and the
       undated-session case.
-- [ ] T068 [US3] Test in `test/dominio/calculo/`: what the coach reads as adherence shows the
+- [X] T068 [US3] Test in `test/dominio/calculo/`: what the coach reads as adherence shows the
       skip **as a skip** and not as missing data (M29, FR-028). The difference is what his
       readjustment will be reading, and `Adherencia` counts sessions and nothing else
       (principle VIII).

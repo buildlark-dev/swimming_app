@@ -18,6 +18,10 @@ import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/macrociclo/guardar_macrociclo.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
+import 'package:natacion_app/dominio/entidades/envio_pendiente.dart';
+import 'package:natacion_app/dominio/entidades/nadador.dart';
+import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
+import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:natacion_app/ui/nadador/mi_macrociclo.dart';
 import 'package:natacion_app/ui/tema/tema.dart';
 
@@ -306,6 +310,143 @@ void main() {
     });
   });
 
+  group('M24 a M28 — marcar desde el macrociclo', () {
+    /// Monta con un `EstadoNadador` de verdad, para que marcar guarde.
+    Future<void> abrirParaMarcar(
+      WidgetTester tester, {
+      DateTime? cuando,
+    }) async {
+      await entregado();
+      final estado = EstadoNadador(
+        sincronizador: Sincronizador(
+          registros: registros,
+          bandeja: _BandejaQuieta(),
+          red: _SinRed(),
+          transporte: _TransporteQuieto(),
+          reloj: () => cuando ?? hoyDePrueba,
+        ),
+        reloj: () => cuando ?? hoyDePrueba,
+      );
+      estado.abrirComo(
+        const Nadador(id: 'n-ana', nombre: 'Ana María Restrepo'),
+      );
+
+      conPantallaAlta(tester);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: Tema.claro(),
+          home: Scaffold(
+            body: PantallaMiMacrociclo(
+              nadadorId: 'n-ana',
+              macrociclos: repos.macrociclos,
+              planes: repos.planes,
+              registros: registros,
+              hoy: cuando ?? hoyDePrueba,
+              estado: estado,
+              sinMacrociclo: const Text('Tu sesión de hoy'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('la sesión de hoy ofrece el formulario de la 003', (
+      tester,
+    ) async {
+      // El mismo formulario, no uno más pobre: el nadador da la misma
+      // respuesta llegue por donde llegue.
+      await abrirParaMarcar(tester);
+
+      final deHoy = (await repos.planes.obtener('plan-1'))!.sesiones.first;
+      await tester.ensureVisible(find.byKey(Key('sesion-${deHoy.id}')));
+      await tester.tap(find.byKey(Key('sesion-${deHoy.id}')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(Key('marcar-${deHoy.id}')), findsOneWidget);
+      expect(find.text('¿Cómo te fue?'), findsOneWidget);
+    });
+
+    testWidgets('una sesión futura no ofrece control, y dice por qué', (
+      tester,
+    ) async {
+      // M24: no es que el botón no haga nada — es que no hay botón, y hay una
+      // frase. Un control que no guarda está prohibido desde la 007 (H12).
+      await abrirParaMarcar(tester);
+
+      final futura = (await repos.planes.obtener('plan-3'))!.sesiones.last;
+      await tester.ensureVisible(find.byKey(Key('sesion-${futura.id}')));
+      await tester.tap(find.byKey(Key('sesion-${futura.id}')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(Key('marcar-${futura.id}')), findsNothing);
+      expect(
+        tester
+            .widget<Text>(find.byKey(Key('todavia-no-${futura.id}')))
+            .data!,
+        'Todavía no llega ese día',
+      );
+    });
+
+    testWidgets('marcar la de hoy la deja hecha y suma a lo cumplido', (
+      tester,
+    ) async {
+      await abrirParaMarcar(tester);
+
+      final deHoy = (await repos.planes.obtener('plan-1'))!.sesiones.first;
+      await tester.ensureVisible(find.byKey(Key('sesion-${deHoy.id}')));
+      await tester.tap(find.byKey(Key('sesion-${deHoy.id}')));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Marcar como realizada'));
+      await tester.tap(find.text('Marcar como realizada'));
+      await tester.pumpAndSettle();
+
+      // Y el registro apunta **a su mesociclo**, no a otro: con el `planId`
+      // equivocado el registro existe y la adherencia de dos mesociclos sale
+      // mal, sin que nada falle.
+      final guardados = await registros.obtenerDePlan('n-ana', 'plan-1');
+      expect(guardados, hasLength(1));
+      expect(guardados.single.sesionId, deHoy.id);
+      expect(guardados.single.realizada, isTrue);
+    });
+  });
+
+  group('M26 — lo que quedó pendiente se dice, no se bloquea', () {
+    testWidgets('con sesiones atrás sin marcar, se listan', (tester) async {
+      // A 20 días hay sesiones pasadas sin marcar: el aviso las nombra.
+      await abrir(tester, cuando: hoyDePrueba.add(const Duration(days: 20)));
+
+      expect(
+        find.byKey(const Key('lo-que-quedo-pendiente')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('por marcar'), findsWidgets);
+    });
+
+    testWidgets('y el aviso no suena a regaño', (tester) async {
+      // Decisión D6: se enseña el hueco, no se niega el hecho. Un niño de
+      // nueve años lee esto.
+      await abrir(tester, cuando: hoyDePrueba.add(const Duration(days: 20)));
+
+      final mensaje = tester
+          .widget<Text>(find.byKey(const Key('lo-que-quedo-pendiente')))
+          .data!;
+
+      expect(mensaje, contains('No pasa nada'));
+      expect(mensaje, contains('cuando quieras'));
+    });
+
+    testWidgets('el primer día no hay nada pendiente que decir', (
+      tester,
+    ) async {
+      // El control de las dos de arriba: que no aparezca siempre.
+      await abrir(tester);
+
+      expect(find.byKey(const Key('lo-que-quedo-pendiente')), findsNothing);
+    });
+  });
+
   group('el final del ciclo', () {
     testWidgets('se le dice que terminó y quién prepara el siguiente', (
       tester,
@@ -348,4 +489,32 @@ class _RegistrosSembrados implements RepositorioRegistros {
   @override
   Future<Set<String>> nadadoresConRegistros() async =>
       _guardados.values.map((r) => r.nadadorId).toSet();
+}
+
+class _BandejaQuieta implements BandejaDeSalida {
+  @override
+  Future<void> encolar(String registroId) async {}
+
+  @override
+  Future<List<EnvioPendiente>> pendientes() async => const [];
+
+  @override
+  Future<EnvioPendiente?> estadoDe(String registroId) async => null;
+
+  @override
+  Future<void> actualizar(EnvioPendiente envio) async {}
+}
+
+class _SinRed implements EstadoDeRed {
+  @override
+  Future<bool> hayConexion() async => false;
+
+  @override
+  Stream<bool> get cambios => const Stream.empty();
+}
+
+class _TransporteQuieto implements EnvioDeRegistros {
+  @override
+  Future<DateTime> enviar(RegistroDeSesion registro) async =>
+      throw const FalloDeDatos('sin red');
 }

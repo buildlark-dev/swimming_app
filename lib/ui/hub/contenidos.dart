@@ -243,6 +243,9 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
             planes: ctx.repositorioPlanes!,
             registros: ctx.registrosDelNadador!,
             hoy: ctx.hoy,
+            // Para que pueda marcar desde cualquier sesión del macrociclo,
+            // con el mismo formulario de la feature 003.
+            estado: ctx.nadador,
             sinMacrociclo: ChangeNotifierProvider<EstadoNadador>.value(
               value: ctx.nadador,
               child: PantallaSesionDelDia(selector: ctx.selectorDePerfil),

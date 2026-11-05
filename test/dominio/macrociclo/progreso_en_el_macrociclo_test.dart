@@ -216,6 +216,53 @@ void main() {
     });
   });
 
+  group('M29, FR-028 — el salto se ve como salto', () {
+    test('«no la hice» y «no contesté» son dos cosas distintas', () {
+      // **Esta es la que el reajuste va a leer** (sección 4, paso 8). «No la
+      // hice» es un dato: el nadador estuvo ahí y dijo lo que pasó. «No
+      // contestó» es la ausencia de un dato, y puede ser que se le olvidara,
+      // que no tuviera señal o que dejara de abrir la app. Mezclarlas le
+      // enseñaría al entrenador un hueco donde hay una respuesta.
+      final p = progreso(
+        registros: [registro('s1'), registro('s2', realizada: false)],
+      );
+
+      expect(p.hechas, {'s1'});
+      expect(p.dijoQueNo, {'s2'});
+      expect(p.sinContestar, {'s3', 's4'});
+    });
+
+    test('las tres juntas cubren todo lo que ya pasó, sin solaparse', () {
+      final p = progreso(
+        registros: [registro('s1'), registro('s2', realizada: false)],
+      );
+
+      final pasadas = {'s1', 's2', 's3', 's4'};
+      expect({...p.hechas, ...p.dijoQueNo, ...p.sinContestar}, pasadas);
+      expect(p.hechas.intersection(p.dijoQueNo), isEmpty);
+      expect(p.hechas.intersection(p.sinContestar), isEmpty);
+      expect(p.dijoQueNo.intersection(p.sinContestar), isEmpty);
+    });
+
+    test('lo que todavía no llegó no cuenta como sin contestar', () {
+      // Una sesión futura no es un hueco: es una sesión futura.
+      final p = progreso();
+
+      expect(p.sinContestar, isNot(contains('s6')));
+      expect(p.sinContestar, isNot(contains('s7')));
+    });
+
+    test('una sesión respondida con «no» sigue contando como pendiente', () {
+      // Lo pendiente y lo no contestado no son lo mismo: pendiente es «no
+      // está hecha», y eso incluye la que el nadador dijo que no hizo.
+      final p = progreso(registros: [registro('s2', realizada: false)]);
+
+      expect(p.pendientes.map((s) => s.id), contains('s2'));
+      expect(p.dijoQueNo, contains('s2'));
+      expect(p.sinContestar, isNot(contains('s2')));
+    });
+  });
+
   group('no escribe nada', () {
     test('calcularlo dos veces da lo mismo y no muta sus entradas', () {
       // La garantía de D7 en lo que una prueba puede alcanzar: ni toca los

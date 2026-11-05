@@ -23,6 +23,9 @@ import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
 import 'package:natacion_app/dominio/macrociclo/progreso_en_el_macrociclo.dart';
+import 'package:natacion_app/dominio/macrociclo/puede_marcarse.dart';
+import 'package:natacion_app/ui/nadador/estado_nadador.dart';
+import 'package:natacion_app/ui/nadador/formulario_registro.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
@@ -39,7 +42,15 @@ class PantallaMiMacrociclo extends StatefulWidget {
     required this.registros,
     required this.hoy,
     required this.sinMacrociclo,
+    this.estado,
   });
+
+  /// Para que el nadador pueda marcar desde aquí (M24 a M28).
+  ///
+  /// Nulo cuando no hay con qué guardar —el banco de pantallas, por ejemplo—:
+  /// entonces una sesión desplegada enseña lo que lleva dentro y nada más. Lo
+  /// que no hace es ofrecer un control que no guarda nada.
+  final EstadoNadador? estado;
 
   final String nadadorId;
   final RepositorioMacrociclos macrociclos;
@@ -310,6 +321,7 @@ class _PantallaMiMacrocicloState extends State<PantallaMiMacrociclo> {
               progreso: progreso,
               hoy: widget.hoy,
               claveDeHoy: _dondeEstaHoy,
+              estado: widget.estado,
             ),
 
           const SizedBox(height: Espaciado.generoso),
@@ -440,6 +452,7 @@ class _Mesociclo extends StatelessWidget {
     required this.progreso,
     required this.hoy,
     required this.claveDeHoy,
+    required this.estado,
   });
 
   final int indice;
@@ -448,6 +461,7 @@ class _Mesociclo extends StatelessWidget {
   final ProgresoEnElMacrociclo progreso;
   final DateTime hoy;
   final GlobalKey claveDeHoy;
+  final EstadoNadador? estado;
 
   bool _esDeHoy(Sesion sesion) {
     final fecha = sesion.fecha;
@@ -522,6 +536,9 @@ class _Mesociclo extends StatelessWidget {
                   esDeHoy: _esDeHoy(sesion),
                   estaHecha:
                       sesion.id != null && progreso.hechas.contains(sesion.id),
+                  estado: estado,
+                  mesociclo: plan,
+                  hoy: hoy,
                 ),
               const SizedBox(height: Espaciado.normal),
             ],
@@ -539,11 +556,25 @@ class _SesionPlegada extends StatelessWidget {
     required this.sesion,
     required this.esDeHoy,
     required this.estaHecha,
+    required this.estado,
+    required this.mesociclo,
+    required this.hoy,
   });
 
   final Sesion sesion;
   final bool esDeHoy;
   final bool estaHecha;
+
+  /// Nulo cuando no hay con qué guardar: entonces la sesión se abre y enseña
+  /// lo que lleva, sin ofrecer un control que no guarda nada (H12).
+  final EstadoNadador? estado;
+
+  /// A qué mesociclo pertenece, para que el registro apunte a ese y no al
+  /// plan que estuviera abierto.
+  final Plan mesociclo;
+
+  /// Para la regla de la fecha.
+  final DateTime hoy;
 
   @override
   Widget build(BuildContext context) {
@@ -596,6 +627,35 @@ class _SesionPlegada extends StatelessWidget {
                     style: texto.bodySmall,
                   ),
                 ),
+
+              // Marcar, desde aquí (M24 a M28). **El mismo formulario que la
+              // feature 003**: el nadador da la misma respuesta —cumplida,
+              // esfuerzo, observaciones, molestia aparte— llegue por donde
+              // llegue. Uno más pobre aquí haría que la respuesta dependiera
+              // del camino.
+              if (estado != null) ...[
+                const SizedBox(height: Espaciado.normal),
+                if (puedeMarcarse(sesion: sesion, hoy: hoy).si)
+                  FormularioRegistro(
+                    key: Key('marcar-${sesion.id ?? 'sin-id'}'),
+                    sesion: sesion,
+                    estado: estado!,
+                    deEstePlan: mesociclo,
+                  )
+                else
+                  // M24 y M28: no se puede, y se dice por qué. Sin control,
+                  // porque un botón que no hace nada es peor que una frase.
+                  Aviso(
+                    tono: TonoDeAviso.informativo,
+                    mensaje: puedeMarcarse(
+                      sesion: sesion,
+                      hoy: hoy,
+                    ).comoSeLeExplica,
+                    claveDelMensaje: Key(
+                      'todavia-no-${sesion.id ?? 'sin-id'}',
+                    ),
+                  ),
+              ],
             ],
           ),
         ),

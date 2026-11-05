@@ -30,6 +30,10 @@ class ProgresoEnElMacrociclo {
        hechas = Set.unmodifiable({
          for (final registro in registros)
            if (registro.realizada) registro.sesionId,
+       }),
+       dijoQueNo = Set.unmodifiable({
+         for (final registro in registros)
+           if (!registro.realizada) registro.sesionId,
        });
 
   final List<Plan> _mesociclos;
@@ -37,6 +41,27 @@ class ProgresoEnElMacrociclo {
 
   /// Los identificadores de las sesiones que el nadador marcó como hechas.
   final Set<String> hechas;
+
+  /// Las que el nadador contestó diciendo que **no** las hizo.
+  ///
+  /// **No es lo mismo que no haber contestado**, y la diferencia es lo que el
+  /// reajuste va a leer (M29, FR-028). «No la hice» es un dato: el nadador
+  /// estuvo ahí y dijo lo que pasó. «No contestó» es la ausencia de un dato, y
+  /// puede significar que se le olvidó, que no tuvo señal o que dejó de abrir
+  /// la app. Mezclarlas le enseñaría al entrenador un hueco donde hay una
+  /// respuesta, o una respuesta donde hay un hueco.
+  final Set<String> dijoQueNo;
+
+  /// Las que ya pasaron y el nadador no contestó de ninguna manera.
+  Set<String> get sinContestar => {
+    for (final sesion in todasLasSesiones)
+      if (sesion.id != null &&
+          sesion.fecha != null &&
+          _soloLaFecha(sesion.fecha!).isBefore(_hoy) &&
+          !hechas.contains(sesion.id) &&
+          !dijoQueNo.contains(sesion.id))
+        sesion.id!,
+  };
 
   /// El mesociclo cuyas fechas contienen hoy. **Nulo cuando no hay ninguno**,
   /// que es la respuesta correcta antes de empezar, después de terminar y en

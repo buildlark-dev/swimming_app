@@ -89,9 +89,19 @@ class EstadoNadador extends ChangeNotifier {
     int? rpePercibido,
     String observaciones = '',
     ReporteDeMolestia? molestia,
+
+    /// De qué plan es esta sesión, cuando no es el que está abierto.
+    ///
+    /// Hace falta desde la feature 009: un macrociclo tiene varios mesociclos,
+    /// y el nadador marca sesiones de cualquiera de ellos desde la misma
+    /// pantalla. Sin esto, el registro se guardaría con el `planId` del plan
+    /// abierto y apuntaría al mesociclo equivocado — **y nada fallaría**: el
+    /// registro existe, la pantalla lo pinta, y la adherencia de dos
+    /// mesociclos sale mal.
+    Plan? deEstePlan,
   }) async {
     final nadadorActual = _nadador;
-    final planActual = _plan;
+    final planActual = deEstePlan ?? _plan;
     if (nadadorActual == null || planActual == null) return const Si();
 
     // **El cerrojo va aquí, donde se construye el registro** (M24, SC-006).

@@ -10,6 +10,9 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/dominio/entidades/plan.dart';
+import 'package:natacion_app/ui/componentes/aviso.dart';
+import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
@@ -22,10 +25,18 @@ class FormularioRegistro extends StatefulWidget {
     super.key,
     required this.sesion,
     required this.estado,
+    this.deEstePlan,
   });
 
   final Sesion sesion;
   final EstadoNadador estado;
+
+  /// De qué plan es esta sesión, cuando no es el que está abierto.
+  ///
+  /// Hace falta desde la feature 009: el nadador marca sesiones de cualquiera
+  /// de los mesociclos de su macrociclo desde la misma pantalla, y el registro
+  /// tiene que apuntar al mesociclo correcto.
+  final Plan? deEstePlan;
 
   @override
   State<FormularioRegistro> createState() => _FormularioRegistroState();
@@ -39,6 +50,9 @@ class _FormularioRegistroState extends State<FormularioRegistro> {
   int? _rpe;
   bool _reportaMolestia = false;
   bool _guardando = false;
+
+  /// Por qué no se pudo guardar, cuando la regla de la fecha lo impide.
+  String? _porQueNoSePudo;
 
   @override
   void initState() {
@@ -65,9 +79,10 @@ class _FormularioRegistroState extends State<FormularioRegistro> {
   Future<void> _guardar({required bool realizada}) async {
     setState(() => _guardando = true);
 
-    await widget.estado.responder(
+    final resultado = await widget.estado.responder(
       sesion: widget.sesion,
       realizada: realizada,
+      deEstePlan: widget.deEstePlan,
       rpePercibido: _rpe,
       observaciones: _observaciones.text,
       molestia: _reportaMolestia && _molestia.text.trim().isNotEmpty
@@ -79,7 +94,13 @@ class _FormularioRegistroState extends State<FormularioRegistro> {
     );
 
     if (!mounted) return;
-    setState(() => _guardando = false);
+    setState(() {
+      _guardando = false;
+      // **Una negativa no puede ser muda** (M24). `responder` devuelve el
+      // motivo; antes esta pantalla lo tiraba, así que el nadador pulsaba y no
+      // pasaba nada — peor que una explicación.
+      _porQueNoSePudo = resultado.si ? null : resultado.comoSeLeExplica;
+    });
   }
 
   @override
@@ -101,6 +122,16 @@ class _FormularioRegistroState extends State<FormularioRegistro> {
               'Anotar es opcional. Puedes marcar la sesión y ya.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
+
+            if (_porQueNoSePudo != null) ...[
+              const SizedBox(height: Espaciado.normal),
+              Aviso(
+                tono: TonoDeAviso.cuidado,
+                mensaje: _porQueNoSePudo!,
+                claveDelMensaje: const Key('no-se-pudo-marcar'),
+              ),
+            ],
+
             const SizedBox(height: 16),
 
             _SelectorRpe(
