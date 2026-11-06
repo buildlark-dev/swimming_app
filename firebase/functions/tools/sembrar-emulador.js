@@ -18,22 +18,44 @@ const app = initializeApp({ projectId: 'demo-natacion' });
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/// Pone el rol y **comprueba que se quedó puesto**.
+/// Pone el rol y **comprueba que se quedó puesto, y que sigue puesto**.
 ///
 /// El disparador `alCrearseUnaCuenta` escribe el rol por omisión cuando la
 /// cuenta se crea, y corre cuando el emulador de Functions lo despacha: puede
 /// aterrizar después de esta escritura y pisarla. Suponer que ya corrió es
 /// justo lo que fallaba.
-async function fijarElRol(uid, rol, intentos = 10) {
-  for (let i = 0; i < intentos; i++) {
-    await auth.setCustomUserClaims(uid, { rol });
+///
+/// **Y leer una vez tampoco basta.** La primera versión de esto escribía,
+/// esperaba 300 ms, releía, y se daba por satisfecha en cuanto veía el rol
+/// correcto. Pasó la siembra entera en verde y, un minuto después, el
+/// entrenador entraba a la app como nadador: el disparador había aterrizado
+/// fuera de esa ventana de tres segundos. Una comprobación que solo mira el
+/// instante siguiente a la escritura no comprueba que la escritura ganó; mira
+/// que nadie había llegado todavía.
+///
+/// Así que se exige **estabilidad**: varias lecturas seguidas, repartidas en
+/// una ventana bastante más ancha que lo que tarda el emulador de Functions en
+/// despachar. Si en cualquiera de ellas aparece otro rol, se vuelve a escribir
+/// y el contador de lecturas estables empieza de cero.
+async function fijarElRol(uid, rol, { lecturasEstables = 5, cada = 1000 } = {}) {
+  const limite = Date.now() + 60_000;
+  let estables = 0;
 
-    // Releer es el punto: lo que importa no es haber escrito, es que lo
-    // escrito siga ahí cuando el disparador ya pasó.
-    await new Promise((listo) => setTimeout(listo, 300));
+  await auth.setCustomUserClaims(uid, { rol });
+
+  while (Date.now() < limite) {
+    await new Promise((listo) => setTimeout(listo, cada));
     const { customClaims } = await auth.getUser(uid);
 
-    if (customClaims && customClaims.rol === rol) return;
+    if (customClaims && customClaims.rol === rol) {
+      if (++estables >= lecturasEstables) return;
+      continue;
+    }
+
+    // Alguien lo pisó. Se reescribe y la cuenta vuelve a empezar: lo que
+    // importa es que la última palabra sea la nuestra.
+    estables = 0;
+    await auth.setCustomUserClaims(uid, { rol });
   }
 
   throw new Error(
