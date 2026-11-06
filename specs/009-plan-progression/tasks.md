@@ -502,16 +502,35 @@ risk M34 names is real, but it came from the reader, not from the ids.
 - [X] T084 Run the four gates. Done on 2026-11-05, all green: `flutter analyze` no issues,
       `flutter test` **1910** (baseline 1595, so nothing from an earlier feature was lost),
       `npm --prefix firebase test` 137, `npm --prefix firebase/functions test` 45.
-- [ ] T085 Walk C1 to C8 as the coach against the emulator, checking C4 in the emulator's own
-      data and not on the screen.
-- [ ] T086 Walk C9 to C11 as the swimmer.
+- [X] T085 Walk C1 to C8 as the coach against the emulator, checking C4 in the emulator's own
+      data and not on the screen. **Done twice on the Pixel 7 (2026-11-06).** It found two
+      rule-level defects no Dart test could reach, both fixed in `a47af50`: signing rewrote
+      the sessions of a plan that was already immutable, and delivering wrote the whole
+      document where the rule demands `hasOnly(['estado'])`. The second predates 009 and hit
+      feature 007's delivery too. Checked in the emulator, not on the screen: the delivered
+      macrocycle holds 3 published mesocycles with 6 + 12 + 6 sessions written in their
+      subcollections and one assignment each.
+- [ ] T086 Walk C9 to C11 as the swimmer. **Started 2026-11-06 and stopped at the first
+      screen**, which is where it found the defect fixed in `75a765f`: the swimmer could not
+      list her own macrocycle, because a Firestore query is proven by its filters and the
+      client filtered only by `nadadorId` while the rule says "hers AND delivered". The fix is
+      in and the gates are green; the walk itself has not been re-run.
 - [ ] T087 Walk **C12 and C13 last and carefully**, checking the records against the emulator
       rather than the screen. Feature 008 found six defects by walking, five of them invisible
       because the app kept working.
 - [ ] T088 Walk C9 again on the Android Pixel 7 emulator. Feature 008's sixth defect was only
       visible on a phone, and folding controls are exactly what a browser flatters.
 - [ ] T089 Measure the derivation where the coach is: fourteen generator calls on the Android
-      emulator, not in a test. If it blocks the UI it will block it there first.
+      emulator, not in a test. If it blocks the UI it will block it there first. **Measured
+      once:** confirming the structure returned the review screen in 8.4 s for 3 mesocycles,
+      8 microcycles and 24 sessions, with no frozen UI. Worth repeating at six sessions a week.
+
+      **Three things wipe the walk's state, and each one looks like an app bug.** Written down
+      because all three cost time on 2026-11-06: the rules suites call `clearFirestore()` per
+      test against the same `demo-natacion` emulator the app uses, so running them mid-walk
+      empties every collection; `adb shell pm clear` drops the Dart code that `flutter run`
+      leaves in the app's data directory, so the app silently falls back to whatever APK is
+      installed; and the emulators persist nothing unless started with `--export-on-exit`.
 - [X] T090 Confirm the constitution v2.0.0 obligation can be met in one sentence: point at the
       single confirmation, in the code and on the screen. If it cannot be pointed at, the
       amendment was used to skip a rule rather than to restate it — and that is a finding for
