@@ -18,6 +18,30 @@ const app = initializeApp({ projectId: 'demo-natacion' });
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+/// Pone el rol y **comprueba que se quedó puesto**.
+///
+/// El disparador `alCrearseUnaCuenta` escribe el rol por omisión cuando la
+/// cuenta se crea, y corre cuando el emulador de Functions lo despacha: puede
+/// aterrizar después de esta escritura y pisarla. Suponer que ya corrió es
+/// justo lo que fallaba.
+async function fijarElRol(uid, rol, intentos = 10) {
+  for (let i = 0; i < intentos; i++) {
+    await auth.setCustomUserClaims(uid, { rol });
+
+    // Releer es el punto: lo que importa no es haber escrito, es que lo
+    // escrito siga ahí cuando el disparador ya pasó.
+    await new Promise((listo) => setTimeout(listo, 300));
+    const { customClaims } = await auth.getUser(uid);
+
+    if (customClaims && customClaims.rol === rol) return;
+  }
+
+  throw new Error(
+    `No se pudo dejar el rol "${rol}" en ${uid}: algo lo sobrescribe. ` +
+      'Sin esto la semilla miente y el recorrido se para en la primera pantalla.'
+  );
+}
+
 const CORREO = process.argv[2] ?? 'entrenador.verifica@ejemplo.test';
 const CLAVE = process.argv[3] ?? 'clave-de-prueba-007';
 
@@ -206,9 +230,20 @@ async function main() {
   // **El rol se vuelve a poner al final, y no es redundante.** El disparador
   // `alCrearseUnaCuenta` corre cuando la cuenta se crea y escribe el rol por
   // omisión, así que pisa el que se asignó arriba: el entrenador entraba como
-  // nadador y no había manera de ver su recorrido. Al final ya ha corrido.
-  await auth.setCustomUserClaims(usuario.uid, { rol: 'entrenador' });
-  await auth.setCustomUserClaims(laNadadora.uid, { rol: 'nadador' });
+  // nadador y no había manera de ver su recorrido.
+  //
+  // Antes esto se ponía una vez y el comentario decía «al final ya ha
+  // corrido». **No siempre.** El disparador vive en el emulador de Functions
+  // y es asíncrono: el 2026-11-06 aterrizó después de que la semilla
+  // terminara, el entrenador entró como nadador, y el recorrido se paró en la
+  // primera pantalla. La semilla decía que lo había dejado listo y no era
+  // verdad.
+  //
+  // Así que ahora **se comprueba en lugar de suponerse**: se escribe, se
+  // relee, y si el disparador lo pisó se vuelve a escribir. Es la diferencia
+  // entre esperar a que haya corrido y saber que ya corrió.
+  await fijarElRol(usuario.uid, 'entrenador');
+  await fijarElRol(laNadadora.uid, 'nadador');
 
   console.log(`Entrenador: ${CORREO} / ${CLAVE}  (uid ${usuario.uid})`);
   console.log(
@@ -245,7 +280,7 @@ async function sembrarParaPeticiones() {
     } catch (_) {
       cuenta = await auth.createUser({ email: correo, password: CLAVE_COMUN });
     }
-    await auth.setCustomUserClaims(cuenta.uid, { rol });
+    await fijarElRol(cuenta.uid, rol);
     await db.collection('usuarios').doc(cuenta.uid).set({
       nadadorId,
       // **El perfil completo**, o la puerta del alta los manda a rellenarlo y
