@@ -179,8 +179,17 @@ class RepositorioMacrociclosMemoria implements RepositorioMacrociclos {
     // eso: la pantalla mutaba lo que el repositorio tenía dentro y las dos
     // coincidían siempre. Un doble más cómodo que el colaborador real no hace
     // la prueba más fácil, la hace deshonesta.
+    // **Y entregados, como Firestore.** El doble filtraba solo por nadador y
+    // devolvía también los borradores. Eso lo hacía más permisivo que el
+    // colaborador real, donde la regla obliga a pedir los entregados: la
+    // pantalla de la nadadora pasaba todas las pruebas y fallaba en el
+    // teléfono. Es la misma lección que esta app lleva aprendiendo desde la
+    // feature 008.
     return _macrociclos.values
-        .where((m) => m.nadadorId == nadadorId)
+        .where(
+          (m) =>
+              m.nadadorId == nadadorId && m.estado == EstadoPlan.publicado,
+        )
         .toList(growable: false)
         .reversed
         .toList();

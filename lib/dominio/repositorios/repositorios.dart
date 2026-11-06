@@ -75,7 +75,15 @@ abstract class RepositorioPlanes {
 abstract class RepositorioMacrociclos {
   Future<Macrociclo?> obtener(String id);
 
-  /// Los de un nadador, del más reciente al más antiguo.
+  /// Los que ya se le **entregaron** a un nadador, del más reciente al más
+  /// antiguo.
+  ///
+  /// **Entregados, no todos.** Es lo único que un nadador puede leer, y la
+  /// regla de Firestore lo exige como parte de la consulta: una que no diga
+  /// «entregado» no se puede demostrar contra la regla y el servidor la
+  /// rechaza entera. Si algún día el entrenador necesita ver los borradores
+  /// de un nadador, eso es otra pregunta y lleva otro método: dejar que esta
+  /// los devuelva volvería a romper la pantalla de la nadadora.
   Future<List<Macrociclo>> deNadador(String nadadorId);
 
   /// Guarda un borrador. Devuelve el identificador asignado.

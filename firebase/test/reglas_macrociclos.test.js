@@ -193,6 +193,71 @@ test('el nadador NO lee el macrociclo de otro, ni entregado', async () => {
   await assertFails(juan().collection(COLECCION).doc('macro-1').get());
 });
 
+// --- Y la LISTA, que es lo que la app pide de verdad ---------------------
+//
+// **Las cuatro pruebas de arriba leen un documento por su identificador, y la
+// app no hace eso nunca.** La pantalla del nadador no sabe el identificador
+// de su macrociclo: lo busca, con una consulta sobre la coleccion. Y en
+// Firestore una consulta no se evalua documento a documento. El servidor
+// exige poder demostrar, *solo mirando los filtros*, que todo lo que podria
+// devolver es legible. Una consulta que no repite la condicion de la regla se
+// rechaza entera, aunque cada documento que fuese a devolver fuera legible.
+//
+// Por eso esto estaba verde y la app fallaba: el recorrido en el Pixel 7 dio
+// «The caller does not have permission to execute the specified operation» en
+// la primera pantalla de la nadadora, con su macrociclo entregado y bien
+// guardado. La suite comprobaba una puerta por la que la app no pasa.
+
+test('la nadadora lista su macrociclo filtrando tambien por entregado', async () => {
+  // **Esta es la consulta que hace la app.** Los dos filtros: el suyo, y
+  // entregado. Es la unica forma de que la regla se pueda demostrar sin abrir
+  // los documentos.
+  await sembrarVinculos();
+  await sembrarMacrociclo({ estado: 'publicado' });
+
+  await assertSucceeds(
+    ana()
+      .collection(COLECCION)
+      .where('nadadorId', '==', 'n-ana')
+      .where('estado', '==', 'publicado')
+      .get(),
+  );
+});
+
+test('la nadadora NO lista por nadadorId a secas', async () => {
+  // El fallo tal cual estaba. Se deja escrito porque la diferencia entre esta
+  // consulta y la de arriba es todo el defecto, y sin ella nadie entiende por
+  // que la de arriba lleva un filtro que parece redundante.
+  await sembrarVinculos();
+  await sembrarMacrociclo({ estado: 'publicado' });
+
+  await assertFails(
+    ana().collection(COLECCION).where('nadadorId', '==', 'n-ana').get(),
+  );
+});
+
+test('la nadadora NO lista los entregados de todos', async () => {
+  // La otra mitad: filtrar por entregado sin decir de quien devolveria los de
+  // los demas.
+  await sembrarVinculos();
+  await sembrarMacrociclo({ estado: 'publicado' });
+
+  await assertFails(
+    ana().collection(COLECCION).where('estado', '==', 'publicado').get(),
+  );
+});
+
+test('el entrenador lista los de un nadador sin filtrar por estado', async () => {
+  // Y el entrenador si puede, porque su rama de la regla no mira el estado:
+  // tiene que ver los borradores. Si esto se cayera, el arreglo del cliente
+  // habria que hacerlo tambien en su camino.
+  await sembrarMacrociclo();
+
+  await assertSucceeds(
+    elEntrenador().collection(COLECCION).where('nadadorId', '==', 'n-ana').get(),
+  );
+});
+
 // --- Lo que nadie puede --------------------------------------------------
 
 test('el nadador NO crea un macrociclo, ni el suyo', async () => {

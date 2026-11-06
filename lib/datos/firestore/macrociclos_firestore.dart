@@ -49,8 +49,21 @@ class RepositorioMacrociclosFirestore implements RepositorioMacrociclos {
   @override
   Future<List<Macrociclo>> deNadador(String nadadorId) async {
     try {
+      // **Los dos filtros, y el segundo no es redundante.**
+      //
+      // La regla del nadador dice «el suyo Y entregado». En Firestore una
+      // consulta no se evalua documento a documento: el servidor exige poder
+      // demostrar, mirando solo los filtros, que todo lo que podria devolver
+      // es legible. Sin el filtro de estado no se puede demostrar y la
+      // consulta se rechaza entera, aunque cada documento que fuera a
+      // devolver estuviera entregado.
+      //
+      // Asi fallaba: la nadadora abria «Ver Plan» con su macrociclo
+      // entregado y le salia «The caller does not have permission». El dato
+      // estaba bien y la regla estaba bien; la consulta no.
       final instantanea = await _macrociclos
           .where('nadadorId', isEqualTo: nadadorId)
+          .where('estado', isEqualTo: EstadoPlan.publicado.name)
           .get();
 
       final leidos = <Macrociclo>[];
