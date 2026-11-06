@@ -66,13 +66,41 @@ void main() {
     );
   });
 
-  test('guardarAprobado también', () {
+  test('guardarAprobado NO las escribe, y esa es la regla', () {
+    // **Lo contrario de lo que esta prueba decía al principio**, y la
+    // corrección vino del recorrido C8, no de una prueba: ninguna llega hasta
+    // la regla de Firestore.
+    //
+    // Las sesiones ya están desde que el plan era borrador. Firmar las
+    // congela: la regla de `planes/{id}/sesiones` solo permite escribirlas
+    // mientras el plan **no** es inmutable (FR-025), y el documento del plan
+    // se escribe con `estado: aprobado` justo antes. Escribirlas aquí hacía
+    // que firmar fallara entero con «The caller does not have permission to
+    // execute the specified operation», y los mesociclos se quedaban en
+    // borrador.
     expect(
       cuerpoDe('Future<void> guardarAprobado('),
-      contains('await _guardarLasSesiones(id, plan);'),
+      isNot(contains('_guardarLasSesiones')),
       reason:
-          'lo firmado se guarda con lo que lleva dentro, o queda firmado un '
-          'plan vacío',
+          'firmar no reescribe las sesiones: la regla lo prohíbe porque lo '
+          'firmado es inmutable',
+    );
+  });
+
+  test('y la regla que lo prohíbe sigue ahí', () {
+    // Si alguien relajara la regla «para que firmar funcione», el arreglo
+    // correcto se perdería y con él FR-025. Que esté escrita es parte del
+    // contrato.
+    final reglas = File('firebase/firestore.rules').readAsStringSync();
+
+    expect(
+      reglas,
+      contains(
+        "allow write: if esEntrenador() && !estadoEsInmutable(elPlan().estado);",
+      ),
+      reason:
+          'las sesiones de un plan firmado no se escriben: es FR-025 y es lo '
+          'que obliga a que `guardarAprobado` no las toque',
     );
   });
 

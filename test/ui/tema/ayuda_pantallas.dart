@@ -636,6 +636,9 @@ class _PlanesDelBanco implements RepositorioPlanes {
   Future<void> guardarAprobado(Plan p, Map<String, dynamic> a) async {}
 
   @override
+  Future<void> publicar(String id) async {}
+
+  @override
   Future<Plan> crearVersionDesde(String id) async =>
       _entregadoParaElBanco().mesociclos.first;
 

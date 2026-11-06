@@ -83,12 +83,40 @@ class RepositorioPlanesMemoria implements RepositorioPlanes {
     if (id == null) {
       throw const FalloDeDatos('Un plan aprobado debe tener identificador');
     }
-    final conSesiones = await _guardarLasSesiones(id, plan);
-    _planes[id] = plan.copiarCon(sesiones: conSesiones);
+    // **No se escriben las sesiones**, igual que en Firestore: ya están desde
+    // que el plan era borrador, y lo firmado es inmutable (FR-025). La regla
+    // de la subcolección lo hace cumplir, y escribirlas aquí hacía que firmar
+    // fallara entero.
+    //
+    // Si el almacén ya tiene sesiones de este plan, mandan ellas, que es lo
+    // que Firestore devolvería. Si no tiene ninguna se conservan las que
+    // vengan en el plan, y **aquí esta implementación se aparta de la real**:
+    // en Firestore, aprobar un plan que nunca se guardó como borrador deja un
+    // plan sin sesiones. Esa ruta no existe en la app —aprobar necesita un
+    // identificador, y el identificador sale de `guardarBorrador`—, pero sí
+    // la usan las pruebas para sembrar un plan ya firmado de un golpe.
+    // Queda dicho para que la diferencia no se confunda con fidelidad.
+    final guardadas = await _sesiones.obtenerDePlan(id);
+    _planes[id] = guardadas.isEmpty
+        ? plan
+        : plan.copiarCon(sesiones: guardadas);
     _auditorias[id] = auditoria;
   }
 
   Map<String, dynamic>? auditoriaDe(String id) => _auditorias[id];
+
+  @override
+  Future<void> publicar(String id) async {
+    final plan = _planes[id];
+    if (plan == null) throw FalloDeDatos('No existe el plan $id');
+    if (plan.estado != EstadoPlan.aprobado) {
+      throw const FalloDeDatos(
+        'Solo se entrega un plan firmado: firmar no es entregar',
+      );
+    }
+    // Solo el estado, como en Firestore: lo firmado no se reescribe.
+    _planes[id] = plan.copiarCon(estado: EstadoPlan.publicado);
+  }
 
   @override
   Future<Plan> crearVersionDesde(String idAprobado) async {

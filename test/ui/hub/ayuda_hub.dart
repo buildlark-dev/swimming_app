@@ -274,6 +274,9 @@ class _PlanesQueRevientan implements RepositorioPlanes {
       throw TypeError();
 
   @override
+  Future<void> publicar(String id) async {}
+
+  @override
   Future<Plan> crearVersionDesde(String id) async => throw TypeError();
 
   @override
@@ -315,6 +318,9 @@ class PlanesComoFirestore implements RepositorioPlanes {
 
   @override
   Future<void> guardarAprobado(Plan plan, Map<String, dynamic> a) async {}
+
+  @override
+  Future<void> publicar(String id) async {}
 
   @override
   Future<Plan> crearVersionDesde(String id) async => throw UnimplementedError();

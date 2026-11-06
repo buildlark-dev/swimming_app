@@ -183,8 +183,8 @@ Future<List<Plan>> firmarYEntregarElReajuste({
       },
     );
 
+    await planes.publicar(version.id!);
     final publicada = version.copiarCon(estado: EstadoPlan.publicado);
-    await planes.guardarAprobado(publicada, const <String, dynamic>{});
     await asignaciones.asignar(
       Asignacion(
         planId: version.id!,

@@ -206,8 +206,9 @@ Future<Macrociclo> entregarElMacrociclo({
 
   try {
     for (final mesociclo in mesociclos) {
+      // **Solo el estado**: lo firmado no se reescribe (FR-025).
+      await planes.publicar(mesociclo.id!);
       final publicado = mesociclo.copiarCon(estado: EstadoPlan.publicado);
-      await planes.guardarAprobado(publicado, const <String, dynamic>{});
       await asignaciones.asignar(
         Asignacion(
           planId: mesociclo.id!,

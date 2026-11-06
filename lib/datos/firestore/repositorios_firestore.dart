@@ -132,11 +132,34 @@ class RepositorioPlanesFirestore implements RepositorioPlanes {
         ...planAJson(plan),
         'auditoriaAlAprobar': auditoria,
       });
-      // Lo firmado se guarda con lo que lleva dentro. Sin esto, firmar un plan
-      // generado dejaba firmado un plan vacío.
-      await _guardarLasSesiones(id, plan);
+      // **Aquí NO se escriben las sesiones, y es a propósito.**
+      //
+      // Ya están: se guardaron cuando el plan era borrador. Firmar estampa la
+      // firma sobre un contenido que a partir de ese momento es inmutable
+      // (FR-025), y la regla de `planes/{id}/sesiones` lo hace cumplir —
+      // `allow write` solo mientras el plan no es inmutable.
+      //
+      // Escribirlas aquí era redundante y además imposible: el documento del
+      // plan ya se escribió con `estado: aprobado` dos líneas más arriba, así
+      // que la regla rechazaba cada sesión. Firmar fallaba con «The caller
+      // does not have permission to execute the specified operation» y los
+      // mesociclos se quedaban en borrador. Lo encontró el recorrido C8 de la
+      // feature 009, no una prueba: ninguna llega hasta la regla.
     } on FirebaseException catch (e) {
       throw FalloDeDatos('No se pudo aprobar el plan: ${e.message}');
+    }
+  }
+
+  @override
+  Future<void> publicar(String id) async {
+    try {
+      // **Solo el estado.** La regla acepta la entrega únicamente cuando el
+      // diff afecta a `estado`: lo firmado no se reescribe.
+      await _planes.doc(id).update(<String, dynamic>{
+        'estado': EstadoPlan.publicado.name,
+      });
+    } on FirebaseException catch (e) {
+      throw FalloDeDatos('No se pudo entregar el plan $id: ${e.message}');
     }
   }
 

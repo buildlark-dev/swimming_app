@@ -310,7 +310,12 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     final planId = publicado.id;
     if (planId == null) return;
 
-    await _repos.planes.guardarAprobado(publicado, const {});
+    // **Solo el estado.** Reescribir el documento entero —que es lo que hace
+    // `guardarAprobado`— cambia más campos que `estado`, y la regla de
+    // Firestore solo acepta la entrega cuando el diff afecta a ese y a nada
+    // más: lo firmado es inmutable (FR-025). Entregar fallaba con «The caller
+    // does not have permission». Lo encontró el recorrido de la feature 009.
+    await _repos.planes.publicar(planId);
 
     // Una escritura por nadador. Cada una pasa por la puerta: si alguno no
     // tiene consentimiento vigente, el servidor la deniega y se dice cuál.

@@ -78,8 +78,11 @@ class _PlanesConSesionesAparte implements RepositorioPlanes {
   Future<void> guardarAprobado(Plan plan, Map<String, dynamic> a) async {
     final id = plan.id;
     if (id == null) throw const FalloDeDatos('sin identificador');
+    // **Sin tocar las sesiones**, igual que Firestore: la regla de la
+    // subcolección solo deja escribirlas mientras el plan no es inmutable, y
+    // a estas alturas ya está firmado. El doble tiene que ser igual de
+    // estricto que la regla, o esconde justo lo que la regla impide.
     _documentos[id] = plan.copiarCon(sesiones: const []);
-    await _escribirLasSesiones(id, plan.sesiones);
   }
 
   /// Lo que la implementación real tiene que hacer y no hacía.
@@ -92,6 +95,9 @@ class _PlanesConSesionesAparte implements RepositorioPlanes {
       await _sesiones.guardar(planId, sesion);
     }
   }
+
+  @override
+  Future<void> publicar(String id) async {}
 
   @override
   Future<Plan> crearVersionDesde(String id) async =>
@@ -193,9 +199,21 @@ void main() {
         }
       });
 
-      test('un plan aprobado también guarda sus sesiones', () async {
+      test('un plan aprobado CONSERVA sus sesiones', () async {
         // El camino de la cola de la feature 008: genera, guarda el borrador y
-        // firma. Si el firmado no las lleva, lo que queda firmado está vacío.
+        // firma. Si al firmar se perdieran, lo que queda firmado está vacío.
+        //
+        // **Conserva, no vuelve a escribir**, y la diferencia costó un fallo
+        // en el recorrido. La primera versión de esta prueba decía «también
+        // guarda sus sesiones» y la implementación la obedeció: `guardarAprobado`
+        // las reescribía. Pero el documento del plan ya se había escrito con
+        // `estado: aprobado`, y la regla de la subcolección solo deja escribir
+        // sesiones mientras el plan **no** es inmutable (FR-025). Así que
+        // firmar fallaba con «The caller does not have permission» y los
+        // mesociclos se quedaban en borrador.
+        //
+        // Las sesiones se escriben cuando el plan es borrador. Firmar las
+        // congela: eso es lo que significa firmar.
         final id = await planes.guardarBorrador(generado());
         final borrador = (await planes.obtener(id))!;
 
@@ -207,6 +225,27 @@ void main() {
         final firmado = await planes.obtener(id);
         expect(firmado!.sesiones, hasLength(3));
         expect(firmado.estado, EstadoPlan.aprobado);
+      });
+
+      test('y firmar no vuelve a escribirlas', () async {
+        // Lo que la regla de Firestore exige, dicho sobre la interfaz: al
+        // firmar, el almacén de sesiones no recibe ninguna escritura más.
+        final id = await planes.guardarBorrador(generado());
+        final borrador = (await planes.obtener(id))!;
+        final antes = (await sesiones.obtenerDePlan(id))
+            .map((s) => s.id)
+            .toList();
+
+        await planes.guardarAprobado(
+          borrador.copiarCon(estado: EstadoPlan.aprobado),
+          const {},
+        );
+
+        expect(
+          (await sesiones.obtenerDePlan(id)).map((s) => s.id).toList(),
+          antes,
+          reason: 'firmar tocó las sesiones, y lo firmado es inmutable',
+        );
       });
 
       test('guardar dos veces no duplica las sesiones', () async {

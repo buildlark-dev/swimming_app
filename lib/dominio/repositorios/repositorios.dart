@@ -39,6 +39,20 @@ abstract class RepositorioPlanes {
   /// Guarda un plan ya aprobado, con su instantánea de auditoría.
   Future<void> guardarAprobado(Plan plan, Map<String, dynamic> auditoria);
 
+  /// Mueve un plan firmado a publicado. **Firmar no es entregar.**
+  ///
+  /// Es su propio método y no un `guardarAprobado` con el estado cambiado,
+  /// porque **entregar solo puede tocar el estado**. Lo firmado es inmutable
+  /// (FR-025) y la regla de Firestore acepta la entrega únicamente cuando el
+  /// diff afecta a `estado` y a nada más.
+  ///
+  /// Se entregaba con `guardarAprobado`, que reescribe el documento entero
+  /// —incluida la instantánea de auditoría— y por tanto cambia más de un
+  /// campo. La regla lo rechazaba y entregar fallaba con «The caller does not
+  /// have permission to execute the specified operation». Lo encontró el
+  /// recorrido C8 de la feature 009; afecta igual a la entrega de la 007.
+  Future<void> publicar(String id);
+
   /// Crea una versión nueva en borrador desde un plan aprobado (FR-025).
   Future<Plan> crearVersionDesde(String idAprobado);
 
