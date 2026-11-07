@@ -34,6 +34,8 @@ class PlanesDelEntrenador extends StatefulWidget {
     this.idsQueMirar,
     this.alQuitarElFiltro,
     this.alEmpezarUnMacrociclo,
+    this.alVerSuMacrociclo,
+    this.quienTieneMacrociclo = const {},
   });
 
   final List<Plan> planes;
@@ -59,6 +61,12 @@ class PlanesDelEntrenador extends StatefulWidget {
   /// que no puede terminar lo que empieza, y un control que no lleva a ninguna
   /// parte está prohibido desde la feature 007 (H12).
   final void Function(Nadador)? alEmpezarUnMacrociclo;
+
+  /// Abrir el macrociclo que un nadador ya tiene (feature 009).
+  final void Function(Nadador)? alVerSuMacrociclo;
+
+  /// Quiénes tienen macrociclo, de una sola consulta.
+  final Set<String> quienTieneMacrociclo;
 
   @override
   State<PlanesDelEntrenador> createState() => _PlanesDelEntrenadorState();
@@ -157,6 +165,8 @@ class _PlanesDelEntrenadorState extends State<PlanesDelEntrenador> {
               PantallaPerfiles(
                 repositorio: widget.nadadores,
                 alEmpezarUnMacrociclo: widget.alEmpezarUnMacrociclo,
+                alVerSuMacrociclo: widget.alVerSuMacrociclo,
+                quienTieneMacrociclo: widget.quienTieneMacrociclo,
               ),
             ],
           ),

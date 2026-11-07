@@ -597,6 +597,11 @@ class _MacrociclosDelBanco implements RepositorioMacrociclos {
       _entregadoParaElBanco().macrociclo;
 
   @override
+  Future<Map<String, String>> macrocicloPorNadador() async => {
+    _entregadoParaElBanco().macrociclo.nadadorId: 'macro-1',
+  };
+
+  @override
   Future<String> guardarBorrador(Macrociclo macrociclo) async => 'macro-1';
 
   @override

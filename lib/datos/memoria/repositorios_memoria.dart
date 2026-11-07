@@ -196,6 +196,28 @@ class RepositorioMacrociclosMemoria implements RepositorioMacrociclos {
   }
 
   @override
+  Future<Map<String, String>> macrocicloPorNadador() async {
+    final cual = <String, String>{};
+    final cuando = <String, DateTime>{};
+
+    for (final macrociclo in _macrociclos.values) {
+      final id = macrociclo.id;
+      if (id == null) continue;
+
+      final anterior = cuando[macrociclo.nadadorId];
+      if (anterior != null &&
+          !macrociclo.fechaDeCompetencia.isBefore(anterior)) {
+        continue;
+      }
+
+      cual[macrociclo.nadadorId] = id;
+      cuando[macrociclo.nadadorId] = macrociclo.fechaDeCompetencia;
+    }
+
+    return cual;
+  }
+
+  @override
   Future<String> guardarBorrador(Macrociclo macrociclo) async {
     if (macrociclo.estado.esInmutable) {
       throw const FalloDeDatos(

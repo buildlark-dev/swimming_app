@@ -68,6 +68,8 @@ class ContextoDelHub {
     this.idsQueMirar,
     this.alQuitarElFiltro,
     this.alEmpezarUnMacrociclo,
+    this.alVerSuMacrociclo,
+    this.quienTieneMacrociclo = const {},
     this.macrociclos,
     this.registrosDelNadador,
     required this.hoy,
@@ -142,6 +144,12 @@ class ContextoDelHub {
   /// Pasarlos por aquí habría metido tres campos más en un contexto que ya
   /// lleva treinta, para que esta función los volviera a repartir.
   final void Function(Nadador)? alEmpezarUnMacrociclo;
+
+  /// Abrir el macrociclo que un nadador ya tiene (feature 009).
+  final void Function(Nadador)? alVerSuMacrociclo;
+
+  /// Quiénes tienen macrociclo, de una sola consulta.
+  final Set<String> quienTieneMacrociclo;
 
   /// Los macrociclos, para que el nadador lea el suyo. Nulo sin servidor, y
   /// entonces `Ver Plan` enseña su sesión de hoy, que es lo que la feature 003
@@ -222,6 +230,8 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
       versionMetodologia: ctx.versionMetodologia,
       alEntregar: ctx.alEntregar,
       alEmpezarUnMacrociclo: ctx.alEmpezarUnMacrociclo,
+      alVerSuMacrociclo: ctx.alVerSuMacrociclo,
+      quienTieneMacrociclo: ctx.quienTieneMacrociclo,
     ),
     Contenido.homeDelEntrenador => HomeDelEntrenador(
       resumen: ctx.resumenDelEntrenador,

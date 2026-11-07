@@ -86,6 +86,19 @@ abstract class RepositorioMacrociclos {
   /// los devuelva volvería a romper la pantalla de la nadadora.
   Future<List<Macrociclo>> deNadador(String nadadorId);
 
+  /// Qué macrociclo tiene cada nadador: `nadadorId` -> `macrocicloId`.
+  ///
+  /// **Una sola consulta**, como `nadadoresConRegistros` de la feature 008 y
+  /// por lo mismo: la lista de nadadores la pinta el entrenador, y preguntar
+  /// ficha por ficha serían N lecturas para dibujar una pantalla.
+  ///
+  /// Es del entrenador: la regla le deja leer los macrociclos de su
+  /// comunidad, y a un nadador solo el suyo y entregado.
+  ///
+  /// Si un nadador tuviera más de uno, gana **el de la competencia más
+  /// próxima**, que es con el que está trabajando.
+  Future<Map<String, String>> macrocicloPorNadador();
+
   /// Guarda un borrador. Devuelve el identificador asignado.
   Future<String> guardarBorrador(Macrociclo macrociclo);
 

@@ -38,6 +38,7 @@ import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
 import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
+import 'package:natacion_app/dominio/macrociclo/guardar_macrociclo.dart';
 import 'package:natacion_app/ui/macrociclo/estructura.dart';
 import 'package:natacion_app/ui/macrociclo/revisar_macrociclo.dart';
 import 'package:natacion_app/ui/hub/contenidos.dart';
@@ -176,6 +177,12 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   /// girar sin fin.
   String? _noSePudoContar;
 
+  /// Qué macrociclo tiene cada nadador: `nadadorId` -> `macrocicloId`.
+  ///
+  /// Se carga con **una sola consulta** junto con lo demás de la portada, no
+  /// una por ficha.
+  Map<String, String> _macrocicloDe = const {};
+
   /// Qué grupo de planes se vino a mirar desde la portada.
   QueMirar _queMirar = QueMirar.todos;
 
@@ -270,6 +277,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       final asignaciones = await _repos.asignaciones.listar();
       final conRegistros = await _repos.registrosParaContar
           .nadadoresConRegistros();
+      final macrociclos = await _repos.macrociclos.macrocicloPorNadador();
 
       if (!mounted) return;
       setState(() {
@@ -279,6 +287,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
         _asignaciones
           ..clear()
           ..addAll(asignaciones);
+        _macrocicloDe = macrociclos;
         _resumen = ResumenDelEntrenador.de(
           planes: planes,
           asignaciones: asignaciones,
@@ -429,6 +438,57 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     if (mounted) await _cargar();
   }
 
+  /// Abrir el macrociclo que un nadador **ya tiene** (feature 009).
+  ///
+  /// **Sin esto el reajuste no se podía hacer.** La pantalla de revisión, que
+  /// es donde vive, solo se alcanzaba desde `_empezarUnMacrociclo`: salir de
+  /// ella dejaba el macrociclo inalcanzable, y en la lista de planes sus
+  /// mesociclos aparecían como tres planes sueltos sin nada que dijera que
+  /// son uno. El recorrido en el Pixel 7 se paró aquí.
+  ///
+  /// Y el reajuste está hecho para después (M30, FR-029): el entrenador mira
+  /// cómo respondió el nadador y entonces decide. Eso es otro día y otra
+  /// sesión de la app.
+  Future<void> _verSuMacrociclo(Nadador ficha) async {
+    final macrocicloId = _macrocicloDe[ficha.id];
+    if (macrocicloId == null) return;
+
+    try {
+      final macrociclo = await _repos.macrociclos.obtener(macrocicloId);
+      if (macrociclo == null) return;
+
+      final mesociclos = <Plan>[];
+      for (final id in macrociclo.mesociclos) {
+        final plan = await _repos.planes.obtener(id);
+        if (plan != null) mesociclos.add(plan);
+      }
+
+      if (!mounted) return;
+
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (contextoDeLaRevision) => PantallaRevisarMacrociclo(
+            guardado: MacrocicloGuardado(
+              macrociclo: macrociclo,
+              mesociclos: mesociclos,
+            ),
+            hoy: DateTime.now(),
+            planes: _repos.planes,
+            asignaciones: _repos.asignaciones,
+            macrociclos: _repos.macrociclos,
+            alVolver: () => Navigator.of(contextoDeLaRevision).pop(),
+          ),
+        ),
+      );
+
+      // Al volver pudo haber reajuste: hay versiones nuevas de mesociclos.
+      if (mounted) await _cargar();
+    } on FalloDeDatos catch (problema) {
+      if (!mounted) return;
+      setState(() => _noSePudoContar = problema.mensaje);
+    }
+  }
+
   @override
   void dispose() {
     _editor.dispose();
@@ -509,6 +569,10 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       alEmpezarUnMacrociclo: widget.recursos.firestore == null
           ? null
           : _empezarUnMacrociclo,
+      alVerSuMacrociclo: widget.recursos.firestore == null
+          ? null
+          : _verSuMacrociclo,
+      quienTieneMacrociclo: _macrocicloDe.keys.toSet(),
       macrociclos: widget.recursos.firestore == null ? null : _repos.macrociclos,
       registrosDelNadador: _repos.registrosLocales,
       hoy: widget.hoyParaPruebas ?? DateTime.now(),

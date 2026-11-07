@@ -93,6 +93,40 @@ class RepositorioMacrociclosFirestore implements RepositorioMacrociclos {
   }
 
   @override
+  Future<Map<String, String>> macrocicloPorNadador() async {
+    try {
+      // Una sola lectura de la colección. Sin filtro de estado a propósito:
+      // el entrenador tiene que poder volver también a uno que firmó y
+      // todavía no entregó, que es justo el que se le quedaba inalcanzable.
+      final instantanea = await _macrociclos.get();
+
+      final cual = <String, String>{};
+      final cuando = <String, String>{};
+
+      for (final documento in instantanea.docs) {
+        final datos = documento.data();
+        final nadadorId = datos['nadadorId'] as String?;
+        if (nadadorId == null) continue;
+
+        // Gana la competencia más próxima: es con la que está trabajando. Las
+        // fechas son 'aaaa-mm-dd', así que comparar el texto basta.
+        final fecha = datos['fechaDeCompetencia'] as String? ?? '';
+        final anterior = cuando[nadadorId];
+        if (anterior != null && anterior.compareTo(fecha) <= 0) continue;
+
+        cual[nadadorId] = documento.id;
+        cuando[nadadorId] = fecha;
+      }
+
+      return cual;
+    } on FirebaseException catch (e) {
+      throw FalloDeDatos(
+        'No se pudo saber quién tiene macrociclo: ${e.message}',
+      );
+    }
+  }
+
+  @override
   Future<String> guardarBorrador(Macrociclo macrociclo) async {
     if (macrociclo.estado.esInmutable) {
       throw const FalloDeDatos(

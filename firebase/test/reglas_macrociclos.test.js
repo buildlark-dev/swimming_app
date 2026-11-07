@@ -258,6 +258,24 @@ test('el entrenador lista los de un nadador sin filtrar por estado', async () =>
   );
 });
 
+test('el entrenador lista la coleccion entera, para saber quien tiene uno', async () => {
+  // **Una sola consulta para pintar la lista de nadadores.** Preguntar ficha
+  // por ficha serian N lecturas; la decision D10 de la feature 008 ya la tomo
+  // para los registros y aqui vale igual. Si esto se cayera, volver a un
+  // macrociclo entregado costaria una lectura por nadador.
+  await sembrarMacrociclo({ estado: 'publicado' });
+
+  await assertSucceeds(elEntrenador().collection(COLECCION).get());
+});
+
+test('la nadadora NO lista la coleccion entera', async () => {
+  // La otra cara: esa consulta devolveria los macrociclos de los demas.
+  await sembrarVinculos();
+  await sembrarMacrociclo({ estado: 'publicado' });
+
+  await assertFails(ana().collection(COLECCION).get());
+});
+
 // --- Lo que nadie puede --------------------------------------------------
 
 test('el nadador NO crea un macrociclo, ni el suyo', async () => {
