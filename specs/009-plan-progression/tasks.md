@@ -510,11 +510,31 @@ risk M34 names is real, but it came from the reader, not from the ids.
       feature 007's delivery too. Checked in the emulator, not on the screen: the delivered
       macrocycle holds 3 published mesocycles with 6 + 12 + 6 sessions written in their
       subcollections and one assignment each.
-- [ ] T086 Walk C9 to C11 as the swimmer. **Started 2026-11-06 and stopped at the first
-      screen**, which is where it found the defect fixed in `75a765f`: the swimmer could not
-      list her own macrocycle, because a Firestore query is proven by its filters and the
-      client filtered only by `nadadorId` while the rule says "hers AND delivered". The fix is
-      in and the gates are green; the walk itself has not been re-run.
+- [ ] T086 Walk C9 to C11 as the swimmer. **C9 and C10 done on the Pixel 7
+      (2026-11-07); C11 still open**, because it needs a readjustment, which is
+      the coach's act. Between them they found three defects, each fixed with
+      its lock verified red first:
+      - `75a765f` the swimmer could not list her own macrocycle at all. A
+        Firestore query is proven by its filters, and the client filtered only
+        by `nadadorId` while the rule says "hers AND delivered".
+      - `f1714f5` her path did not read as a path. Every week came out
+        "Miércoles 11/11, Viernes 13/11, Lunes 9/11", because the sessions
+        subcollection is read with no `orderBy` and nothing reordered it.
+      - `1aba15b` marking a session changed nothing on screen. The record was
+        written -- Firestore had it -- and the counter stayed at "0 de 24"
+        until the app was restarted. To the swimmer that reads as marking not
+        working, so she taps again.
+
+      All three have the same shape, and it is the shape this walk exists to
+      find: the in-memory double is kinder than Firestore, so the screen passed
+      every test and failed on the phone.
+
+      C10 needed two session dates moved into the past in the emulator (9/11 to
+      2/11, 11/11 to 4/11), because the macrocycle starts today and the case
+      needs a session already behind her. Marking Wednesday with Monday skipped
+      worked: the app named the one she missed instead of blocking her, and
+      after the fix the counter moved to "2 de 24" with no restart.
+
 - [ ] T087 Walk **C12 and C13 last and carefully**, checking the records against the emulator
       rather than the screen. Feature 008 found six defects by walking, five of them invisible
       because the app kept working.
