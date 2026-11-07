@@ -412,6 +412,57 @@ void main() {
       expect(guardados.single.sesionId, deHoy.id);
       expect(guardados.single.realizada, isTrue);
     });
+    testWidgets('y la pantalla se entera sin reiniciar la app', (
+      tester,
+    ) async {
+      // **Encontrado recorriendo C10 en el Pixel 7, y es el defecto que más
+      // se nota de los que ha dado esta feature.** Ana marcó su sesión: el
+      // registro se guardó —en Firestore estaba, con su esfuerzo— y la
+      // pantalla no cambió nada. Seguía diciendo «Sesiones cumplidas: 0 de
+      // 24», el bloque seguía en «0 de 6» y el aviso seguía dando esa sesión
+      // por pendiente. Solo al cerrar y volver a abrir la app aparecía el 1.
+      //
+      // Para quien lo usa eso no es un refresco que falta: es que marcar no
+      // funcionó. Vuelve a tocar el botón, y otra vez, que es exactamente lo
+      // que hice yo.
+      //
+      // La causa: `PantallaMiMacrociclo` lee los registros una vez en
+      // `initState` y los guarda en su estado. `FormularioRegistro` escribe a
+      // través de `EstadoNadador`, que **sí** avisa con `notifyListeners`,
+      // pero nadie estaba escuchando.
+      //
+      // La prueba de al lado marcaba y comprobaba el repositorio. Por eso
+      // esto sobrevivió: comprobaba que el dato se guarda, que es la mitad
+      // fácil. Lo que el nadador necesita es verlo.
+      await abrirParaMarcar(tester);
+
+      String loCumplido() => tester
+          .widget<Text>(find.byKey(const Key('cuantas-cumplidas')))
+          .data!;
+
+      expect(
+        loCumplido(),
+        contains('0 de'),
+        reason: 'la prueba arranca con algo ya marcado y no comprueba nada',
+      );
+
+      final deHoy = (await repos.planes.obtener('plan-1'))!.sesiones.first;
+      await tester.ensureVisible(find.byKey(Key('sesion-${deHoy.id}')));
+      await tester.tap(find.byKey(Key('sesion-${deHoy.id}')));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Marcar como realizada'));
+      await tester.tap(find.text('Marcar como realizada'));
+      await tester.pumpAndSettle();
+
+      // **Sin volver a montar nada.** Es la diferencia entera.
+      expect(
+        loCumplido(),
+        contains('1 de'),
+        reason: 'se marcó, se guardó, y la pantalla siguió diciendo cero',
+      );
+    });
+
   });
 
   group('M26 — lo que quedó pendiente se dice, no se bloquea', () {

@@ -81,6 +81,51 @@ class _PantallaMiMacrocicloState extends State<PantallaMiMacrociclo> {
   void initState() {
     super.initState();
     _cargar();
+
+    // **Escuchar a quien ya avisa.** `EstadoNadador` es un `ChangeNotifier` y
+    // llama a `notifyListeners` cada vez que el nadador responde algo; esta
+    // pantalla leía los registros una sola vez aquí y nadie la despertaba.
+    //
+    // Así se veía en el Pixel 7: Ana marcaba su sesión, el registro se
+    // guardaba —estaba en Firestore, con su esfuerzo— y la pantalla seguía
+    // diciendo «Sesiones cumplidas: 0 de 24». Para ella eso no es un refresco
+    // que falta, es que marcar no funcionó, así que vuelve a tocar el botón.
+    widget.estado?.addListener(_algoSeRespondio);
+  }
+
+  @override
+  void didUpdateWidget(PantallaMiMacrociclo anterior) {
+    super.didUpdateWidget(anterior);
+    if (anterior.estado != widget.estado) {
+      anterior.estado?.removeListener(_algoSeRespondio);
+      widget.estado?.addListener(_algoSeRespondio);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.estado?.removeListener(_algoSeRespondio);
+    super.dispose();
+  }
+
+  /// Vuelve a leer **solo los registros**, que es lo único que pudo cambiar.
+  ///
+  /// Ni el macrociclo ni los mesociclos: el nadador no los toca, y releerlos
+  /// costaría una consulta por bloque cada vez que responde algo.
+  Future<void> _algoSeRespondio() async {
+    final mesociclos = _mesociclos;
+    if (mesociclos.isEmpty) return;
+
+    final registros = <RegistroDeSesion>[];
+    for (final mesociclo in mesociclos) {
+      if (mesociclo.id == null) continue;
+      registros.addAll(
+        await widget.registros.obtenerDePlan(widget.nadadorId, mesociclo.id!),
+      );
+    }
+
+    if (!mounted) return;
+    setState(() => _registros = registros);
   }
 
   Future<void> _cargar() async {
