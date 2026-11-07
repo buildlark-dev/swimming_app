@@ -193,8 +193,48 @@ class Plan {
   double get porcentajeTecnico =>
       metros == 0 ? 0 : (metrosTecnicos * 100) / metros;
 
-  List<Sesion> sesionesDe(String microcicloId) =>
-      sesiones.where((s) => s.microcicloId == microcicloId).toList();
+  /// Las sesiones de un microciclo, **en el orden en que ocurren**.
+  ///
+  /// El orden es parte de la respuesta, no un adorno de quien la dibuja. En
+  /// Firestore las sesiones son documentos de una subcolección y vuelven en
+  /// orden de identificador, que para identificadores automáticos no es
+  /// ningún orden: el recorrido en el Pixel 7 le mostró a la nadadora
+  /// «Miércoles 11/11, Viernes 13/11, Lunes 9/11», semana tras semana. Y las
+  /// pruebas no lo veían porque el doble en memoria conserva el orden de
+  /// inserción.
+  ///
+  /// Ordenar aquí y no en la pantalla es deliberado: el entrenador que revisa
+  /// y el nadador que recorre leen lo mismo, y si viviera en una de las dos
+  /// pantallas la otra seguiría desordenada.
+  ///
+  /// Una sesión **sin fecha va al final**. Existe —`SinFecha` es un estado
+  /// que la app sabe decir— pero encabezar la semana con la única que no se
+  /// puede marcar sería mentir sobre por dónde se empieza. Entre las que
+  /// empatan, y entre las que no tienen fecha, se conserva el orden que
+  /// traían: inventarse un criterio ahí sería inventarse un dato.
+  List<Sesion> sesionesDe(String microcicloId) {
+    // **Estable a mano, y a propósito.** `List.sort` no promete conservar el
+    // orden de los empates, y el dominio es Dart puro: traerse un paquete
+    // para una ordenación sería pagar una dependencia por tres líneas. Se
+    // lleva el índice de entrada y se usa para desempatar.
+    final suyas = <(int, Sesion)>[];
+    for (var i = 0; i < sesiones.length; i++) {
+      if (sesiones[i].microcicloId == microcicloId) {
+        suyas.add((i, sesiones[i]));
+      }
+    }
+
+    // Sobre una copia: leer un plan no lo cambia.
+    suyas.sort((a, b) => switch ((a.$2.fecha, b.$2.fecha)) {
+      (null, null) => a.$1 - b.$1,
+      (null, _) => 1,
+      (_, null) => -1,
+      (final x?, final y?) =>
+        x == y ? a.$1 - b.$1 : x.compareTo(y),
+    });
+
+    return [for (final (_, sesion) in suyas) sesion];
+  }
 
   List<Sesion> get sesionesIncompletas =>
       sesiones.where((s) => !s.estaCompleta).toList();

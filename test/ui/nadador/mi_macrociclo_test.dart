@@ -15,6 +15,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
+import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/macrociclo/guardar_macrociclo.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
@@ -506,6 +507,80 @@ void main() {
       expect(find.textContaining('lo prepara tu entrenador'), findsOneWidget);
     });
   });
+
+  group('C9 — y el camino se lee como un camino', () {
+    testWidgets('las sesiones salen en orden aunque lleguen revueltas', (
+      tester,
+    ) async {
+      // **Esto es lo que el recorrido en el Pixel 7 vio y ninguna prueba
+      // veía.** `RepositorioSesionesFirestore.obtenerDePlan` lee la
+      // subcolección sin `orderBy`, así que los documentos vuelven en orden de
+      // identificador. Para la nadadora eso salía «Miércoles 11/11, Viernes
+      // 13/11, Lunes 9/11», semana tras semana y las ocho semanas igual.
+      //
+      // El doble en memoria conserva el orden de inserción, así que sembrar en
+      // orden y recibir en orden hacía pasar todo. Por eso aquí el plan se lee
+      // a través de un repositorio que **devuelve las sesiones al revés**: no
+      // por maldad, sino porque un repositorio que las ordene por su cuenta es
+      // justo lo que no tenemos.
+      await entregado();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: Tema.claro(),
+          home: Scaffold(
+            body: PantallaMiMacrociclo(
+              nadadorId: 'n-ana',
+              macrociclos: repos.macrociclos,
+              planes: _PlanesQueRevuelven(repos.planes),
+              registros: registros,
+              hoy: hoyDePrueba,
+              sinMacrociclo: const Text('Tu sesión de hoy (feature 003)'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // **Por identificador y no por la cabecera.** La cabecera dice «Lunes
+      // 9/11» y no lleva año, y este macrociclo cruza a enero: comparar
+      // mes y día pondría enero antes que noviembre y la prueba mentiría en
+      // la dirección cómoda.
+      final cuandoEs = <String, DateTime>{};
+      for (final plan in await repos.planes.listar()) {
+        for (final sesion in plan.sesiones) {
+          if (sesion.id != null && sesion.fecha != null) {
+            cuandoEs[sesion.id!] = sesion.fecha!;
+          }
+        }
+      }
+
+      // Los identificadores en el orden en que están pintados.
+      final pintadas = <DateTime>[];
+      for (final w in tester.widgetList<ExpansionTile>(
+        find.byType(ExpansionTile),
+      )) {
+        final clave = w.key;
+        if (clave is! ValueKey<String>) continue;
+        if (!clave.value.startsWith('sesion-')) continue;
+        final cuando = cuandoEs[clave.value.substring(7)];
+        if (cuando != null) pintadas.add(cuando);
+      }
+
+      expect(
+        pintadas.length,
+        greaterThan(2),
+        reason: 'sin sesiones pintadas esta prueba no comprueba nada',
+      );
+
+      expect(
+        pintadas,
+        [...pintadas]..sort(),
+        reason: 'el camino de la nadadora salió desordenado',
+      );
+    });
+  });
+
 }
 
 /// Registros en memoria, sembrables, que responden por plan como el de verdad.
@@ -564,4 +639,43 @@ class _TransporteQuieto implements EnvioDeRegistros {
   @override
   Future<DateTime> enviar(RegistroDeSesion registro) async =>
       throw const FalloDeDatos('sin red');
+}
+
+/// Un repositorio de planes que devuelve las sesiones **al revés**.
+///
+/// Firestore no promete orden: `obtenerDePlan` lee la subcolección sin
+/// `orderBy` y los documentos vuelven por identificador. Este doble no imita
+/// ese orden exacto —no se puede— pero sí lo único que importa: que **no es el
+/// orden en que se guardaron**. Un doble que conserve la inserción es más
+/// amable que el colaborador real y esconde justo este defecto.
+class _PlanesQueRevuelven implements RepositorioPlanes {
+  _PlanesQueRevuelven(this._real);
+
+  final RepositorioPlanes _real;
+
+  @override
+  Future<Plan?> obtener(String id) async {
+    final plan = await _real.obtener(id);
+    return plan?.copiarCon(sesiones: plan.sesiones.reversed.toList());
+  }
+
+  @override
+  Future<List<Plan>> listar({Categoria? categoria, EstadoPlan? estado}) =>
+      _real.listar(categoria: categoria, estado: estado);
+
+  @override
+  Future<String> guardarBorrador(Plan plan) => _real.guardarBorrador(plan);
+
+  @override
+  Future<void> guardarAprobado(Plan plan, Map<String, dynamic> a) =>
+      _real.guardarAprobado(plan, a);
+
+  @override
+  Future<void> publicar(String id) => _real.publicar(id);
+
+  @override
+  Future<Plan> crearVersionDesde(String id) => _real.crearVersionDesde(id);
+
+  @override
+  Future<Map<String, dynamic>> exportar(String id) => _real.exportar(id);
 }
