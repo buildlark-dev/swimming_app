@@ -42,7 +42,7 @@ void main() {
     expect(() => confirmar(bloques), returnsNormally);
   });
 
-  test('el último bloque sigue terminando el día de la competencia', () {
+  test('el último bloque sigue terminando pegado a la competencia', () {
     // El ancla no se mueve. Alargar la preparación la hace **empezar antes**,
     // no acabar después: lo que él decide es cuánto dura, no cuándo compite.
     final cortos = recomponerElEsqueleto(
@@ -57,8 +57,11 @@ void main() {
       fechaDeCompetencia: competencia,
     );
 
-    expect(cortos.last.hasta, competencia);
-    expect(largos.last.hasta, competencia);
+    // La víspera: el día de competir no se entrena, también cuando los
+    // bloques los pone él a mano.
+    final vispera = competencia.subtract(const Duration(days: 1));
+    expect(cortos.last.hasta, vispera);
+    expect(largos.last.hasta, vispera);
     expect(largos.first.desde.isBefore(cortos.first.desde), isTrue);
   });
 
@@ -161,7 +164,9 @@ void main() {
     // esqueleto, que sería una segunda metodología por la puerta de atrás.
     final hoy = DateTime(2026, 11, 4);
     final propuesto = esqueletoParaMacrociclo(
-      fechaDeCompetencia: hoy.add(const Duration(days: 97)),
+      // 98 días hasta la carrera son 97 de preparación: catorce semanas
+      // justas hasta la víspera, que es lo que el entrenador recompone.
+      fechaDeCompetencia: hoy.add(const Duration(days: 98)),
       hoy: hoy,
       categoria: Categoria.competitivo,
     );
@@ -171,7 +176,7 @@ void main() {
         for (final bloque in propuesto.bloques)
           (fase: bloque.fase, semanas: bloque.semanas),
       ],
-      fechaDeCompetencia: hoy.add(const Duration(days: 97)),
+      fechaDeCompetencia: hoy.add(const Duration(days: 98)),
     );
 
     for (var i = 0; i < propuesto.bloques.length; i++) {

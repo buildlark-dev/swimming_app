@@ -118,16 +118,28 @@ EsqueletoPropuesto esqueletoParaMacrociclo({
 
   final dias = _diasEnteros(desde: hoy, hasta: fechaDeCompetencia);
 
-  if (dias <= 0) {
+  if (dias <= 1) {
     // Una competencia que ya pasó no es un ancla. Derivar una estructura de
     // ella sería rellenar un hueco con una suposición (regla R3).
+    //
+    // **Y mañana tampoco.** Como el día de competir no se entrena, una
+    // competencia mañana deja un solo día de preparación, y un bloque de un
+    // día no es un bloque: la invariante de `BloqueConfirmado` lo rechaza y
+    // tiene razón. Antes salía un bloque de dos días porque el día de la
+    // carrera contaba como entrenamiento.
     return EsqueletoPropuesto(
       bloques: const [],
-      porQue: dias == 0
-          ? 'Sin estructura: la competencia es hoy, y de hoy no sale una '
-                'preparación.'
-          : 'Sin estructura: esa competencia ya pasó. La fecha la pone el '
-                'entrenador.',
+      porQue: switch (dias) {
+        1 =>
+          'Sin estructura: la competencia es mañana, y un día no da para '
+              'una preparación.',
+        0 =>
+          'Sin estructura: la competencia es hoy, y de hoy no sale una '
+              'preparación.',
+        _ =>
+          'Sin estructura: esa competencia ya pasó. La fecha la pone el '
+              'entrenador.',
+      },
       avisos: const [],
       diasHastaLaCompetencia: null,
     );
@@ -136,8 +148,20 @@ EsqueletoPropuesto esqueletoParaMacrociclo({
   final competencia = _soloLaFecha(fechaDeCompetencia);
   final primerDia = _soloLaFecha(hoy);
 
-  // Hoy y el día de la competencia, los dos incluidos.
-  final total = dias + 1;
+  /// **La preparación termina la víspera.** El día de la competencia no se
+  /// entrena: se compite. Lo pidió el entrenador tras ver en el recorrido que
+  /// el camino de la nadadora acababa en «Viernes 1/1» y el 1/1 era la
+  /// carrera.
+  ///
+  /// Se corrige aquí, donde se reparten los bloques, y no quitando ese día
+  /// más abajo: sacarlo después dejaba la última semana con dos días de
+  /// piscina en lugar de tres, y el motor la rechaza con razón, porque la
+  /// frecuencia de la categoría es una regla de la metodología. Lo que cambia
+  /// es que hay un día menos de preparación, que es la verdad.
+  final vispera = competencia.subtract(const Duration(days: 1));
+
+  // Desde hoy hasta la víspera, los dos incluidos.
+  final total = dias;
 
   if (!categoria.usaAtr) {
     // M6. Aquí la fase nula no es un hueco por rellenar: el motor la prohíbe
@@ -148,7 +172,7 @@ EsqueletoPropuesto esqueletoParaMacrociclo({
         BloqueConfirmado(
           fase: null,
           desde: primerDia,
-          hasta: competencia,
+          hasta: vispera,
           porQue:
               'Sin fase: ${categoria.nombre} no trabaja por fases ATR, así '
               'que el macrociclo va de una pieza, ${_enSemanas(total)} hasta '
@@ -191,13 +215,13 @@ EsqueletoPropuesto esqueletoParaMacrociclo({
   final avisos = <String>[];
 
   // Se construyen de atrás hacia delante y se devuelven en orden.
-  final realizacionDesde = competencia.subtract(
+  final realizacionDesde = vispera.subtract(
     Duration(days: diasDeRealizacion - 1),
   );
   final realizacion = BloqueConfirmado(
     fase: FaseAtr.realizacion,
     desde: realizacionDesde,
-    hasta: competencia,
+    hasta: vispera,
     porQue:
         'Realización, las últimas ${_enSemanas(diasDeRealizacion)} antes de '
         'la competencia: es la afinación, y por eso va pegada a ella.',
@@ -287,8 +311,10 @@ List<BloqueConfirmado> recomponerElEsqueleto({
   final competencia = _soloLaFecha(fechaDeCompetencia);
   final recompuestos = <BloqueConfirmado>[];
 
-  // Hacia atrás, igual que la propuesta: el último termina el día de competir.
-  var hasta = competencia;
+  // Hacia atrás, igual que la propuesta: el último termina **la víspera**.
+  // El día de la competencia no se entrena, también cuando los bloques los
+  // pone él a mano.
+  var hasta = competencia.subtract(const Duration(days: 1));
 
   for (final bloque in bloques.reversed) {
     final dias = bloque.semanas * 7;

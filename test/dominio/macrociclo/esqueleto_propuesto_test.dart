@@ -46,13 +46,17 @@ void main() {
       expect(bloques[2].fase, FaseAtr.realizacion);
     });
 
-    test('Realización va la última y termina el día de la competencia', () {
-      // El ancla. Si el taper no acaba en la competencia, el macrociclo no
-      // está contado hacia atrás desde ella: está contado hacia delante desde
-      // hoy, y entonces la fecha de competir es una consecuencia del plan en
-      // lugar de su punto de partida.
+    test('Realización va la última y termina la víspera', () {
+      // El ancla sigue siendo la competencia: el macrociclo se cuenta hacia
+      // atrás desde ella, no hacia delante desde hoy, o la fecha de competir
+      // sería una consecuencia del plan en lugar de su punto de partida.
+      //
+      // **Pero la preparación termina la víspera**, porque el día de la
+      // competencia no se entrena: se compite. Lo pidió el entrenador tras
+      // ver en el recorrido que el camino de la nadadora acababa en «Viernes
+      // 1/1» y el 1/1 era la carrera.
       final bloques = esqueleto().bloques;
-      expect(bloques.last.hasta, hoy.add(const Duration(days: 98)));
+      expect(bloques.last.hasta, hoy.add(const Duration(days: 97)));
     });
 
     test('el primer bloque empieza hoy', () {
@@ -116,8 +120,9 @@ void main() {
       final acumulacion =
           bloques.first.hasta.difference(bloques.first.desde).inDays + 1;
 
-      expect(total, 99); // hoy y la competencia incluidos
-      expect(acumulacion, 99 - 14 - 28);
+      // Hoy y la víspera incluidas: el día de competir no se entrena.
+      expect(total, 98);
+      expect(acumulacion, 98 - 14 - 28);
     });
   });
 
@@ -128,7 +133,7 @@ void main() {
       expect(bloques, hasLength(1));
       expect(bloques.single.fase, FaseAtr.realizacion);
       expect(bloques.single.desde, hoy);
-      expect(bloques.single.hasta, hoy.add(const Duration(days: 15)));
+      expect(bloques.single.hasta, hoy.add(const Duration(days: 14)));
     });
 
     test('a trece días sale Realización de dos semanas justas, sin avisos', () {
@@ -144,30 +149,44 @@ void main() {
     });
 
     test('un resto de menos de una semana no se queda como bloque suelto', () {
-      // A 19 días el macrociclo cubre 20, y tras las 2 semanas de taper
-      // quedan 6. Un bloque de 6 días llamado «Transformación» sería una
-      // etiqueta puesta sobre nada: se queda dentro del bloque vecino.
+      // A 19 días el macrociclo cubre 19 —hoy y la víspera incluidas— y tras
+      // las 2 semanas de taper quedan 5. Un bloque de 5 días llamado
+      // «Transformación» sería una etiqueta puesta sobre nada: se queda
+      // dentro del bloque vecino.
       final bloques = esqueleto(competenciaEnDias: 19).bloques;
 
       expect(bloques, hasLength(1));
       expect(bloques.single.desde, hoy);
-      expect(bloques.single.hasta, hoy.add(const Duration(days: 19)));
+      expect(bloques.single.hasta, hoy.add(const Duration(days: 18)));
     });
 
     test('a partir de una semana de resto sí aparece el segundo bloque', () {
       // El control de la prueba de arriba: que no pase por absorberlo todo.
-      // A 20 días el resto son 7 justos, y 7 días son un bloque.
-      final bloques = esqueleto(competenciaEnDias: 20).bloques;
+      // A 21 días el macrociclo cubre 21, y tras el taper el resto son 7
+      // justos. Siete días son un bloque.
+      final bloques = esqueleto(competenciaEnDias: 21).bloques;
 
       expect(bloques, hasLength(2));
       expect(bloques.first.fase, FaseAtr.transformacion);
       expect(bloques.last.fase, FaseAtr.realizacion);
     });
 
-    test('a un día sigue habiendo un bloque, no una excepción', () {
-      final bloques = esqueleto(competenciaEnDias: 1).bloques;
-      expect(bloques, hasLength(1));
-      expect(bloques.single.hasta, hoy.add(const Duration(days: 1)));
+    test('a un día no hay esqueleto, y se dice en lugar de reventar', () {
+      // **Cambió con la decisión del entrenador.** Antes salía un bloque de
+      // dos días, porque el día de la carrera contaba como entrenamiento.
+      // Ahora no se entrena ese día, así que queda uno solo, y un bloque de
+      // un día no es un bloque: la invariante lo rechaza y tiene razón.
+      //
+      // Lo que no puede pasar es que la función deje de ser total: no hay
+      // esqueleto, y se explica.
+      final propuesto = esqueleto(competenciaEnDias: 1);
+      expect(propuesto.bloques, isEmpty);
+      expect(propuesto.porQue, contains('mañana'));
+      expect(
+        propuesto.porQue,
+        isNot(contains('Exception')),
+        reason: 'la razón tiene que poder leerse',
+      );
     });
   });
 
@@ -250,9 +269,10 @@ void main() {
 
           if (propuesto.hayEsqueleto) {
             expect(propuesto.bloques.first.desde, hoy);
+            // La víspera: el día de competir no se entrena.
             expect(
               propuesto.bloques.last.hasta,
-              hoy.add(Duration(days: dias)),
+              hoy.add(Duration(days: dias - 1)),
             );
           }
         }
@@ -273,18 +293,18 @@ void main() {
       // hacia atrás desde la competencia, así que salían iguales con horas y
       // sin ellas. El control negativo de T020 lo destapó.
       final deNocheAManana = esqueletoParaMacrociclo(
-        fechaDeCompetencia: DateTime(2026, 11, 24, 7),
+        fechaDeCompetencia: DateTime(2026, 11, 25, 7),
         hoy: DateTime(2026, 11, 4, 22),
         categoria: Categoria.competitivo,
       );
       final aMediodia = esqueletoParaMacrociclo(
-        fechaDeCompetencia: DateTime(2026, 11, 24, 12),
+        fechaDeCompetencia: DateTime(2026, 11, 25, 12),
         hoy: DateTime(2026, 11, 4, 12),
         categoria: Categoria.competitivo,
       );
 
       expect(deNocheAManana.bloques, hasLength(2));
-      expect(deNocheAManana.diasHastaLaCompetencia, 20);
+      expect(deNocheAManana.diasHastaLaCompetencia, 21);
       expect(aMediodia.bloques, hasLength(2));
 
       for (var i = 0; i < aMediodia.bloques.length; i++) {

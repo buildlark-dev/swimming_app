@@ -133,15 +133,28 @@ List<({DateTime desde, DateTime hasta})> _semanasDe(BloqueConfirmado bloque) {
 }
 
 /// Los días de entrenamiento dentro de una ventana.
+///
+/// **El día de la competencia no se entrena.** Con la carrera en un día de
+/// piscina —un viernes, con los viernes en el calendario— la derivación le
+/// ponía sesión el mismo día: el camino de la nadadora terminaba en «Viernes
+/// 1/1» y el 1/1 era la competencia. La última sesión es la de antes.
+///
+/// Se quita aquí y no acortando el último bloque a propósito. El bloque sigue
+/// llegando hasta la competencia, que es lo que el entrenador confirmó y lo
+/// que el macrociclo significa: va hacia ella. Mover esa frontera cambiaría
+/// la estructura y las duraciones de fase por una razón que no es
+/// metodológica.
 List<DateTime> _diasDeLaSemana(
   ({DateTime desde, DateTime hasta}) semana,
   List<int> diasPorSemana,
+  DateTime fechaDeCompetencia,
 ) {
   final dias = <DateTime>[];
+  final carrera = _soloLaFecha(fechaDeCompetencia);
   var dia = semana.desde;
 
   while (!dia.isAfter(semana.hasta)) {
-    if (diasPorSemana.contains(dia.weekday)) dias.add(dia);
+    if (diasPorSemana.contains(dia.weekday) && dia != carrera) dias.add(dia);
     dia = dia.add(const Duration(days: 1));
   }
 
@@ -174,7 +187,11 @@ ResultadoDerivacion derivarMacrociclo({
     final sesiones = <Sesion>[];
 
     for (var s = 0; s < semanas.length; s++) {
-      final dias = _diasDeLaSemana(semanas[s], estructura.diasPorSemana);
+      final dias = _diasDeLaSemana(
+        semanas[s],
+        estructura.diasPorSemana,
+        fechaDeCompetencia,
+      );
 
       final peticion = PeticionGeneracion(
         // De la ficha: es del entrenador, no del nadador.
