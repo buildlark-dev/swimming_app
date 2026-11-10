@@ -79,7 +79,7 @@ void main() {
       final suyos = recorridoDe(Rol.entrenador).values;
 
       for (final prohibido in [
-        Contenido.sesionDelDia,
+        Contenido.miMacrociclo,
         Contenido.miProgreso,
         Contenido.homeDelNadador,
       ]) {
@@ -144,7 +144,10 @@ void main() {
     test('el Ver Plan de cada rol es lo suyo', () {
       expect(
         (reparto(Destino.verPlan, Rol.nadador) as Contiene).contenido,
-        Contenido.sesionDelDia,
+        // Desde la feature 009 es su macrociclo entero. Su sesión de hoy no
+        // desapareció: es lo que esa pantalla enseña cuando no tiene ninguno,
+        // y por eso dejó de ser el contenido de un destino.
+        Contenido.miMacrociclo,
       );
       expect(
         (reparto(Destino.verPlan, Rol.entrenador) as Contiene).contenido,

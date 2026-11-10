@@ -21,6 +21,10 @@ const String coleccionPlanes = 'planes';
 const String coleccionSesiones = 'sesiones';
 const String coleccionNadadores = 'nadadores';
 
+/// El nivel de encima del plan (feature 009). Guarda referencias a planes y la
+/// estructura que el entrenador confirmó, no contenido.
+const String coleccionMacrociclos = 'macrociclos';
+
 class RepositorioPlanesFirestore implements RepositorioPlanes {
   RepositorioPlanesFirestore(this._db, this._biblioteca, this._sesiones);
 
@@ -78,15 +82,38 @@ class RepositorioPlanesFirestore implements RepositorioPlanes {
       final datos = planAJson(plan);
       final id = plan.id;
 
-      if (id == null) {
-        final referencia = await _planes.add(datos);
-        return referencia.id;
-      }
+      final asignado = id == null
+          ? (await _planes.add(datos)).id
+          : await _planes.doc(id).set(datos).then((_) => id);
 
-      await _planes.doc(id).set(datos);
-      return id;
+      await _guardarLasSesiones(asignado, plan);
+      return asignado;
     } on FirebaseException catch (e) {
       throw FalloDeDatos('No se pudo guardar el plan: ${e.message}');
+    }
+  }
+
+  /// Escribe las sesiones del plan en su subcolección.
+  ///
+  /// **Esto faltaba, y era un defecto de la feature 008.** `planAJson` no
+  /// incluye `sesiones` —en Firestore cada sesión es un documento aparte—, así
+  /// que guardar un plan guardaba el plan y nada de lo que lleva dentro. Las
+  /// sesiones las escribía solo el editor, una a una, cuando el entrenador
+  /// abría cada una a mano. Un plan generado por el motor y guardado por
+  /// código llegaba aquí **sin una sola sesión**, y el caso más claro era la
+  /// cola de la 008: un plan aprobado desde la petición de un nadador quedaba
+  /// con sus microciclos y con nada dentro.
+  ///
+  /// No fallaba nada porque `RepositorioPlanesMemoria` guardaba el objeto
+  /// entero y todas las pruebas Dart pasaban. El contrato de las dos
+  /// implementaciones está fijado en
+  /// `test/datos/el_plan_se_guarda_con_sus_sesiones_test.dart`.
+  ///
+  /// Una sesión con identificador se sobrescribe y una sin él se crea, así que
+  /// volver a guardar el mismo plan no duplica nada.
+  Future<void> _guardarLasSesiones(String planId, Plan plan) async {
+    for (final sesion in plan.sesiones) {
+      await _sesiones.guardar(planId, sesion);
     }
   }
 
@@ -105,8 +132,34 @@ class RepositorioPlanesFirestore implements RepositorioPlanes {
         ...planAJson(plan),
         'auditoriaAlAprobar': auditoria,
       });
+      // **Aquí NO se escriben las sesiones, y es a propósito.**
+      //
+      // Ya están: se guardaron cuando el plan era borrador. Firmar estampa la
+      // firma sobre un contenido que a partir de ese momento es inmutable
+      // (FR-025), y la regla de `planes/{id}/sesiones` lo hace cumplir —
+      // `allow write` solo mientras el plan no es inmutable.
+      //
+      // Escribirlas aquí era redundante y además imposible: el documento del
+      // plan ya se escribió con `estado: aprobado` dos líneas más arriba, así
+      // que la regla rechazaba cada sesión. Firmar fallaba con «The caller
+      // does not have permission to execute the specified operation» y los
+      // mesociclos se quedaban en borrador. Lo encontró el recorrido C8 de la
+      // feature 009, no una prueba: ninguna llega hasta la regla.
     } on FirebaseException catch (e) {
       throw FalloDeDatos('No se pudo aprobar el plan: ${e.message}');
+    }
+  }
+
+  @override
+  Future<void> publicar(String id) async {
+    try {
+      // **Solo el estado.** La regla acepta la entrega únicamente cuando el
+      // diff afecta a `estado`: lo firmado no se reescribe.
+      await _planes.doc(id).update(<String, dynamic>{
+        'estado': EstadoPlan.publicado.name,
+      });
+    } on FirebaseException catch (e) {
+      throw FalloDeDatos('No se pudo entregar el plan $id: ${e.message}');
     }
   }
 
@@ -136,14 +189,53 @@ class RepositorioPlanesFirestore implements RepositorioPlanes {
       origen: aprobado.origen,
       justificaciones: aprobado.justificaciones,
       versionAnteriorId: idAprobado,
+      // **Lo que sitúa al mesociclo viaja con la versión nueva.**
+      //
+      // Se quedaban fuera y el recorrido en el Pixel 7 lo destapó: tras
+      // reajustar, la pantalla de revisión decía «Metodología sin sellar»
+      // en ese bloque y solo en ese. Sellar cada nivel con la versión bajo
+      // la que se construyó es un requisito de la feature, y el reajuste
+      // lo borraba.
+      //
+      // Los otros dos duelen igual. Sin `macrocicloId` la versión nueva
+      // deja de saber de qué macrociclo es. Y sin `ordenEnElMacrociclo`,
+      // `progreso_en_el_macrociclo` cae a `?? 0` y al nadador se le dice
+      // que va por el **bloque 1** aunque esté en el dos: un número
+      // equivocado, dicho sin dudar.
+      versionMetodologia: aprobado.versionMetodologia,
+      macrocicloId: aprobado.macrocicloId,
+      ordenEnElMacrociclo: aprobado.ordenEnElMacrociclo,
     );
 
-    final idNuevo = await guardarBorrador(nueva);
-
-    // Las sesiones se copian a la subcolección del plan nuevo.
-    for (final sesion in aprobado.sesiones) {
-      await _sesiones.guardar(idNuevo, sesion.copiarCon(id: null));
-    }
+    // **Las sesiones conservan su identificador, y eso no es un detalle.**
+    //
+    // Los `RegistroDeSesion` del nadador apuntan a `sesionId`. Si una versión
+    // nueva estrenara identificadores, lo que el nadador anotó dejaría de
+    // emparejar con las sesiones que tiene delante y el reajuste le vaciaría el
+    // historial **sin que nada fallara**: todas las escrituras devuelven bien.
+    //
+    // Aquí había un bucle que escribía cada sesión con
+    // `sesion.copiarCon(id: null)`. **Leído de corrido parece que las
+    // renombra, y no lo hace**: `Sesion.copiarCon` resuelve `id ?? this.id`, así
+    // que pasar nulo conserva el identificador que ya tenía. El
+    // comportamiento era el correcto por accidente de esa firma, y la línea
+    // decía lo contrario.
+    //
+    // Se quita el bucle y se pasan las sesiones por `guardarBorrador`, que
+    // desde la 009 es quien las escribe. Un camino en lugar de dos, y lo que
+    // el código hace coincide con lo que parece hacer.
+    //
+    // Que dos versiones tengan sesiones con el mismo identificador no choca:
+    // son subcolecciones distintas, una por plan. Y lo que permite encontrar
+    // los registros de las versiones anteriores es `registrosDelLinaje`, que
+    // lee hacia atrás por `versionAnteriorId` sin tocar nada de lo que el
+    // nadador escribió.
+    //
+    // Lo vigila
+    // `test/dominio/macrociclo/el_reajuste_no_se_come_el_historial_test.dart`.
+    final idNuevo = await guardarBorrador(
+      nueva.copiarCon(sesiones: aprobado.sesiones),
+    );
 
     return nueva.copiarCon(id: idNuevo, sesiones: aprobado.sesiones);
   }

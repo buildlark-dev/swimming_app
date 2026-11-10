@@ -11,6 +11,8 @@
 library;
 
 import 'package:natacion_app/datos/firestore/consentimientos.dart';
+import 'package:natacion_app/datos/registros_de_las_dos_partes.dart';
+import 'package:natacion_app/datos/firestore/macrociclos_firestore.dart';
 import 'package:natacion_app/datos/firestore/peticiones_firestore.dart';
 import 'package:natacion_app/datos/peticiones/peticiones_con_puerta.dart';
 import 'package:natacion_app/datos/firestore/registros_firestore.dart';
@@ -27,6 +29,7 @@ class RepositoriosDelHub {
     required this.sesiones,
     required this.nadadores,
     required this.asignaciones,
+    required this.macrociclos,
     required this.registrosLocales,
     this.registrosDelServidor,
     this.peticiones,
@@ -49,7 +52,10 @@ class RepositoriosDelHub {
 
     return RepositoriosDelHub(
       planes: db == null
-          ? RepositorioPlanesMemoria()
+          // Con el mismo repositorio de sesiones que el resto, para que
+          // guardar un plan y leer sus sesiones hablen del mismo sitio —como
+          // en Firestore.
+          ? RepositorioPlanesMemoria(sesiones: sesiones)
           : RepositorioPlanesFirestore(db, recursos.biblioteca, sesiones),
       sesiones: sesiones,
       nadadores: db == null
@@ -58,6 +64,11 @@ class RepositoriosDelHub {
       asignaciones: db == null
           ? RepositorioAsignacionesMemoria()
           : RepositorioAsignacionesFirestore(db),
+      // El nivel de encima del plan (feature 009). Sin servidor va en memoria,
+      // igual que los planes: se puede trabajar en local y no persiste.
+      macrociclos: db == null
+          ? RepositorioMacrociclosMemoria()
+          : RepositorioMacrociclosFirestore(db),
       registrosLocales: RegistrosLocales(almacen),
       // Para saber quién ha respondido algo hace falta leer la colección del
       // servidor, no el almacén de este dispositivo. Sin servidor no hay a
@@ -84,6 +95,11 @@ class RepositoriosDelHub {
   final RepositorioNadadores nadadores;
   final RepositorioAsignaciones asignaciones;
 
+  /// Los macrociclos (feature 009). **No hay uno de mesociclos**: un mesociclo
+  /// es un `Plan` y lo guarda `planes`, con el ciclo de vida y el linaje de
+  /// versiones que ya tiene probados (decisión D1).
+  final RepositorioMacrociclos macrociclos;
+
   /// Donde el nadador escribe. **Primero el dispositivo**, siempre.
   final RepositorioRegistros registrosLocales;
 
@@ -108,4 +124,20 @@ class RepositoriosDelHub {
   /// Lo que el resumen del entrenador consulta para contar «en uso».
   RepositorioRegistros get registrosParaContar =>
       registrosDelServidor ?? registrosLocales;
+
+  /// Lo que el **nadador** lee de sí mismo: su teléfono y el servidor.
+  ///
+  /// Hasta la feature 009 esto era `registrosLocales` a secas, y su historial
+  /// se quedaba en el aparato donde lo escribió: cambiar de móvil o
+  /// reinstalar le dejaba la cuenta en cero, con el dato a salvo en el
+  /// servidor y debajo de una frase que dice «Lo que ya habías anotado sigue
+  /// ahí».
+  ///
+  /// Sin servidor se queda en lo local, que es lo único que hay.
+  RepositorioRegistros get registrosDelNadador {
+    final remoto = registrosDelServidor;
+    return remoto == null
+        ? registrosLocales
+        : RegistrosDeLasDosPartes(local: registrosLocales, servidor: remoto);
+  }
 }

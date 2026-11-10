@@ -12,11 +12,42 @@ import 'package:natacion_app/dominio/metodologia/estilos.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/ui/componentes/campo.dart';
 import 'package:natacion_app/ui/componentes/estado_vacio.dart';
+import 'package:natacion_app/ui/tema/espaciado.dart';
 
 class PantallaPerfiles extends StatefulWidget {
-  const PantallaPerfiles({super.key, required this.repositorio});
+  const PantallaPerfiles({
+    super.key,
+    required this.repositorio,
+    this.alEmpezarUnMacrociclo,
+    this.alVerSuMacrociclo,
+    this.quienTieneMacrociclo = const {},
+  });
 
   final RepositorioNadadores repositorio;
+
+  /// Empezar un macrociclo para este nadador (feature 009).
+  ///
+  /// La acción vive **en la ficha del nadador** porque un macrociclo es de un
+  /// nadador: sacarla a un menú general obligaría a elegirlo después, y es lo
+  /// primero que hay que saber. Nula cuando no hay a dónde ir, y entonces la
+  /// tarjeta no ofrece nada: un control deshabilitado como señuelo está
+  /// prohibido desde la feature 007 (H12).
+  final void Function(Nadador)? alEmpezarUnMacrociclo;
+
+  /// Abrir el macrociclo que este nadador **ya tiene** (feature 009).
+  ///
+  /// **Sin esto el reajuste no se puede hacer.** La pantalla de revisión, que
+  /// es donde vive, solo existía dentro del flujo en que se crea el
+  /// macrociclo: salir de ahí lo dejaba inalcanzable. Y el reajuste está
+  /// hecho para después (M30, FR-029), cuando el entrenador ya vio cómo
+  /// respondió el nadador — días o semanas más tarde, en otra sesión de la
+  /// app.
+  final void Function(Nadador)? alVerSuMacrociclo;
+
+  /// Quiénes tienen macrociclo. **Un conjunto y no una consulta por ficha:**
+  /// con una lista de nadadores, preguntar uno a uno serían N lecturas para
+  /// pintar una lista.
+  final Set<String> quienTieneMacrociclo;
 
   @override
   State<PantallaPerfiles> createState() => _PantallaPerfilesState();
@@ -73,7 +104,14 @@ class _PantallaPerfilesState extends State<PantallaPerfiles> {
                     queHacer: 'Crea el primero con el botón «Nuevo perfil».',
                   ),
                 for (final nadador in _nadadores)
-                  _TarjetaPerfil(nadador: nadador),
+                  _TarjetaPerfil(
+                    nadador: nadador,
+                    alEmpezarUnMacrociclo: widget.alEmpezarUnMacrociclo,
+                    alVerSuMacrociclo:
+                        widget.quienTieneMacrociclo.contains(nadador.id)
+                        ? widget.alVerSuMacrociclo
+                        : null,
+                  ),
               ],
             ),
     );
@@ -81,9 +119,15 @@ class _PantallaPerfilesState extends State<PantallaPerfiles> {
 }
 
 class _TarjetaPerfil extends StatelessWidget {
-  const _TarjetaPerfil({required this.nadador});
+  const _TarjetaPerfil({
+    required this.nadador,
+    this.alEmpezarUnMacrociclo,
+    this.alVerSuMacrociclo,
+  });
 
   final Nadador nadador;
+  final void Function(Nadador)? alEmpezarUnMacrociclo;
+  final void Function(Nadador)? alVerSuMacrociclo;
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +161,33 @@ class _TarjetaPerfil extends StatelessWidget {
                   color: context.colores.informativo,
                 ),
               ),
+            // **Abrir el que ya tiene va primero.** Si hay macrociclo, mirarlo
+            // es lo que el entrenador viene a hacer casi siempre; empezar otro
+            // es lo raro.
+            if (alVerSuMacrociclo != null) ...[
+              const SizedBox(height: Espaciado.corto),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  key: Key('ver-macrociclo-${nadador.id ?? ''}'),
+                  onPressed: () => alVerSuMacrociclo!(nadador),
+                  icon: const Icon(Icons.timeline_outlined),
+                  label: const Text('Ver su macrociclo'),
+                ),
+              ),
+            ],
+            if (alEmpezarUnMacrociclo != null) ...[
+              const SizedBox(height: Espaciado.corto),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  key: Key('empezar-macrociclo-${nadador.id ?? ''}'),
+                  onPressed: () => alEmpezarUnMacrociclo!(nadador),
+                  icon: const Icon(Icons.view_timeline_outlined),
+                  label: const Text('Empezar un macrociclo'),
+                ),
+              ),
+            ],
           ],
         ),
       ),

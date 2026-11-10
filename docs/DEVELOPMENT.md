@@ -386,6 +386,102 @@ does not fix. The request stores nothing about it.
 When the window holds none, the queue says so out loud. A blank space reads as
 "nothing hurts", and that is an assertion this app cannot make.
 
+## The macrocycle and the mesocycle
+
+**A `Plan` is a mesocycle.** Read that first, because the code has been saying
+it since feature 001 without using the word: one `faseAtr`, several
+`microciclos`, their sessions, start and end dates, the `borrador → aprobado →
+publicado` lifecycle, `versionAnteriorId` with `crearVersionDesde`, the
+section 16 audit, and the methodology stamp. A plan with one ATR phase and
+several microcycles **is** a mesocycle.
+
+So feature 009 added the level **above** it, not the level inside it.
+`Macrociclo` holds references — plan ids, in order — plus the structure the
+coach confirmed. The sessions live in its mesocycles. `Plan` gained two
+nullable fields, `macrocicloId` and `ordenEnElMacrociclo`, and nothing else.
+
+That matters beyond vocabulary. FR-031 says the mesocycle is the unit that
+receives a new version when the coach readjusts, and that lands on the type
+which already has versioning, tested since feature 001. Building a parallel
+`Mesociclo` would have meant rebuilding a lifecycle, an audit, an assignment
+path, an immutability rule and a version lineage for the exact unit that
+already had all five.
+
+### The single confirmation
+
+Constitution v2.0.0 restated principle IV: what it requires is the decision
+point, not the number of phases. Section 18's six confirmations exist because
+a language model's accuracy degrades over a long output, and a deterministic
+engine does not degrade.
+
+So there is **one** confirmation, and it is in
+[`lib/ui/macrociclo/estructura.dart`](../lib/ui/macrociclo/estructura.dart). The
+coach supplies the two things no formula derives — the event model and the
+swimmer model, steps 2 and 3 of section 4 — over a temporal skeleton the app
+proposes. Below that, `derivarMacrociclo` drives the feature 002 engine once
+per microcycle and nothing else is asked.
+
+Two rules guard it, and both would break silently:
+
+- **Nothing is stored before he confirms.** The lock looks at the
+  repositories, not at the screen
+  (`test/dominio/macrociclo/nada_se_guarda_antes_test.dart`). A convenient
+  preview that cached a draft would break it with nothing failing.
+- **The two models are never derived.** No file in
+  `lib/dominio/macrociclo/` may even name them; what the app offers back comes
+  from `lib/ui/macrociclo/sugerencias.dart`, which reads only the swimmer's
+  own record — technical diagnosis, target event, marks — and nothing else.
+
+### Marking what was done
+
+The rule is about the date, not the order
+([`puede_marcarse.dart`](../lib/dominio/macrociclo/puede_marcarse.dart)). A
+session whose day has not arrived cannot be marked; one that has passed can
+always be marked, whatever happened before it, and what is outstanding is
+**shown, not enforced**.
+
+The reason is section 4's step 8. Readjustment runs on adherence data, so a
+rule that stopped a swimmer recording a session they actually swam would make
+the app lie, and the readjustment would be modelling a fiction.
+
+The lock lives where the record is built, not in a widget: "by any path" means
+the record of a future session never comes into existence. There is a server
+backstop on `registros` as well, which does not opine when the session document
+carries no readable date.
+
+And "no la hice" is not the same absence as "no contesté". The first is data —
+the swimmer was there and said what happened. The second is the lack of it, and
+can mean they forgot, had no signal, or stopped opening the app.
+`ProgresoEnElMacrociclo` keeps them apart because that difference is what the
+coach's readjustment reads.
+
+### Readjustment
+
+Each mesocycle the coach marks gets a new version through the existing lineage,
+in one act, with one notice to the swimmer however many moved. The new versions
+are born as drafts: they pass the audit and carry his signature before they
+reach anyone.
+
+**The macrocycle is not signed again.** Putting a delivered macrocycle back
+through signing returns it to `aprobado`, which is going backwards in the
+lifecycle, and the rules refuse it — what he signed then is still signed. What
+gets signed is the new mesocycle versions, by
+[`firmarYEntregarElReajuste`](../lib/dominio/macrociclo/reajuste.dart).
+
+What the swimmer already recorded is never touched, copied or renamed.
+`registrosDelLinaje` finds it by reading backwards along `versionAnteriorId`.
+Copying the records forward would duplicate what they wrote and the coach would
+read adherence over the double; rewriting them is what FR-035 forbids outright.
+
+### One trap worth knowing
+
+`copiarCon` resolves every field as `nuevo ?? this.campo`, so passing null means
+"leave it alone", not "clear it". A line like `sesion.copiarCon(id: null)`
+**looks** like it strips the identifier and does not. That reading cost feature
+009 a wrong diagnosis: the plan recorded that `crearVersionDesde` renamed every
+session and orphaned the swimmer's records, and it never did. It is pinned now
+in `test/dominio/entidades/plan_mesociclo_test.dart`.
+
 ## The visual system
 
 Everything the app looks like is decided in `lib/ui/tema/` and nowhere else.

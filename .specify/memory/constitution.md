@@ -125,9 +125,26 @@ montar el modelo sobre reglas no codificadas convertiría la tendencia a cumplir
 garantía disponible.
 
 La automatización NO DEBE eliminar los puntos de decisión que la metodología reserva al
-entrenador. Un plan extenso se construye por fases, con su confirmación entre cada una
-(sección 18): generar sesenta sesiones de un golpe incumpliría la metodología aunque cada
-sesión pasara la auditoría.
+entrenador. **Lo que la constitución exige es el punto de decisión, no el número de
+fases.** La sección 18 ordena construir un proyecto extenso en seis fases con su
+confirmación entre cada una, y declara su propio motivo: «esto mejora la precisión y
+reduce errores». Ese motivo se cumple de forma distinta según cómo se genere:
+
+- **Generación determinista.** Basta **una** confirmación del entrenador sobre la
+  estructura general del macrociclo, que es donde vive su criterio: modelar la prueba y
+  modelar al nadador, pasos 2 y 3 de la sección 4. No son datos que una fórmula derive —
+  estilo dominante, errores técnicos, ritmo de paso, tolerancia a la fatiga, recuperación
+  y motivación—, y el software NO DEBE decidirlos. Fijada esa estructura, mesociclos,
+  microciclos y sesiones se derivan por construcción: ahí no queda criterio que delegar,
+  y exigir cinco confirmaciones más sería pedirle que firme aritmética.
+- **Generación asistida por modelo de lenguaje.** Las seis fases con confirmación entre
+  cada una siguen siendo **obligatorias**. Su motivo original sigue vigente: la precisión
+  de una salida larga se degrada, y ahí cada confirmación es un control real y no un
+  trámite.
+
+Lo que no cambia en ninguno de los dos caminos: nada llega a un nadador sin la firma del
+entrenador, y un macrociclo cuya estructura decidiera el software sería su criterio
+delegado aunque cada sesión pasara la auditoría.
 
 Razón: la comunidad se suscribe a un entrenador con nombre propio. La automatización puede
 ahorrarle tiempo; no puede ocupar su lugar ni firmar por él.
@@ -316,4 +333,4 @@ Revisión de cumplimiento: en cada `/speckit-plan` y antes de cerrar cada featur
 verifica el cumplimiento de los ocho principios. La complejidad no justificada se elimina
 o se documenta.
 
-**Version**: 1.2.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-13
+**Version**: 2.0.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-11-04

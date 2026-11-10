@@ -17,6 +17,7 @@ import 'package:natacion_app/dominio/consentimiento/constancia.dart';
 import 'package:natacion_app/dominio/cuentas/cuenta.dart';
 import 'package:natacion_app/dominio/datos_personales/derechos_del_titular.dart';
 import 'package:natacion_app/dominio/entidades/asignacion.dart';
+import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/generacion/resultado.dart';
 import 'package:natacion_app/dominio/hub/destino.dart';
@@ -35,6 +36,7 @@ import 'package:natacion_app/ui/hub/todavia_no.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:natacion_app/ui/nadador/pantalla_mi_progreso.dart';
 import 'package:natacion_app/ui/peticion/peticion_del_nadador.dart';
+import 'package:natacion_app/ui/nadador/mi_macrociclo.dart';
 import 'package:natacion_app/ui/nadador/pantalla_sesion_del_dia.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:provider/provider.dart';
@@ -65,6 +67,12 @@ class ContextoDelHub {
     this.queMirar = QueMirar.todos,
     this.idsQueMirar,
     this.alQuitarElFiltro,
+    this.alEmpezarUnMacrociclo,
+    this.alVerSuMacrociclo,
+    this.quienTieneMacrociclo = const {},
+    this.macrociclos,
+    this.registrosDelNadador,
+    required this.hoy,
     this.alMirar,
     required this.irAVerPlan,
     required this.alGenerar,
@@ -130,6 +138,33 @@ class ContextoDelHub {
   final Future<void> Function() alRevisarPlan;
   final Future<void> Function(Plan, List<String>) alEntregar;
 
+  /// Empezar un macrociclo para un nadador (feature 009).
+  ///
+  /// **La navegación la hace el HUB**, que es quien tiene los repositorios.
+  /// Pasarlos por aquí habría metido tres campos más en un contexto que ya
+  /// lleva treinta, para que esta función los volviera a repartir.
+  final void Function(Nadador)? alEmpezarUnMacrociclo;
+
+  /// Abrir el macrociclo que un nadador ya tiene (feature 009).
+  final void Function(Nadador)? alVerSuMacrociclo;
+
+  /// Quiénes tienen macrociclo, de una sola consulta.
+  final Set<String> quienTieneMacrociclo;
+
+  /// Los macrociclos, para que el nadador lea el suyo. Nulo sin servidor, y
+  /// entonces `Ver Plan` enseña su sesión de hoy, que es lo que la feature 003
+  /// le dio.
+  final RepositorioMacrociclos? macrociclos;
+
+  /// Lo que el nadador escribió, para calcular su progreso. Es el repositorio
+  /// **local**: lo que escribió es suyo y está en su dispositivo primero.
+  final RepositorioRegistros? registrosDelNadador;
+
+  /// Hoy. Entra como dato y no como `DateTime.now()` dentro de la pantalla
+  /// para que una prueba pueda fijarlo: la feature 007 tuvo cuatro pruebas
+  /// del HUB que se pusieron rojas solas al cambiar el día.
+  final DateTime hoy;
+
   /// Lo que `Ajustes` necesita. Todo de quien está dentro y de nadie más.
   final String uid;
   final String? nadadorId;
@@ -194,16 +229,38 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
       nadadores: ctx.nadadores,
       versionMetodologia: ctx.versionMetodologia,
       alEntregar: ctx.alEntregar,
+      alEmpezarUnMacrociclo: ctx.alEmpezarUnMacrociclo,
+      alVerSuMacrociclo: ctx.alVerSuMacrociclo,
+      quienTieneMacrociclo: ctx.quienTieneMacrociclo,
     ),
     Contenido.homeDelEntrenador => HomeDelEntrenador(
       resumen: ctx.resumenDelEntrenador,
       noSePudoContar: ctx.noSePudoContar,
       alMirar: ctx.alMirar,
     ),
-    Contenido.sesionDelDia => ChangeNotifierProvider<EstadoNadador>.value(
-      value: ctx.nadador,
-      child: PantallaSesionDelDia(selector: ctx.selectorDePerfil),
-    ),
+    // `Ver Plan` del nadador (feature 009): su macrociclo entero, y **su
+    // sesión de hoy cuando no tiene ninguno** (M23). La sesión de hoy se
+    // construye igual que antes, con su provider: lo que cambió es que va
+    // dentro, como respaldo, en lugar de ser el contenido del destino.
+    Contenido.miMacrociclo => ctx.macrociclos == null || ctx.nadadorId == null
+        ? ChangeNotifierProvider<EstadoNadador>.value(
+            value: ctx.nadador,
+            child: PantallaSesionDelDia(selector: ctx.selectorDePerfil),
+          )
+        : PantallaMiMacrociclo(
+            nadadorId: ctx.nadadorId!,
+            macrociclos: ctx.macrociclos!,
+            planes: ctx.repositorioPlanes!,
+            registros: ctx.registrosDelNadador!,
+            hoy: ctx.hoy,
+            // Para que pueda marcar desde cualquier sesión del macrociclo,
+            // con el mismo formulario de la feature 003.
+            estado: ctx.nadador,
+            sinMacrociclo: ChangeNotifierProvider<EstadoNadador>.value(
+              value: ctx.nadador,
+              child: PantallaSesionDelDia(selector: ctx.selectorDePerfil),
+            ),
+          ),
     Contenido.miProgreso => ChangeNotifierProvider<EstadoNadador>.value(
       value: ctx.nadador,
       child: const PantallaMiProgreso(),

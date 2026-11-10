@@ -213,7 +213,7 @@ state can approve its own request
 - [X] T061 Run the four gates and require all green: `flutter analyze`, `flutter test`, `npm --prefix firebase test`, `npm --prefix firebase/functions test`. **The Dart test count does not go down.** A test from an earlier feature that fails means this feature changed a behaviour it had no business changing: fix this feature, not that test
 - [X] T062 Walk C1 to C12 of [quickstart.md](./quickstart.md) in the browser against the emulators, with both accounts
 - [X] T063 Walk C12 on the Android emulator as well — it is the one that protects a minor, and feature 007 proved that four defects out of eight were only visible on a phone
-- [ ] T064 [P] Mark feature 008 as merged in `docs/ROADMAP.md` once it is
+- [X] T064 [P] Mark feature 008 as merged in `docs/ROADMAP.md` once it is
 
 ---
 

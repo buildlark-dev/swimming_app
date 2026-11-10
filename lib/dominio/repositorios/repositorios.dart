@@ -14,6 +14,7 @@ import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
+import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
 import 'package:natacion_app/dominio/metodologia/categorias.dart';
 import 'package:natacion_app/dominio/peticiones/peticion.dart';
 
@@ -38,10 +39,97 @@ abstract class RepositorioPlanes {
   /// Guarda un plan ya aprobado, con su instantánea de auditoría.
   Future<void> guardarAprobado(Plan plan, Map<String, dynamic> auditoria);
 
+  /// Mueve un plan firmado a publicado. **Firmar no es entregar.**
+  ///
+  /// Es su propio método y no un `guardarAprobado` con el estado cambiado,
+  /// porque **entregar solo puede tocar el estado**. Lo firmado es inmutable
+  /// (FR-025) y la regla de Firestore acepta la entrega únicamente cuando el
+  /// diff afecta a `estado` y a nada más.
+  ///
+  /// Se entregaba con `guardarAprobado`, que reescribe el documento entero
+  /// —incluida la instantánea de auditoría— y por tanto cambia más de un
+  /// campo. La regla lo rechazaba y entregar fallaba con «The caller does not
+  /// have permission to execute the specified operation». Lo encontró el
+  /// recorrido C8 de la feature 009; afecta igual a la entrega de la 007.
+  Future<void> publicar(String id);
+
   /// Crea una versión nueva en borrador desde un plan aprobado (FR-025).
   Future<Plan> crearVersionDesde(String idAprobado);
 
   /// Exporta el plan completo en un formato legible sin la app (FR-031).
+  Future<Map<String, dynamic>> exportar(String id);
+}
+
+/// Los macrociclos: el nivel de encima del plan (feature 009).
+///
+/// **No hay `RepositorioMesociclos`.** Un mesociclo es un `Plan`, así que lo
+/// guarda y lo versiona `RepositorioPlanes`, con el ciclo de vida y el linaje
+/// que ya tiene probados desde la feature 001 (decisión D1).
+///
+/// Lo que el nadador puede hacer aquí es **leer el suyo**. Un macrociclo es
+/// trabajo del entrenador y nada de él es del nadador para cambiarlo, así que
+/// esta interfaz no ofrece ninguna escritura que un dispositivo de nadador
+/// pueda llamar, y las reglas lo comprueban aparte.
+///
+/// Contrato: `specs/009-plan-progression/contracts/macrociclo_y_progresion.md`.
+abstract class RepositorioMacrociclos {
+  Future<Macrociclo?> obtener(String id);
+
+  /// Los que ya se le **entregaron** a un nadador, del más reciente al más
+  /// antiguo.
+  ///
+  /// **Entregados, no todos.** Es lo único que un nadador puede leer, y la
+  /// regla de Firestore lo exige como parte de la consulta: una que no diga
+  /// «entregado» no se puede demostrar contra la regla y el servidor la
+  /// rechaza entera. Si algún día el entrenador necesita ver los borradores
+  /// de un nadador, eso es otra pregunta y lleva otro método: dejar que esta
+  /// los devuelva volvería a romper la pantalla de la nadadora.
+  Future<List<Macrociclo>> deNadador(String nadadorId);
+
+  /// Qué macrociclo tiene cada nadador: `nadadorId` -> `macrocicloId`.
+  ///
+  /// **Una sola consulta**, como `nadadoresConRegistros` de la feature 008 y
+  /// por lo mismo: la lista de nadadores la pinta el entrenador, y preguntar
+  /// ficha por ficha serían N lecturas para dibujar una pantalla.
+  ///
+  /// Es del entrenador: la regla le deja leer los macrociclos de su
+  /// comunidad, y a un nadador solo el suyo y entregado.
+  ///
+  /// Si un nadador tuviera más de uno, gana **el de la competencia más
+  /// próxima**, que es con el que está trabajando.
+  Future<Map<String, String>> macrocicloPorNadador();
+
+  /// Guarda un borrador. Devuelve el identificador asignado.
+  Future<String> guardarBorrador(Macrociclo macrociclo);
+
+  /// Guarda un macrociclo ya firmado, con su instantánea de auditoría.
+  ///
+  /// La instantánea viaja aquí por la misma razón que en los planes: la
+  /// auditoría de la sección 16 es parte de lo que se firmó, no un informe
+  /// aparte que se pueda perder.
+  Future<void> guardarAprobado(
+    Macrociclo macrociclo,
+    Map<String, dynamic> auditoria,
+  );
+
+  /// Mueve el macrociclo a publicado. **Firmar no es entregar.**
+  Future<void> publicar(String id);
+
+  /// Apunta el macrociclo entregado a las versiones nuevas de sus mesociclos y
+  /// deja el aviso para el nadador (M31, M32).
+  ///
+  /// Es **una escritura** por reajuste, por muchos mesociclos que haya movido:
+  /// de ahí que el nadador se entere una vez. Y es la única escritura que se
+  /// permite sobre un macrociclo entregado, porque el reajuste es un acto del
+  /// entrenador sobre lo que ya entregó: no cambia lo que firmó, cambia a qué
+  /// versión apunta.
+  Future<void> anunciarElReajuste(
+    String id, {
+    required List<String> mesociclos,
+    required ReajusteAnunciado aviso,
+  });
+
+  /// Exporta el macrociclo completo en un formato legible sin la app.
   Future<Map<String, dynamic>> exportar(String id);
 }
 

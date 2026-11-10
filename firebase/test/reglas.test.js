@@ -296,6 +296,67 @@ test('A5 — el entrenador lee los registros pero NO los escribe', async () => {
   );
 });
 
+// --- Y la CONSULTA, que es la que hace la app ---------------------------
+//
+// Las pruebas de arriba leen un registro por su identificador. La app no hace
+// eso: pide *los de este nadador en este plan*, con una consulta. Y en
+// Firestore una consulta no se evalua documento a documento — el servidor
+// exige poder demostrar, mirando solo los filtros, que todo lo que podria
+// devolver es legible.
+//
+// Es el mismo hueco que la feature 009 encontro en los macrociclos: siete
+// positivas sobre la coleccion y ninguna hacia la consulta de la app, asi que
+// la pantalla fallaba con el dato bien guardado. Aqui se escribe antes de que
+// la nadadora lea su historial del servidor.
+
+test('la nadadora consulta SUS registros de un plan', async () => {
+  await darDeAlta('u-n1', 'n1', { conConsentimiento: true });
+  await sembrar(async (db) => {
+    await db.collection('registros').doc('n1|p1|s1|3.5.0').set(unRegistro);
+  });
+
+  await assertSucceeds(
+    comoNadador('u-n1')
+      .collection('registros')
+      .where('nadadorId', '==', 'n1')
+      .where('planId', '==', 'p1')
+      .get(),
+  );
+});
+
+test('la nadadora NO consulta por plan a secas', async () => {
+  // Sin decir de quien, la consulta devolveria los de sus companeros.
+  await darDeAlta('u-n1', 'n1', { conConsentimiento: true });
+  await sembrar(async (db) => {
+    await db.collection('registros').doc('n1|p1|s1|3.5.0').set(unRegistro);
+  });
+
+  await assertFails(
+    comoNadador('u-n1')
+      .collection('registros')
+      .where('planId', '==', 'p1')
+      .get(),
+  );
+});
+
+test('la nadadora NO consulta los registros de otra', async () => {
+  await darDeAlta('u-n1', 'n1', { conConsentimiento: true });
+  await sembrar(async (db) => {
+    await db
+      .collection('registros')
+      .doc('n2|p1|s1|3.5.0')
+      .set({ ...unRegistro, nadadorId: 'n2' });
+  });
+
+  await assertFails(
+    comoNadador('u-n1')
+      .collection('registros')
+      .where('nadadorId', '==', 'n2')
+      .where('planId', '==', 'p1')
+      .get(),
+  );
+});
+
 test('reenviar el mismo registro lo sobrescribe, no lo duplica', async () => {
   // El identificador del documento es el identificador determinista del
   // registro: dos envios escriben el mismo documento (FR-020, decision D2).
