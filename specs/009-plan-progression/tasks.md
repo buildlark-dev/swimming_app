@@ -499,9 +499,10 @@ risk M34 names is real, but it came from the reader, not from the ids.
       with the editing tools, not a `perl -i` pass — one mangled the non-ASCII lines in feature
       008 and had to be reverted.
 - [X] T083 [P] Mark feature 009 on the roadmap in `docs/ROADMAP.md` once the PR merges.
-- [X] T084 Run the four gates. Done on 2026-11-05, all green: `flutter analyze` no issues,
-      `flutter test` **1910** (baseline 1595, so nothing from an earlier feature was lost),
-      `npm --prefix firebase test` 137, `npm --prefix firebase/functions test` 45.
+- [X] T084 Run the four gates. Run again on 2026-11-10 with the walk closed, all green:
+      `flutter analyze` no issues, `flutter test` **1944** (baseline 1595, and 1910 before the
+      walk started: the 34 added are the locks the walk's seven defects needed),
+      `npm --prefix firebase test` **143**, `npm --prefix firebase/functions test` **45**.
 - [X] T085 Walk C1 to C8 as the coach against the emulator, checking C4 in the emulator's own
       data and not on the screen. **Done twice on the Pixel 7 (2026-11-06).** It found two
       rule-level defects no Dart test could reach, both fixed in `a47af50`: signing rewrote
@@ -510,10 +511,13 @@ risk M34 names is real, but it came from the reader, not from the ids.
       feature 007's delivery too. Checked in the emulator, not on the screen: the delivered
       macrocycle holds 3 published mesocycles with 6 + 12 + 6 sessions written in their
       subcollections and one assignment each.
-- [ ] T086 Walk C9 to C11 as the swimmer. **C9 and C10 done on the Pixel 7
-      (2026-11-07); C11 still open**, because it needs a readjustment, which is
-      the coach's act. Between them they found three defects, each fixed with
-      its lock verified red first:
+- [X] T086 Walk C9 to C11 as the swimmer. **Done on the Pixel 7: C9 and C10 on
+      2026-11-07, C11 on 2026-11-10** once the coach had readjusted. C11 holds:
+      she is told, once and in Spanish, that her coach adjusted block 1 and
+      that what she had already written is still there.
+
+      C9 and C10 found three defects, each fixed with its lock verified red
+      first:
       - `75a765f` the swimmer could not list her own macrocycle at all. A
         Firestore query is proven by its filters, and the client filtered only
         by `nadadorId` while the rule says "hers AND delivered".
@@ -535,9 +539,9 @@ risk M34 names is real, but it came from the reader, not from the ids.
       worked: the app named the one she missed instead of blocking her, and
       after the fix the counter moved to "2 de 24" with no restart.
 
-- [ ] T087 Walk **C12 and C13 last and carefully**, checking the records against the emulator
+- [X] T087 Walk **C12 and C13 last and carefully**, checking the records against the emulator
       rather than the screen. Feature 008 found six defects by walking, five of them invisible
-      because the app kept working. **C12 done on the Pixel 7 (2026-11-10); C13 half done.**
+      because the app kept working. **Both done on the Pixel 7, 2026-11-10.**
 
       C12 holds, checked in the emulator rather than on screen: one `ultimoReajuste` for the
       whole act, block 1 replaced by a new plan carrying `versionAnteriorId` back to the old
@@ -547,15 +551,25 @@ risk M34 names is real, but it came from the reader, not from the ids.
 
       C13 found two chained defects and both are fixed -- `b7a5120`, the screen never called
       `registrosDelLinaje`, and `22d25be`, which that fix uncovered, where reading her history
-      needed a plan that is no longer hers. The second is verified on the phone: the permission
-      error is gone. **The counting is not yet verified on the phone**, because the scenario was
-      seeded into Firestore and the swimmer's screen reads local records (see the finding
-      below). Verifying it needs her to mark through the app and the readjustment to happen
-      after.
+      needed a plan that is no longer hers.
+
+      **Closed on the phone, with the real condition reproduced.** The first attempt did not
+      prove anything and it is worth saying why: the scenario had been seeded into Firestore,
+      and her screen reads local records, so nothing of it reached the screen. What worked was
+      having her mark two sessions through the app -- those land locally, against the version
+      she is on -- and only then simulating the readjustment: a new version born from the one
+      she had marked, the macrocycle pointed at it, the new one assigned and **the previous one
+      retired**, which is exactly what makes it unreadable to her.
+
+      Reading the new version, the screen then said "Sesiones cumplidas: 2 de 10", the block
+      "2 de 6", and named only the third past session as pending. Her marks live on a version
+      that is no longer hers and are counted all the same. That is the lineage working across a
+      readjustment, and it makes "Lo que ya habías anotado sigue ahí" true.
 
       **Finding, not a 009 defect, recorded here because it collides with what this screen
       promises.** `PantallaMiMacrociclo` is handed `registrosLocales`, so a swimmer's history
-      comes only from her own device. The server has it -- `registrosDelServidor` exists and the
+      comes only from her own device -- confirmed by reading the phone's own store, which holds
+      only what the app wrote. The server has it -- `registrosDelServidor` exists and the
       coach's count uses it -- but her screen never reads it. Change phone or reinstall and
       "Sesiones cumplidas" goes back to zero with the data safe on the server. That is feature
       003's local-first design working as built, and it is right that writing never waits on the
@@ -564,9 +578,12 @@ risk M34 names is real, but it came from the reader, not from the ids.
       her screen should fall back to the server when local is empty, and it is the coach's to
       take.
 
-- [ ] T088 Walk C9 again on the Android Pixel 7 emulator. Feature 008's sixth defect was only
-      visible on a phone, and folding controls are exactly what a browser flatters.
-- [ ] T089 Measure the derivation where the coach is: fourteen generator calls on the Android
+- [X] T088 Walk C9 again on the Android Pixel 7 emulator. Feature 008's sixth defect was only
+      visible on a phone, and folding controls are exactly what a browser flatters. **Covered by
+      T086:** the whole walk ran on the Pixel 7 and nowhere else, and two of its three defects
+      were ones a browser would have flattered -- the scrambled path and the screen that never
+      refreshed after marking.
+- [X] T089 Measure the derivation where the coach is: fourteen generator calls on the Android
       emulator, not in a test. If it blocks the UI it will block it there first. **Measured
       once:** confirming the structure returned the review screen in 8.4 s for 3 mesocycles,
       8 microcycles and 24 sessions, with no frozen UI. Worth repeating at six sessions a week.
