@@ -537,7 +537,33 @@ risk M34 names is real, but it came from the reader, not from the ids.
 
 - [ ] T087 Walk **C12 and C13 last and carefully**, checking the records against the emulator
       rather than the screen. Feature 008 found six defects by walking, five of them invisible
-      because the app kept working.
+      because the app kept working. **C12 done on the Pixel 7 (2026-11-10); C13 half done.**
+
+      C12 holds, checked in the emulator rather than on screen: one `ultimoReajuste` for the
+      whole act, block 1 replaced by a new plan carrying `versionAnteriorId` back to the old
+      one, blocks 2 and 3 untouched, the previous assignment retired, and her records intact.
+      It also found `1f3765f`: the new version lost its methodology stamp, its macrocycle and
+      its position in it.
+
+      C13 found two chained defects and both are fixed -- `b7a5120`, the screen never called
+      `registrosDelLinaje`, and `22d25be`, which that fix uncovered, where reading her history
+      needed a plan that is no longer hers. The second is verified on the phone: the permission
+      error is gone. **The counting is not yet verified on the phone**, because the scenario was
+      seeded into Firestore and the swimmer's screen reads local records (see the finding
+      below). Verifying it needs her to mark through the app and the readjustment to happen
+      after.
+
+      **Finding, not a 009 defect, recorded here because it collides with what this screen
+      promises.** `PantallaMiMacrociclo` is handed `registrosLocales`, so a swimmer's history
+      comes only from her own device. The server has it -- `registrosDelServidor` exists and the
+      coach's count uses it -- but her screen never reads it. Change phone or reinstall and
+      "Sesiones cumplidas" goes back to zero with the data safe on the server. That is feature
+      003's local-first design working as built, and it is right that writing never waits on the
+      network. What is new is that feature 009 put a number on top of it and tells her "Lo que ya
+      habías anotado sigue ahí". On a new device that sentence is false. The decision is whether
+      her screen should fall back to the server when local is empty, and it is the coach's to
+      take.
+
 - [ ] T088 Walk C9 again on the Android Pixel 7 emulator. Feature 008's sixth defect was only
       visible on a phone, and folding controls are exactly what a browser flatters.
 - [ ] T089 Measure the derivation where the coach is: fourteen generator calls on the Android
