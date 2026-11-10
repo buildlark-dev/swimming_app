@@ -189,6 +189,22 @@ class RepositorioPlanesFirestore implements RepositorioPlanes {
       origen: aprobado.origen,
       justificaciones: aprobado.justificaciones,
       versionAnteriorId: idAprobado,
+      // **Lo que sitúa al mesociclo viaja con la versión nueva.**
+      //
+      // Se quedaban fuera y el recorrido en el Pixel 7 lo destapó: tras
+      // reajustar, la pantalla de revisión decía «Metodología sin sellar»
+      // en ese bloque y solo en ese. Sellar cada nivel con la versión bajo
+      // la que se construyó es un requisito de la feature, y el reajuste
+      // lo borraba.
+      //
+      // Los otros dos duelen igual. Sin `macrocicloId` la versión nueva
+      // deja de saber de qué macrociclo es. Y sin `ordenEnElMacrociclo`,
+      // `progreso_en_el_macrociclo` cae a `?? 0` y al nadador se le dice
+      // que va por el **bloque 1** aunque esté en el dos: un número
+      // equivocado, dicho sin dudar.
+      versionMetodologia: aprobado.versionMetodologia,
+      macrocicloId: aprobado.macrocicloId,
+      ordenEnElMacrociclo: aprobado.ordenEnElMacrociclo,
     );
 
     // **Las sesiones conservan su identificador, y eso no es un detalle.**
