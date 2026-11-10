@@ -53,21 +53,52 @@ Future<List<RegistroDeSesion>> registrosDelLinaje({
   // girando para siempre.
   final vistos = <String>{};
 
+  // **Se camina por identificadores, no por documentos.**
+  //
+  // Los registros son del nadador y los puede leer siempre; el documento del
+  // plan viejo, no. `firmarYEntregarElReajuste` retira la asignación de la
+  // versión anterior —trabaja con una, y eso está bien— y la regla de planes
+  // se apoya en la asignación para dejar leer. Así que la versión vieja deja
+  // de ser legible justo cuando hace falta para el historial.
+  //
+  // Pedir el plan primero y leer sus registros después hacía que una
+  // negativa tapara la pantalla entera: en el Pixel 7, «No se pudo cargar tu
+  // plan: The caller does not have permission…» en lugar de su camino. Ahora
+  // los registros de cada versión se leen por su identificador, y el plan se
+  // pide **solo para saber cuál es la siguiente hacia atrás**. Si no se puede,
+  // se devuelve lo reunido.
+  //
+  // Queda un límite, y es honesto decirlo aquí: con dos reajustes encadenados
+  // la generación más vieja se pierde de vista, porque llegar a ella pediría
+  // un plan intermedio que tampoco es suyo. Quitarlo es una decisión de
+  // diseño —no retirar la asignación, o ensanchar la regla— y no se toma
+  // desde aquí.
+  String? id = mesociclo.id;
   Plan? actual = mesociclo;
   var vueltas = 0;
 
-  while (actual != null && vueltas < versionesQueSeMiranHaciaAtras) {
+  while (id != null && vueltas < versionesQueSeMiranHaciaAtras) {
     vueltas++;
 
-    final id = actual.id;
-    if (id == null || !vistos.add(id)) break;
+    if (!vistos.add(id)) break;
 
     for (final registro in await registros.obtenerDePlan(nadadorId, id)) {
       porSesion.putIfAbsent(registro.sesionId, () => registro);
     }
 
-    final anterior = actual.versionAnteriorId;
-    actual = anterior == null ? null : await planes.obtener(anterior);
+    // El salto hacia atrás. `actual` puede ser nulo si el plan de esta vuelta
+    // no se pudo leer: entonces no hay forma de saber qué hubo antes.
+    final anterior = actual?.versionAnteriorId;
+    if (anterior == null) break;
+
+    try {
+      actual = await planes.obtener(anterior);
+    } on FalloDeDatos {
+      // Ya no es suyo. Lo que anotó en él sí: se lee en la vuelta siguiente
+      // por su identificador, y ahí se para.
+      actual = null;
+    }
+    id = anterior;
   }
 
   return List.unmodifiable(porSesion.values);
