@@ -22,6 +22,7 @@ import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
+import 'package:natacion_app/dominio/macrociclo/registros_del_linaje.dart';
 import 'package:natacion_app/dominio/macrociclo/progreso_en_el_macrociclo.dart';
 import 'package:natacion_app/dominio/macrociclo/puede_marcarse.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
@@ -116,18 +117,42 @@ class _PantallaMiMacrocicloState extends State<PantallaMiMacrociclo> {
     final mesociclos = _mesociclos;
     if (mesociclos.isEmpty) return;
 
-    final registros = <RegistroDeSesion>[];
-    for (final mesociclo in mesociclos) {
-      if (mesociclo.id == null) continue;
-      registros.addAll(
-        await widget.registros.obtenerDePlan(widget.nadadorId, mesociclo.id!),
-      );
-    }
+    final registros = await _loQueAnoto(mesociclos);
 
     if (!mounted) return;
     setState(() => _registros = registros);
   }
 
+  /// Lo que el nadador anotó, **siguiendo el linaje de versiones**.
+  ///
+  /// Un reajuste crea una versión nueva del mesociclo: un plan nuevo, con
+  /// identificador nuevo. Los registros apuntan al plan en el que se
+  /// escribieron, así que leer solo los mesociclos actuales encuentra cero.
+  ///
+  /// Esto se vio en el Pixel 7, y es lo peor que ha dado esta feature porque
+  /// la app se contradice en la misma pantalla: arriba «Lo que ya habías
+  /// anotado sigue ahí» y debajo «Sesiones cumplidas: 0 de 24», con las dos
+  /// que acababa de marcar listadas como pendientes.
+  ///
+  /// `registrosDelLinaje` existe para exactamente esto, con sus pruebas desde
+  /// que se escribió, y **nadie lo llamaba**. Estaba hecho y sin conectar.
+  Future<List<RegistroDeSesion>> _loQueAnoto(List<Plan> mesociclos) async {
+    final registros = <RegistroDeSesion>[];
+
+    for (final mesociclo in mesociclos) {
+      if (mesociclo.id == null) continue;
+      registros.addAll(
+        await registrosDelLinaje(
+          mesociclo: mesociclo,
+          nadadorId: widget.nadadorId,
+          registros: widget.registros,
+          planes: widget.planes,
+        ),
+      );
+    }
+
+    return registros;
+  }
   Future<void> _cargar() async {
     try {
       final suyos = await widget.macrociclos.deNadador(widget.nadadorId);
@@ -154,13 +179,7 @@ class _PantallaMiMacrocicloState extends State<PantallaMiMacrociclo> {
         if (plan != null) mesociclos.add(plan);
       }
 
-      final registros = <RegistroDeSesion>[];
-      for (final mesociclo in mesociclos) {
-        if (mesociclo.id == null) continue;
-        registros.addAll(
-          await widget.registros.obtenerDePlan(widget.nadadorId, mesociclo.id!),
-        );
-      }
+      final registros = await _loQueAnoto(mesociclos);
 
       if (!mounted) return;
       setState(() {

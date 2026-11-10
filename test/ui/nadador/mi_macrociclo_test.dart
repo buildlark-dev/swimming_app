@@ -632,6 +632,181 @@ void main() {
     });
   });
 
+
+  group('C13 — y la PANTALLA sigue contando lo que anotó', () {
+    testWidgets('tras un reajuste, lo marcado antes sigue contando', (
+      tester,
+    ) async {
+      // **El recorrido en el Pixel 7 lo encontró, y es el peor de la serie
+      // porque la app se contradice a sí misma en la misma pantalla.** Ana
+      // había marcado dos sesiones. Su entrenador reajustó el bloque 1. Y
+      // arriba le salía:
+      //
+      //     Tu entrenador ajustó tu plan
+      //     Lo que ya habías anotado sigue ahí: esto cambia lo que viene,
+      //     no lo que hiciste.
+      //
+      //     Sesiones cumplidas: 0 de 24
+      //     Te quedaron 2 sesiones por marcar: la del 2/11, la del 4/11
+      //
+      // Las dos que había marcado. El dato estaba intacto en el servidor:
+      // los registros apuntan al plan en el que se escribieron, y un reajuste
+      // crea un plan nuevo con identificador nuevo.
+      //
+      // `registrosDelLinaje` existe para exactamente esto, con sus pruebas, y
+      // **ninguna pantalla lo llamaba**. La pantalla leía
+      // `obtenerDePlan(nadadorId, mesociclo.id)` sobre los mesociclos
+      // actuales, así que lo escrito en la versión anterior desaparecía de la
+      // vista. La pieza estaba hecha y sin conectar, que es la forma que
+      // tienen todos los defectos de este recorrido.
+      //
+      // Por eso esto no prueba `registrosDelLinaje` —ya tiene sus pruebas—
+      // sino que la pantalla lo usa.
+      final guardado = await entregado();
+      final bloque1 = guardado.mesociclos.first;
+
+      // Ana marca dos sesiones del bloque 1, antes de que nadie reajuste.
+      final suyas = bloque1.sesiones.take(2).toList();
+      for (final sesion in suyas) {
+        await registros.guardar(
+          RegistroDeSesion(
+            nadadorId: 'n-ana',
+            planId: bloque1.id!,
+            sesionId: sesion.id!,
+            versionDePlan: '3.6.0',
+            realizada: true,
+            registradoEn: hoyDePrueba,
+          ),
+        );
+      }
+
+      // Y el entrenador reajusta ese bloque.
+      final reajustado = await reajustarElMacrociclo(
+        macrociclo: guardado.macrociclo,
+        mesociclos: guardado.mesociclos,
+        cualesSeReajustan: {bloque1.id!},
+        planes: repos.planes,
+        macrociclos_: repos.macrociclos,
+        hoy: hoyDePrueba,
+      );
+      await firmarYEntregarElReajuste(
+        reajustado: reajustado,
+        planes: repos.planes,
+        asignaciones: repos.asignaciones,
+        hoy: hoyDePrueba,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: Tema.claro(),
+          home: Scaffold(
+            body: PantallaMiMacrociclo(
+              nadadorId: 'n-ana',
+              macrociclos: repos.macrociclos,
+              planes: repos.planes,
+              registros: registros,
+              hoy: hoyDePrueba,
+              sinMacrociclo: const Text('Tu sesión de hoy (feature 003)'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('cuantas-cumplidas')))
+            .data!,
+        contains('2 de'),
+        reason:
+            'el reajuste le dejó el historial en blanco en la pantalla, '
+            'con el dato intacto en el servidor',
+      );
+    });
+
+    testWidgets('y no se las vuelve a pedir como pendientes', (tester) async {
+      // La otra cara, y la que Ana vio: las dos que había marcado aparecían
+      // en «te quedaron por marcar». Decirle que no hizo lo que hizo.
+      //
+      // **Tres sesiones pasadas y solo dos marcadas**, a propósito: con las
+      // tres marcadas el aviso de pendientes no aparece y la prueba pasaría
+      // sin distinguir «no la lista» de «no hay lista». La tercera obliga a
+      // que el aviso exista y a que nombre a esa y solo a esa.
+      final guardado = await entregado();
+      final bloque1 = guardado.mesociclos.first;
+
+      final pasadas = bloque1.sesiones.take(3).toList();
+      final suyas = pasadas.take(2).toList();
+      final sinMarcar = pasadas.last;
+      for (final sesion in suyas) {
+        await registros.guardar(
+          RegistroDeSesion(
+            nadadorId: 'n-ana',
+            planId: bloque1.id!,
+            sesionId: sesion.id!,
+            versionDePlan: '3.6.0',
+            realizada: true,
+            registradoEn: hoyDePrueba,
+          ),
+        );
+      }
+
+      final reajustado = await reajustarElMacrociclo(
+        macrociclo: guardado.macrociclo,
+        mesociclos: guardado.mesociclos,
+        cualesSeReajustan: {bloque1.id!},
+        planes: repos.planes,
+        macrociclos_: repos.macrociclos,
+        hoy: hoyDePrueba,
+      );
+      await firmarYEntregarElReajuste(
+        reajustado: reajustado,
+        planes: repos.planes,
+        asignaciones: repos.asignaciones,
+        hoy: hoyDePrueba,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: Tema.claro(),
+          home: Scaffold(
+            body: PantallaMiMacrociclo(
+              nadadorId: 'n-ana',
+              macrociclos: repos.macrociclos,
+              planes: repos.planes,
+              registros: registros,
+              // **Ya pasadas**, o no serían pendientes y la prueba pasaría
+              // sola sin comprobar nada.
+              hoy: sinMarcar.fecha!.add(const Duration(days: 1)),
+              sinMacrociclo: const Text('Tu sesión de hoy (feature 003)'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // La tercera sí está pendiente: si esto no sale, la prueba de abajo no
+      // comprueba nada.
+      expect(
+        find.byKey(const Key('lo-que-quedo-pendiente')),
+        findsOneWidget,
+        reason: 'sin aviso de pendientes esta prueba no comprueba nada',
+      );
+      expect(
+        find.textContaining('La del ${sinMarcar.fecha!.day}/'),
+        findsOneWidget,
+        reason: 'la que de verdad quedó pendiente tiene que nombrarse',
+      );
+
+      for (final sesion in suyas) {
+        expect(
+          find.textContaining('La del ${sesion.fecha!.day}/'),
+          findsNothing,
+          reason: 'le pide marcar una sesión que ya marcó',
+        );
+      }
+    });
+  });
 }
 
 /// Registros en memoria, sembrables, que responden por plan como el de verdad.
