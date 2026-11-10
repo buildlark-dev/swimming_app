@@ -499,10 +499,10 @@ risk M34 names is real, but it came from the reader, not from the ids.
       with the editing tools, not a `perl -i` pass — one mangled the non-ASCII lines in feature
       008 and had to be reverted.
 - [X] T083 [P] Mark feature 009 on the roadmap in `docs/ROADMAP.md` once the PR merges.
-- [X] T084 Run the four gates. Run again on 2026-11-10 with the walk closed, all green:
-      `flutter analyze` no issues, `flutter test` **1944** (baseline 1595, and 1910 before the
-      walk started: the 34 added are the locks the walk's seven defects needed),
-      `npm --prefix firebase test` **143**, `npm --prefix firebase/functions test` **45**.
+- [X] T084 Run the four gates. Run again on 2026-11-10 with the walk closed and its finding
+      fixed, all green: `flutter analyze` no issues, `flutter test` **1958** (baseline 1595, and
+      1910 before the walk started), `npm --prefix firebase test` **146**,
+      `npm --prefix firebase/functions test` **45**.
 - [X] T085 Walk C1 to C8 as the coach against the emulator, checking C4 in the emulator's own
       data and not on the screen. **Done twice on the Pixel 7 (2026-11-06).** It found two
       rule-level defects no Dart test could reach, both fixed in `a47af50`: signing rewrote
@@ -566,17 +566,24 @@ risk M34 names is real, but it came from the reader, not from the ids.
       that is no longer hers and are counted all the same. That is the lineage working across a
       readjustment, and it makes "Lo que ya habías anotado sigue ahí" true.
 
-      **Finding, not a 009 defect, recorded here because it collides with what this screen
-      promises.** `PantallaMiMacrociclo` is handed `registrosLocales`, so a swimmer's history
-      comes only from her own device -- confirmed by reading the phone's own store, which holds
-      only what the app wrote. The server has it -- `registrosDelServidor` exists and the
-      coach's count uses it -- but her screen never reads it. Change phone or reinstall and
-      "Sesiones cumplidas" goes back to zero with the data safe on the server. That is feature
-      003's local-first design working as built, and it is right that writing never waits on the
-      network. What is new is that feature 009 put a number on top of it and tells her "Lo que ya
-      habías anotado sigue ahí". On a new device that sentence is false. The decision is whether
-      her screen should fall back to the server when local is empty, and it is the coach's to
-      take.
+      **The finding this walk recorded is now closed.** `PantallaMiMacrociclo` was handed
+      `registrosLocales`, so a swimmer's history came only from her own device -- confirmed by
+      reading the phone's own store, which held nothing but what the app had written. The server
+      had it, `RegistrosFirestore` had known how to read it since feature 007, and nobody read it
+      for her: the third piece this feature found written and never connected. Change phone or
+      reinstall and "Sesiones cumplidas" went back to zero, right under a sentence that says "Lo
+      que ya habías anotado sigue ahí".
+
+      Closed by `RegistrosDeLasDosPartes`, which reads both sides with local winning, and by the
+      HUB handing her that instead of the device alone. Writing is untouched: it still goes to
+      the device and queues afterwards, because a swimmer at the poolside does not wait for the
+      network (G1), and a server that does not answer costs nothing -- she gets what is on the
+      phone and never finds out (A8). Deleting still never reaches the server from the client,
+      which the rules demand and a lock now states.
+
+      Verified on a wiped install: with the local store empty and the two records living only on
+      the server, the screen read "Sesiones cumplidas: 2 de 10" and named only the session she
+      had really missed.
 
 - [X] T088 Walk C9 again on the Android Pixel 7 emulator. Feature 008's sixth defect was only
       visible on a phone, and folding controls are exactly what a browser flatters. **Covered by

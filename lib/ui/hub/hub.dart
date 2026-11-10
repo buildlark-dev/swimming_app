@@ -235,7 +235,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
       final registros = plan == null
           ? <RegistroDeSesion>[]
-          : await _repos.registrosLocales.obtenerDePlan(
+          // Su teléfono y el servidor: entrar desde otro aparato no le
+          // borra lo que ya había contestado.
+          : await _repos.registrosDelNadador.obtenerDePlan(
               nadadorId,
               plan.id ?? '',
             );
@@ -365,7 +367,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     final plan = planDe(nadador, _planes, _asignaciones);
     final registros = plan == null
         ? <RegistroDeSesion>[]
-        : await _repos.registrosLocales.obtenerDePlan(
+        : await _repos.registrosDelNadador.obtenerDePlan(
             nadador.id ?? '',
             plan.id ?? '',
           );
@@ -574,7 +576,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
           : _verSuMacrociclo,
       quienTieneMacrociclo: _macrocicloDe.keys.toSet(),
       macrociclos: widget.recursos.firestore == null ? null : _repos.macrociclos,
-      registrosDelNadador: _repos.registrosLocales,
+      // **Su teléfono y el servidor**: su historial no se queda en un
+      // aparato (hallazgo del recorrido de la 009).
+      registrosDelNadador: _repos.registrosDelNadador,
       hoy: widget.hoyParaPruebas ?? DateTime.now(),
       selectorDePerfil: _selector,
       uid: widget.cuenta?.id ?? '',

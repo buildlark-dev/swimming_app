@@ -11,6 +11,7 @@
 library;
 
 import 'package:natacion_app/datos/firestore/consentimientos.dart';
+import 'package:natacion_app/datos/registros_de_las_dos_partes.dart';
 import 'package:natacion_app/datos/firestore/macrociclos_firestore.dart';
 import 'package:natacion_app/datos/firestore/peticiones_firestore.dart';
 import 'package:natacion_app/datos/peticiones/peticiones_con_puerta.dart';
@@ -123,4 +124,20 @@ class RepositoriosDelHub {
   /// Lo que el resumen del entrenador consulta para contar «en uso».
   RepositorioRegistros get registrosParaContar =>
       registrosDelServidor ?? registrosLocales;
+
+  /// Lo que el **nadador** lee de sí mismo: su teléfono y el servidor.
+  ///
+  /// Hasta la feature 009 esto era `registrosLocales` a secas, y su historial
+  /// se quedaba en el aparato donde lo escribió: cambiar de móvil o
+  /// reinstalar le dejaba la cuenta en cero, con el dato a salvo en el
+  /// servidor y debajo de una frase que dice «Lo que ya habías anotado sigue
+  /// ahí».
+  ///
+  /// Sin servidor se queda en lo local, que es lo único que hay.
+  RepositorioRegistros get registrosDelNadador {
+    final remoto = registrosDelServidor;
+    return remoto == null
+        ? registrosLocales
+        : RegistrosDeLasDosPartes(local: registrosLocales, servidor: remoto);
+  }
 }
