@@ -40,11 +40,7 @@ requires is the decision point, not the number of phases, and a deterministic
 engine does not degrade over a long output the way a language model does. So one
 confirmation remains, on the structure, and the rest derives.
 
-**010 touches video**, which is out of scope today and carries its own consent
-scope (`Alcance.video`, modelled in 004 precisely for this). Whether the feedback
-request includes video, or stops at the request, is a decision for its spec.
-
-**010 still has to finish something 007 started, but less of it than before.**
+**007 left something unfinished and 010 finished it.**
 Records have been written to Firestore since feature 003 and, until 007, nothing
 ever read them back: `RegistrosLocales` reads the device's own store, so the
 coach only ever saw what his own phone had written. Feature 007 built
@@ -54,9 +50,42 @@ Feature 009 closed the swimmer's half of that, because walking it on a phone
 made the gap impossible to ignore: her screen read the device alone, so changing
 phone or reinstalling set her count back to zero under a sentence promising the
 opposite. `RegistrosDeLasDosPartes` now reads both sides, local winning, and
-writing still never waits on the network. **What is left for 010 is the coach's
-side**: his full reading of what his swimmers answer, which is the `Análisis`,
-and it should start from that same reader.
+writing still never waits on the network. **What was left for 010 was the
+coach's side**: his full reading of what his swimmers answer, which is the
+`Análisis`.
+
+**010 answered the video question, and shaped it rather than building it.** The
+coach's decision on Q1 was to have everything ready now even though uploading is
+not required yet: the request carries a `video` field, the server carries the
+gate in front of it, and neither is reachable. The constructor refuses a non-null
+video, the rule refuses a create that carries the key, and the interface never
+mentions it — a test over every file in `lib/ui` keeps it that way. The reason is
+the comment feature 004 left beside the consent scopes: discovering later that
+video needs a scope of its own would mean asking every family again. A later
+feature removes two refusals and nothing else has to change.
+
+**010 delivered the coach's side of the reading.** `Análisis` had carried a
+`TodaviaNo(feature: '010')` since feature 007 — a bounded promise with the number
+of the feature that would keep it written inside — and there is now no `todavía
+no` left anywhere in the HUB. He reads what his swimmers answered beside the
+session that produced it, from `registrosParaElEntrenador`, which is the server
+reader and deliberately **not** `RegistrosDeLasDosPartes`: his device never wrote
+her answers, so "local wins" has nothing to win with, and if it had something it
+would be his own test records from feature 003 mixed into hers.
+
+**What 010 declared missing, and did not invent: the coach → swimmer link.**
+FR-024 originally said a coach reads only his own swimmers. There is no such
+relation in the product — `Nadador` has no owner and the rule says
+`esEntrenador()`, full stop — and the constitution describes a community led by
+*a* coach, singular, so the rule is right for what exists. The requirement could
+not be met, so it was amended with the reason recorded next to it, and
+`firebase/test/reglas_analisis.test.js` carries a test that asserts a **second**
+coach account reads the first coach's swimmer and **succeeds**, saying in its own
+text why. The day a second coach exists, that test is the first thing that fails.
+
+Closing it is a feature of its own, and it belongs with whatever first needs more
+than one coach — the community area of principle VII. It is recorded here the way
+feature 003's identity gap was recorded until 004 closed it.
 
 **The deferred manual checks** — T088 and T089 of feature 004, and C1/C2 of
 feature 003 — close after 010. They need a real device and the coach's own eyes.

@@ -59,7 +59,7 @@ load.
 |---|---|---|
 | **I — Methodology is normative** | The feature displays; it decides nothing | **Pass.** Adherence is read from feature 009's calculation, never recomputed (D6). A second calculation would be a second methodology by the back door |
 | **II — Pure Dart domain** | At risk: the reading could easily be assembled inside a widget | **Pass.** `LecturaDelNadador` and `RespuestaASesion` are domain types with no Flutter import; the screen renders them |
-| **III — Tests of the rules that reach the swimmer (NON-NEGOTIABLE)** | A new collection means new rules | **Pass.** The contract lists eight rules tests plus their negative controls, and the lock is written before the thing it guards. One of them asserts a boundary that is **not** enforced, and says so (FR-025) |
+| **III — Tests of the rules that reach the swimmer (NON-NEGOTIABLE)** | A new collection means new rules | **Pass, and more than planned.** 28 rules tests across two new suites — 18 for `peticionesDeFeedback`, 10 for the records the coach now reads — each with its negative control run and its numbers recorded in the file. The second suite was not planned: the rule it exercises has existed since feature 007 and nothing ever ran against it. One test asserts a boundary that is **not** enforced, and says so (FR-025) |
 | **IV — The coach's judgement is not delegated** | At risk: a discomfort report invites a suggestion | **Pass.** FR-011 forbids proposing, scoring, ranking or triaging anything about it. The app shows what she wrote and stops |
 | **V — Minors' data** | The heart of the feature: reading a minor's answers | **Pass, with one amendment.** Consent is a gate on creating a request (FR-027) and on exposing records (FR-026). Scope-aware checking arrives (D2). **FR-024 was amended** because "only his own swimmers" is not enforceable — the reason is recorded in the spec, not hidden |
 | **VI — Honest freemium** | Reading your own history must never be paywalled | **Pass.** Nothing here is gated by payment |
@@ -101,14 +101,18 @@ specs/010-analysis-and-feedback/
 lib/
 ├── dominio/
 │   ├── analisis/                      # new
-│   │   ├── peticion_de_feedback.dart      # the request, its invariants
+│   │   ├── peticion_de_feedback.dart      # the request, its invariants, SePudoPedir
 │   │   ├── lectura_del_nadador.dart       # the reading, assembled
 │   │   └── respuesta_a_sesion.dart        # session + record, never merged
 │   ├── repositorios/repositorios.dart     # + RepositorioPeticionesDeFeedback
+│   ├── peticiones/molestias_enlazadas.dart    # + quienesReportaron (one query)
 │   ├── macrociclo/registros_del_linaje.dart   # reused, untouched
 │   └── hub/destino.dart                   # the coach's Análisis stops being TodaviaNo
 ├── datos/
 │   ├── firestore/peticiones_feedback_firestore.dart   # new
+│   ├── firestore/molestias_firestore.dart             # + quienesReportaron
+│   ├── local/peticiones_feedback_locales.dart         # new — device first (G1)
+│   ├── peticiones/peticiones_de_las_dos_partes.dart   # new — local + server
 │   ├── memoria/repositorios_memoria.dart              # + the double
 │   └── serializacion.dart                             # + the request
 └── ui/
@@ -116,18 +120,36 @@ lib/
     │   ├── pantalla_analisis.dart         # his swimmers, who reported discomfort
     │   ├── lectura_de_un_nadador.dart     # her sessions and answers
     │   └── sesion_y_respuesta.dart        # the two loads, side by side
-    ├── nadador/mi_progreso.dart       # + asking, + seeing that he looked
+    ├── nadador/pantalla_mi_progreso.dart  # + asking, + seeing that he looked
+    ├── nadador/estado_nadador.dart        # + pedirFeedback, + the retry on sync
     └── hub/                           # wiring only
 
 firebase/
 ├── firestore.rules                    # + peticionesDeFeedback, + scoped consent helper
-└── test/reglas_peticiones_feedback.test.js    # new
+├── test/reglas_peticiones_feedback.test.js    # new — 18 tests
+└── test/reglas_analisis.test.js               # new — 10, over a rule nobody ran
 
 test/
 ├── dominio/analisis/                  # the reading, the request, the invariants
 ├── datos/                             # the repository contract, both implementations
-└── ui/analisis/                       # the screens
+├── ui/analisis/                       # the coach's screens
+└── ui/nadador/                        # asking, offline, and seeing that he looked
 ```
+
+**Three files appeared that the plan did not name**, each for a reason worth
+recording:
+
+- `peticiones_de_las_dos_partes.dart` and `peticiones_feedback_locales.dart`,
+  because G1 needs a device-first write and a retry. The outbox was **not**
+  generalised: `BandejaDeSalida.encolar` takes a `registroId` and its transport
+  sends a `RegistroDeSesion`, so making it carry two kinds of thing would have
+  put feature 003's guarantees in play for a need a dedicated pending list
+  covers. And only what is pending is retried — re-sending a request the coach
+  already saw would wipe his `vistaEn`, which the phone's copy does not carry.
+- `reglas_analisis.test.js`, because FR-010 needs the coach to see from the list
+  who reported a discomfort, and writing that made it obvious that the rule
+  letting him read his community's records had never been exercised by a test.
+  One query, not one per swimmer — the shape of feature 008's decision D10.
 
 **Structure Decision**: the existing layout, unchanged. Domain stays pure Dart; data holds
 both a Firestore implementation and an in-memory double; UI renders domain types. The one

@@ -224,13 +224,32 @@ marks it seen.
 ## Phase 7: Polish & Cross-Cutting
 
 - [ ] T069 Walk C5 of [quickstart.md](./quickstart.md): an answer survives a readjustment on the coach's side. Feature 009 found this twice on the swimmer's side; confirm rather than assume that his side is simpler
-- [ ] T070 Walk C10 of [quickstart.md](./quickstart.md): the server boundaries, as rules tests
+- [X] T070 Walk C10 of [quickstart.md](./quickstart.md): the server boundaries, as rules tests
 - [ ] T071 [P] Mark feature 010 on the roadmap in `docs/ROADMAP.md` once the PR merges
-- [ ] T072 [P] Record in `docs/ROADMAP.md` that the coach→swimmer link is still missing and which feature should close it, the way feature 003's identity gap was recorded until 004 closed it
-- [ ] T073 Run the four gates and write the numbers in `specs/010-analysis-and-feedback/tasks.md` next to T001's baseline. The difference is the locks this feature needed
+- [X] T072 [P] Record in `docs/ROADMAP.md` that the coach→swimmer link is still missing and which feature should close it, the way feature 003's identity gap was recorded until 004 closed it
+- [X] T073 Run the four gates and write the numbers in `specs/010-analysis-and-feedback/tasks.md` next to T001's baseline. The difference is the locks this feature needed
+
+**After, 2026-11-11, with the four phases of code built (the Pixel 7 walk is
+still pending):**
+
+| Gate | Before | After | Added |
+|---|---|---|---|
+| `flutter analyze` | No issues | No issues | — |
+| `flutter test` | 1963 | 2080 | **+117** |
+| `npm --prefix firebase test` | 146 | 174 | **+28** |
+| `npm --prefix firebase/functions test` | 45 | 45 | — |
+
+145 tests added. Two negative controls were run and their numbers are recorded in
+the suites themselves: against a collection with no rule, `reglas_analisis` went
+5 of 10 and `reglas_peticiones_feedback` 12 of 18, and in both cases every single
+failure was an `assertSucceeds`. That sentence is worth more than the 28 tests.
+
+The functions suite is unchanged on purpose: this feature adds no server
+function. The consent scope it needed was already written by feature 004 and the
+gate went into the rules, where it can be proven without deploying anything.
 - [ ] T074 Close the deferred manual checks this feature was blocking — C1 and C2 of `specs/003-consumo-del-nadador/quickstart.md`, T088 and T089 of `specs/004-cuentas-y-consentimiento/tasks.md` — on a real device, per SC-010, and tick them there
-- [ ] T075 Confirm no name, mark or identifier reaches logs or analytics from `lib/dominio/analisis/`, `lib/datos/firestore/peticiones_feedback_firestore.dart` and `lib/ui/analisis/` (FR-029), by reading them rather than by trusting the absence
-- [ ] T076 Re-read the Constitution Check table in [plan.md](./plan.md) against what was actually built, and correct it if anything drifted. A gate that is only true at planning time is not a gate
+- [X] T075 Confirm no name, mark or identifier reaches logs or analytics from `lib/dominio/analisis/`, `lib/datos/firestore/peticiones_feedback_firestore.dart` and `lib/ui/analisis/` (FR-029), by reading them rather than by trusting the absence
+- [X] T076 Re-read the Constitution Check table in [plan.md](./plan.md) against what was actually built, and correct it if anything drifted. A gate that is only true at planning time is not a gate
 
 ---
 

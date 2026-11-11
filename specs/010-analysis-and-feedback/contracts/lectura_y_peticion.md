@@ -36,6 +36,12 @@ abstract class RepositorioPeticionesDeFeedback {
   lesson feature 009 learned twice — seven positive rules tests over a collection and none
   over the query the app actually makes.
 
+**Who calls which, as built.** The swimmer's screen uses `deNadadorEnPlan` with
+her current plan, which is the query her rule can prove; the coach's reading uses
+`deNadador`, one query covering every version she has been on. Neither method is
+written and unused, which is how `registrosDelLinaje` and the way back to a
+delivered macrocycle sat unconnected until feature 009's walk found them.
+
 **Breaks if not kept**: a request that waits on the network is a swimmer at the poolside
 who cannot ask. A `marcarVista` that writes more is a coach editing her question.
 
@@ -46,13 +52,33 @@ who cannot ask. A `marcarVista` that writes more is a coach editing her question
 ```dart
 Future<LecturaDelNadador> leerAlNadador({
   required Nadador nadador,
-  required Macrociclo? macrociclo,
   required List<Plan> mesociclos,
   required RepositorioRegistros registros,
   required RepositorioPlanes planes,
-  required RepositorioPeticionesDeFeedback peticiones,
+  required DateTime hoy,
+  RepositorioPeticionesDeFeedback? peticiones,
 });
 ```
+
+**Three differences from the signature first written here**, each recorded
+rather than quietly changed:
+
+- `hoy` entered, because `ProgresoEnElMacrociclo` needs it and taking
+  `DateTime.now()` inside is what left four of feature 007's HUB tests going red
+  on their own as the day changed.
+- `macrociclo` left. Nothing in the reading uses it: the methodology stamp comes
+  off each plan, which is where it was signed, and a constant would state today's
+  version over a plan signed three months ago. The screen resolves the
+  macrocycle to find its mesocycles and passes those.
+- `peticiones` is optional. Without a server there are no requests to read and
+  nowhere to write them, the same shape `macrociclos` has in `ContextoDelHub`,
+  and US1 has to ship before US4 exists.
+
+And one thing it does **not** do: ask for the requests per mesocycle. A request
+points at the plan version she was on when she asked, so querying the current
+mesocycles would lose sight of anything asked before a readjustment — the same
+shape of defect `registrosDelLinaje` exists to fix. It reads hers in one query
+and pairs them by session id, which is what a readjustment preserves.
 
 **Promises**
 
