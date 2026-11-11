@@ -418,20 +418,19 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
           macrociclos: _repos.macrociclos,
           alVolver: () => Navigator.of(contextoDeLaRuta).pop(),
-          alConfirmar: (guardado) => Navigator.of(
-            contextoDeLaRuta,
-          ).pushReplacement<void, void>(
-            MaterialPageRoute(
-              builder: (contextoDeLaRevision) => PantallaRevisarMacrociclo(
-                guardado: guardado,
-                hoy: DateTime.now(),
-                planes: _repos.planes,
-                asignaciones: _repos.asignaciones,
-                macrociclos: _repos.macrociclos,
-                alVolver: () => Navigator.of(contextoDeLaRevision).pop(),
+          alConfirmar: (guardado) =>
+              Navigator.of(contextoDeLaRuta).pushReplacement<void, void>(
+                MaterialPageRoute(
+                  builder: (contextoDeLaRevision) => PantallaRevisarMacrociclo(
+                    guardado: guardado,
+                    hoy: DateTime.now(),
+                    planes: _repos.planes,
+                    asignaciones: _repos.asignaciones,
+                    macrociclos: _repos.macrociclos,
+                    alVolver: () => Navigator.of(contextoDeLaRevision).pop(),
+                  ),
+                ),
               ),
-            ),
-          ),
         ),
       ),
     );
@@ -575,10 +574,17 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
           ? null
           : _verSuMacrociclo,
       quienTieneMacrociclo: _macrocicloDe.keys.toSet(),
-      macrociclos: widget.recursos.firestore == null ? null : _repos.macrociclos,
+      macrociclos: widget.recursos.firestore == null
+          ? null
+          : _repos.macrociclos,
       // **Su teléfono y el servidor**: su historial no se queda en un
       // aparato (hallazgo del recorrido de la 009).
       registrosDelNadador: _repos.registrosDelNadador,
+      // **Del servidor, no de su dispositivo** (feature 010, decisión D3).
+      registrosDelEntrenador: _repos.registrosParaElEntrenador,
+      // Aparte de `macrociclos`, que es el del nadador y se queda nulo sin
+      // servidor para que `Ver Plan` enseñe su sesión de hoy.
+      macrociclosDelEntrenador: _repos.macrociclos,
       hoy: widget.hoyParaPruebas ?? DateTime.now(),
       selectorDePerfil: _selector,
       uid: widget.cuenta?.id ?? '',

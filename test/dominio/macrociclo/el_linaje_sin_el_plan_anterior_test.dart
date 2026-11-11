@@ -139,22 +139,25 @@ void main() {
     version2 = mesociclo(id: 'v2', desde: 'v1');
   });
 
-  test('se lee lo que anotó aunque el plan anterior no se pueda leer', () async {
-    final planes = _PlanesQueNiegan({'v2': version2}, 'v1');
+  test(
+    'se lee lo que anotó aunque el plan anterior no se pueda leer',
+    () async {
+      final planes = _PlanesQueNiegan({'v2': version2}, 'v1');
 
-    final delLinaje = await registrosDelLinaje(
-      mesociclo: version2,
-      nadadorId: 'n-ana',
-      registros: registros,
-      planes: planes,
-    );
+      final delLinaje = await registrosDelLinaje(
+        mesociclo: version2,
+        nadadorId: 'n-ana',
+        registros: registros,
+        planes: planes,
+      );
 
-    expect(
-      delLinaje.map((r) => r.sesionId).toSet(),
-      {'s-1', 's-2'},
-      reason: 'sin el documento del plan anterior se perdía lo anotado en él',
-    );
-  });
+      expect(
+        delLinaje.map((r) => r.sesionId).toSet(),
+        {'s-1', 's-2'},
+        reason: 'sin el documento del plan anterior se perdía lo anotado en él',
+      );
+    },
+  );
 
   test('no revienta: la pantalla del nadador no se cae por esto', () async {
     // Antes el fallo subía y le tapaba el plan entero con un mensaje en

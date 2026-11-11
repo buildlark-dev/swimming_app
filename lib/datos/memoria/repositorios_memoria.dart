@@ -203,8 +203,7 @@ class RepositorioMacrociclosMemoria implements RepositorioMacrociclos {
     // feature 008.
     return _macrociclos.values
         .where(
-          (m) =>
-              m.nadadorId == nadadorId && m.estado == EstadoPlan.publicado,
+          (m) => m.nadadorId == nadadorId && m.estado == EstadoPlan.publicado,
         )
         .toList(growable: false)
         .reversed

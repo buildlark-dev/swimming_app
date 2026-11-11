@@ -48,9 +48,12 @@ void main() {
       expect(peticion.estaAbierta, isTrue);
     });
 
-    test('su identificador es el del nadador, y por eso no hay dos abiertas', () {
-      expect(petir().id, 'n-ana');
-    });
+    test(
+      'su identificador es el del nadador, y por eso no hay dos abiertas',
+      () {
+        expect(petir().id, 'n-ana');
+      },
+    );
   });
 
   group('un rechazo sin motivo no se puede construir', () {
@@ -78,10 +81,8 @@ void main() {
 
     test('sin motivo, igual', () {
       expect(
-        () => petir(
-          estado: EstadoDePeticion.rechazada,
-          respondidaEn: respondida,
-        ),
+        () =>
+            petir(estado: EstadoDePeticion.rechazada, respondidaEn: respondida),
         throwsA(isA<RechazoSinMotivo>()),
       );
     });
@@ -101,10 +102,8 @@ void main() {
   group('aprobar sin plan sería firmar sobre nada', () {
     test('aprobada sin planId revienta', () {
       expect(
-        () => petir(
-          estado: EstadoDePeticion.aprobada,
-          respondidaEn: respondida,
-        ),
+        () =>
+            petir(estado: EstadoDePeticion.aprobada, respondidaEn: respondida),
         throwsA(isA<AprobacionSinPlan>()),
       );
     });
@@ -123,10 +122,7 @@ void main() {
 
   group('lo que espera no puede llevar respuesta', () {
     test('esperando con motivo de rechazo revienta', () {
-      expect(
-        () => petir(motivo: 'algo'),
-        throwsA(isA<PeticionIncoherente>()),
-      );
+      expect(() => petir(motivo: 'algo'), throwsA(isA<PeticionIncoherente>()));
     });
 
     test('esperando con fecha de respuesta revienta', () {
@@ -162,10 +158,10 @@ void main() {
     });
 
     test('solo dos estados cierran la petición', () {
-      expect(
-        EstadoDePeticion.values.where((e) => !e.estaAbierta),
-        [EstadoDePeticion.aprobada, EstadoDePeticion.rechazada],
-      );
+      expect(EstadoDePeticion.values.where((e) => !e.estaAbierta), [
+        EstadoDePeticion.aprobada,
+        EstadoDePeticion.rechazada,
+      ]);
     });
   });
 

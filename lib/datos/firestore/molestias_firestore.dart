@@ -68,6 +68,48 @@ class MolestiasFirestore implements LectorDeMolestias {
       return const [];
     }
   }
+
+  /// Quiénes contaron alguna molestia desde [desde]. **Una sola consulta.**
+  ///
+  /// La misma forma que `nadadoresConRegistros` de la feature 007 y por lo
+  /// mismo: la lista de nadadores la pinta el entrenador, y preguntar ficha
+  /// por ficha serían N lecturas para dibujar una pantalla.
+  ///
+  /// Un fallo devuelve el conjunto vacío, igual que `recientesDe`, y por el
+  /// mismo motivo declarado: **que no se puedan leer no quiere decir que no
+  /// haya**. Quien lo pinta distingue las dos cosas; la lectura completa de
+  /// la nadadora sí hace subir el fallo, porque ahí el entrenador está
+  /// mirando sus datos y no una marca en una lista.
+  @override
+  Future<Set<String>> quienesReportaron({required DateTime desde}) async {
+    try {
+      final consulta = await firestore.collection(coleccionRegistros).get();
+
+      final quienes = <String>{};
+
+      for (final documento in consulta.docs) {
+        final datos = documento.data();
+
+        final nadadorId = datos['nadadorId'];
+        if (nadadorId is! String || nadadorId.isEmpty) continue;
+
+        final molestia = datos['molestia'];
+        if (molestia is! Map) continue;
+
+        final descripcion = molestia['descripcion'];
+        if (descripcion is! String || descripcion.trim().isEmpty) continue;
+
+        final fecha = _fecha(datos['registradoEn']) ?? _fecha(datos['cuando']);
+        if (fecha == null || !fecha.isAfter(desde)) continue;
+
+        quienes.add(nadadorId);
+      }
+
+      return quienes;
+    } catch (_) {
+      return const <String>{};
+    }
+  }
 }
 
 /// Una fecha, venga como venga. Si no se entiende, no hay fecha.

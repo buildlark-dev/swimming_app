@@ -225,13 +225,14 @@ class Plan {
     }
 
     // Sobre una copia: leer un plan no lo cambia.
-    suyas.sort((a, b) => switch ((a.$2.fecha, b.$2.fecha)) {
-      (null, null) => a.$1 - b.$1,
-      (null, _) => 1,
-      (_, null) => -1,
-      (final x?, final y?) =>
-        x == y ? a.$1 - b.$1 : x.compareTo(y),
-    });
+    suyas.sort(
+      (a, b) => switch ((a.$2.fecha, b.$2.fecha)) {
+        (null, null) => a.$1 - b.$1,
+        (null, _) => 1,
+        (_, null) => -1,
+        (final x?, final y?) => x == y ? a.$1 - b.$1 : x.compareTo(y),
+      },
+    );
 
     return [for (final (_, sesion) in suyas) sesion];
   }

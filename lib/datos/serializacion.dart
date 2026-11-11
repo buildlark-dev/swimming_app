@@ -390,16 +390,15 @@ DateTime _fechaObligatoria(Object? valor, String campo) {
   return texto;
 }
 
-BloqueConfirmado bloqueDesdeJson(Map<String, dynamic> json) =>
-    BloqueConfirmado(
-      // Nula a propósito en las categorías que no usan ATR (M6). Ausente y
-      // «no reconocida» se tratan igual, porque las dos dan bloque sin fase y
-      // el motor prohíbe la fase donde no toca.
-      fase: FaseAtr.porNombre(json['fase'] as String? ?? ''),
-      desde: _fechaObligatoria(json['desde'], 'desde'),
-      hasta: _fechaObligatoria(json['hasta'], 'hasta'),
-      porQue: json['porQue'] as String? ?? '',
-    );
+BloqueConfirmado bloqueDesdeJson(Map<String, dynamic> json) => BloqueConfirmado(
+  // Nula a propósito en las categorías que no usan ATR (M6). Ausente y
+  // «no reconocida» se tratan igual, porque las dos dan bloque sin fase y
+  // el motor prohíbe la fase donde no toca.
+  fase: FaseAtr.porNombre(json['fase'] as String? ?? ''),
+  desde: _fechaObligatoria(json['desde'], 'desde'),
+  hasta: _fechaObligatoria(json['hasta'], 'hasta'),
+  porQue: json['porQue'] as String? ?? '',
+);
 
 EstructuraConfirmada estructuraDesdeJson(Map<String, dynamic> json) =>
     EstructuraConfirmada(

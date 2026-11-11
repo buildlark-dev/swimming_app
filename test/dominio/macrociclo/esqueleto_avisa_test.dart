@@ -98,23 +98,22 @@ void main() {
   });
 
   group('lo que el entrenador edita se mide igual (C7)', () {
-    EstructuraConfirmada conRealizacionDe(int semanas) =>
-        EstructuraConfirmada(
-          modeloDeLaPrueba: '200 libre: umbral alto.',
-          modeloDelNadador: 'Crol dominante.',
-          bloques: [
-            BloqueConfirmado(
-              fase: FaseAtr.realizacion,
-              desde: hoy,
-              hasta: hoy.add(Duration(days: semanas * 7 - 1)),
-              porQue: 'Realización, $semanas semanas, puestas por él.',
-            ),
-          ],
-          confirmadaEn: hoy,
-          diasPorSemana: const [1, 3, 5],
-          duracionSesionMinutos: 90,
-          longitudPiscina: 25,
-        );
+    EstructuraConfirmada conRealizacionDe(int semanas) => EstructuraConfirmada(
+      modeloDeLaPrueba: '200 libre: umbral alto.',
+      modeloDelNadador: 'Crol dominante.',
+      bloques: [
+        BloqueConfirmado(
+          fase: FaseAtr.realizacion,
+          desde: hoy,
+          hasta: hoy.add(Duration(days: semanas * 7 - 1)),
+          porQue: 'Realización, $semanas semanas, puestas por él.',
+        ),
+      ],
+      confirmadaEn: hoy,
+      diasPorSemana: const [1, 3, 5],
+      duracionSesionMinutos: 90,
+      longitudPiscina: 25,
+    );
 
     test('una Realización de cuatro semanas se señala', () {
       // El caso exacto de C7 en el quickstart: él la pone a cuatro, Issurin

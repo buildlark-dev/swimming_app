@@ -124,10 +124,11 @@ class ConstanciasFirestore implements LectorDeConstancias {
 ConstanciaDeConsentimiento constanciaDesde(Map<String, dynamic> datos) =>
     ConstanciaDeConsentimiento(
       vigente: datos['vigente'] == true,
-      alcances: (datos['alcances'] is List ? datos['alcances'] as List : const [])
-          .map((a) => Alcance.porClave(a is String ? a : null))
-          .nonNulls
-          .toSet(),
+      alcances:
+          (datos['alcances'] is List ? datos['alcances'] as List : const [])
+              .map((a) => Alcance.porClave(a is String ? a : null))
+              .nonNulls
+              .toSet(),
       versionDelTexto: datos['versionDelTexto'] is String
           ? datos['versionDelTexto'] as String
           : null,

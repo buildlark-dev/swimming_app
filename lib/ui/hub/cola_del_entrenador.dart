@@ -242,8 +242,7 @@ class _Fila extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nombre =
-        fichas[peticion.nadadorId]?.nombre ?? peticion.nadadorId;
+    final nombre = fichas[peticion.nadadorId]?.nombre ?? peticion.nadadorId;
     final respuestas = peticion.respuestas;
 
     return Tarjeta(

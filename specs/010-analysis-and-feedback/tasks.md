@@ -91,22 +91,22 @@ produced them.
 
 ### Tests for User Story 1 ⚠️ write first, watch them fail
 
-- [ ] T017 [P] [US1] Write the widget lock in `test/ui/analisis/pantalla_analisis_test.dart`: the coach's `Análisis` lists his swimmers and is no longer a "todavía no" placeholder
-- [ ] T018 [P] [US1] Write the widget lock in `test/ui/analisis/lectura_de_un_nadador_test.dart`: her sessions appear newest first, each with her answer beside it, and a session she marked not done reads as **not done** rather than as missing (spec US1 scenario 2)
-- [ ] T019 [P] [US1] Write the widget lock in `test/ui/analisis/sin_respuestas_se_dice_test.dart`: a swimmer who has answered nothing produces a sentence, not an empty frame (FR-007)
-- [ ] T020 [P] [US1] Write the widget lock in `test/ui/analisis/un_fallo_se_dice_test.dart`: when the read fails the screen says it could not be read, and does not show a partial reading as complete (FR-008)
-- [ ] T021 [P] [US1] Write the rules lock in `firebase/test/reglas_analisis.test.js`: the coach reads a swimmer's records; a swimmer cannot read another swimmer's. **Each denial needs its positive counterpart in the same file** — feature 008's suite went 18 of 24 green against a collection with no rule because deny-by-default passes every negation
-- [ ] T022 [US1] Write the boundary statement in `firebase/test/reglas_analisis.test.js`, required by FR-025: a **second** coach account reads the first coach's swimmer and **succeeds**. Assert the success and say in the test's own text why — there is no coach→swimmer link, the product has one coach, and this test is what must change first when that stops being true (research D1)
-- [ ] T023 [US1] Verify the negative control for T021: point the suite at a collection name with no rule and confirm the positives go red. Record the numbers in a comment, as `reglas_macrociclos.test.js` does
+- [X] T017 [P] [US1] Write the widget lock in `test/ui/analisis/pantalla_analisis_test.dart`: the coach's `Análisis` lists his swimmers and is no longer a "todavía no" placeholder
+- [X] T018 [P] [US1] Write the widget lock in `test/ui/analisis/lectura_de_un_nadador_test.dart`: her sessions appear newest first, each with her answer beside it, and a session she marked not done reads as **not done** rather than as missing (spec US1 scenario 2)
+- [X] T019 [P] [US1] Write the widget lock in `test/ui/analisis/sin_respuestas_se_dice_test.dart`: a swimmer who has answered nothing produces a sentence, not an empty frame (FR-007)
+- [X] T020 [P] [US1] Write the widget lock in `test/ui/analisis/un_fallo_se_dice_test.dart`: when the read fails the screen says it could not be read, and does not show a partial reading as complete (FR-008)
+- [X] T021 [P] [US1] Write the rules lock in `firebase/test/reglas_analisis.test.js`: the coach reads a swimmer's records; a swimmer cannot read another swimmer's. **Each denial needs its positive counterpart in the same file** — feature 008's suite went 18 of 24 green against a collection with no rule because deny-by-default passes every negation
+- [X] T022 [US1] Write the boundary statement in `firebase/test/reglas_analisis.test.js`, required by FR-025: a **second** coach account reads the first coach's swimmer and **succeeds**. Assert the success and say in the test's own text why — there is no coach→swimmer link, the product has one coach, and this test is what must change first when that stops being true (research D1)
+- [X] T023 [US1] Verify the negative control for T021: point the suite at a collection name with no rule and confirm the positives go red. Record the numbers in a comment, as `reglas_macrociclos.test.js` does
 
 ### Implementation for User Story 1
 
-- [ ] T024 [US1] Replace the coach's `TodaviaNo(feature: '010')` with the new content in `lib/dominio/hub/destino.dart`, and add the content value it returns
-- [ ] T025 [US1] Build `lib/ui/analisis/pantalla_analisis.dart`: his swimmers, each reachable
-- [ ] T026 [US1] Build `lib/ui/analisis/lectura_de_un_nadador.dart`: her sessions newest first with her answers beside them
-- [ ] T027 [US1] Wire both into `lib/ui/hub/contenidos.dart` and `lib/ui/hub/hub.dart`, passing the coach's reader from T015
-- [ ] T028 [US1] Add the methodology stamp to every reading shown in `lib/ui/analisis/lectura_de_un_nadador.dart`, per FR-004, reading `versionMetodologia` off the plan rather than a constant
-- [ ] T029 [US1] Check the new screens at 130% and 200% text size by adding them to the feature 005 bench in `test/ui/tema/tamano_de_letra_test.dart`. `CabeceraSeccion` lost a `Flexible` for four features before feature 009 found it
+- [X] T024 [US1] Replace the coach's `TodaviaNo(feature: '010')` with the new content in `lib/dominio/hub/destino.dart`, and add the content value it returns
+- [X] T025 [US1] Build `lib/ui/analisis/pantalla_analisis.dart`: his swimmers, each reachable
+- [X] T026 [US1] Build `lib/ui/analisis/lectura_de_un_nadador.dart`: her sessions newest first with her answers beside them
+- [X] T027 [US1] Wire both into `lib/ui/hub/contenidos.dart` and `lib/ui/hub/hub.dart`, passing the coach's reader from T015
+- [X] T028 [US1] Add the methodology stamp to every reading shown in `lib/ui/analisis/lectura_de_un_nadador.dart`, per FR-004, reading `versionMetodologia` off the plan rather than a constant
+- [X] T029 [US1] Check the new screens at 130% and 200% text size by adding them to the feature 005 bench in `test/ui/tema/tamano_de_letra_test.dart`. `CabeceraSeccion` lost a `Flexible` for four features before feature 009 found it
 - [ ] T030 [US1] Walk C1 and C2 of [quickstart.md](./quickstart.md) on the Pixel 7, checking the records in the emulator rather than on the screen
 
 **Checkpoint**: the coach reads what his swimmers answered. The constitution's "un registro que
@@ -155,7 +155,12 @@ exists.
 
 ### Implementation for User Story 3
 
-- [ ] T041 [US3] Build `lib/ui/analisis/sesion_y_respuesta.dart`: the programmed work and her answer as two labelled blocks
+- [X] T041 [US3] Build `lib/ui/analisis/sesion_y_respuesta.dart`: the programmed work and her answer as two labelled blocks
+
+  **Built during US1**, not here. `lectura_de_un_nadador.dart` needs the
+  session-and-answer pair rendered to show anything at all, so writing it twice
+  would have been churn. What US3 adds is what US3 is actually about: the
+  labels, and the lock that no third figure exists (T039, T040).
 - [ ] T042 [US3] Use it from `lib/ui/analisis/lectura_de_un_nadador.dart`
 - [ ] T043 [US3] Show adherence from `progreso`, labelled, in `lib/ui/analisis/lectura_de_un_nadador.dart`
 - [ ] T044 [US3] Walk C4 of [quickstart.md](./quickstart.md) on the Pixel 7, scanning for any derived number

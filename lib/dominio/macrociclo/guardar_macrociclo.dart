@@ -111,8 +111,7 @@ class RevisionDelMacrociclo {
 
   /// Verdadero si los mesociclos pasan la auditoría y se puede firmar.
   bool get sePuedeFirmar =>
-      impedimentos.isEmpty &&
-      porMesociclo.every((r) => r.apruebaSinBloqueos);
+      impedimentos.isEmpty && porMesociclo.every((r) => r.apruebaSinBloqueos);
 }
 
 /// Revisa el macrociclo entero antes de firmarlo.

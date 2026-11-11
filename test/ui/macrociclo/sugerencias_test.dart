@@ -52,7 +52,8 @@ void main() {
       expect(
         sugerido,
         isNot(contains('2:38.00')),
-        reason: 'una lista de marcas dentro de un campo de texto no es un '
+        reason:
+            'una lista de marcas dentro de un campo de texto no es un '
             'modelo, es un volcado',
       );
     });
@@ -65,10 +66,7 @@ void main() {
     });
 
     test('el estilo objetivo', () {
-      expect(
-        sugerenciasDesdeLaFicha(ficha).paraElNadador,
-        contains('Libre'),
-      );
+      expect(sugerenciasDesdeLaFicha(ficha).paraElNadador, contains('Libre'));
     });
   });
 
@@ -99,8 +97,8 @@ void main() {
       // Si aparecieran pre-escritos, el entrenador estaría firmando una
       // observación que no hizo.
       final sugerido = sugerenciasDesdeLaFicha(ficha);
-      final todo =
-          '${sugerido.paraLaPrueba}\n${sugerido.paraElNadador}'.toLowerCase();
+      final todo = '${sugerido.paraLaPrueba}\n${sugerido.paraElNadador}'
+          .toLowerCase();
 
       expect(todo, isNot(contains('toleran')));
       expect(todo, isNot(contains('motiva')));
@@ -151,7 +149,8 @@ void main() {
       expect(
         codigo,
         isNot(contains(prohibido)),
-        reason: '$prohibido no es una observación del entrenador sobre el '
+        reason:
+            '$prohibido no es una observación del entrenador sobre el '
             'nadador: es un dato del que la app estaría deduciendo una',
       );
     }

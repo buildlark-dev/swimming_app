@@ -282,7 +282,10 @@ void main() {
       );
 
       expect(primero.hechas, segundo.hechas);
-      expect(primero.pendientes.map((s) => s.id), segundo.pendientes.map((s) => s.id));
+      expect(
+        primero.pendientes.map((s) => s.id),
+        segundo.pendientes.map((s) => s.id),
+      );
       expect(planes.first.sesiones, hasLength(3));
       expect(registros, hasLength(1));
     });

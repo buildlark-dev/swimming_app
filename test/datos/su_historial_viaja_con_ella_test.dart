@@ -41,8 +41,7 @@ class _Registros implements RepositorioRegistros {
   /// Para comprobar que nadie escribe donde no debe.
   final escrituras = <String>[];
 
-  void sembrar(RegistroDeSesion registro) =>
-      guardados[registro.id] = registro;
+  void sembrar(RegistroDeSesion registro) => guardados[registro.id] = registro;
 
   void _comprobar() {
     if (seNiega) throw const FalloDeDatos('sin red');
@@ -122,11 +121,10 @@ void main() {
 
       final suyos = await juntos.obtenerDePlan('n-ana', 'p1');
 
-      expect(
-        suyos.map((r) => r.sesionId).toSet(),
-        {'s-1', 's-2'},
-        reason: 'su historial se quedaba en el teléfono donde lo escribió',
-      );
+      expect(suyos.map((r) => r.sesionId).toSet(), {
+        's-1',
+        's-2',
+      }, reason: 'su historial se quedaba en el teléfono donde lo escribió');
     });
 
     test('se juntan los dos lados, sin repetir', () async {

@@ -96,11 +96,7 @@ void main() {
         expect(componente.trim(), isNotEmpty);
 
         final problemas = impedimentosDe(
-          peticionCon(
-            categoria: categoria,
-            fase: null,
-            componente: componente,
-          ),
+          peticionCon(categoria: categoria, fase: null, componente: componente),
         ).where((i) => i.campo == 'componenteAcentuado');
 
         expect(problemas, isEmpty, reason: categoria.nombre);

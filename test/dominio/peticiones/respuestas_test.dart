@@ -103,30 +103,33 @@ void main() {
   });
 
   group('lo que NO lleva, que es un requisito y no un olvido', () {
-    test('ni categoría, ni fase, ni componente, ni diagnóstico, ni molestias', () {
-      // Si alguien añade uno de estos campos, esta prueba se lo dice. La
-      // categoría es del entrenador (FR-003), la fase y el componente se
-      // derivan (FR-014, FR-016), el diagnóstico es observación suya, y las
-      // molestias se enlazan desde las sesiones, nunca se copian (FR-038).
-      final campos = responder().toJson().keys.toSet();
+    test(
+      'ni categoría, ni fase, ni componente, ni diagnóstico, ni molestias',
+      () {
+        // Si alguien añade uno de estos campos, esta prueba se lo dice. La
+        // categoría es del entrenador (FR-003), la fase y el componente se
+        // derivan (FR-014, FR-016), el diagnóstico es observación suya, y las
+        // molestias se enlazan desde las sesiones, nunca se copian (FR-038).
+        final campos = responder().toJson().keys.toSet();
 
-      for (final prohibido in [
-        'categoria',
-        'faseAtr',
-        'componenteAcentuado',
-        'diagnosticoTecnico',
-        'molestia',
-        'molestias',
-      ]) {
-        expect(
-          campos,
-          isNot(contains(prohibido)),
-          reason:
-              '«$prohibido» no es del nadador, y guardarlo aquí lo convertiría '
-              'en algo que él declaró',
-        );
-      }
-    });
+        for (final prohibido in [
+          'categoria',
+          'faseAtr',
+          'componenteAcentuado',
+          'diagnosticoTecnico',
+          'molestia',
+          'molestias',
+        ]) {
+          expect(
+            campos,
+            isNot(contains(prohibido)),
+            reason:
+                '«$prohibido» no es del nadador, y guardarlo aquí lo convertiría '
+                'en algo que él declaró',
+          );
+        }
+      },
+    );
 
     test('y lleva exactamente los seis que sí son suyos', () {
       expect(responder().toJson().keys.toSet(), {

@@ -65,11 +65,11 @@ void main() {
       sesion('lun', DateTime(2026, 11, 9)),
     ]);
 
-    expect(
-      plan.sesionesDe('mc-1').map((s) => s.id).toList(),
-      ['lun', 'mie', 'vie'],
-      reason: 'el camino del nadador tiene que leerse como un camino',
-    );
+    expect(plan.sesionesDe('mc-1').map((s) => s.id).toList(), [
+      'lun',
+      'mie',
+      'vie',
+    ], reason: 'el camino del nadador tiene que leerse como un camino');
   });
 
   test('sigue filtrando por microciclo', () {
@@ -93,10 +93,11 @@ void main() {
       sesion('lun', DateTime(2026, 11, 9)),
     ]);
 
-    expect(
-      plan.sesionesDe('mc-1').map((s) => s.id).toList(),
-      ['lun', 'mie', 'sin-dia'],
-    );
+    expect(plan.sesionesDe('mc-1').map((s) => s.id).toList(), [
+      'lun',
+      'mie',
+      'sin-dia',
+    ]);
   });
 
   test('dos sin fecha conservan el orden que traían', () {
@@ -108,10 +109,11 @@ void main() {
       sesion('con-dia', DateTime(2026, 11, 9)),
     ]);
 
-    expect(
-      plan.sesionesDe('mc-1').map((s) => s.id).toList(),
-      ['con-dia', 'primera', 'segunda'],
-    );
+    expect(plan.sesionesDe('mc-1').map((s) => s.id).toList(), [
+      'con-dia',
+      'primera',
+      'segunda',
+    ]);
   });
 
   test('dos el mismo día conservan el orden que traían', () {
@@ -120,10 +122,10 @@ void main() {
       sesion('tarde', DateTime(2026, 11, 9, 18)),
     ]);
 
-    expect(
-      plan.sesionesDe('mc-1').map((s) => s.id).toList(),
-      ['manana', 'tarde'],
-    );
+    expect(plan.sesionesDe('mc-1').map((s) => s.id).toList(), [
+      'manana',
+      'tarde',
+    ]);
   });
 
   test('ordenar no toca la lista del plan', () {

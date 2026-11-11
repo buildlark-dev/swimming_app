@@ -146,9 +146,7 @@ void main() {
       expect(find.byKey(const Key('por-que-bloque-3')), findsOneWidget);
     });
 
-    testWidgets('con un solo bloque ya no se puede quitar más', (
-      tester,
-    ) async {
+    testWidgets('con un solo bloque ya no se puede quitar más', (tester) async {
       // Un macrociclo de cero bloques no es nada, y la pantalla no ofrece
       // llegar ahí en lugar de dejar llegar y fallar al confirmar.
       await abrir(tester);

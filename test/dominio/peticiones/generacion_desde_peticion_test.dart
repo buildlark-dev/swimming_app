@@ -107,8 +107,12 @@ void main() {
     test('y con otra petición, otro borrador', () {
       // Control negativo: si la comparación de arriba pasara con cualquier
       // par de planes, no estaría comparando nada.
-      final aDosSemanas = generar(cual: peticion(competenciaEnDias: 10)).resultado;
-      final aDosMeses = generar(cual: peticion(competenciaEnDias: 60)).resultado;
+      final aDosSemanas = generar(
+        cual: peticion(competenciaEnDias: 10),
+      ).resultado;
+      final aDosMeses = generar(
+        cual: peticion(competenciaEnDias: 60),
+      ).resultado;
 
       expect(
         _comoTexto((aDosSemanas as MicrocicloGenerado).plan),
@@ -242,8 +246,7 @@ void main() {
       // Lo encontró el recorrido del quickstart: el plan se guardaba y el
       // `peticionId` no estaba en el documento. FR-010 se cumplía en memoria
       // y se perdía al escribir, que es la peor forma de cumplirse.
-      final generado =
-          (generar().resultado as MicrocicloGenerado).plan;
+      final generado = (generar().resultado as MicrocicloGenerado).plan;
 
       final json = planAJson(generado);
       expect(json['peticionId'], 'n-ana');
@@ -301,6 +304,7 @@ String _comoTexto(Plan plan) => [
     sesion.id,
     sesion.objetivoTecnico,
     sesion.objetivoFisiologico,
-    for (final parte in sesion.partes) '${parte.tipo.name}:${parte.textoOriginal}',
+    for (final parte in sesion.partes)
+      '${parte.tipo.name}:${parte.textoOriginal}',
   ],
 ].join('|');

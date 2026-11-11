@@ -88,34 +88,36 @@ void main() {
     expect(plan.ordenEnElMacrociclo, isNull);
   });
 
-  test('`copiarCon(id: null)` NO borra el identificador, y conviene saberlo',
-      () {
-    // **Esta prueba existe porque la trampa ya costó un diagnóstico.**
-    //
-    // `copiarCon` resuelve cada campo como `nuevo ?? this.campo`, así que
-    // pasar nulo significa «no lo cambies», no «ponlo a nulo». Una línea como
-    // `sesion.copiarCon(id: null)` **parece** que quita el identificador y no
-    // lo quita, y leyéndola de corrido se concluye lo contrario de lo que el
-    // código hace. Pasó al planificar la feature 009: se dio por defecto que
-    // `crearVersionDesde` renombraba las sesiones de cada versión, y no las
-    // renombraba.
-    //
-    // Vale para `Plan` y para `Sesion` por igual. Si algún día hace falta
-    // poder vaciar un campo, lo que hay que añadir es un parámetro explícito
-    // —un centinela o un `bool quitarEl...`—, no confiar en el nulo.
-    final sesion = Sesion(id: 's1', microcicloId: 'mc-1');
-    expect(sesion.copiarCon(id: null).id, 's1');
+  test(
+    '`copiarCon(id: null)` NO borra el identificador, y conviene saberlo',
+    () {
+      // **Esta prueba existe porque la trampa ya costó un diagnóstico.**
+      //
+      // `copiarCon` resuelve cada campo como `nuevo ?? this.campo`, así que
+      // pasar nulo significa «no lo cambies», no «ponlo a nulo». Una línea como
+      // `sesion.copiarCon(id: null)` **parece** que quita el identificador y no
+      // lo quita, y leyéndola de corrido se concluye lo contrario de lo que el
+      // código hace. Pasó al planificar la feature 009: se dio por defecto que
+      // `crearVersionDesde` renombraba las sesiones de cada versión, y no las
+      // renombraba.
+      //
+      // Vale para `Plan` y para `Sesion` por igual. Si algún día hace falta
+      // poder vaciar un campo, lo que hay que añadir es un parámetro explícito
+      // —un centinela o un `bool quitarEl...`—, no confiar en el nulo.
+      final sesion = Sesion(id: 's1', microcicloId: 'mc-1');
+      expect(sesion.copiarCon(id: null).id, 's1');
 
-    const plan = Plan(
-      id: 'p1',
-      nombre: 'Mesociclo',
-      categoria: Categoria.competitivo,
-      estiloObjetivo: Estilo.libre,
-      macrocicloId: 'macro-1',
-    );
-    expect(plan.copiarCon(id: null).id, 'p1');
-    expect(plan.copiarCon(macrocicloId: null).macrocicloId, 'macro-1');
-  });
+      const plan = Plan(
+        id: 'p1',
+        nombre: 'Mesociclo',
+        categoria: Categoria.competitivo,
+        estiloObjetivo: Estilo.libre,
+        macrocicloId: 'macro-1',
+      );
+      expect(plan.copiarCon(id: null).id, 'p1');
+      expect(plan.copiarCon(macrocicloId: null).macrocicloId, 'macro-1');
+    },
+  );
 
   test('`copiarCon` conserva la pertenencia al macrociclo', () {
     const mesociclo = Plan(

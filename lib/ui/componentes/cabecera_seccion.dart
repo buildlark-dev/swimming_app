@@ -57,9 +57,7 @@ class CabeceraSeccion extends StatelessWidget {
               // fuera al 130% de letra y 172 al 200%, en un teléfono de 360.
               // El banco solo mide los caminos que monta, y hasta ahora
               // ninguno montaba un título largo.
-              Flexible(
-                child: Text(titulo, style: estilo ?? texto.titleMedium),
-              ),
+              Flexible(child: Text(titulo, style: estilo ?? texto.titleMedium)),
             ],
           );
 

@@ -43,4 +43,14 @@ abstract class LectorDeMolestias {
     String nadadorId, {
     required DateTime desde,
   });
+
+  /// Quiénes contaron alguna desde [desde]. **Una consulta, no una por
+  /// nadador** (feature 010, FR-010).
+  ///
+  /// El entrenador tiene que poder ver desde la lista quién reportó algo, sin
+  /// abrir a nadie: un reporte de dolor que solo se encuentra entrando en cada
+  /// ficha está enterrado, y el principio VIII dice justamente que no puede
+  /// estarlo. Preguntar ficha por ficha serían N consultas para pintar una
+  /// pantalla, que es la decisión D10 de la feature 008 con otro nombre.
+  Future<Set<String>> quienesReportaron({required DateTime desde});
 }

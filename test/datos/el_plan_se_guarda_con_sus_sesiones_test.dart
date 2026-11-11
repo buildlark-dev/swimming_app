@@ -90,7 +90,10 @@ class _PlanesConSesionesAparte implements RepositorioPlanes {
   /// Vive aquí para que el doble **no sea más fácil de contentar** que
   /// Firestore: si el día que se arregla la implementación real se escribe de
   /// otra forma, esta prueba lo nota.
-  Future<void> _escribirLasSesiones(String planId, List<Sesion> sesiones) async {
+  Future<void> _escribirLasSesiones(
+    String planId,
+    List<Sesion> sesiones,
+  ) async {
     for (final sesion in sesiones) {
       await _sesiones.guardar(planId, sesion);
     }
@@ -100,8 +103,7 @@ class _PlanesConSesionesAparte implements RepositorioPlanes {
   Future<void> publicar(String id) async {}
 
   @override
-  Future<Plan> crearVersionDesde(String id) async =>
-      throw UnimplementedError();
+  Future<Plan> crearVersionDesde(String id) async => throw UnimplementedError();
 
   @override
   Future<Map<String, dynamic>> exportar(String id) async => {};
@@ -178,14 +180,16 @@ void main() {
         expect(recuperado.metros, greaterThan(0));
       });
 
-      test('y están en la subcolección de sesiones, no solo en el plan',
-          () async {
-        // Es lo que distingue «guardado» de «guardado a medias»: el editor y
-        // la pantalla del nadador leen de ahí.
-        final id = await planes.guardarBorrador(generado());
+      test(
+        'y están en la subcolección de sesiones, no solo en el plan',
+        () async {
+          // Es lo que distingue «guardado» de «guardado a medias»: el editor y
+          // la pantalla del nadador leen de ahí.
+          final id = await planes.guardarBorrador(generado());
 
-        expect(await sesiones.obtenerDePlan(id), hasLength(3));
-      });
+          expect(await sesiones.obtenerDePlan(id), hasLength(3));
+        },
+      );
 
       test('cada sesión guardada tiene identificador', () async {
         // **Esta es la mitad que convierte el defecto en pérdida de datos.**
@@ -232,9 +236,9 @@ void main() {
         // firmar, el almacén de sesiones no recibe ninguna escritura más.
         final id = await planes.guardarBorrador(generado());
         final borrador = (await planes.obtener(id))!;
-        final antes = (await sesiones.obtenerDePlan(id))
-            .map((s) => s.id)
-            .toList();
+        final antes = (await sesiones.obtenerDePlan(
+          id,
+        )).map((s) => s.id).toList();
 
         await planes.guardarAprobado(
           borrador.copiarCon(estado: EstadoPlan.aprobado),
@@ -265,9 +269,7 @@ void main() {
       });
 
       test('un plan sin sesiones se guarda sin inventarlas', () async {
-        final id = await planes.guardarBorrador(
-          generado(sesiones: const []),
-        );
+        final id = await planes.guardarBorrador(generado(sesiones: const []));
 
         expect((await planes.obtener(id))!.sesiones, isEmpty);
       });

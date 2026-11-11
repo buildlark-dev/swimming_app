@@ -55,10 +55,7 @@ void main() {
   ) async {
     await abrir(tester, alEmpezar: (_) {});
 
-    expect(
-      find.byKey(const Key('empezar-macrociclo-n-ana')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const Key('empezar-macrociclo-n-ana')), findsOneWidget);
   });
 
   testWidgets('y pulsarlo pasa ese nadador y no otro', (tester) async {

@@ -170,10 +170,7 @@ Future<List<Plan>> firmarYEntregarElReajuste({
     final auditada = auditadas[i];
 
     await planes.guardarAprobado(
-      version.copiarCon(
-        estado: EstadoPlan.aprobado,
-        fechaAprobacion: hoy,
-      ),
+      version.copiarCon(estado: EstadoPlan.aprobado, fechaAprobacion: hoy),
       <String, dynamic>{
         'cumpleTodo': auditada.apruebaSinBloqueos,
         'criterios': {

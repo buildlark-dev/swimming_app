@@ -592,4 +592,11 @@ class _MolestiasSembradas implements LectorDeMolestias {
       // El filtro por fecha lo hace quien lee de verdad; aquí se respeta para
       // que la prueba de «una molestia vieja no cuenta» mida algo.
       _molestias.where((m) => m.fecha.isAfter(desde)).toList();
+
+  /// La feature 010 pregunta esto para marcar la lista; esta cola no.
+  @override
+  Future<Set<String>> quienesReportaron({required DateTime desde}) async => {
+    for (final m in _molestias)
+      if (m.fecha.isAfter(desde)) 'n-1',
+  };
 }

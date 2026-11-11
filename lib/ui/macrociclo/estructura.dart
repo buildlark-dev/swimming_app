@@ -157,8 +157,7 @@ class _PantallaEstructuraState extends State<PantallaEstructura> {
 
   List<FaltaEnPerfil> get _faltas => faltasParaElMacrociclo(widget.ficha);
 
-  Categoria get _categoria =>
-      widget.ficha.categoria ?? Categoria.iniciacion;
+  Categoria get _categoria => widget.ficha.categoria ?? Categoria.iniciacion;
 
   /// El esqueleto propuesto para la fecha elegida. Se recalcula, no se guarda.
   EsqueletoPropuesto get _propuesto => esqueletoParaMacrociclo(
@@ -307,7 +306,8 @@ class _PantallaEstructuraState extends State<PantallaEstructura> {
               // esqueleto construido sobre huecos.
               Aviso(
                 tono: TonoDeAviso.error,
-                titulo: 'Falta completar la ficha de '
+                titulo:
+                    'Falta completar la ficha de '
                     '${widget.ficha.nombre.isEmpty ? 'este nadador' : widget.ficha.nombre}',
                 mensaje:
                     'El macrociclo se construye con lo que usted ya observó. '
@@ -405,10 +405,7 @@ class _PantallaEstructuraState extends State<PantallaEstructura> {
                         'suspender.',
                     detalles: [
                       for (final aviso in _avisos)
-                        LineaDeAviso(
-                          icono: Icons.info_outline,
-                          texto: aviso,
-                        ),
+                        LineaDeAviso(icono: Icons.info_outline, texto: aviso),
                     ],
                   ),
                 ],
@@ -527,8 +524,7 @@ class _LaFecha extends StatelessWidget {
                   label: Text('En $semanas semanas'),
                   selected:
                       competencia != null &&
-                      competencia ==
-                          hoy.add(Duration(days: semanas * 7 - 1)),
+                      competencia == hoy.add(Duration(days: semanas * 7 - 1)),
                   onSelected: (_) => alElegirSemanas(semanas),
                 ),
             ],
@@ -588,10 +584,7 @@ class _BloqueEditable extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    'Bloque ${indice + 1}',
-                    style: texto.titleMedium,
-                  ),
+                  child: Text('Bloque ${indice + 1}', style: texto.titleMedium),
                 ),
                 if (alQuitar != null)
                   IconButton(

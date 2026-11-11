@@ -84,10 +84,7 @@ void main() {
 
     test('el rechazo lleva el motivo y ningún plan', () {
       expect(rechazo['motivo'], isNotEmpty);
-      expect(
-        rechazo.containsKey('planId') ? rechazo['planId'] : null,
-        isNull,
-      );
+      expect(rechazo.containsKey('planId') ? rechazo['planId'] : null, isNull);
     });
 
     test('la decisión es exactamente «aprobada» o «rechazada»', () {

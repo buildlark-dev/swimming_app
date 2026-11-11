@@ -59,6 +59,9 @@ import 'package:natacion_app/dominio/macrociclo/derivar_macrociclo.dart';
 import 'package:natacion_app/dominio/macrociclo/esqueleto_propuesto.dart';
 import 'package:natacion_app/dominio/macrociclo/guardar_macrociclo.dart';
 import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
+import 'package:natacion_app/dominio/peticiones/molestias_enlazadas.dart';
+import 'package:natacion_app/ui/analisis/lectura_de_un_nadador.dart';
+import 'package:natacion_app/ui/analisis/pantalla_analisis.dart';
 import 'package:natacion_app/ui/macrociclo/estructura.dart';
 import 'package:natacion_app/ui/macrociclo/revisar_macrociclo.dart';
 import 'package:provider/provider.dart';
@@ -464,6 +467,37 @@ List<PantallaMedible> pantallasDeLaApp() => [
       sinMacrociclo: const SizedBox.shrink(),
     ),
   ),
+  // El `Análisis` del entrenador (feature 010). Dos pantallas y las dos se
+  // miden, porque son dos disposiciones distintas: la lista de nadadores con
+  // su marca de molestia, y la lectura completa de una, que es larga.
+  //
+  // **La lectura se monta con una molestia a propósito.** Es el bloque con
+  // más texto y el que lleva un `Aviso` con título, mensaje y detalle dentro
+  // de una tarjeta ya anidada: si algo se sale al 200% de letra, se sale ahí.
+  // `CabeceraSeccion` perdió un `Flexible` durante cuatro features porque
+  // todos los títulos que el banco montaba eran cortos.
+  PantallaMedible(
+    'análisis — sus nadadores',
+    () => PantallaAnalisis(
+      nadadores: _nadadores(),
+      macrociclos: _MacrociclosDelBanco(),
+      planes: _PlanesDelBanco(),
+      registros: _RegistrosConMolestiaDelBanco(),
+      molestias: _MolestiasDelBanco(),
+      hoy: _hoy.add(const Duration(days: 60)),
+    ),
+  ),
+  PantallaMedible(
+    'análisis — la lectura de una nadadora',
+    () => LecturaDeUnNadador(
+      nadador: _nadadorDePrueba,
+      macrocicloId: 'macro-1',
+      macrociclos: _MacrociclosDelBanco(),
+      planes: _PlanesDelBanco(),
+      registros: _RegistrosConMolestiaDelBanco(),
+      hoy: _hoy.add(const Duration(days: 60)),
+    ),
+  ),
   PantallaMedible(
     'macrociclo — revisar',
     () => PantallaRevisarMacrociclo(
@@ -534,10 +568,7 @@ MacrocicloGuardado _macrocicloParaElBanco() {
     macrociclo: derivado.macrocicloConLosIds(ids).copiarCon(id: 'macro-1'),
     mesociclos: [
       for (var i = 0; i < derivado.mesociclos.length; i++)
-        derivado.mesociclos[i].copiarCon(
-          id: ids[i],
-          macrocicloId: 'macro-1',
-        ),
+        derivado.mesociclos[i].copiarCon(id: ids[i], macrocicloId: 'macro-1'),
     ],
   );
 }
@@ -691,6 +722,76 @@ class _RegistrosDelBanco implements RepositorioRegistros {
 
   @override
   Future<Set<String>> nadadoresConRegistros() async => {'n1'};
+}
+
+/// Como `_RegistrosDelBanco`, **y con una molestia**.
+///
+/// El `Análisis` de la feature 010 enseña la molestia en dos sitios —arriba,
+/// junta, y dentro de la sesión que la produjo—, y ese es el bloque con más
+/// texto de la pantalla. Sin una molestia sembrada, el banco mediría la
+/// pantalla sin su caso más largo, que es exactamente el error que la feature
+/// 005 cometió con el plan sin fase ATR.
+class _RegistrosConMolestiaDelBanco implements RepositorioRegistros {
+  @override
+  Future<List<RegistroDeSesion>> obtenerDePlan(
+    String nadadorId,
+    String planId,
+  ) async {
+    if (planId != 'p1') return const [];
+
+    final sesiones = _entregadoParaElBanco().mesociclos.first.sesiones;
+
+    return [
+      for (final (indice, sesion) in sesiones.take(3).indexed)
+        RegistroDeSesion(
+          nadadorId: nadadorId,
+          planId: planId,
+          sesionId: sesion.id ?? '',
+          versionDePlan: '3.6.0',
+          realizada: indice != 1,
+          registradoEn: _hoy,
+          rpePercibido: 6 + indice,
+          observaciones: 'Me costó el último 100, pero lo saqué.',
+          molestia: indice == 0
+              ? const ReporteDeMolestia(
+                  descripcion:
+                      'Me molesta el hombro derecho cuando salgo del viraje '
+                      'y aprieto el primer 50.',
+                  zonaDelCuerpo: 'Hombro derecho',
+                )
+              : null,
+        ),
+    ];
+  }
+
+  @override
+  Future<RegistroDeSesion?> obtener(String id) async => null;
+
+  @override
+  Future<void> guardar(RegistroDeSesion registro) async {}
+
+  @override
+  Future<Map<String, dynamic>> exportar(String nadadorId) async => {};
+
+  @override
+  Future<void> eliminarDe(String nadadorId) async {}
+
+  @override
+  Future<Set<String>> nadadoresConRegistros() async => {'n1'};
+}
+
+/// Quién contó una molestia, para que la lista la marque.
+class _MolestiasDelBanco implements LectorDeMolestias {
+  @override
+  Future<List<MolestiaEnlazada>> recientesDe(
+    String nadadorId, {
+    required DateTime desde,
+  }) async => const [];
+
+  @override
+  Future<Set<String>> quienesReportaron({required DateTime desde}) async => {
+    'n1',
+  };
 }
 
 class _RegistrosEnMemoria implements RepositorioRegistros {

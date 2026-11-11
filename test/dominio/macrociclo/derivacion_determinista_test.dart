@@ -212,9 +212,7 @@ void main() {
   group('la versión de metodología (M11, FR-011, SC-002)', () {
     test('el macrociclo la lleva', () {
       expect(
-        derivar()
-            .macrocicloConLosIds(const ['a', 'b', 'c'])
-            .versionMetodologia,
+        derivar().macrocicloConLosIds(const ['a', 'b', 'c']).versionMetodologia,
         '3.6.0',
       );
     });
@@ -303,10 +301,7 @@ void main() {
       // M6: el motor prohíbe la fase aquí, así que un mesociclo con fase
       // habría sido rechazado al generar.
       final derivado = derivar(
-        cual: estructura(
-          categoria: Categoria.iniciacion,
-          dias: const [2, 4],
-        ),
+        cual: estructura(categoria: Categoria.iniciacion, dias: const [2, 4]),
         deQuien: const Nadador(
           id: 'n-leo',
           nombre: 'Leonardo Mesa',
