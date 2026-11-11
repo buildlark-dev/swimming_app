@@ -19,7 +19,7 @@ was lost. A roadmap that lives in a chat is not a roadmap.
 | **006** Account sign-up and consent at registration | Name, exact age and country in short steps; T&C accepted on the way in; the minor's guardian is asked for consent | Merged |
 | **007** The HUB and the two journeys | Five tabs — `Generar`, `Ver Plan`, `Home`, `Análisis`, `Ajustes` — arranged per role, plus Home and the settings screen where a person governs their own account | Merged |
 | **008** The swimmer's request | A checklist that becomes a draft, the draft reaches the coach's queue, and nothing leaves without his signature | Merged |
-| **009** Ver Plan and progression | The macrocycle, confirmed once and delivered whole; the swimmer annotates it as they go, and a readjustment versions what changed | In review |
+| **009** Ver Plan and progression | The macrocycle, confirmed once and delivered whole; the swimmer annotates it as they go, and a readjustment versions what changed | Merged |
 | **010** Análisis | The detailed journey, and asking the coach for feedback | Planned |
 
 ## What each of the later ones is waiting on
@@ -44,14 +44,19 @@ confirmation remains, on the structure, and the rest derives.
 scope (`Alcance.video`, modelled in 004 precisely for this). Whether the feedback
 request includes video, or stops at the request, is a decision for its spec.
 
-**010 also has to finish something 007 started.** Records have been written to
-Firestore since feature 003 and, until 007, nothing ever read them back:
-`RegistrosLocales` reads the device's own store, so the coach only ever saw what
-his own phone had written. The promise — "the coach reads it next to the session
-that produced it" — held only when coach and swimmer shared a device, which is
-exactly how it was tested. Feature 007 built `RegistrosFirestore` because a Home
-number needed it; the coach's full reading of what his swimmers answer is the
-`Análisis` that 010 brings, and it should start from that reader.
+**010 still has to finish something 007 started, but less of it than before.**
+Records have been written to Firestore since feature 003 and, until 007, nothing
+ever read them back: `RegistrosLocales` reads the device's own store, so the
+coach only ever saw what his own phone had written. Feature 007 built
+`RegistrosFirestore` because a Home number needed it.
+
+Feature 009 closed the swimmer's half of that, because walking it on a phone
+made the gap impossible to ignore: her screen read the device alone, so changing
+phone or reinstalling set her count back to zero under a sentence promising the
+opposite. `RegistrosDeLasDosPartes` now reads both sides, local winning, and
+writing still never waits on the network. **What is left for 010 is the coach's
+side**: his full reading of what his swimmers answer, which is the `Análisis`,
+and it should start from that same reader.
 
 **The deferred manual checks** — T088 and T089 of feature 004, and C1/C2 of
 feature 003 — close after 010. They need a real device and the coach's own eyes.
