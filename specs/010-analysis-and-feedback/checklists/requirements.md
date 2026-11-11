@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,29 +31,16 @@
 
 ## Notes
 
-**Two questions are open and they are in the spec under "Clarifications needed", not as
-inline markers.** Both change scope rather than wording, so neither has a default worth
-guessing:
+**Both open questions were answered on 2026-11-11 and are recorded in the spec under
+"Clarifications".**
 
-- **Q1 — video.** The feature description handed this decision to the spec explicitly.
-  No video is captured either way; the question is whether the request is shaped now to
-  carry one later.
-- **Q2 — whether the coach answers in the app.** This is the largest scope fork in the
-  feature. Option A adds a second write path and raises what a written reply to a minor
-  may contain; option B is a single state change; option C adds nothing and tells her
-  nothing.
+- **Q1 — video: shaped for it, empty for now.** The request is modelled so a video can
+  hang off it later and the consent gate is written and proven now. Nothing about video
+  is captured, stored or shown here, and the interface says nothing about it — the cost
+  named when the question was asked (a control the app cannot honour is a promise it
+  should not make) is handled by keeping it out of the interface, not by pretending it
+  does not exist.
+- **Q2 — the coach does not reply in the app.** He marks a request as seen; the answer
+  happens at the poolside. What the app guarantees is that she can tell he saw it.
 
 Everything else was resolved from the project's own record rather than guessed:
-
-- The coach's reading starts from the reader built in features 007 and 009, because two
-  readers of the same data is two truths. Recorded as an assumption.
-- The entry point is swimmer → sessions, matching how `Ver Plan` is already arranged.
-  Recorded as an assumption rather than asked, since the app answers it.
-- Adherence is not recomputed: feature 009 put it in the domain.
-- Discomfort apart, no automatic resolution, and internal and external load never merged
-  come straight from constitution principle VIII and are written as requirements, not
-  choices.
-
-**Two terms appear in the spec that are not implementation detail but project vocabulary**
-— `Análisis` (the tab, named in the interface) and `Alcance.video` (the consent scope,
-named by the feature description). Both are quoted as names the project already uses.

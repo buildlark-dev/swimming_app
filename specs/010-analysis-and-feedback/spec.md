@@ -132,6 +132,8 @@ find that request in her analysis attached to that session.
 3. **Given** she has no connection, **When** she asks for feedback, **Then** the request is
    kept on her device and travels when the connection returns, exactly as her session
    records do.
+4. **Given** the coach has seen her request, **When** she looks at that session, **Then**
+   she can tell he saw it, even though no written answer arrives.
 4. **Given** a session she has not swum yet, **When** she looks at it, **Then** asking for
    feedback is not offered: there is nothing to look at yet.
 
@@ -210,20 +212,32 @@ find that request in her analysis attached to that session.
   it is about, in the same place he reads her answers.
 - **FR-018**: A feedback request MUST remain attached to the session it was asked about,
   even if that session's block is later replaced by a new version.
+- **FR-019**: The coach MUST be able to mark a request as seen, and the swimmer MUST be
+  able to tell that he saw it. Asking into a drawer is worse than not asking.
+- **FR-020**: The system MUST NOT offer the coach a written reply in this feature. The
+  answer happens at the poolside.
+- **FR-021**: A feedback request MUST be modelled so a video can be attached to it in a
+  later feature, and the system MUST NOT capture, store, transmit or display any video
+  in this one.
+- **FR-022**: Attaching a video MUST require that swimmer's guardian consent for video
+  to be current. The check MUST exist and be proven now, so that it is already standing
+  when attaching becomes possible.
+- **FR-023**: The interface MUST NOT mention video, offer it or imply it is coming. A
+  control the app cannot honour is a promise it should not make.
 
 **Who may read what**
 
-- **FR-019**: The system MUST permit a coach to read only his own swimmers' records, and
+- **FR-024**: The system MUST permit a coach to read only his own swimmers' records, and
   this MUST be enforced by the server and not only by the screen.
-- **FR-020**: The system MUST stop exposing a swimmer's records to the coach when that
+- **FR-025**: The system MUST stop exposing a swimmer's records to the coach when that
   swimmer's guardian consent is no longer current.
-- **FR-021**: A swimmer MUST NOT be able to read another swimmer's records or requests.
-- **FR-022**: The system MUST NOT write a swimmer's name, marks or identifiers into logs or
+- **FR-026**: A swimmer MUST NOT be able to read another swimmer's records or requests.
+- **FR-027**: The system MUST NOT write a swimmer's name, marks or identifiers into logs or
   analytics.
 
 **Language**
 
-- **FR-023**: Everything the coach and the swimmer read in this feature MUST be in Spanish,
+- **FR-028**: Everything the coach and the swimmer read in this feature MUST be in Spanish,
   with no technical vocabulary leaking into the interface.
 
 ### Key Entities
@@ -233,7 +247,8 @@ find that request in her analysis attached to that session.
   report kept apart. Belongs to the plan version she answered against.
 - **Feedback request** (new): a swimmer asking her coach to look at one specific session,
   in her own words. Belongs to a swimmer and a session; carries when it was asked and
-  whether the coach has seen it.
+  whether the coach has seen it. Shaped to hold a video reference in a later feature;
+  always empty in this one.
 - **Swimmer's reading** (new, derived): everything the coach needs about one swimmer —
   her sessions, her answers beside them, her adherence and her discomfort reports —
   assembled for reading, not stored.
@@ -257,7 +272,11 @@ find that request in her analysis attached to that session.
   the coach once connection returns, with nothing lost.
 - **SC-007**: Attempting to read another coach's swimmer is refused by the server, proven
   by a test that fails when the rule is removed.
-- **SC-008**: The deferred manual checks waiting on this feature — C1 and C2 of feature
+- **SC-008**: A swimmer who asked for feedback can tell whether her coach has seen it,
+  without a written answer existing.
+- **SC-009**: No video can be attached, and the gate that will stand in front of it when
+  it can is proven by a test that fails when the consent check is removed.
+- **SC-010**: The deferred manual checks waiting on this feature — C1 and C2 of feature
   003, T088 and T089 of feature 004 — can be walked end to end on a real device once it
   ships.
 
@@ -284,41 +303,40 @@ find that request in her analysis attached to that session.
 
 ## Out of scope
 
-- **Video.** Its consent scope has been modelled since feature 004 and is still unused.
-  See the question below: this spec decides whether the request anticipates it or ignores
-  it entirely, but no video is captured, stored or shown in this feature either way.
+- **Capturing, storing or showing video.** The request is shaped to carry one later and
+  the consent gate in front of it is built and proven now, but nothing about video is
+  collected in this feature and the interface says nothing about it.
+- **A written reply from the coach.** He marks a request as seen; the answer happens at
+  the poolside.
 - **Trends across blocks or seasons.** This feature reads what was answered; charting it
   over time is a later decision.
 - **Any automatic reaction to what is read.** Readjusting is the coach's act and feature
   009 already gives him the control for it.
 
-## Clarifications needed
+## Clarifications
 
-### Q1: Does the feedback request anticipate video, or ignore it?
+Both questions this spec raised were answered by the coach on 2026-11-11.
 
-**Context**: "El vídeo queda fuera del alcance: su consentimiento está modelado desde la
-004 (`Alcance.video`) y no se usa todavía, así que esta spec decide si la petición de
-feedback lo contempla o se queda en la petición."
+### Q1 — Does the feedback request anticipate video? **Shaped for it, empty for now.**
 
-**What we need to know**: No video is captured in this feature either way. The question is
-whether the request is shaped now so video can attach later, or whether it is purely
-textual and gets reshaped when video arrives.
+The request is modelled from the start so a video can hang off it later, "aunque no sea
+obligatorio subirlo", and **the consent check is written now so it is already in place
+when attaching becomes possible**.
 
-| Option | Answer | Implications |
-|--------|--------|--------------|
-| A | Text only. The request carries her words and nothing else. | Smallest surface. When video arrives it changes the request, its rules and its screen. Honest about what exists today and consistent with the constitution's rule that nothing is collected without a declared use in the feature that asks for it. |
-| B | Shaped for video, empty for now. The request can carry an attachment, with none allowed yet. | Avoids reshaping later. But it models a field with no use today, and `Alcance.video` consent would have to be checked for something nobody can do yet, which reads as a promise the app does not keep. |
-| Custom | Something else | Say what the request should carry. |
+This is deliberately narrower than it sounds, and the narrowness is the point: **nothing
+about video is captured, stored, transmitted or shown in this feature.** What exists is
+the shape of the request and the gate in front of the capability. The constitution forbids
+collecting data without a declared use in the feature that asks for it, and this collects
+none — it declares where the data will go and what must be true before any arrives.
 
-### Q2: Does the coach answer inside the app, or does the request just reach him?
+The cost named when the question was asked still stands and is accepted: a request that
+can carry something nobody can attach yet is a promise the interface must not make. The
+interface therefore says nothing about video.
 
-**Context**: The roadmap entry is "the detailed journey, and asking the coach for
-feedback". A request that arrives and cannot be answered where it arrived is half a
-conversation; a written reply is a new write path with its own access rules.
+### Q2 — Does the coach answer inside the app? **No. It reaches him and he marks it seen.**
 
-| Option | Answer | Implications |
-|--------|--------|--------------|
-| A | He replies in the app, in writing, and she reads it on that session. | Closes the loop where it opened. Adds a second write path, its rules, and the question of what a reply to a minor's question is allowed to contain. Largest of the three. |
-| B | It reaches him and he marks it as seen. He answers at the poolside. | Small and honest to how a coach actually works. She knows he saw it; the conversation happens in person, which for a minor is arguably where it belongs. |
-| C | It reaches him and nothing more. No state, no reply. | Smallest. But she cannot tell whether he saw it, which makes asking feel like shouting into a drawer. |
-| Custom | Something else | Say how far the exchange should go. |
+The conversation happens at the poolside, which for a minor is arguably where it belongs.
+What the app guarantees is that she can tell he saw it — asking into a drawer is worse
+than not asking.
+
+No written reply path is built in this feature.
