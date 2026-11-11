@@ -124,16 +124,16 @@ without opening any of them, and what he reads suggests nothing.
 
 ### Tests for User Story 2 ⚠️ write first, watch them fail
 
-- [ ] T031 [P] [US2] Write the lock in `test/ui/analisis/la_molestia_va_aparte_test.dart`: a session carrying a discomfort report is distinguishable from one carrying only observations **before** it is expanded (FR-009)
-- [ ] T032 [P] [US2] Write the lock in `test/ui/analisis/quien_reporto_molestia_test.dart`: with ten swimmers and one reporting discomfort, the list identifies her without any being opened (FR-010, SC-004)
-- [ ] T033 [P] [US2] Write the lock in `test/ui/analisis/la_app_no_opina_de_la_molestia_test.dart`: the discomfort view contains no severity, no score, no suggested action and no control that changes a plan (FR-011). Assert over the rendered text and over the source of the widget
+- [X] T031 [P] [US2] Write the lock in `test/ui/analisis/la_molestia_va_aparte_test.dart`: a session carrying a discomfort report is distinguishable from one carrying only observations **before** it is expanded (FR-009)
+- [X] T032 [P] [US2] Write the lock in `test/ui/analisis/quien_reporto_molestia_test.dart`: with ten swimmers and one reporting discomfort, the list identifies her without any being opened (FR-010, SC-004)
+- [X] T033 [P] [US2] Write the lock in `test/ui/analisis/la_app_no_opina_de_la_molestia_test.dart`: the discomfort view contains no severity, no score, no suggested action and no control that changes a plan (FR-011). Assert over the rendered text and over the source of the widget
 
 ### Implementation for User Story 2
 
-- [ ] T034 [US2] Compute `conMolestia` in `lib/dominio/analisis/lectura_del_nadador.dart` from `RegistroDeSesion.tieneMolestia`, which already exists
-- [ ] T035 [US2] Mark swimmers with discomfort in `lib/ui/analisis/pantalla_analisis.dart`, using the informative tone of feature 005 and not an error tone — a report is information, not a failure
-- [ ] T036 [US2] Mark the session in `lib/ui/analisis/lectura_de_un_nadador.dart` and show what she wrote, verbatim
-- [ ] T037 [US2] Confirm no suggestion leaks into `lib/ui/analisis/pantalla_analisis.dart` or `lib/ui/analisis/lectura_de_un_nadador.dart`: re-read both against FR-011 and the constitution's principle IV
+- [X] T034 [US2] Compute `conMolestia` in `lib/dominio/analisis/lectura_del_nadador.dart` from `RegistroDeSesion.tieneMolestia`, which already exists
+- [X] T035 [US2] Mark swimmers with discomfort in `lib/ui/analisis/pantalla_analisis.dart`, using the informative tone of feature 005 and not an error tone — a report is information, not a failure
+- [X] T036 [US2] Mark the session in `lib/ui/analisis/lectura_de_un_nadador.dart` and show what she wrote, verbatim
+- [X] T037 [US2] Confirm no suggestion leaks into `lib/ui/analisis/pantalla_analisis.dart` or `lib/ui/analisis/lectura_de_un_nadador.dart`: re-read both against FR-011 and the constitution's principle IV
 - [ ] T038 [US2] Walk C3 of [quickstart.md](./quickstart.md) on the Pixel 7
 
 **Checkpoint**: a pain report cannot be buried, and the app says nothing about what to do with it.

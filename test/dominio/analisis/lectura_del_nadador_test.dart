@@ -15,6 +15,7 @@ library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:natacion_app/dominio/analisis/lectura_del_nadador.dart';
+import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 
 import 'dobles_de_analisis.dart';
 
@@ -170,5 +171,63 @@ void main() {
     // lectura pide los del nadador que se le pasó y no los de la colección.
     expect(lectura.respuestas.single.registro, isNotNull);
     expect(lectura.respuestas.single.registro!.nadadorId, 'n-ana');
+  });
+
+  test('conMolestia sale de tieneMolestia y de nada más', () async {
+    final plan = mesociclo(
+      id: 'plan-1',
+      sesiones: [
+        sesionDe(id: 's1', fecha: lunes),
+        sesionDe(id: 's2', fecha: miercoles),
+        sesionDe(id: 's3', fecha: viernes),
+      ],
+    );
+
+    final registros = RegistrosDeMentira()
+      // Observaciones largas, sin molestia: no cuenta.
+      ..sembrar(
+        registroDe(
+          sesionId: 's1',
+          planId: 'plan-1',
+          rpe: 9,
+          observaciones: 'Me dolió hasta el alma, pero era cansancio',
+        ),
+      )
+      // Una molestia de verdad.
+      ..sembrar(
+        registroDe(
+          sesionId: 's2',
+          planId: 'plan-1',
+          molestia: const ReporteDeMolestia(
+            descripcion: 'Hombro derecho al salir del viraje',
+            zonaDelCuerpo: 'Hombro derecho',
+          ),
+        ),
+      )
+      // Un reporte vacío **no es un reporte**: `tieneMolestia` lo descarta
+      // desde la feature 003, y aquí se confía en eso en lugar de repetirlo.
+      ..sembrar(
+        registroDe(
+          sesionId: 's3',
+          planId: 'plan-1',
+          molestia: const ReporteDeMolestia(descripcion: '   '),
+        ),
+      );
+
+    final lectura = await leerAlNadador(
+      nadador: ana(),
+      mesociclos: [plan],
+      registros: registros,
+      planes: PlanesDeMentira([plan]),
+      hoy: DateTime(2026, 11, 10),
+    );
+
+    expect(
+      lectura.conMolestia.map((r) => r.sesion.id).toList(),
+      ['s2'],
+      reason:
+          'una observación que menciona dolor no es un reporte de molestia, y '
+          'un reporte vacío tampoco: por eso el campo existe aparte',
+    );
   });
 }
