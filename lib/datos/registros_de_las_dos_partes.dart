@@ -32,12 +32,23 @@ class RegistrosDeLasDosPartes implements RepositorioRegistros {
   /// Sin red se devuelve lo local y no se nota. Lo contrario sería dejarle sin
   /// su plan por un problema de cobertura, que es justo lo que la garantía A8
   /// de la feature 003 prohíbe.
+  ///
+  /// **Cualquier fallo, no solo `FalloDeDatos`.** Esto atrapaba únicamente ese,
+  /// y el recorrido de la 010 encontró por qué importa: un `TypeError` al
+  /// deserializar un documento se escapaba, la lectura no terminaba nunca, y la
+  /// pantalla de la nadadora se quedaba diciendo «0 de 39» con su respuesta ya
+  /// en el servidor. Una frase que dice «sin que un fallo cueste la pantalla»
+  /// tiene que cubrir los fallos que nadie previó, que son los que la cuestan.
+  ///
+  /// Aquí se puede, y en la lectura del entrenador no: lo suyo es lo local, que
+  /// es su última palabra y está entero. Él no tiene copia local de lo de ella,
+  /// así que su `Análisis` **sí** hace subir el fallo (FR-008).
   Future<List<RegistroDeSesion>> _delServidor(
     Future<List<RegistroDeSesion>> Function() pedir,
   ) async {
     try {
       return await pedir();
-    } on FalloDeDatos {
+    } on Object {
       return const [];
     }
   }

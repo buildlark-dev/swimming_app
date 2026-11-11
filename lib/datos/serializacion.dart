@@ -566,6 +566,29 @@ Map<String, dynamic> registroAJson(RegistroDeSesion registro) =>
         },
     };
 
+/// Una fecha venga como venga, **sin tumbar la lectura si viene rara**.
+///
+/// Hallazgo del recorrido de la 010 en el Pixel 7. `EnvioAFirestore` escribe
+/// `recibidoEn` con `FieldValue.serverTimestamp()`, así que el servidor lo
+/// guarda como `Timestamp`; esto lo leía con `as String?` y **todo registro que
+/// había viajado al servidor se volvía ilegible**. La excepción subía por
+/// `registrosDelLinaje` hasta la pantalla de la nadadora, que se quedaba
+/// diciendo «0 de 39» con su respuesta ya en Firestore.
+///
+/// La app tenía el mismo defecto nombrado del revés en `molestias_firestore`:
+/// «el `TypeError` de un `as Timestamp?` sobre texto es lo que dejó los
+/// `Ajustes` de una nadadora girando para siempre en la feature 007».
+///
+/// **Aquí no se nombra `Timestamp`**, y es a propósito: este archivo lo usan el
+/// almacén del dispositivo y las pruebas, y no puede saber de Firestore. Quien
+/// sí lo sabe es `RegistrosFirestore`, que normaliza antes de llamar aquí. Esto
+/// es el respaldo: lo que llegue sin forma de fecha deja un hueco, y el resto
+/// del documento se lee.
+DateTime? fechaDeJson(Object? valor) => switch (valor) {
+  final DateTime fecha => fecha,
+  final String texto => DateTime.tryParse(texto),
+  _ => null,
+};
 RegistroDeSesion registroDesdeJson(Map<String, dynamic> json) {
   final molestia = json['molestia'] as Map<String, dynamic>?;
 
@@ -575,10 +598,8 @@ RegistroDeSesion registroDesdeJson(Map<String, dynamic> json) {
     sesionId: json['sesionId'] as String? ?? '',
     versionDePlan: json['versionDePlan'] as String? ?? '',
     realizada: json['realizada'] as bool? ?? false,
-    registradoEn:
-        DateTime.tryParse(json['registradoEn'] as String? ?? '') ??
-        DateTime(2026),
-    recibidoEn: DateTime.tryParse(json['recibidoEn'] as String? ?? ''),
+    registradoEn: fechaDeJson(json['registradoEn']) ?? DateTime(2026),
+    recibidoEn: fechaDeJson(json['recibidoEn']),
     rpePercibido: json['rpePercibido'] as int?,
     observaciones: json['observaciones'] as String? ?? '',
     molestia: molestia == null
