@@ -381,3 +381,30 @@ and never called.
 
 Recorded here by the coach's decision rather than fixed inside 010, so this
 feature closes on what its spec promised. It is the first thing to pick up next.
+
+### "Te quedó una sesión por marcar" about a session she marked
+
+**Found**: 2026-11-11, Pixel 7, walking C1 as Ana.
+
+**What she sees**: she marks the 9/11 session as *"No pude hacerla"*, the record
+reaches Firestore with `realizada: false`, and the notice still says **"Te quedó
+una sesión por marcar — La del 9/11"**. The app is telling her to do something
+she just did.
+
+**Why**: `ProgresoEnElMacrociclo.pendientes` excludes only `hechas`. A session
+she answered with "I did not do it" lands in `dijoQueNo`, not in `hechas`, so it
+stays on the pending list.
+
+**And the class forbids exactly this, in its own words.** The doc on `dijoQueNo`
+says: *"No es lo mismo que no haber contestado… «No la hice» es un dato: el
+nadador estuvo ahí y dijo lo que pasó. «No contestó» es la ausencia de un dato…
+Mezclarlas le enseñaría al entrenador un hueco donde hay una respuesta, o una
+respuesta donde hay un hueco."* `sinContestar` keeps the two apart correctly;
+`pendientes` does not, and `pendientes` is what the swimmer reads.
+
+**Not a defect of this feature**: `ProgresoEnElMacrociclo` is feature 009's, and
+the `Análisis` reads `adherencia`, which counts `hechas` and is right. Recorded
+rather than fixed, by the same decision the coach made about the Home.
+
+The fix is one condition, but it changes a tested behaviour of feature 009, so it
+belongs with that feature's own walk rather than inside this one.
