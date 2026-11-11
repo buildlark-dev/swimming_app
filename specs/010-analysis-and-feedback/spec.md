@@ -227,17 +227,32 @@ find that request in her analysis attached to that session.
 
 **Who may read what**
 
-- **FR-024**: The system MUST permit a coach to read only his own swimmers' records, and
-  this MUST be enforced by the server and not only by the screen.
-- **FR-025**: The system MUST stop exposing a swimmer's records to the coach when that
+- **FR-024**: The system MUST permit only the coach role and the swimmer herself to read a
+  swimmer's records and requests, and this MUST be enforced by the server and not only by
+  the screen.
+
+  **Amended during planning, and the reason is recorded rather than hidden.** This
+  originally read "only his own swimmers". There is no coach→swimmer link in the product:
+  `Nadador` carries no owner and the rule says `esEntrenador()`, so every coach account
+  reads every swimmer. The constitution describes the product as a community *led by a
+  coach*, singular, so the rule is correct for what exists — but the requirement as first
+  written could not be met, and pretending otherwise would have put a promise in the spec
+  that no test could keep. See decision D1.
+
+- **FR-025**: The boundary above MUST be covered by a test that states it, so that the day
+  a second coach exists the test names what has to change. This repeats what feature 003
+  did with its own declared limitation, which feature 004 then closed.
+- **FR-026**: The system MUST stop exposing a swimmer's records to the coach when that
   swimmer's guardian consent is no longer current.
-- **FR-026**: A swimmer MUST NOT be able to read another swimmer's records or requests.
-- **FR-027**: The system MUST NOT write a swimmer's name, marks or identifiers into logs or
+- **FR-027**: Creating a feedback request MUST require that swimmer's guardian consent for
+  training data to be current.
+- **FR-028**: A swimmer MUST NOT be able to read another swimmer's records or requests.
+- **FR-029**: The system MUST NOT write a swimmer's name, marks or identifiers into logs or
   analytics.
 
 **Language**
 
-- **FR-028**: Everything the coach and the swimmer read in this feature MUST be in Spanish,
+- **FR-030**: Everything the coach and the swimmer read in this feature MUST be in Spanish,
   with no technical vocabulary leaking into the interface.
 
 ### Key Entities
@@ -270,8 +285,9 @@ find that request in her analysis attached to that session.
   external load.
 - **SC-006**: A swimmer can ask for feedback with no connection, and the request reaches
   the coach once connection returns, with nothing lost.
-- **SC-007**: Attempting to read another coach's swimmer is refused by the server, proven
-  by a test that fails when the rule is removed.
+- **SC-007**: A swimmer attempting to read another swimmer's records or requests is refused
+  by the server, proven by a test that fails when the rule is removed. The coach-to-coach
+  boundary is stated by a test rather than enforced, for the reason in FR-024.
 - **SC-008**: A swimmer who asked for feedback can tell whether her coach has seen it,
   without a written answer existing.
 - **SC-009**: No video can be attached, and the gate that will stand in front of it when
