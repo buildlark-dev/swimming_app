@@ -47,6 +47,7 @@ class PantallaAnalisis extends StatefulWidget {
     required this.registros,
     required this.hoy,
     this.molestias,
+    this.peticiones,
   });
 
   final RepositorioNadadores nadadores;
@@ -61,6 +62,9 @@ class PantallaAnalisis extends StatefulWidget {
   final LectorDeMolestias? molestias;
 
   final DateTime hoy;
+
+  /// Lo que sus nadadores le preguntaron (US4). Nulo sin servidor.
+  final RepositorioPeticionesDeFeedback? peticiones;
 
   @override
   State<PantallaAnalisis> createState() => _PantallaAnalisisState();
@@ -119,6 +123,7 @@ class _PantallaAnalisisState extends State<PantallaAnalisis> {
             planes: widget.planes,
             registros: widget.registros,
             hoy: widget.hoy,
+            peticiones: widget.peticiones,
           ),
         ),
       ),

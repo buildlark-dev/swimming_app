@@ -42,6 +42,7 @@ class LecturaDeUnNadador extends StatefulWidget {
     required this.planes,
     required this.registros,
     required this.hoy,
+    this.peticiones,
   });
 
   final Nadador nadador;
@@ -59,6 +60,10 @@ class LecturaDeUnNadador extends StatefulWidget {
 
   final DateTime hoy;
 
+  /// Lo que ella pidió que mirara (US4). **Nulo sin servidor**: entonces no
+  /// hay peticiones que leer ni dónde escribir que las vio.
+  final RepositorioPeticionesDeFeedback? peticiones;
+
   @override
   State<LecturaDeUnNadador> createState() => _LecturaDeUnNadadorState();
 }
@@ -67,6 +72,7 @@ class _LecturaDeUnNadadorState extends State<LecturaDeUnNadador> {
   LecturaDelNadador? _lectura;
   bool _cargando = true;
   String? _problema;
+  String? _problemaAlMarcar;
 
   @override
   void initState() {
@@ -95,6 +101,7 @@ class _LecturaDeUnNadadorState extends State<LecturaDeUnNadador> {
         registros: widget.registros,
         planes: widget.planes,
         hoy: widget.hoy,
+        peticiones: widget.peticiones,
       );
 
       if (!mounted) return;
@@ -110,6 +117,29 @@ class _LecturaDeUnNadadorState extends State<LecturaDeUnNadador> {
         _cargando = false;
       });
     }
+  }
+
+  /// Marca vista la pregunta de una sesión.
+  ///
+  /// **Toca `vistaEn` y nada más**, porque la regla solo acepta esa escritura:
+  /// lo que ella escribió es suyo y la única palabra del entrenador aquí es
+  /// «la vi». Después se vuelve a leer, que es más barato que inventarse el
+  /// estado nuevo en la pantalla y que no puede discrepar del servidor.
+  Future<void> _marcarVista(String peticionId) async {
+    final repo = widget.peticiones;
+    if (repo == null) return;
+
+    try {
+      await repo.marcarVista(peticionId, DateTime.now());
+    } on Object catch (problema) {
+      if (!mounted) return;
+      setState(() => _problemaAlMarcar = problema.toString());
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _problemaAlMarcar = null);
+    await _cargar();
   }
 
   @override
@@ -182,6 +212,21 @@ class _LecturaDeUnNadadorState extends State<LecturaDeUnNadador> {
                 '${lectura.versionMetodologia ?? 'sin versión registrada'}',
                 style: texto.bodySmall,
               ),
+              if (lectura.esperandoQueLasMire.isNotEmpty) ...[
+                const SizedBox(height: Espaciado.corto),
+                // **Cuántas esperan, arriba.** Una pregunta que solo se ve
+                // dentro de su tarjeta, entre cuarenta y dos, está enterrada
+                // igual que lo estaría una molestia; esto es la misma lección
+                // de FR-010 aplicada a lo que ella preguntó.
+                Text(
+                  key: Key('esperan-que-las-mire-$id'),
+                  lectura.esperandoQueLasMire.length == 1
+                      ? 'Te preguntó algo de 1 sesión'
+                      : 'Te preguntó algo de '
+                            '${lectura.esperandoQueLasMire.length} sesiones',
+                  style: texto.bodyMedium,
+                ),
+              ],
             ],
           ),
         ),
@@ -204,8 +249,24 @@ class _LecturaDeUnNadadorState extends State<LecturaDeUnNadador> {
           ),
         const CabeceraSeccion(titulo: 'Sus sesiones'),
         const SizedBox(height: Espaciado.corto),
+        if (_problemaAlMarcar != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: Espaciado.normal),
+            child: Aviso(
+              tono: TonoDeAviso.error,
+              mensaje: 'No se pudo marcar como vista: $_problemaAlMarcar',
+              claveDelMensaje: const Key('no-se-pudo-marcar-vista'),
+            ),
+          ),
+
         for (final respuesta in lectura.respuestas)
-          SesionYRespuesta(respuesta: respuesta),
+          SesionYRespuesta(
+            respuesta: respuesta,
+            alMarcarVista:
+                widget.peticiones == null || respuesta.peticion == null
+                ? null
+                : () => _marcarVista(respuesta.peticion!.id),
+          ),
       ],
     );
   }

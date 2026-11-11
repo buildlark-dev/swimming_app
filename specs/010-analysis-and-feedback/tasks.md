@@ -178,38 +178,43 @@ marks it seen.
 
 ### The entity and its invariants ⚠️ write first, watch them fail
 
-- [ ] T045 [P] [US4] Write the lock in `test/dominio/analisis/peticion_de_feedback_test.dart`: a blank `pregunta` is refused — "Required, non-empty after trimming"; `vistaEn` once set cannot be unset; a non-null `video` is refused in this feature
-- [ ] T046 [US4] Create `PeticionDeFeedback` in `lib/dominio/analisis/peticion_de_feedback.dart` with `id` (deterministic, `nadadorId|planId|sesionId`), `nadadorId`, `planId`, `sesionId`, `pregunta`, `pedidaEn`, `vistaEn` (nullable) and `video` (nullable, always null here), per data-model.md
-- [ ] T047 [US4] Create `ReferenciaDeVideo` in `lib/dominio/analisis/peticion_de_feedback.dart` with `ruta` and `subidoEn`, defined and serialised so a later feature needs no re-consent, and refused by the constructor today (research D2)
-- [ ] T048 [US4] Add `peticion` to `RespuestaASesion` in `lib/dominio/analisis/respuesta_a_sesion.dart`, deferred from T006
+- [X] T045 [P] [US4] Write the lock in `test/dominio/analisis/peticion_de_feedback_test.dart`: a blank `pregunta` is refused — "Required, non-empty after trimming"; `vistaEn` once set cannot be unset; a non-null `video` is refused in this feature
+- [X] T046 [US4] Create `PeticionDeFeedback` in `lib/dominio/analisis/peticion_de_feedback.dart` with `id` (deterministic, `nadadorId|planId|sesionId`), `nadadorId`, `planId`, `sesionId`, `pregunta`, `pedidaEn`, `vistaEn` (nullable) and `video` (nullable, always null here), per data-model.md
+- [X] T047 [US4] Create `ReferenciaDeVideo` in `lib/dominio/analisis/peticion_de_feedback.dart` with `ruta` and `subidoEn`, defined and serialised so a later feature needs no re-consent, and refused by the constructor today (research D2)
+- [X] T048 [US4] Add `peticion` to `RespuestaASesion` in `lib/dominio/analisis/respuesta_a_sesion.dart`, deferred from T006
 
 ### The repository, both implementations ⚠️ write first
 
-- [ ] T049 [P] [US4] Write the contract lock in `test/datos/la_peticion_se_guarda_igual_test.dart`, running **the same battery over both implementations** — memory and a Firestore-shaped double — as `el_plan_se_guarda_con_sus_sesiones_test.dart` does. Six of feature 009's seven defects were a double kinder than the server
-- [ ] T050 [US4] Add `RepositorioPeticionesDeFeedback` to `lib/dominio/repositorios/repositorios.dart` with `deNadador`, `deNadadorEnPlan`, `guardar` and `marcarVista`, per contract §1
-- [ ] T051 [US4] Implement `RepositorioPeticionesDeFeedbackMemoria` in `lib/datos/memoria/repositorios_memoria.dart`, refusing a blank question, a non-null video, and a `marcarVista` that touches anything else — **the double refuses what Firestore refuses**
-- [ ] T052 [US4] Implement `PeticionesFeedbackFirestore` in `lib/datos/firestore/peticiones_feedback_firestore.dart`. `deNadadorEnPlan` filters on **both** `nadadorId` and `planId`: a query is proven by its filters, which is the defect feature 009 shipped as `75a765f`
-- [ ] T053 [US4] Add the request to `lib/datos/serializacion.dart`, with `video` absent rather than null when empty
-- [ ] T054 [US4] Write the source-level lock in `test/datos/firestore/la_peticion_filtra_por_los_dos_test.dart`: `deNadadorEnPlan` contains both `where` clauses. `cloud_firestore` cannot run under `flutter test`, so the property is fixed over the source, as `el_plan_firestore_guarda_sus_sesiones_test.dart` does
+- [X] T049 [P] [US4] Write the contract lock in `test/datos/la_peticion_se_guarda_igual_test.dart`, running **the same battery over both implementations** — memory and a Firestore-shaped double — as `el_plan_se_guarda_con_sus_sesiones_test.dart` does. Six of feature 009's seven defects were a double kinder than the server
+- [X] T050 [US4] Add `RepositorioPeticionesDeFeedback` to `lib/dominio/repositorios/repositorios.dart` with `deNadador`, `deNadadorEnPlan`, `guardar` and `marcarVista`, per contract §1
+- [X] T051 [US4] Implement `RepositorioPeticionesDeFeedbackMemoria` in `lib/datos/memoria/repositorios_memoria.dart`, refusing a blank question, a non-null video, and a `marcarVista` that touches anything else — **the double refuses what Firestore refuses**
+- [X] T052 [US4] Implement `PeticionesFeedbackFirestore` in `lib/datos/firestore/peticiones_feedback_firestore.dart`. `deNadadorEnPlan` filters on **both** `nadadorId` and `planId`: a query is proven by its filters, which is the defect feature 009 shipped as `75a765f`
+- [X] T053 [US4] Add the request to `lib/datos/serializacion.dart`, with `video` absent rather than null when empty
+- [X] T054 [US4] Write the source-level lock in `test/datos/firestore/la_peticion_filtra_por_los_dos_test.dart`: `deNadadorEnPlan` contains both `where` clauses. `cloud_firestore` cannot run under `flutter test`, so the property is fixed over the source, as `el_plan_firestore_guarda_sus_sesiones_test.dart` does
 
 ### The rules ⚠️ write first
 
-- [ ] T055 [P] [US4] Write `firebase/test/reglas_peticiones_feedback.test.js` covering the table in contract §3: she creates her own with consent current; she cannot create one for another swimmer; she reads hers and not another's; she queries filtering by **both** swimmer and plan, and by plan alone is refused; the coach reads hers and cannot write her question; he sets `vistaEn`; setting `vistaEn` **and** `pregunta` together is refused; with consent revoked she cannot create; a request carrying `video` is refused; nobody deletes one
-- [ ] T056 [US4] Add `tieneConsentimientoDeAlcance(nadadorId, alcance)` to `firebase/firestore.rules`: current **and** scoped, reading `alcances` off the consent document. Asking only `vigente` would let a family who agreed to training data authorise video they never agreed to (research D2)
-- [ ] T057 [US4] Add the `peticionesDeFeedback` block to `firebase/firestore.rules` per contract §3, with the update restricted to `hasOnly(['vistaEn'])` — the shape feature 009 used for delivering a plan
-- [ ] T058 [US4] Verify the negative control for T055: in `firebase/test/reglas_peticiones_feedback.test.js` point `COLECCION` at a name with no rule and confirm every `assertSucceeds` goes red. Record the counts in a comment
-- [ ] T059 [US4] Add the indexes `deNadadorEnPlan` needs to `firebase/firestore.indexes.json`, if the emulator asks for them
+- [X] T055 [P] [US4] Write `firebase/test/reglas_peticiones_feedback.test.js` covering the table in contract §3: she creates her own with consent current; she cannot create one for another swimmer; she reads hers and not another's; she queries filtering by **both** swimmer and plan, and by plan alone is refused; the coach reads hers and cannot write her question; he sets `vistaEn`; setting `vistaEn` **and** `pregunta` together is refused; with consent revoked she cannot create; a request carrying `video` is refused; nobody deletes one
+- [X] T056 [US4] Add `tieneConsentimientoDeAlcance(nadadorId, alcance)` to `firebase/firestore.rules`: current **and** scoped, reading `alcances` off the consent document. Asking only `vigente` would let a family who agreed to training data authorise video they never agreed to (research D2)
+- [X] T057 [US4] Add the `peticionesDeFeedback` block to `firebase/firestore.rules` per contract §3, with the update restricted to `hasOnly(['vistaEn'])` — the shape feature 009 used for delivering a plan
+- [X] T058 [US4] Verify the negative control for T055: in `firebase/test/reglas_peticiones_feedback.test.js` point `COLECCION` at a name with no rule and confirm every `assertSucceeds` goes red. Record the counts in a comment
+- [X] T059 [US4] Add the indexes `deNadadorEnPlan` needs to `firebase/firestore.indexes.json`, if the emulator asks for them
+
+  **No asked for.** `deNadadorEnPlan` is two equality filters, which Firestore
+  serves by merging single-field indexes; the emulator ran the whole suite
+  without a single index hint. `firestore.indexes.json` stays empty, as it is
+  for the `registros` query that filters on the same two fields.
 
 ### Asking, and seeing that he looked ⚠️ write first
 
-- [ ] T060 [P] [US4] Write the lock in `test/ui/nadador/pedir_feedback_test.dart`: asking is offered on a session already swum and **not offered at all** on one whose day has not arrived — not offered and disabled, which feature 007 forbade as a lure (FR-015, H12)
-- [ ] T061 [P] [US4] Write the lock in `test/ui/nadador/pedir_feedback_sin_red_test.dart`: with no network the request is accepted and queued, and `guardar` never touches the server (FR-016, G1)
-- [ ] T062 [P] [US4] Write the lock in `test/ui/nadador/el_entrenador_lo_vio_test.dart`: once `vistaEn` is set she can tell he saw it, with no written answer existing (FR-019, SC-008)
-- [ ] T063 [US4] Add asking to `lib/ui/nadador/mi_progreso.dart`, routed through the outbox exactly as a record is
-- [ ] T064 [US4] Show "he saw it" in `lib/ui/nadador/mi_progreso.dart`, from `vistaEn`
-- [ ] T065 [US4] Show pending requests on the session in `lib/ui/analisis/lectura_de_un_nadador.dart`, and the control to mark one seen (FR-017)
-- [ ] T066 [US4] Confirm the interface mentions video nowhere, in either role, per FR-023. Grep `lib/ui/analisis/` and `lib/ui/nadador/mi_progreso.dart` for the word and expect nothing
-- [ ] T067 [US4] Wire the repository into `lib/ui/hub/repositorios_del_hub.dart` and `lib/ui/hub/hub.dart`
+- [X] T060 [P] [US4] Write the lock in `test/ui/nadador/pedir_feedback_test.dart`: asking is offered on a session already swum and **not offered at all** on one whose day has not arrived — not offered and disabled, which feature 007 forbade as a lure (FR-015, H12)
+- [X] T061 [P] [US4] Write the lock in `test/ui/nadador/pedir_feedback_sin_red_test.dart`: with no network the request is accepted and queued, and `guardar` never touches the server (FR-016, G1)
+- [X] T062 [P] [US4] Write the lock in `test/ui/nadador/el_entrenador_lo_vio_test.dart`: once `vistaEn` is set she can tell he saw it, with no written answer existing (FR-019, SC-008)
+- [X] T063 [US4] Add asking to `lib/ui/nadador/mi_progreso.dart`, routed through the outbox exactly as a record is
+- [X] T064 [US4] Show "he saw it" in `lib/ui/nadador/mi_progreso.dart`, from `vistaEn`
+- [X] T065 [US4] Show pending requests on the session in `lib/ui/analisis/lectura_de_un_nadador.dart`, and the control to mark one seen (FR-017)
+- [X] T066 [US4] Confirm the interface mentions video nowhere, in either role, per FR-023. Grep `lib/ui/analisis/` and `lib/ui/nadador/mi_progreso.dart` for the word and expect nothing
+- [X] T067 [US4] Wire the repository into `lib/ui/hub/repositorios_del_hub.dart` and `lib/ui/hub/hub.dart`
 - [ ] T068 [US4] Walk C6, C7, C8 and C9 of [quickstart.md](./quickstart.md) on the Pixel 7, checking `vistaEn` and `pregunta` in the emulator — if marking seen changed her question, the update rule is not doing its job
 
 **Checkpoint**: all four stories work, each demonstrable on its own.

@@ -16,11 +16,12 @@
 /// Dominio puro: ni Flutter ni Firebase (principio II).
 library;
 
+import 'package:natacion_app/dominio/analisis/peticion_de_feedback.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
 
 class RespuestaASesion {
-  const RespuestaASesion({required this.sesion, this.registro});
+  const RespuestaASesion({required this.sesion, this.registro, this.peticion});
 
   /// Lo programado. Carga **externa**.
   final Sesion sesion;
@@ -33,6 +34,12 @@ class RespuestaASesion {
   /// `ProgresoEnElMacrociclo` desde la feature 009 y aquí se conserva.
   final RegistroDeSesion? registro;
 
+  /// Lo que pidió que mirara de esta sesión, si pidió algo (US4).
+  ///
+  /// Nula cuando no preguntó nada, que es el caso normal: preguntar es la
+  /// excepción, no el formulario.
+  final PeticionDeFeedback? peticion;
+
   /// Si el nadador dijo algo de esta sesión, cualquier cosa.
   bool get fueContestada => registro != null;
 
@@ -41,4 +48,7 @@ class RespuestaASesion {
 
   /// Si lo que contestó incluye un reporte de dolor, lesión o malestar.
   bool get tieneMolestia => registro?.tieneMolestia ?? false;
+
+  /// Si preguntó algo de esta sesión y su entrenador todavía no la ha visto.
+  bool get esperaQueLaMire => peticion != null && peticion!.vistaEn == null;
 }

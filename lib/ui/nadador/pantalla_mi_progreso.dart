@@ -13,7 +13,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:natacion_app/ui/tema/avisos.dart';
+import 'package:natacion_app/dominio/analisis/peticion_de_feedback.dart';
 import 'package:natacion_app/dominio/calculo/progreso_nadador.dart';
+import 'package:natacion_app/dominio/entidades/sesion.dart';
+import 'package:natacion_app/dominio/macrociclo/puede_marcarse.dart';
 import 'package:natacion_app/ui/componentes/estado_vacio.dart';
 import 'package:natacion_app/ui/nadador/aviso_sincronizacion.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
@@ -128,6 +131,7 @@ class _Entrada extends StatelessWidget {
     final registro = entrada.registro;
     final esquema = Theme.of(context).colorScheme;
     final fecha = entrada.sesion.fecha;
+    final sesionId = entrada.sesion.id ?? '';
 
     return Card(
       child: ListTile(
@@ -185,10 +189,208 @@ class _Entrada extends StatelessWidget {
                   ],
                 ),
               ),
+            _Feedback(sesion: entrada.sesion, sesionId: sesionId),
           ],
         ),
         isThreeLine: registro != null,
       ),
+    );
+  }
+}
+
+/// Pedirle a su entrenador que mire esta sesión, y saber si la vio.
+///
+/// **Solo de una sesión que ya pasó**, y cuando no se puede el control no se
+/// ofrece en absoluto: no se ofrece deshabilitado. La feature 007 lo prohibió
+/// —un control que no lleva a ninguna parte es un señuelo (H12)— y aquí el
+/// motivo es más concreto todavía: preguntar «¿cómo me salió?» de una sesión
+/// que no ha ocurrido no es una operación que falle, es una frase sin sentido.
+///
+/// El cerrojo de verdad vive en `EstadoNadador.pedirFeedback`, donde se
+/// construye la petición. Esto es la pantalla no ofreciendo lo que el dominio
+/// va a rechazar.
+///
+/// **No hay respuesta escrita** (aclaración Q2). Lo que ella puede saber es si
+/// él la vio; lo que él le diga, lo dice en la piscina. Un canal de mensajes
+/// prometido es un canal que alguien tiene que atender, y nadie va a atenderlo
+/// a las once de la noche.
+class _Feedback extends StatefulWidget {
+  const _Feedback({required this.sesion, required this.sesionId});
+
+  final Sesion sesion;
+  final String sesionId;
+
+  @override
+  State<_Feedback> createState() => _FeedbackState();
+}
+
+class _FeedbackState extends State<_Feedback> {
+  SePudoPedir? _loQuePaso;
+
+  Future<void> _preguntar(EstadoNadador estado) async {
+    final pregunta = await showDialog<String>(
+      context: context,
+      builder: (_) => const _DialogoDeLaPregunta(),
+    );
+
+    if (pregunta == null || !mounted) return;
+
+    final resultado = await estado.pedirFeedback(
+      sesion: widget.sesion,
+      pregunta: pregunta,
+    );
+
+    if (!mounted) return;
+    setState(() => _loQuePaso = resultado);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final estado = context.watch<EstadoNadador>();
+    final peticion = estado.peticionDe(widget.sesionId);
+    final texto = Theme.of(context).textTheme;
+    final paso = _loQuePaso;
+
+    // Sin repositorio no hay dónde guardarla, y sin día cumplido no hay nada
+    // que preguntar.
+    //
+    // **Y si ya la vio, tampoco se ofrece cambiarla.** La regla del servidor
+    // lo dejaría —el documento es suyo—, pero cambiarle la pregunta a alguien
+    // que ya la leyó no es editar: es dejarle respondida otra cosa.
+    final puedePreguntar =
+        estado.puedePedirFeedback &&
+        puedeMarcarse(sesion: widget.sesion, hoy: estado.ahora).si &&
+        !(peticion?.laVio ?? false);
+
+    if (peticion == null && !puedePreguntar) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: Espaciado.corto),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Ya preguntó: su pregunta, y si él la vio.
+          if (peticion != null) ...[
+            Text(peticion.pregunta, style: texto.bodySmall),
+            const SizedBox(height: Espaciado.minimo),
+            if (peticion.laVio)
+              Row(
+                children: [
+                  Icon(
+                    Icons.visibility_outlined,
+                    size: Espaciado.iconoEnLinea,
+                    color: context.colores.exito,
+                  ),
+                  const SizedBox(width: Espaciado.minimo),
+                  Flexible(
+                    child: Text(
+                      key: Key('ya-la-vio-${widget.sesionId}'),
+                      'Tu entrenador la vio',
+                      style: texto.bodySmall?.copyWith(
+                        color: context.colores.exito,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            else
+              Text(
+                key: Key('esperando-que-la-vea-${widget.sesionId}'),
+                'Tu entrenador todavía no la ha visto',
+                style: texto.bodySmall,
+              ),
+          ],
+
+          if (puedePreguntar)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                key: Key('pedir-feedback-${widget.sesionId}'),
+                onPressed: () => _preguntar(estado),
+                icon: const Icon(Icons.help_outline),
+                label: Text(
+                  peticion == null
+                      ? 'Preguntarle a mi entrenador'
+                      : 'Cambiar mi pregunta',
+                ),
+              ),
+            ),
+
+          // **Guardada, que no es enviada.** Es lo que la garantía G1 compra:
+          // su pregunta está a salvo en el teléfono y sube cuando haya señal.
+          if (paso is SePidio)
+            Text(
+              key: const Key('pregunta-guardada'),
+              'Guardada. Se la mandaremos cuando tengas internet.',
+              style: texto.bodySmall?.copyWith(color: context.colores.exito),
+            )
+          else if (paso != null)
+            Text(
+              key: const Key('no-se-pudo-preguntar'),
+              paso.comoSeLeExplica,
+              style: texto.bodySmall?.copyWith(color: context.colores.cuidado),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Donde escribe la pregunta. Un campo y nada más.
+class _DialogoDeLaPregunta extends StatefulWidget {
+  const _DialogoDeLaPregunta();
+
+  @override
+  State<_DialogoDeLaPregunta> createState() => _DialogoDeLaPreguntaState();
+}
+
+class _DialogoDeLaPreguntaState extends State<_DialogoDeLaPregunta> {
+  final _controlador = TextEditingController();
+
+  @override
+  void dispose() {
+    _controlador.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Preguntarle a mi entrenador'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Él la verá junto a esta sesión. Te contesta en la piscina: aquí '
+            'solo verás que la leyó.',
+          ),
+          const SizedBox(height: Espaciado.normal),
+          TextField(
+            key: const Key('campo-de-la-pregunta'),
+            controller: _controlador,
+            autofocus: true,
+            minLines: 2,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              labelText: 'Tu pregunta',
+              hintText: '¿El viraje del tercer 50 lo hice bien?',
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          key: const Key('dejarlo'),
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Dejarlo'),
+        ),
+        FilledButton(
+          key: const Key('mandar-la-pregunta'),
+          onPressed: () => Navigator.of(context).pop(_controlador.text),
+          child: const Text('Mandarla'),
+        ),
+      ],
     );
   }
 }

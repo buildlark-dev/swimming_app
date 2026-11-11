@@ -12,6 +12,7 @@ library;
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
 import 'package:natacion_app/dominio/entidades/envio_pendiente.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
+import 'package:natacion_app/dominio/analisis/peticion_de_feedback.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/entidades/parte.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
@@ -613,3 +614,40 @@ EnvioPendiente envioDesdeJson(Map<String, dynamic> json) => EnvioPendiente(
   ultimoIntento: DateTime.tryParse(json['ultimoIntento'] as String? ?? ''),
   ultimoError: json['ultimoError'] as String?,
 );
+
+// ---------------------------------------------------------------------------
+// Peticiones de feedback (feature 010)
+// ---------------------------------------------------------------------------
+
+/// Serializa una petición de feedback.
+///
+/// **No incluye ningún dato personal**: identificadores opacos y la pregunta
+/// que el nadador escribió (FR-029, principio V).
+///
+/// **`video` se omite, no se escribe nulo.** La regla del servidor rechaza una
+/// creación que *lleve* la clave `video`, y un `video: null` la lleva. Es la
+/// diferencia entre un campo ausente y un campo vacío, y en el lenguaje de
+/// reglas no es la misma cosa.
+Map<String, dynamic> peticionDeFeedbackAJson(
+  PeticionDeFeedback peticion,
+) => <String, dynamic>{
+  'id': peticion.id,
+  'nadadorId': peticion.nadadorId,
+  'planId': peticion.planId,
+  'sesionId': peticion.sesionId,
+  'pregunta': peticion.pregunta,
+  'pedidaEn': peticion.pedidaEn.toIso8601String(),
+  if (peticion.vistaEn != null) 'vistaEn': peticion.vistaEn!.toIso8601String(),
+};
+
+PeticionDeFeedback peticionDeFeedbackDesdeJson(Map<String, dynamic> json) =>
+    PeticionDeFeedback(
+      nadadorId: json['nadadorId'] as String? ?? '',
+      planId: json['planId'] as String? ?? '',
+      sesionId: json['sesionId'] as String? ?? '',
+      pregunta: json['pregunta'] as String? ?? '',
+      pedidaEn:
+          DateTime.tryParse(json['pedidaEn'] as String? ?? '') ??
+          DateTime(2026),
+      vistaEn: DateTime.tryParse(json['vistaEn'] as String? ?? ''),
+    );

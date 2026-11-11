@@ -29,6 +29,7 @@
 /// Dominio puro: ni Flutter ni Firebase (principio II).
 library;
 
+import 'package:natacion_app/dominio/analisis/peticion_de_feedback.dart';
 import 'package:natacion_app/dominio/analisis/respuesta_a_sesion.dart';
 import 'package:natacion_app/dominio/calculo/progreso_nadador.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
@@ -71,6 +72,12 @@ class LecturaDelNadador {
   List<RespuestaASesion> get conMolestia =>
       respuestas.where((r) => r.tieneMolestia).toList();
 
+  /// Lo que pidió que mirara y él todavía no ha visto (FR-017).
+  ///
+  /// Es un getter y no un campo para que no pueda discrepar de `respuestas`.
+  List<RespuestaASesion> get esperandoQueLasMire =>
+      respuestas.where((r) => r.esperaQueLaMire).toList();
+
   /// Cuántas de las programadas completó, leído de `progreso`.
   Adherencia get adherencia => progreso.adherencia;
 
@@ -108,6 +115,7 @@ Future<LecturaDelNadador> leerAlNadador({
   required RepositorioRegistros registros,
   required RepositorioPlanes planes,
   required DateTime hoy,
+  RepositorioPeticionesDeFeedback? peticiones,
 }) async {
   final nadadorId = nadador.id ?? '';
 
@@ -130,12 +138,29 @@ Future<LecturaDelNadador> leerAlNadador({
     porSesion.putIfAbsent(registro.sesionId, () => registro);
   }
 
+  // Lo que pidió que mirara, si hay de dónde leerlo.
+  //
+  // **Una consulta por nadadora y no una por mesociclo**, y no es solo por el
+  // coste: una petición apunta a la versión del plan en la que ella estaba
+  // cuando preguntó, así que preguntar por los mesociclos de ahora perdería
+  // de vista las de antes de un reajuste. Es la misma forma del defecto que
+  // `registrosDelLinaje` arregla para los registros, y aquí se esquiva
+  // leyendo las suyas de una vez y emparejándolas por identificador de sesión,
+  // que es lo que un reajuste conserva.
+  final peticionPorSesion = <String, PeticionDeFeedback>{};
+  if (peticiones != null) {
+    for (final peticion in await peticiones.deNadador(nadadorId)) {
+      peticionPorSesion[peticion.sesionId] = peticion;
+    }
+  }
+
   final respuestas = <RespuestaASesion>[
     for (final mesociclo in mesociclos)
       for (final sesion in mesociclo.sesiones)
         RespuestaASesion(
           sesion: sesion,
           registro: sesion.id == null ? null : porSesion[sesion.id],
+          peticion: sesion.id == null ? null : peticionPorSesion[sesion.id],
         ),
   ];
 

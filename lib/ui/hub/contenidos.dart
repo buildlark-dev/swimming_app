@@ -76,6 +76,7 @@ class ContextoDelHub {
     this.registrosDelNadador,
     this.registrosDelEntrenador,
     this.macrociclosDelEntrenador,
+    this.peticionesDeFeedback,
     required this.hoy,
     this.alMirar,
     required this.irAVerPlan,
@@ -175,6 +176,10 @@ class ContextoDelHub {
   /// entrenador funciona igual en local, con los de memoria.
   final RepositorioMacrociclos? macrociclosDelEntrenador;
 
+  /// Lo que los nadadores preguntan sobre una sesión (feature 010, US4).
+  /// Nulo sin servidor.
+  final RepositorioPeticionesDeFeedback? peticionesDeFeedback;
+
   /// Hoy. Entra como dato y no como `DateTime.now()` dentro de la pantalla
   /// para que una prueba pueda fijarlo: la feature 007 tuvo cuatro pruebas
   /// del HUB que se pusieron rojas solas al cambiar el día.
@@ -273,6 +278,7 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
               planes: ctx.repositorioPlanes!,
               registros: ctx.registrosDelEntrenador!,
               molestias: ctx.molestias,
+              peticiones: ctx.peticionesDeFeedback,
               hoy: ctx.hoy,
             ),
     Contenido.homeDelEntrenador => HomeDelEntrenador(

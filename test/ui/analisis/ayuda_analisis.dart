@@ -151,6 +151,7 @@ Widget montarLectura({
   required String macrocicloId,
   Nadador? nadador,
   RepositorioRegistros? registros,
+  RepositorioPeticionesDeFeedback? peticiones,
 }) => MaterialApp(
   theme: Tema.claro(),
   home: Scaffold(
@@ -160,6 +161,7 @@ Widget montarLectura({
       macrociclos: repos.macrociclos,
       planes: repos.planes,
       registros: registros ?? repos.registros,
+      peticiones: peticiones,
       hoy: hoyDePrueba,
     ),
   ),

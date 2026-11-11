@@ -13,7 +13,10 @@ library;
 import 'package:natacion_app/datos/firestore/consentimientos.dart';
 import 'package:natacion_app/datos/registros_de_las_dos_partes.dart';
 import 'package:natacion_app/datos/firestore/macrociclos_firestore.dart';
+import 'package:natacion_app/datos/firestore/peticiones_feedback_firestore.dart';
 import 'package:natacion_app/datos/firestore/peticiones_firestore.dart';
+import 'package:natacion_app/datos/peticiones/peticiones_de_las_dos_partes.dart';
+import 'package:natacion_app/datos/local/peticiones_feedback_locales.dart';
 import 'package:natacion_app/datos/peticiones/peticiones_con_puerta.dart';
 import 'package:natacion_app/datos/firestore/registros_firestore.dart';
 import 'package:natacion_app/datos/firestore/repositorios_firestore.dart';
@@ -33,6 +36,7 @@ class RepositoriosDelHub {
     required this.registrosLocales,
     this.registrosDelServidor,
     this.peticiones,
+    this.peticionesDeFeedback,
   });
 
   /// Los de verdad: con servidor persisten; sin él, no.
@@ -80,6 +84,13 @@ class RepositoriosDelHub {
       // **Pasando por la puerta del menor.** No es un tercer camino para
       // salir del dispositivo: es el mismo que la 003 montó para los
       // registros, con la puerta que la 004 construyó.
+      // Lo que los nadadores preguntan sobre una sesión (feature 010).
+      peticionesDeFeedback: db == null
+          ? null
+          : PeticionesDeLasDosPartes(
+              local: PeticionesFeedbackLocales(almacen),
+              servidor: PeticionesFeedbackFirestore(db),
+            ),
       peticiones: db == null
           ? null
           : PeticionesConPuerta(
@@ -108,6 +119,17 @@ class RepositoriosDelHub {
 
   /// Lo que los nadadores piden (feature 008). Nulo sin servidor.
   final RepositorioPeticiones? peticiones;
+
+  /// Lo que los nadadores preguntan sobre una sesión (feature 010, US4).
+  ///
+  /// **Las dos partes**, como los registros desde la 009: la pregunta nace en
+  /// su dispositivo y sube después, así que preguntar no espera a la red
+  /// (garantía G1). Lo que no gana lo local es el `vistaEn`, que lo escribe el
+  /// entrenador y vive solo en el servidor.
+  ///
+  /// Nulo sin servidor: no hay a quién pedirle nada ni dónde guardarlo, y la
+  /// pantalla calla en lugar de ofrecer un botón que no termina lo que empieza.
+  final RepositorioPeticionesDeFeedback? peticionesDeFeedback;
 
   /// Si lo que mandó un nadador sigue retenido en el dispositivo.
   Future<bool> estaRetenida(String nadadorId) async {

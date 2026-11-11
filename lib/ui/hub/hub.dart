@@ -164,6 +164,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       red: widget.recursos.red,
       transporte: widget.recursos.transporte,
     ),
+    // Para que pueda preguntarle algo de una sesión que ya nadó (feature 010).
+    // Nulo sin servidor, y entonces la pantalla no lo ofrece.
+    peticiones: _repos.peticionesDeFeedback,
   );
 
   /// Lo que hay cargado para pintar. **La fuente de verdad son los
@@ -585,6 +588,8 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       // Aparte de `macrociclos`, que es el del nadador y se queda nulo sin
       // servidor para que `Ver Plan` enseñe su sesión de hoy.
       macrociclosDelEntrenador: _repos.macrociclos,
+      // Lo que los nadadores le preguntaron sobre una sesión (US4).
+      peticionesDeFeedback: _repos.peticionesDeFeedback,
       hoy: widget.hoyParaPruebas ?? DateTime.now(),
       selectorDePerfil: _selector,
       uid: widget.cuenta?.id ?? '',

@@ -21,9 +21,17 @@ import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 
 class SesionYRespuesta extends StatelessWidget {
-  const SesionYRespuesta({super.key, required this.respuesta});
+  const SesionYRespuesta({
+    super.key,
+    required this.respuesta,
+    this.alMarcarVista,
+  });
 
   final RespuestaASesion respuesta;
+
+  /// Marcar vista la pregunta de esta sesión. Nulo cuando no hay ninguna, o
+  /// cuando no hay servidor donde escribirlo.
+  final VoidCallback? alMarcarVista;
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +97,42 @@ class SesionYRespuesta extends StatelessWidget {
                     Text(respuesta.registro!.molestia!.zonaDelCuerpo),
                 ],
               ),
+            ],
+
+            // --- Lo que preguntó -----------------------------------------
+            //
+            // **Aquí, donde él ya está leyendo** (FR-017). No en una bandeja
+            // aparte: una pregunta sobre una sesión se entiende al lado de la
+            // sesión, y una bandeja sería un sitio más que hay que acordarse
+            // de abrir.
+            //
+            // Lo único que él escribe es «la vi». No hay campo de respuesta:
+            // eso fue la aclaración Q2, y contesta en la piscina.
+            if (respuesta.peticion != null) ...[
+              const SizedBox(height: Espaciado.normal),
+              Text('Te preguntó', style: texto.labelMedium),
+              Text(
+                key: Key('pregunto-en-$id'),
+                respuesta.peticion!.pregunta,
+                style: texto.bodyMedium,
+              ),
+              const SizedBox(height: Espaciado.minimo),
+              if (respuesta.peticion!.laVio)
+                Text(
+                  key: Key('ya-la-vi-$id'),
+                  'La marcaste vista',
+                  style: texto.bodySmall,
+                )
+              else if (alMarcarVista != null)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    key: Key('marcar-vista-$id'),
+                    onPressed: alMarcarVista,
+                    icon: const Icon(Icons.visibility_outlined),
+                    label: const Text('Marcar que la vi'),
+                  ),
+                ),
             ],
           ],
         ),
