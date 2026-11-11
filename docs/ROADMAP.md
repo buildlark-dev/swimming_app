@@ -87,6 +87,16 @@ Closing it is a feature of its own, and it belongs with whatever first needs mor
 than one coach — the community area of principle VII. It is recorded here the way
 feature 003's identity gap was recorded until 004 closed it.
 
+
+**What the 010 walk found and left for next.** The swimmer's Home shows an
+arbitrary mesocycle of her macrocycle — "no session today" on a day she has one,
+and a count out of 6 over a macrocycle of 39. The HUB picks her plan as the last
+of her published assignments, which meant "the plan she was given" until feature
+009 made every mesocycle an assigned plan; now it is whichever the query returns
+last, so it is arbitrary rather than merely wrong.
+`ProgresoEnElMacrociclo.mesocicloActual` already answers this and nothing calls
+it. Diagnosis in `specs/010-analysis-and-feedback/tasks.md`; it is the first
+thing to pick up.
 **The deferred manual checks** — T088 and T089 of feature 004, and C1/C2 of
 feature 003 — close after 010. They need a real device and the coach's own eyes.
 

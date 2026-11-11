@@ -340,3 +340,44 @@ Task: "Asking offline in test/ui/nadador/pedir_feedback_sin_red_test.dart"
 - Commit per task or per coherent group
 - The in-memory double refuses what Firestore refuses. This is the lesson this project keeps
   paying for
+
+---
+
+## Found by the walk, outside this feature
+
+### The swimmer's Home shows an arbitrary mesocycle of her macrocycle
+
+**Found**: 2026-11-11, Pixel 7, walking C1 as Ana.
+
+**What she sees**: "Hoy no hay sesión" on a day her plan has a session, and
+"Sesiones cumplidas: 0 de 6" over a macrocycle of 39.
+
+**Why**: the HUB picks the swimmer's plan as *the last of her published
+assignments* — `planDe` in `lib/ui/nadador/perfil_activo.dart:157`, and the same
+rule inline in `lib/ui/hub/hub.dart:230`. Before feature 009 that meant "the plan
+she was given". Since macrocycles exist, **each mesocycle is an assigned plan**,
+so "the last" is whichever the query returns last:
+
+```
+6ltkjcKAYMBV2al8Unug | Mesociclo 1: Acumulación    | 21 sessions
+INoiEbjccJDmA7TQjhGc | Mesociclo 2: Transformación | 12 sessions
+p-publicado          | Microciclo de base aeróbica |  3 sessions
+rMv6QpTh04y8GUtKZ0og | Mesociclo 3: Realización    |  6 sessions  ← wins
+```
+
+Mesocycle 3 starts 3/2/2027, which is exactly why her Home says there is no
+session today and counts out of 6. **Which one wins depends on Firestore's
+document-id ordering**, so it is not merely the wrong plan — it is arbitrary.
+
+**Not a defect of this feature.** `Análisis` reads the macrocycle and its
+lineage; `Ver Plan` reads the macrocycle whole and is correct. It was born in
+feature 007, made wrong by feature 009, and found by feature 010's walk.
+
+**The fix already exists, written and unconnected**:
+`ProgresoEnElMacrociclo.mesocicloActual` returns the mesocycle containing today
+and is deliberately null before, after and in a gap. Connecting it is the same
+shape as feature 009 connecting `registrosDelLinaje` — something built, tested
+and never called.
+
+Recorded here by the coach's decision rather than fixed inside 010, so this
+feature closes on what its spec promised. It is the first thing to pick up next.
