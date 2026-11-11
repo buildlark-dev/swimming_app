@@ -150,8 +150,8 @@ exists.
 
 ### Tests for User Story 3 ⚠️ write first, watch them fail
 
-- [ ] T039 [P] [US3] Write the lock in `test/ui/analisis/sesion_y_respuesta_test.dart`: a session with 2000 m programmed and an effort of 7 shows both, each named, and the widget renders no third figure derived from them (FR-012, FR-013)
-- [ ] T040 [P] [US3] Write the lock in `test/ui/analisis/la_adherencia_se_lee_como_adherencia_test.dart`: the figure is presented as adherence and never as a training-load score (spec US3 scenario 2)
+- [X] T039 [P] [US3] Write the lock in `test/ui/analisis/sesion_y_respuesta_test.dart`: a session with 2000 m programmed and an effort of 7 shows both, each named, and the widget renders no third figure derived from them (FR-012, FR-013)
+- [X] T040 [P] [US3] Write the lock in `test/ui/analisis/la_adherencia_se_lee_como_adherencia_test.dart`: the figure is presented as adherence and never as a training-load score (spec US3 scenario 2)
 
 ### Implementation for User Story 3
 
@@ -161,8 +161,8 @@ exists.
   session-and-answer pair rendered to show anything at all, so writing it twice
   would have been churn. What US3 adds is what US3 is actually about: the
   labels, and the lock that no third figure exists (T039, T040).
-- [ ] T042 [US3] Use it from `lib/ui/analisis/lectura_de_un_nadador.dart`
-- [ ] T043 [US3] Show adherence from `progreso`, labelled, in `lib/ui/analisis/lectura_de_un_nadador.dart`
+- [X] T042 [US3] Use it from `lib/ui/analisis/lectura_de_un_nadador.dart`
+- [X] T043 [US3] Show adherence from `progreso`, labelled, in `lib/ui/analisis/lectura_de_un_nadador.dart`
 - [ ] T044 [US3] Walk C4 of [quickstart.md](./quickstart.md) on the Pixel 7, scanning for any derived number
 
 **Checkpoint**: principle VIII's separation holds in the type and on the screen.
