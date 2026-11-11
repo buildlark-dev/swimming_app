@@ -152,6 +152,7 @@ Widget montarLectura({
   Nadador? nadador,
   RepositorioRegistros? registros,
   RepositorioPeticionesDeFeedback? peticiones,
+  RepositorioAsignaciones? asignaciones,
 }) => MaterialApp(
   theme: Tema.claro(),
   home: Scaffold(
@@ -162,6 +163,7 @@ Widget montarLectura({
       planes: repos.planes,
       registros: registros ?? repos.registros,
       peticiones: peticiones,
+      asignaciones: asignaciones,
       hoy: hoyDePrueba,
     ),
   ),

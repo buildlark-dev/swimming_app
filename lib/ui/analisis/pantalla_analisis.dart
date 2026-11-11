@@ -48,6 +48,7 @@ class PantallaAnalisis extends StatefulWidget {
     required this.hoy,
     this.molestias,
     this.peticiones,
+    this.asignaciones,
   });
 
   final RepositorioNadadores nadadores;
@@ -65,6 +66,10 @@ class PantallaAnalisis extends StatefulWidget {
 
   /// Lo que sus nadadores le preguntaron (US4). Nulo sin servidor.
   final RepositorioPeticionesDeFeedback? peticiones;
+
+  /// Lo que se les entregó fuera de un macrociclo, para los nadadores que
+  /// vienen de antes de la feature 009.
+  final RepositorioAsignaciones? asignaciones;
 
   @override
   State<PantallaAnalisis> createState() => _PantallaAnalisisState();
@@ -124,6 +129,7 @@ class _PantallaAnalisisState extends State<PantallaAnalisis> {
             registros: widget.registros,
             hoy: widget.hoy,
             peticiones: widget.peticiones,
+            asignaciones: widget.asignaciones,
           ),
         ),
       ),

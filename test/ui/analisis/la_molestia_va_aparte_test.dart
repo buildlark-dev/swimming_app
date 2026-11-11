@@ -151,4 +151,36 @@ void main() {
       expect(find.text('Hombro derecho'), findsWidgets);
     },
   );
+
+  testWidgets('una molestia cuya sesión no está en el plan también se ve', (
+    tester,
+  ) async {
+    conPantallaAlta(tester);
+
+    // Hallazgo del recorrido: la lista marcaba «Contó una molestia» y al
+    // abrirla no había nada, porque el registro apuntaba a una sesión que no
+    // existe en el plan. El principio VIII dice que el reporte **llega** al
+    // entrenador; llegar no admite caerse por el camino.
+    final macrocicloId = await repos.sembrarMacrociclo();
+    repos.registros.sembrar(
+      conMolestia(
+        sesionId: 's-2',
+        planId: 'plan-1',
+        descripcion: 'Me molesta al sacar el brazo',
+        zona: 'Hombro derecho',
+      ),
+    );
+
+    await tester.pumpWidget(
+      montarLectura(repos: repos, macrocicloId: macrocicloId),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('molestias-de-n-ana')), findsOneWidget);
+    expect(find.text('Me molesta al sacar el brazo'), findsWidgets);
+
+    // Y se dice que no se pudo situar, en lugar de colgarla de una sesión
+    // cualquiera: inventarle una sesión sería peor que no enseñarla.
+    expect(find.byKey(const Key('respuestas-sin-sesion')), findsOneWidget);
+  });
 }

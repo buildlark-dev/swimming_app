@@ -402,15 +402,22 @@ async function sembrarParaPeticiones() {
     });
   }
 
-  // --- Una molestia reciente de Ana, para C12 ----------------------------
+  // --- Una molestia reciente de Ana, para C12 de la 008 ------------------
   //
   // La cola la enseña con su fecha, leída de donde ya vive. Si esta siembra
   // escribiera algo en `peticionesDePlan`, estaría violando FR-038 justo en
   // la herramienta que sirve para comprobarlo.
+  //
+  // **`sesionId` tiene que ser una sesión que exista.** Esto decía `s-2` y las
+  // sesiones de `p-publicado` son `s0`, `s1` y `s2`: un registro huérfano. No
+  // se notó durante dos features porque la cola del entrenador lee las
+  // molestias **por nadador**, sin emparejarlas con ninguna sesión; lo destapó
+  // el `Análisis` de la 010, que sí las empareja, y de paso destapó que la app
+  // las tiraba en silencio. Las dos cosas están arregladas.
   await db.collection('registros').doc('r-ana-molestia').set({
     nadadorId: 'n-ana',
     planId: 'p-publicado',
-    sesionId: 's-2',
+    sesionId: 's2',
     versionDePlan: '3.6.0',
     realizada: true,
     rpePercibido: 7,

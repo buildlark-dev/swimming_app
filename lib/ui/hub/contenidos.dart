@@ -77,6 +77,7 @@ class ContextoDelHub {
     this.registrosDelEntrenador,
     this.macrociclosDelEntrenador,
     this.peticionesDeFeedback,
+    this.asignacionesDelEntrenador,
     required this.hoy,
     this.alMirar,
     required this.irAVerPlan,
@@ -180,6 +181,13 @@ class ContextoDelHub {
   /// Nulo sin servidor.
   final RepositorioPeticionesDeFeedback? peticionesDeFeedback;
 
+  /// A quién se le entregó cada plan, para leer a un nadador que tiene un
+  /// plan suelto y ningún macrociclo (hallazgo del recorrido de la 010).
+  ///
+  /// Va aparte de `asignaciones`, que es la lista ya cargada para pintar los
+  /// planes: esto es el repositorio, porque la lectura pregunta por nadador.
+  final RepositorioAsignaciones? asignacionesDelEntrenador;
+
   /// Hoy. Entra como dato y no como `DateTime.now()` dentro de la pantalla
   /// para que una prueba pueda fijarlo: la feature 007 tuvo cuatro pruebas
   /// del HUB que se pusieron rojas solas al cambiar el día.
@@ -279,6 +287,9 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
               registros: ctx.registrosDelEntrenador!,
               molestias: ctx.molestias,
               peticiones: ctx.peticionesDeFeedback,
+              // Para los nadadores con un plan entregado y sin macrociclo,
+              // que es lo que dejaban las features 003 y 007.
+              asignaciones: ctx.asignacionesDelEntrenador,
               hoy: ctx.hoy,
             ),
     Contenido.homeDelEntrenador => HomeDelEntrenador(

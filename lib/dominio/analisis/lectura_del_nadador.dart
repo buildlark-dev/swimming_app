@@ -45,8 +45,10 @@ class LecturaDelNadador {
     required List<Plan> mesociclos,
     required List<RespuestaASesion> respuestas,
     required this.progreso,
+    List<RegistroDeSesion> sinSesion = const [],
   }) : mesociclos = List.unmodifiable(mesociclos),
-       respuestas = List.unmodifiable(respuestas);
+       respuestas = List.unmodifiable(respuestas),
+       sinSesion = List.unmodifiable(sinSesion);
 
   final Nadador nadador;
 
@@ -58,6 +60,29 @@ class LecturaDelNadador {
   /// Hay una por sesión aunque no la haya contestado: la ausencia es parte de
   /// lo que el entrenador lee.
   final List<RespuestaASesion> respuestas;
+
+  /// Lo que contestó sobre sesiones que **no están en su plan**.
+  ///
+  /// Hallazgo del recorrido en el Pixel 7. Un registro apuntaba a `s-2` y las
+  /// sesiones del plan eran `s0`, `s1`, `s2`; la respuesta —con una molestia
+  /// dentro— se caía por el camino sin decir nada, mientras la lista del
+  /// `Análisis` marcaba a la nadadora, porque esa consulta mira la colección
+  /// de registros y no las sesiones. **Dos pantallas de la misma app diciendo
+  /// cosas contrarias.**
+  ///
+  /// Que llegaran así fue culpa de la herramienta de siembra. Que
+  /// desaparecieran era culpa de aquí: el principio VIII dice que un reporte
+  /// de dolor **llega al entrenador**, y «llega» no admite caerse por el
+  /// camino porque su sesión ya no esté.
+  ///
+  /// **Se enseñan y no se cuentan.** La adherencia cuenta sesiones
+  /// programadas, y una sesión que no está en el plan no se programó.
+  final List<RegistroDeSesion> sinSesion;
+
+  /// Las huérfanas que además llevan un reporte de dolor. Son las que no se
+  /// pueden perder.
+  List<RegistroDeSesion> get molestiasSinSesion =>
+      sinSesion.where((r) => r.tieneMolestia).toList();
 
   /// Dónde va, calculado por la feature 009. Aquí solo se lee.
   final ProgresoEnElMacrociclo progreso;
@@ -164,10 +189,27 @@ Future<LecturaDelNadador> leerAlNadador({
         ),
   ];
 
+  // Lo que contestó sobre sesiones que no están en el plan.
+  //
+  // **No se tiran.** Desaparecían en silencio, y la lista del `Análisis`
+  // seguía marcando a la nadadora porque esa consulta mira la colección de
+  // registros y no las sesiones: dos pantallas de la misma app diciendo cosas
+  // contrarias, con el dato en el servidor. Lo encontró el recorrido.
+  final programadas = <String>{
+    for (final respuesta in respuestas)
+      if (respuesta.sesion.id != null) respuesta.sesion.id!,
+  };
+
+  final sinSesion = <RegistroDeSesion>[
+    for (final registro in porSesion.values)
+      if (!programadas.contains(registro.sesionId)) registro,
+  ]..sort((a, b) => b.registradoEn.compareTo(a.registradoEn));
+
   return LecturaDelNadador(
     nadador: nadador,
     mesociclos: mesociclos,
     respuestas: _deLaMasRecienteALaMasAntigua(respuestas),
+    sinSesion: sinSesion,
     progreso: ProgresoEnElMacrociclo(
       mesociclos: mesociclos,
       registros: todos,

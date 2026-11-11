@@ -43,6 +43,7 @@ class LecturaDeUnNadador extends StatefulWidget {
     required this.registros,
     required this.hoy,
     this.peticiones,
+    this.asignaciones,
   });
 
   final Nadador nadador;
@@ -64,6 +65,18 @@ class LecturaDeUnNadador extends StatefulWidget {
   /// hay peticiones que leer ni dónde escribir que las vio.
   final RepositorioPeticionesDeFeedback? peticiones;
 
+  /// Lo que se le entregó **fuera de un macrociclo**.
+  ///
+  /// Hallazgo del recorrido en el Pixel 7: una nadadora con un plan entregado
+  /// directamente —lo que hacen las features 003, 004 y 007, y sigue siendo un
+  /// camino válido— no tiene macrociclo, así que esta pantalla no encontraba
+  /// mesociclos, ni sesiones, ni respuestas, y decía «todavía no tiene
+  /// macrociclo» con sus dos respuestas y su molestia en el servidor.
+  ///
+  /// Es el mismo respaldo que M23 le dio al nadador en `Ver Plan`, al otro
+  /// lado de la app.
+  final RepositorioAsignaciones? asignaciones;
+
   @override
   State<LecturaDeUnNadador> createState() => _LecturaDeUnNadadorState();
 }
@@ -80,19 +93,56 @@ class _LecturaDeUnNadadorState extends State<LecturaDeUnNadador> {
     _cargar();
   }
 
-  Future<void> _cargar() async {
-    if (widget.macrocicloId.isEmpty) {
-      setState(() => _cargando = false);
-      return;
+  /// Los mesociclos de su macrociclo, que es el camino normal desde la 009.
+  Future<List<Plan>> _losDelMacrociclo() async {
+    final macrociclo = await widget.macrociclos.obtener(widget.macrocicloId);
+
+    final mesociclos = <Plan>[];
+    for (final id in macrociclo?.mesociclos ?? const <String>[]) {
+      final plan = await widget.planes.obtener(id);
+      if (plan != null) mesociclos.add(plan);
     }
+    return mesociclos;
+  }
 
+  /// El respaldo: **lo que se le entregó suelto**, fuera de todo macrociclo.
+  ///
+  /// Las dos condiciones por separado, igual que en las reglas: asignado
+  /// **y** publicado. Un plan firmado y sin entregar no es suyo todavía
+  /// —firmar no es entregar— y una asignación a un borrador no debería
+  /// existir, pero si existiera no convertiría el borrador en algo que ella
+  /// nadó.
+  ///
+  /// **Y solo cuando no hay macrociclo.** Mezclar los dos le contaría al
+  /// entrenador dos veces lo que programó, porque los mesociclos de un
+  /// macrociclo también se asignan.
+  Future<List<Plan>> _loQueSeLeEntrego() async {
+    final repo = widget.asignaciones;
+    if (repo == null) return const [];
+
+    final suyas = await repo.deNadador(widget.nadador.id ?? '');
+
+    final planes = <Plan>[];
+    for (final asignacion in suyas) {
+      final plan = await widget.planes.obtener(asignacion.planId);
+      if (plan != null && plan.estado == EstadoPlan.publicado) {
+        planes.add(plan);
+      }
+    }
+    return planes;
+  }
+
+  Future<void> _cargar() async {
     try {
-      final macrociclo = await widget.macrociclos.obtener(widget.macrocicloId);
+      final mesociclos = widget.macrocicloId.isEmpty
+          ? await _loQueSeLeEntrego()
+          : await _losDelMacrociclo();
 
-      final mesociclos = <Plan>[];
-      for (final id in macrociclo?.mesociclos ?? const <String>[]) {
-        final plan = await widget.planes.obtener(id);
-        if (plan != null) mesociclos.add(plan);
+      // Ni macrociclo ni planes entregados: ahí sí no hay nada que leer.
+      if (mesociclos.isEmpty) {
+        if (!mounted) return;
+        setState(() => _cargando = false);
+        return;
       }
 
       final lectura = await leerAlNadador(
@@ -173,10 +223,10 @@ class _LecturaDeUnNadadorState extends State<LecturaDeUnNadador> {
         child: EstadoVacio(
           key: Key('sin-macrociclo-que-leer'),
           icono: Icons.timeline_outlined,
-          titulo: 'Todavía no tiene macrociclo',
+          titulo: 'Todavía no tiene nada entregado',
           queHacer:
-              'Empiézale uno desde «Ver Plan» y aquí aparecerá lo que vaya '
-              'contestando.',
+              'Empiézale un macrociclo desde «Ver Plan», o entrégale un plan, '
+              'y aquí aparecerá lo que vaya contestando.',
         ),
       );
     }
@@ -230,10 +280,22 @@ class _LecturaDeUnNadadorState extends State<LecturaDeUnNadador> {
             ],
           ),
         ),
-        if (lectura.conMolestia.isNotEmpty) ...[
+        if (lectura.conMolestia.isNotEmpty ||
+            lectura.molestiasSinSesion.isNotEmpty) ...[
           const SizedBox(height: Espaciado.seccion),
           _LasMolestias(key: Key('molestias-de-$id'), lectura: lectura),
         ],
+
+        // Lo que contestó sobre sesiones que no están en su plan.
+        //
+        // **Se dice, no se cuelga de una sesión cualquiera.** Inventarle una
+        // sesión sería peor que no enseñarla: le diría al entrenador que ella
+        // contestó algo que no contestó.
+        if (lectura.sinSesion.isNotEmpty) ...[
+          const SizedBox(height: Espaciado.seccion),
+          _SinSesion(key: Key('respuestas-sin-sesion'), lectura: lectura),
+        ],
+
         const SizedBox(height: Espaciado.seccion),
         if (lectura.noHaContestadoNada)
           const Padding(
@@ -318,6 +380,95 @@ class _LasMolestias extends StatelessWidget {
                       respuesta.registro!.molestia!.zonaDelCuerpo,
                       style: texto.bodySmall,
                     ),
+                ],
+              ),
+            ),
+
+          // Las huérfanas que llevan molestia, aquí también. Son las que no se
+          // pueden perder (principio VIII).
+          for (final registro in lectura.molestiasSinSesion)
+            Padding(
+              padding: const EdgeInsets.only(bottom: Espaciado.corto),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${cuando(registro.registradoEn)} · de una sesión que ya '
+                    'no está en su plan',
+                    style: texto.labelSmall,
+                  ),
+                  Text(
+                    key: Key('molestia-sin-sesion-${registro.sesionId}'),
+                    registro.molestia!.descripcion,
+                    style: texto.bodyMedium,
+                  ),
+                  if (registro.molestia!.zonaDelCuerpo.trim().isNotEmpty)
+                    Text(
+                      registro.molestia!.zonaDelCuerpo,
+                      style: texto.bodySmall,
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Lo que contestó sobre sesiones que **no están en su plan**.
+///
+/// Hallazgo del recorrido de la 010 en el Pixel 7: un registro apuntaba a una
+/// sesión que no existía, la respuesta se caía sin decir nada, y la lista del
+/// `Análisis` seguía marcando a la nadadora porque esa consulta mira la
+/// colección de registros y no las sesiones.
+///
+/// **Se dice, y no se cuelga de una sesión cualquiera.** Inventarle una sesión
+/// sería peor que no enseñarla: le diría al entrenador que contestó algo que
+/// no contestó. Lo que se enseña es lo que ella escribió y cuándo.
+class _SinSesion extends StatelessWidget {
+  const _SinSesion({super.key, required this.lectura});
+
+  final LecturaDelNadador lectura;
+
+  @override
+  Widget build(BuildContext context) {
+    final texto = Theme.of(context).textTheme;
+
+    return Tarjeta(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CabeceraSeccion(
+            titulo: 'Contestó sobre sesiones que ya no están en su plan',
+            icono: Icons.help_outline,
+          ),
+          const SizedBox(height: Espaciado.corto),
+          Text(
+            'Son respuestas suyas que no se pueden situar en el plan que tiene '
+            'ahora. Se enseñan aquí y no cuentan para la adherencia.',
+            style: texto.bodySmall,
+          ),
+          const SizedBox(height: Espaciado.corto),
+          for (final registro in lectura.sinSesion)
+            Padding(
+              padding: const EdgeInsets.only(bottom: Espaciado.corto),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(cuando(registro.registradoEn), style: texto.labelSmall),
+                  Text(
+                    key: Key('sin-sesion-${registro.sesionId}'),
+                    registro.realizada
+                        ? (registro.rpePercibido == null
+                              ? 'La hizo'
+                              : 'La hizo · esfuerzo percibido '
+                                    '${registro.rpePercibido} de 10')
+                        : 'Dijo que no la hizo',
+                    style: texto.bodyMedium,
+                  ),
+                  if (registro.observaciones.trim().isNotEmpty)
+                    Text(registro.observaciones, style: texto.bodySmall),
                 ],
               ),
             ),
