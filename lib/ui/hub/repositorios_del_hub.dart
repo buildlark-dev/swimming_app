@@ -125,6 +125,25 @@ class RepositoriosDelHub {
   RepositorioRegistros get registrosParaContar =>
       registrosDelServidor ?? registrosLocales;
 
+  /// Lo que el **entrenador** lee de sus nadadores: el servidor, a secas
+  /// (feature 010, decisión D3).
+  ///
+  /// **No es `RegistrosDeLasDosPartes`**, y la diferencia no es de
+  /// eficiencia. Ese lector existe para el nadador porque lo que él escribe
+  /// está primero en su propio aparato y puede seguir en la bandeja de
+  /// salida, así que lo local gana. En el teléfono del entrenador no hay nada
+  /// que ganar: su dispositivo nunca escribió las respuestas de ella.
+  ///
+  /// Y si hubiera algo, sería peor. El entrenador que prueba la app como su
+  /// propio nadador —que es exactamente como se probó la feature 003— deja
+  /// registros locales suyos en ese almacén, y «gana lo local» los mezclaría
+  /// con los de la nadadora que está leyendo.
+  ///
+  /// Sin servidor cae en lo local, que es lo único que hay: dejarlo nulo
+  /// convertiría cada lectura del `Análisis` en modo local en un fallo.
+  RepositorioRegistros get registrosParaElEntrenador =>
+      registrosDelServidor ?? registrosLocales;
+
   /// Lo que el **nadador** lee de sí mismo: su teléfono y el servidor.
   ///
   /// Hasta la feature 009 esto era `registrosLocales` a secas, y su historial

@@ -31,9 +31,20 @@ instead of its call.
 
 **Purpose**: know where we start, so the end can be compared to it
 
-- [ ] T001 Record the baseline in `specs/010-analysis-and-feedback/tasks.md` beside this line: run the four gates on `010-analysis-and-feedback` before any change and write the numbers here — `flutter analyze`, `flutter test`, `npm --prefix firebase test`, `npm --prefix firebase/functions test`. Feature 009 could say "the 34 tests added are the locks its defects needed" only because it had this number
-- [ ] T002 [P] Create `lib/dominio/analisis/` and `lib/ui/analisis/` with no files yet, per the structure in plan.md
-- [ ] T003 [P] Create `test/dominio/analisis/` and `test/ui/analisis/`
+- [X] T001 Record the baseline in `specs/010-analysis-and-feedback/tasks.md` beside this line: run the four gates on `010-analysis-and-feedback` before any change and write the numbers here — `flutter analyze`, `flutter test`, `npm --prefix firebase test`, `npm --prefix firebase/functions test`. Feature 009 could say "the 34 tests added are the locks its defects needed" only because it had this number
+
+**Baseline, 2026-11-11, before any change on `010-analysis-and-feedback`:**
+
+| Gate | Result |
+|---|---|
+| `flutter analyze` | No issues found |
+| `flutter test` | 1963 passed, 0 failed |
+| `npm --prefix firebase test` | 146 passed, 0 failed |
+| `npm --prefix firebase/functions test` | 45 passed, 0 failed |
+
+T073 runs them again. The difference is the locks this feature needed.
+- [X] T002 [P] Create `lib/dominio/analisis/` and `lib/ui/analisis/` with no files yet, per the structure in plan.md
+- [X] T003 [P] Create `test/dominio/analisis/` and `test/ui/analisis/`
 
 ---
 
@@ -46,25 +57,25 @@ them can start until it exists.
 
 ### The two loads, kept apart by construction
 
-- [ ] T004 Write the lock in `test/dominio/analisis/las_dos_cargas_no_se_juntan_test.dart`: a `RespuestaASesion` exposes the session and the record separately, and the type has **no member returning a figure derived from both**. Assert over the type's own source that no getter mentions both `sesion` and `registro` in one expression. Must be red first
-- [ ] T005 Verify T004's negative control: add a getter to `lib/dominio/analisis/respuesta_a_sesion.dart` that multiplies metres by RPE, confirm `test/dominio/analisis/las_dos_cargas_no_se_juntan_test.dart` goes red, remove it
-- [ ] T006 [US-shared] Create `RespuestaASesion` in `lib/dominio/analisis/respuesta_a_sesion.dart` with `sesion` (`Sesion`), `registro` (`RegistroDeSesion?`, null when unanswered) and `peticion` (`PeticionDeFeedback?`, null until Phase 6 exists — leave the field out until T045 lands and add it then)
+- [X] T004 Write the lock in `test/dominio/analisis/las_dos_cargas_no_se_juntan_test.dart`: a `RespuestaASesion` exposes the session and the record separately, and the type has **no member returning a figure derived from both**. Assert over the type's own source that no getter mentions both `sesion` and `registro` in one expression. Must be red first
+- [X] T005 Verify T004's negative control: add a getter to `lib/dominio/analisis/respuesta_a_sesion.dart` that multiplies metres by RPE, confirm `test/dominio/analisis/las_dos_cargas_no_se_juntan_test.dart` goes red, remove it
+- [X] T006 [US-shared] Create `RespuestaASesion` in `lib/dominio/analisis/respuesta_a_sesion.dart` with `sesion` (`Sesion`), `registro` (`RegistroDeSesion?`, null when unanswered) and `peticion` (`PeticionDeFeedback?`, null until Phase 6 exists — leave the field out until T045 lands and add it then)
 
 ### Reading a swimmer
 
-- [ ] T007 Write the lock in `test/dominio/analisis/lectura_del_nadador_test.dart`: a swimmer with no records yields an empty `respuestas` and **not** an error; a swimmer with records yields one `RespuestaASesion` per session, answered or not. Must be red first
-- [ ] T008 Write the lock in `test/dominio/analisis/el_linaje_tambien_para_el_entrenador_test.dart`: an answer written against a plan version later replaced is still found, attached to the session she swam. Seed two versions with `versionAnteriorId` and records on the old one
-- [ ] T009 Verify T008's negative control: in `lib/dominio/analisis/lectura_del_nadador.dart` swap `registrosDelLinaje` for a direct `obtenerDePlan` over the current plans, confirm `test/dominio/analisis/el_linaje_tambien_para_el_entrenador_test.dart` goes red, restore. This is exactly the defect feature 009 shipped (`b7a5120`)
-- [ ] T010 Write the lock in `test/dominio/analisis/la_adherencia_no_se_recalcula_test.dart`: the reading's adherence equals `ProgresoEnElMacrociclo.adherencia` for the same inputs, and `lectura_del_nadador.dart` contains no arithmetic over `hechas`/`pendientes`. A second calculation is a second methodology (principle I)
-- [ ] T011 Write the lock in `test/dominio/analisis/un_fallo_no_es_una_lectura_vacia_test.dart`: when the records repository throws `FalloDeDatos`, `leerAlNadador` propagates it and does **not** return an empty reading. An empty reading and an unreadable one say opposite things to a coach deciding what to programme next
-- [ ] T012 Create `LecturaDelNadador` in `lib/dominio/analisis/lectura_del_nadador.dart` with `nadador`, `mesociclos`, `respuestas`, `progreso` and `conMolestia`, per data-model.md
-- [ ] T013 Implement `leerAlNadador(...)` in the same file, per the contract in `contracts/lectura_y_peticion.md` §2: records through `registrosDelLinaje`, adherence from `ProgresoEnElMacrociclo`, failures propagated
-- [ ] T014 Confirm the domain boundary: run `flutter test test/dominio/arquitectura_test.dart`. `lib/dominio/analisis/` must import neither Flutter nor Firebase (principle II)
+- [X] T007 Write the lock in `test/dominio/analisis/lectura_del_nadador_test.dart`: a swimmer with no records yields an empty `respuestas` and **not** an error; a swimmer with records yields one `RespuestaASesion` per session, answered or not. Must be red first
+- [X] T008 Write the lock in `test/dominio/analisis/el_linaje_tambien_para_el_entrenador_test.dart`: an answer written against a plan version later replaced is still found, attached to the session she swam. Seed two versions with `versionAnteriorId` and records on the old one
+- [X] T009 Verify T008's negative control: in `lib/dominio/analisis/lectura_del_nadador.dart` swap `registrosDelLinaje` for a direct `obtenerDePlan` over the current plans, confirm `test/dominio/analisis/el_linaje_tambien_para_el_entrenador_test.dart` goes red, restore. This is exactly the defect feature 009 shipped (`b7a5120`)
+- [X] T010 Write the lock in `test/dominio/analisis/la_adherencia_no_se_recalcula_test.dart`: the reading's adherence equals `ProgresoEnElMacrociclo.adherencia` for the same inputs, and `lectura_del_nadador.dart` contains no arithmetic over `hechas`/`pendientes`. A second calculation is a second methodology (principle I)
+- [X] T011 Write the lock in `test/dominio/analisis/un_fallo_no_es_una_lectura_vacia_test.dart`: when the records repository throws `FalloDeDatos`, `leerAlNadador` propagates it and does **not** return an empty reading. An empty reading and an unreadable one say opposite things to a coach deciding what to programme next
+- [X] T012 Create `LecturaDelNadador` in `lib/dominio/analisis/lectura_del_nadador.dart` with `nadador`, `mesociclos`, `respuestas`, `progreso` and `conMolestia`, per data-model.md
+- [X] T013 Implement `leerAlNadador(...)` in the same file, per the contract in `contracts/lectura_y_peticion.md` §2: records through `registrosDelLinaje`, adherence from `ProgresoEnElMacrociclo`, failures propagated
+- [X] T014 Confirm the domain boundary: run `flutter test test/dominio/arquitectura_test.dart`. `lib/dominio/analisis/` must import neither Flutter nor Firebase (principle II)
 
 ### Reaching the records as the coach
 
-- [ ] T015 Expose the coach's reader in `lib/ui/hub/repositorios_del_hub.dart`: a getter that resolves to `registrosDelServidor`, with a comment saying why it is **not** `RegistrosDeLasDosPartes` — his device never wrote her answers, so "local wins" has nothing to win with (research D3)
-- [ ] T016 Write the lock in `test/ui/hub/de_donde_lee_el_entrenador_test.dart`: with a server present the coach's reader is the server one; without a server it falls back to local rather than failing on every read
+- [X] T015 Expose the coach's reader in `lib/ui/hub/repositorios_del_hub.dart`: a getter that resolves to `registrosDelServidor`, with a comment saying why it is **not** `RegistrosDeLasDosPartes` — his device never wrote her answers, so "local wins" has nothing to win with (research D3)
+- [X] T016 Write the lock in `test/ui/hub/de_donde_lee_el_entrenador_test.dart`: with a server present the coach's reader is the server one; without a server it falls back to local rather than failing on every read
 
 **Checkpoint**: the reading exists and is covered. The three reading stories can now start.
 
