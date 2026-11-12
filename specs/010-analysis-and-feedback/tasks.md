@@ -246,7 +246,7 @@ marks it seen.
   readjustment's real write, with the real rules, leaves the old version's
   records readable.
 - [X] T070 Walk C10 of [quickstart.md](./quickstart.md): the server boundaries, as rules tests
-- [ ] T071 [P] Mark feature 010 on the roadmap in `docs/ROADMAP.md` once the PR merges
+- [X] T071 [P] Mark feature 010 on the roadmap in `docs/ROADMAP.md` once the PR merges
 - [X] T072 [P] Record in `docs/ROADMAP.md` that the coach→swimmer link is still missing and which feature should close it, the way feature 003's identity gap was recorded until 004 closed it
 - [X] T073 Run the four gates and write the numbers in `specs/010-analysis-and-feedback/tasks.md` next to T001's baseline. The difference is the locks this feature needed
 
