@@ -113,8 +113,32 @@ pending list counts a session the swimmer answered with "I did not do it".
 `ProgresoEnElMacrociclo.pendientes` excludes only `hechas`, and the class's own
 documentation forbids exactly that conflation.
 
-**The deferred manual checks** — T088 and T089 of feature 004, and C1/C2 of
-feature 003 — close after 010. They need a real device and the coach's own eyes.
+**The deferred manual checks, and what walking them cost.** C1 and C2 of feature
+003 had been waiting since there was nowhere to deploy. Walking them found three
+more defects, all one shape — **the Firestore SDK does not throw when there is
+no network, it leaves the Future open**, and a `catch` cannot catch a Future
+that never completes. Offline, `Ver Plan` spun forever with the plan sitting in
+the device's own cache; marking a session spun forever with the record already
+saved; and once the screen stopped waiting, two overlapping syncs sent the same
+record twice.
+
+So the rule, said whole: **what hangs on the network gets a deadline.** Reads
+fall back to the device's cache on timeout and only on timeout — a
+`permission-denied` still rises, because the cache does not go through the rules
+and covering a refusal with it would turn a bad rule into a screen that works.
+A short memory of a server that did not answer keeps a screen's chained reads
+from each paying the wait. And the outbox's send has a deadline too, which makes
+possible the probe `estado_de_red.dart` described from the beginning: "a write
+is attempted and one sees whether it arrives".
+
+C1 passes now. C2 passes through step 4. Step 5 — "restore the network and wait
+without touching anything" — does not: the record arrives and the notice goes,
+but only when the app is next opened. `Sincronizador.alVolverLaRed` exists, is
+tested, and **nothing in `lib/` listens to it**; and the probe behind it could
+not have fired anyway. Wiring it is a change with a decision inside it, so it is
+recorded in `specs/010-analysis-and-feedback/tasks.md` rather than bolted on
+here. T089 of feature 004 — siblings on one phone, a session expiring poolside —
+is still open and needs its own setup.
 
 ## Changing this file
 

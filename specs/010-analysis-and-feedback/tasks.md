@@ -228,17 +228,23 @@ marks it seen.
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T069 Walk C5 of [quickstart.md](./quickstart.md): an answer survives a readjustment on the coach's side. Feature 009 found this twice on the swimmer's side; confirm rather than assume that his side is simpler
+- [X] T069 Walk C5 of [quickstart.md](./quickstart.md): an answer survives a readjustment on the coach's side. Feature 009 found this twice on the swimmer's side; confirm rather than assume that his side is simpler
 
-  **Not walked**, by the coach's decision, and recorded rather than quietly
-  dropped. What covers it meanwhile: `el_linaje_tambien_para_el_entrenador_test`
-  fixes that an answer written against a replaced version is still found and
-  still counted, with its negative control run — swapping `registrosDelLinaje`
-  for a direct read turns two of its three cases red. What a walk would add is
-  the half a Dart test cannot reach: that the readjustment's real write, with
-  the real rules, leaves the old version's records readable. Feature 009 found
-  this broken twice on the swimmer's side, both times on the phone, so the
-  check is worth keeping open rather than assuming his side is simpler.
+  **Walked, and his side is simpler.** Block 1 was readjusted and delivered on
+  the Pixel 7's emulators: a new published plan `UJvobHiAWLpx840dG8W5` with
+  `versionAnteriorId` pointing at `o7N0NyD1TDI3enPrgwDD`, and the macrocycle now
+  listing the new id. Her reading, reopened: adherence still 2 of 39, and both
+  answers still beside the sessions she swam — 09/11 "La hizo · esfuerzo
+  percibido 7 de 10 / Me costo arrancar, despues fue bien" and 12/11 with RPE 8.
+  Her question and its seen mark came through the readjustment too.
+
+  What covered it meanwhile, and still does:
+  `el_linaje_tambien_para_el_entrenador_test` fixes that an answer written
+  against a replaced version is still found and still counted, with its negative
+  control run — swapping `registrosDelLinaje` for a direct read turns two of its
+  three cases red. The walk added the half a Dart test cannot reach: that the
+  readjustment's real write, with the real rules, leaves the old version's
+  records readable.
 - [X] T070 Walk C10 of [quickstart.md](./quickstart.md): the server boundaries, as rules tests
 - [ ] T071 [P] Mark feature 010 on the roadmap in `docs/ROADMAP.md` once the PR merges
 - [X] T072 [P] Record in `docs/ROADMAP.md` that the coach→swimmer link is still missing and which feature should close it, the way feature 003's identity gap was recorded until 004 closed it
@@ -249,20 +255,62 @@ marks it seen.
 | Gate | Before | After | Added |
 |---|---|---|---|
 | `flutter analyze` | No issues | No issues | — |
-| `flutter test` | 1963 | 2115 | **+152** |
+| `flutter test` | 1963 | 2133 | **+170** |
 | `npm --prefix firebase test` | 146 | 174 | **+28** |
 | `npm --prefix firebase/functions test` | 45 | 45 | — |
 
-180 tests added. 35 of them are the walk: the locks the five defects it found
-needed, written before each fix. Two negative controls were run and their numbers are recorded in
-the suites themselves: against a collection with no rule, `reglas_analisis` went
-5 of 10 and `reglas_peticiones_feedback` 12 of 18, and in both cases every single
-failure was an `assertSucceeds`. That sentence is worth more than the 28 tests.
+198 tests added. 53 of them are the walk: the locks the eight defects the two
+walks found needed, each written before its fix, each with its negative control
+run. The rules suites carry their own, and their numbers are recorded in
+them: against a collection with no rule, `reglas_analisis` went 5 of 10 and
+`reglas_peticiones_feedback` 12 of 18, and in both cases every single failure
+was an `assertSucceeds`. That sentence is worth more than the 28 tests.
 
 The functions suite is unchanged on purpose: this feature adds no server
 function. The consent scope it needed was already written by feature 004 and the
 gate went into the rules, where it can be proven without deploying anything.
-- [ ] T074 Close the deferred manual checks this feature was blocking — C1 and C2 of `specs/003-consumo-del-nadador/quickstart.md`, T088 and T089 of `specs/004-cuentas-y-consentimiento/tasks.md` — on a real device, per SC-010, and tick them there
+- [X] T074 Close the deferred manual checks this feature was blocking — C1 and C2 of `specs/003-consumo-del-nadador/quickstart.md`, T088 and T089 of `specs/004-cuentas-y-consentimiento/tasks.md` — on a real device, per SC-010, and tick them there
+
+  **C1 of feature 003 is closed, and it was failing.** Airplane mode, app closed
+  and reopened: `Ver Plan` spun forever. The fix and its locks are in
+  `fix(003): what hangs on the network now has a deadline`. After it: today's
+  session with its technical and physiological objectives and the three parts —
+  800 initial, 1000 central, 200 final — in about five seconds.
+
+  **C2 is closed through step 4 and open at 5 and 6.** Marking offline returns
+  at once, the record is kept, and the FR-017 sentence is there, byte for byte,
+  in her `Análisis`, surviving a cold restart. What does not happen is the rest
+  of step 5: "restore the network and wait without touching anything". The
+  record does arrive and the notice does go — but only when the app is next
+  opened, which is the contract's third trigger, not its second.
+
+  The second trigger was never wired. `Sincronizador.alVolverLaRed` exists and
+  is tested, and **nothing in `lib/` listens to it**; and it could not fire
+  anyway, because `main.dart` passes `sondear: () async => datos != null`, which
+  asks "did Firestore initialise?" and is true with the airplane on. The stream
+  only emits on a change, so the value never changes and the event never comes.
+
+  Fixing it is a change of its own with a decision inside it — what to probe,
+  how often, and what that costs — so it is recorded here rather than bolted on.
+  `estado_de_red.dart` already says what the probe should be: "a write is
+  attempted and one sees whether it arrives". That is now possible, because the
+  send has a deadline.
+
+  **T089 of feature 004 stays open**: siblings on one phone, and a session that
+  expires poolside. It needs two swimmer accounts with consent and a forced
+  expiry, which is its own setup, and its own spec says a desktop browser does
+  not count.
+
+  Two more things the walk saw, neither fixed here:
+
+  - `Mi progreso` says **"Todavía no tienes un plan asignado"** for the twenty
+    seconds its plan takes to load offline. It is an empty state shown before
+    the data has had its chance, and what it says is false while it says it.
+  - The notice can outlive the send. Firestore's own queue delivers the write
+    when the signal returns, so the server has the record while the outbox still
+    counts it pending — our deadline abandoned the Future that would have
+    confirmed it. Nothing is lost or duplicated, the id is deterministic, but
+    the sentence stays on screen after it has stopped being true.
 - [X] T075 Confirm no name, mark or identifier reaches logs or analytics from `lib/dominio/analisis/`, `lib/datos/firestore/peticiones_feedback_firestore.dart` and `lib/ui/analisis/` (FR-029), by reading them rather than by trusting the absence
 - [X] T076 Re-read the Constitution Check table in [plan.md](./plan.md) against what was actually built, and correct it if anything drifted. A gate that is only true at planning time is not a gate
 
@@ -458,6 +506,37 @@ Defect 5 taught the old lesson one turn further. This project knew the double
 must refuse what the server refuses. It must also **return where the server
 would hang**: a double that throws is kinder than one that never answers.
 
+
+### And then feature 003's own walk, which found three more
+
+C1 and C2 were deferred since feature 003 for want of a device. Walking them
+here found three defects, all the same shape as defect 5 above and all of them
+the shape this project keeps meeting: **the Firestore SDK does not throw when
+there is no network, it leaves the Future open.**
+
+| | What it looked like | Where it was |
+|---|---|---|
+| 6 | Airplane mode, app reopened: `Ver Plan` spins forever. No error, no content, no session — with the cache on the device and persistence on | 003/009 — every read was unbounded. A `catch` cannot catch a Future that never completes |
+| 7 | She marks the session and the button spins **for ever**, with the record already saved and no way for her to know it | 003 — the outbox's send was unbounded, and the screen waited on it |
+| 8 | Two syncs at once send the same record twice | 003 — both read the queue before either marks "sending". It only became reachable once the screen stopped waiting |
+
+Defect 6 needed two fixes, not one. The deadline alone left `Ver Plan` loading
+in twenty-odd seconds, because it chains macrocycle → plan → sessions and each
+read paid its own five. Correct and useless. A short memory of a server that
+did not answer takes the second and third reads straight to the cache.
+
+And defect 7 explains why nothing ever retried: the outbox asks
+`red.hayConexion()` before sending, and the probe behind it was
+`() async => datos != null` — "did Firestore initialise?", which is true with
+the airplane on. So it always tried, and always hung. Now that the send has a
+deadline, the probe `estado_de_red.dart` always described — "a write is
+attempted and one sees whether it arrives" — is finally possible.
+
+The walk's own lesson, a third time: **a double that throws is kinder than the
+server it stands for.** One of the new locks had to be fixed before it was a
+lock at all — its negative control showed it asked `obtener` for an id the
+device already had, so it returned early and never reached the server.
+
 ### What each check showed
 
 - **C1** — he reads her answers from his own device, with the records written on
@@ -468,13 +547,19 @@ would hang**: a double that throws is kinder than one that never answers.
   verbatim. Nothing proposes anything.
 - **C4** — "2000 m · 50% técnico · RPE previsto 2" and "La hizo · esfuerzo
   percibido 7 de 10", each named, and no third figure anywhere on the screen.
+- **C5** — block 1 readjusted and delivered, then her reading reopened:
+  adherence still 2 of 39 and both answers still beside the sessions she swam,
+  under a plan id that no longer exists in the macrocycle. His side is simpler,
+  as hoped, and now confirmed rather than assumed.
 - **C6** — asked with airplane mode on. "Guardada. Se la mandaremos cuando
   tengas internet.", and it reached the server when the signal came back, under
   the deterministic id, with `video` **absent** rather than null.
 - **C7** — the boundary is visible: 18/11 and later offer nothing, 09/11 and
   06/11 offer it. Not offered and disabled — not offered at all.
 - **C8** — he marks it seen; in the emulator `vistaEn` is set and `pregunta` is
-  byte-for-byte hers, with no key added to the document.
+  byte-for-byte hers, with no key added to the document. And **her half**: on
+  the session she asked about, "Tu entrenador la vio", in green, with no written
+  answer arriving. That is the whole of what Q2 promised.
 - **C9** — walked as both roles. Video is not named anywhere, and a test over
   every file in `lib/ui` keeps it that way.
 - **C10** — 28 rules tests with their negative controls, in

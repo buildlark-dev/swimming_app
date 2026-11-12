@@ -1,0 +1,20 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "app-web-emuladores",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "web-server",
+        "--web-port",
+        "5599",
+        "--web-hostname",
+        "localhost",
+        "--dart-define=USAR_EMULADORES=true"
+      ],
+      "port": 5599
+    }
+  ]
+}
