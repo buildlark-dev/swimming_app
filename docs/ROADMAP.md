@@ -21,6 +21,9 @@ was lost. A roadmap that lives in a chat is not a roadmap.
 | **008** The swimmer's request | A checklist that becomes a draft, the draft reaches the coach's queue, and nothing leaves without his signature | Merged |
 | **009** Ver Plan and progression | The macrocycle, confirmed once and delivered whole; the swimmer annotates it as they go, and a readjustment versions what changed | Merged |
 | **010** Análisis | The detailed journey, and asking the coach for feedback | Merged |
+| **011** Repairs to the swimmer's journey | The send that retries by itself, and the four defects the walks recorded | Next |
+| **012** The coach → swimmer relation | Each coach reads only his own swimmers, which is the door into the community area | Planned |
+| **013** Video | Uploading, watching and retention, on the consent scope modelled since 004 | Planned |
 
 ## What each of the later ones is waiting on
 
@@ -61,8 +64,8 @@ gate in front of it, and neither is reachable. The constructor refuses a non-nul
 video, the rule refuses a create that carries the key, and the interface never
 mentions it — a test over every file in `lib/ui` keeps it that way. The reason is
 the comment feature 004 left beside the consent scopes: discovering later that
-video needs a scope of its own would mean asking every family again. A later
-feature removes two refusals and nothing else has to change.
+video needs a scope of its own would mean asking every family again. That later
+feature is 013: it removes two refusals and nothing else has to change.
 
 **010 delivered the coach's side of the reading.** `Análisis` had carried a
 `TodaviaNo(feature: '010')` since feature 007 — a bounded promise with the number
@@ -83,9 +86,9 @@ not be met, so it was amended with the reason recorded next to it, and
 coach account reads the first coach's swimmer and **succeeds**, saying in its own
 text why. The day a second coach exists, that test is the first thing that fails.
 
-Closing it is a feature of its own, and it belongs with whatever first needs more
-than one coach — the community area of principle VII. It is recorded here the way
-feature 003's identity gap was recorded until 004 closed it.
+Closing it is a feature of its own — 012 — and it belongs with whatever first
+needs more than one coach, the community area of principle VII. It was recorded
+here the way feature 003's identity gap was recorded until 004 closed it.
 
 
 **What the 010 walk found, and what it cost.** The walk on the Pixel 7 found
@@ -108,7 +111,7 @@ mesocycle an assigned plan. It then became whichever the query returned last —
 arbitrary, not merely wrong. Fixed with `elPlanDeAhora`: the plan that contains
 today, then the next to start, then the last to have ended.
 
-Left for next, diagnosed in `specs/010-analysis-and-feedback/tasks.md`: the
+Left for 011, diagnosed in `specs/010-analysis-and-feedback/tasks.md`: the
 pending list counts a session the swimmer answered with "I did not do it".
 `ProgresoEnElMacrociclo.pendientes` excludes only `hechas`, and the class's own
 documentation forbids exactly that conflation.
@@ -135,10 +138,91 @@ C1 passes now. C2 passes through step 4. Step 5 — "restore the network and wai
 without touching anything" — does not: the record arrives and the notice goes,
 but only when the app is next opened. `Sincronizador.alVolverLaRed` exists, is
 tested, and **nothing in `lib/` listens to it**; and the probe behind it could
-not have fired anyway. Wiring it is a change with a decision inside it, so it is
-recorded in `specs/010-analysis-and-feedback/tasks.md` rather than bolted on
-here. T089 of feature 004 — siblings on one phone, a session expiring poolside —
-is still open and needs its own setup.
+not have fired anyway. Wiring it is a change with a decision inside it, so it
+was recorded rather than bolted on, and **it is now feature 011**. T089 of
+feature 004 — siblings on one phone, a session expiring poolside — is still open
+and needs its own setup; it is 011's natural companion, since both are the
+swimmer's journey on a real device.
+
+## What 011, 012 and 013 carry
+
+**They are three and not one, and that is principle VII, not taste.** Video and
+community are two of the four product areas, and the principle forbids opening
+them in parallel — for the reason it states itself: one person holds this up,
+and four open fronts is the surest way to finish none. Closing the network
+trigger is repair work on an area already built; the relation and the video each
+open an area. So they go in that order, declared here.
+
+### 011 — Repairs to the swimmer's journey
+
+Everything the two walks found and left written down, and nothing else. No new
+product surface: at the end of it the app does what it already promises.
+
+**The network trigger, which is the one that matters.** The sync contract names
+three triggers — on save, on network return, on app open — and the second was
+never wired. `Sincronizador.alVolverLaRed` exists and is tested, and **nothing
+in `lib/` listens to it**; it could not have fired anyway, because the probe
+behind it is `sondear: () async => datos != null`, which asks "did Firestore
+initialise?" and is true with the airplane on. So C2 of feature 003 stops at
+step 5: the record does arrive and the notice does go, but only when the app is
+next opened.
+
+It was left for its own feature because it has a decision inside it — what to
+probe, how often, and what that costs — and because `estado_de_red.dart` has
+said from the beginning what the probe should be: "a write is attempted and one
+sees whether it arrives". With the send bounded, that is finally possible.
+
+And the three smaller ones:
+
+- `ProgresoEnElMacrociclo.pendientes` counts a session the swimmer answered
+  with "I did not do it". It excludes only `hechas`, and that class's own
+  documentation forbids the conflation.
+- `Mi progreso` says "Todavía no tienes un plan asignado" for the twenty
+  seconds its plan takes to load offline — an empty state shown before the data
+  has had its chance, and false while it says it.
+- The pending notice can outlive the send. Firestore's own queue delivers the
+  write our deadline stopped waiting for, so the server holds the record while
+  the outbox still counts it pending. Nothing is lost or duplicated, the id is
+  deterministic, but the sentence stays on screen after it stops being true.
+
+Closing this closes **T071 of feature 003 and T088 of feature 004**, which have
+been open since there was nowhere to deploy. T089 of feature 004 — siblings on
+one phone, a session expiring poolside — is the natural companion of 011's walk,
+since both are the swimmer's journey on a real device.
+
+### 012 — The coach → swimmer relation
+
+Feature 010 declared this missing rather than inventing it. FR-024 said a coach
+reads only his own swimmers; there is no such relation in the product — a
+`Nadador` has no owner and the rule says `esEntrenador()`, full stop — so the
+requirement was amended with the reason recorded beside it, and
+`firebase/test/reglas_analisis.test.js` carries a test asserting that a **second**
+coach account reads the first coach's swimmer and **succeeds**, saying in its own
+text why. That test is this feature's starting point: the day the relation
+exists, it is the first thing that has to be rewritten, and until then it is an
+honest description of what the product does.
+
+It is the door into the community area of principle VII, which is why it comes
+before video rather than after: a video belongs to a swimmer, and who may watch
+it is a question with no answer until this exists.
+
+### 013 — Video
+
+Feature 010 shaped it and refused to build it, by the coach's decision on Q1:
+the request already carries a `video` field, the server carries the gate in
+front of it, and neither is reachable. The constructor refuses a non-null video,
+the rule refuses a create that carries the key, and the interface never mentions
+it — a test over every file in `lib/ui` keeps it that way.
+
+`Alcance.video` has been modelled since feature 004 and used nowhere. That was
+the point: the comment feature 004 left beside the consent scopes says that
+discovering later that video needs a scope of its own would mean asking every
+family again. This feature removes two refusals and activates a scope that is
+already consented; it does not go back to the families.
+
+What it still has to decide, and has not: where the files live, who pays for
+them, how long a minor's video is kept and what deleting it means — which is
+principle V's territory and the reason this is a feature and not a flag.
 
 ## Changing this file
 
