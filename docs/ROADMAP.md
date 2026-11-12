@@ -20,7 +20,7 @@ was lost. A roadmap that lives in a chat is not a roadmap.
 | **007** The HUB and the two journeys | Five tabs — `Generar`, `Ver Plan`, `Home`, `Análisis`, `Ajustes` — arranged per role, plus Home and the settings screen where a person governs their own account | Merged |
 | **008** The swimmer's request | A checklist that becomes a draft, the draft reaches the coach's queue, and nothing leaves without his signature | Merged |
 | **009** Ver Plan and progression | The macrocycle, confirmed once and delivered whole; the swimmer annotates it as they go, and a readjustment versions what changed | Merged |
-| **010** Análisis | The detailed journey, and asking the coach for feedback | Planned |
+| **010** Análisis | The detailed journey, and asking the coach for feedback | Merged |
 
 ## What each of the later ones is waiting on
 
