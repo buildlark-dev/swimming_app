@@ -229,22 +229,32 @@ marks it seen.
 ## Phase 7: Polish & Cross-Cutting
 
 - [ ] T069 Walk C5 of [quickstart.md](./quickstart.md): an answer survives a readjustment on the coach's side. Feature 009 found this twice on the swimmer's side; confirm rather than assume that his side is simpler
+
+  **Not walked**, by the coach's decision, and recorded rather than quietly
+  dropped. What covers it meanwhile: `el_linaje_tambien_para_el_entrenador_test`
+  fixes that an answer written against a replaced version is still found and
+  still counted, with its negative control run — swapping `registrosDelLinaje`
+  for a direct read turns two of its three cases red. What a walk would add is
+  the half a Dart test cannot reach: that the readjustment's real write, with
+  the real rules, leaves the old version's records readable. Feature 009 found
+  this broken twice on the swimmer's side, both times on the phone, so the
+  check is worth keeping open rather than assuming his side is simpler.
 - [X] T070 Walk C10 of [quickstart.md](./quickstart.md): the server boundaries, as rules tests
 - [ ] T071 [P] Mark feature 010 on the roadmap in `docs/ROADMAP.md` once the PR merges
 - [X] T072 [P] Record in `docs/ROADMAP.md` that the coach→swimmer link is still missing and which feature should close it, the way feature 003's identity gap was recorded until 004 closed it
 - [X] T073 Run the four gates and write the numbers in `specs/010-analysis-and-feedback/tasks.md` next to T001's baseline. The difference is the locks this feature needed
 
-**After, 2026-11-11, with the four phases of code built (the Pixel 7 walk is
-still pending):**
+**After, 2026-11-12, with the code built and the walk run:**
 
 | Gate | Before | After | Added |
 |---|---|---|---|
 | `flutter analyze` | No issues | No issues | — |
-| `flutter test` | 1963 | 2080 | **+117** |
+| `flutter test` | 1963 | 2115 | **+152** |
 | `npm --prefix firebase test` | 146 | 174 | **+28** |
 | `npm --prefix firebase/functions test` | 45 | 45 | — |
 
-145 tests added. Two negative controls were run and their numbers are recorded in
+180 tests added. 35 of them are the walk: the locks the five defects it found
+needed, written before each fix. Two negative controls were run and their numbers are recorded in
 the suites themselves: against a collection with no rule, `reglas_analisis` went
 5 of 10 and `reglas_peticiones_feedback` 12 of 18, and in both cases every single
 failure was an `assertSucceeds`. That sentence is worth more than the 28 tests.
