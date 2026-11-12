@@ -585,3 +585,20 @@ Checked on what is **served**, not on what was built: `/`, `/main.dart.js` and
 no `demo-natacion` and no `10.0.2.2`. That last check exists because an APK
 built without the flag once talked to the real project and signing in failed
 with "El correo o la contraseña no coinciden" — the mirror of the same mistake.
+
+### Redeployed, 2026-11-12, from `main` after the merge
+
+The first deploy went out from `9f809b5`, **before** `fix(003): what hangs on
+the network now has a deadline`. So what was live had all of feature 010 and
+none of the offline fixes: the swimmer who opened the app in airplane mode
+still got a spinner that never ended.
+
+Redeployed from `main` at `135c9c8`, same order: rules and indexes, then the
+ten functions, then hosting from a release build with no `--dart-define`.
+
+And the check that matters was done differently this time. Grepping the served
+bundle for a Dart identifier proves nothing — a release build renames them — so
+what was compared is the SHA-256 of the served `main.dart.js` against the one
+just built. Identical, which is the only way to say *that* code is what is
+being served rather than *some* code is.
+
