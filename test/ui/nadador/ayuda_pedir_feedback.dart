@@ -32,6 +32,9 @@ class BancoDelNadador {
     peticiones = PeticionesDeLasDosPartes(
       local: peticionesLocales,
       servidor: peticionesDelServidor,
+      // Corta, para que una lectura sin servidor no deje la prueba esperando
+      // los cinco segundos de produccion.
+      esperaAlServidor: const Duration(milliseconds: 50),
     );
 
     estado = EstadoNadador(

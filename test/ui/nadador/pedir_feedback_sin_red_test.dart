@@ -79,6 +79,10 @@ void main() {
     banco.peticionesDelServidor.falla = false;
     await banco.estado.sincronizar();
 
+    // **El envío no se espera** (G1), así que para comprobarlo hay que
+    // esperarlo a propósito: la pantalla no lo hace.
+    await banco.peticiones.cuandoTerminenLosEnvios();
+
     expect(
       banco.peticionesDelServidor.guardadas,
       hasLength(1),
@@ -93,10 +97,12 @@ void main() {
     await tester.pumpAndSettle();
 
     await banco.pedir(tester, 's1', '¿El viraje?');
+    await banco.peticiones.cuandoTerminenLosEnvios();
     final escriturasTrasPedir = banco.peticionesDelServidor.escrituras;
 
     await banco.estado.sincronizar();
     await banco.estado.sincronizar();
+    await banco.peticiones.cuandoTerminenLosEnvios();
 
     expect(
       banco.peticionesDelServidor.escrituras,
