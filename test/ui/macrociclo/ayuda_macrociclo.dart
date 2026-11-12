@@ -27,9 +27,7 @@ import 'package:natacion_app/ui/tema/tema.dart';
 /// la feature 007 con cuatro pruebas del HUB.
 final DateTime hoyDePrueba = DateTime(2026, 11, 4);
 
-final DateTime competenciaDePrueba = hoyDePrueba.add(
-  const Duration(days: 98),
-);
+final DateTime competenciaDePrueba = hoyDePrueba.add(const Duration(days: 98));
 
 Biblioteca bibliotecaReal() => Biblioteca.desdeJson(
   jsonDecode(File('assets/biblioteca/ejercicios.json').readAsStringSync())

@@ -11,6 +11,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/dominio/calculo/el_plan_de_ahora.dart';
 import 'package:natacion_app/dominio/entidades/asignacion.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
@@ -135,12 +136,23 @@ class SelectorDePerfil extends StatelessWidget {
 ///   acceso no saben recorrer listas, con lo que la puerta de publicación no
 ///   podría hacerse cumplir en el servidor.
 ///
-/// De haber varios, se queda con el último, que es el que está entrenando.
+/// De haber varios, **el de ahora**: el que contiene hoy (`elPlanDeAhora`).
+///
+/// Esto se quedaba con el último de la lista, y hasta la feature 009 eso
+/// quería decir «el plan que le entregaron», porque tenía uno. Desde que
+/// existen los macrociclos cada mesociclo es un plan asignado, así que «el
+/// último» pasó a ser el que la consulta devolviera de último: en el recorrido
+/// de la 010 le tocó el Mesociclo 3, que empieza tres meses más tarde.
+///
+/// `hoy` entra como dato y no como `DateTime.now()` aquí dentro, por lo mismo
+/// que en el resto: cuatro pruebas del HUB se pusieron rojas solas al cambiar
+/// el día en la feature 007.
 Plan? planDe(
   Nadador nadador,
   List<Plan> planes,
-  List<Asignacion> asignaciones,
-) {
+  List<Asignacion> asignaciones, {
+  required DateTime hoy,
+}) {
   final id = nadador.id;
   if (id == null) return null;
 
@@ -154,5 +166,5 @@ Plan? planDe(
       .where((p) => p.id != null && suyos.contains(p.id))
       .toList();
 
-  return publicados.isEmpty ? null : publicados.last;
+  return elPlanDeAhora(publicados, hoy);
 }

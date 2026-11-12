@@ -11,6 +11,8 @@
 /// simulados, sin emulador y sin probar Firebase.
 library;
 
+import 'dart:async';
+
 import 'package:natacion_app/dominio/consentimiento/puerta.dart';
 import 'package:natacion_app/dominio/entidades/envio_pendiente.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
@@ -41,6 +43,7 @@ class Sincronizador {
     required this.red,
     required this.transporte,
     this.puerta = const PuertaAbierta(),
+    this.esperaAlEnvio = loQueSeEsperaAlEnvio,
     DateTime Function()? reloj,
   }) : // El reloj se inyecta para poder probar los reintentos sin esperar
        // minutos reales. Por omisión es el del sistema.
@@ -62,6 +65,27 @@ class Sincronizador {
   /// duplicaría el mecanismo que ya funciona y ya está probado.
   final PuertaDeConsentimiento puerta;
 
+  /// Lo que se le da al servidor para confirmar un envío antes de darlo por
+  /// no llegado.
+  ///
+  /// **Un envío que no vuelve no es un envío que llegó.** Lo encontró el
+  /// recorrido en el Pixel 7: con el avión puesto, el SDK de Firestore acepta
+  /// la escritura en su cola local y deja el Future abierto, sin lanzar nada.
+  /// `marcar como realizada` se quedaba girando para siempre.
+  ///
+  /// Y es, además, lo que `estado_de_red.dart` dice desde la feature 003 que
+  /// tiene que ser la detección de red: «se intenta una escritura y se ve si
+  /// llega». Hasta ahora no había forma de ver que no llegaba.
+  ///
+  /// Agotado el plazo se trata como fallo normal (garantía G3): vuelve a
+  /// pendiente, con su contador, y se reintenta. El identificador del registro
+  /// es determinista, así que si la escritura acababa llegando por su cuenta,
+  /// el reintento la pisa con lo mismo.
+  static const Duration loQueSeEsperaAlEnvio = Duration(seconds: 10);
+
+  /// Lo que espera esta instancia. Las pruebas la acortan.
+  final Duration esperaAlEnvio;
+
   final DateTime Function() _ahora;
 
   /// Guarda un registro y lo deja encolado.
@@ -82,7 +106,27 @@ class Sincronizador {
   /// Sin conexión devuelve `sinRed` y **no toca los contadores**: no haber
   /// podido intentarlo no es haber fallado, y contarlo como intento alargaría
   /// la espera del siguiente reintento sin motivo.
-  Future<ResultadoDeSincronizacion> sincronizar() async {
+  /// Lo que hay en marcha ahora mismo, si hay algo.
+  ///
+  /// **Una a la vez, y no es cosmético.** El contrato tiene tres
+  /// disparadores —al guardar, al volver la red y al abrir la app— y nada
+  /// impedía que dos coincidieran. Dos sincronizaciones solapadas leen la
+  /// bandeja antes de que ninguna llegue a marcar «enviando», así que las
+  /// dos ven el mismo registro pendiente y las dos lo mandan.
+  ///
+  /// Con un identificador determinista el servidor no acaba con dos copias,
+  /// así que no se perdía ni se duplicaba nada: lo que había era un envío de
+  /// más por cada coincidencia, a costa del teléfono y de su plan de datos.
+  /// Lo sacó a la luz quitar el `await` de `responder`, que es lo que hizo
+  /// posible el solape de verdad.
+  ///
+  /// Quien llega segundo se engancha a la que ya va en lugar de abrir otra.
+  Future<ResultadoDeSincronizacion>? _enMarcha;
+
+  Future<ResultadoDeSincronizacion> sincronizar() =>
+      _enMarcha ??= _vaciarLaBandeja().whenComplete(() => _enMarcha = null);
+
+  Future<ResultadoDeSincronizacion> _vaciarLaBandeja() async {
     final pendientes = await bandeja.pendientes();
     if (pendientes.isEmpty) {
       return const ResultadoDeSincronizacion();
@@ -142,13 +186,22 @@ class Sincronizador {
     await bandeja.actualizar(enCola.marcandoEnviando(_ahora()));
 
     try {
-      final recibidoEn = await transporte.enviar(registro);
+      final recibidoEn = await transporte
+          .enviar(registro)
+          .timeout(esperaAlEnvio);
 
       // La hora del servidor vuelve al registro local: es lo que permite
       // detectar un reloj desajustado (decisión D3).
       await registros.guardar(registro.copiarCon(recibidoEn: recibidoEn));
       await bandeja.actualizar(enCola.marcandoEnviado());
       return true;
+    } on TimeoutException {
+      // Un envío que no contesta cuenta como fallido, igual que uno que
+      // falla. Lo que no puede es dejar el bucle —y la pantalla— esperando.
+      await bandeja.actualizar(
+        enCola.marcandoFallido('el servidor no confirmó el envío', _ahora()),
+      );
+      return false;
     } on Exception catch (e) {
       // **Garantía G3**: vuelve a pendiente con el contador incrementado.
       // Nunca se descarta, por muchos intentos que lleve.

@@ -32,6 +32,8 @@ import 'package:natacion_app/ui/hub/cola_del_entrenador.dart';
 import 'package:natacion_app/ui/hub/home_del_entrenador.dart';
 import 'package:natacion_app/ui/hub/home_del_nadador.dart';
 import 'package:natacion_app/ui/hub/planes_del_entrenador.dart';
+import 'package:natacion_app/ui/analisis/pantalla_analisis.dart';
+import 'package:natacion_app/ui/componentes/estado_vacio.dart';
 import 'package:natacion_app/ui/hub/todavia_no.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:natacion_app/ui/nadador/pantalla_mi_progreso.dart';
@@ -72,6 +74,10 @@ class ContextoDelHub {
     this.quienTieneMacrociclo = const {},
     this.macrociclos,
     this.registrosDelNadador,
+    this.registrosDelEntrenador,
+    this.macrociclosDelEntrenador,
+    this.peticionesDeFeedback,
+    this.asignacionesDelEntrenador,
     required this.hoy,
     this.alMirar,
     required this.irAVerPlan,
@@ -160,6 +166,28 @@ class ContextoDelHub {
   /// **local**: lo que escribió es suyo y está en su dispositivo primero.
   final RepositorioRegistros? registrosDelNadador;
 
+  /// Lo que el **entrenador** lee de sus nadadores: el servidor, a secas
+  /// (feature 010, decisión D3). **No es el de las dos partes**: su teléfono
+  /// nunca escribió las respuestas de ella.
+  final RepositorioRegistros? registrosDelEntrenador;
+
+  /// Los macrociclos, para que el entrenador abra el de cada nadador. Va
+  /// aparte de `macrociclos` porque ese es el del nadador y se queda nulo sin
+  /// servidor para que `Ver Plan` enseñe su sesión de hoy; el `Análisis` del
+  /// entrenador funciona igual en local, con los de memoria.
+  final RepositorioMacrociclos? macrociclosDelEntrenador;
+
+  /// Lo que los nadadores preguntan sobre una sesión (feature 010, US4).
+  /// Nulo sin servidor.
+  final RepositorioPeticionesDeFeedback? peticionesDeFeedback;
+
+  /// A quién se le entregó cada plan, para leer a un nadador que tiene un
+  /// plan suelto y ningún macrociclo (hallazgo del recorrido de la 010).
+  ///
+  /// Va aparte de `asignaciones`, que es la lista ya cargada para pintar los
+  /// planes: esto es el repositorio, porque la lectura pregunta por nadador.
+  final RepositorioAsignaciones? asignacionesDelEntrenador;
+
   /// Hoy. Entra como dato y no como `DateTime.now()` dentro de la pantalla
   /// para que una prueba pueda fijarlo: la feature 007 tuvo cuatro pruebas
   /// del HUB que se pusieron rojas solas al cambiar el día.
@@ -233,6 +261,37 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
       alVerSuMacrociclo: ctx.alVerSuMacrociclo,
       quienTieneMacrociclo: ctx.quienTieneMacrociclo,
     ),
+    // El `Análisis` del entrenador (feature 010). El destino llevaba desde la
+    // 007 con un «todavía no» que nombraba a esta feature por su número.
+    //
+    // **Los registros entran por `registrosDelEntrenador`**, que es el lector
+    // del servidor: su teléfono nunca escribió las respuestas de ella, así que
+    // «gana lo local» no tiene nada que ganar (decisión D3).
+    Contenido.analisisDelEntrenador =>
+      ctx.registrosDelEntrenador == null || ctx.macrociclosDelEntrenador == null
+          ? const Padding(
+              padding: EdgeInsets.all(Espaciado.amplio),
+              child: EstadoVacio(
+                key: Key('sin-donde-leer-el-analisis'),
+                icono: Icons.timeline_outlined,
+                titulo: 'No hay de dónde leer las respuestas',
+                queHacer:
+                    'El análisis lee lo que tus nadadores escribieron en el '
+                    'servidor. Entra con tu cuenta para verlo.',
+              ),
+            )
+          : PantallaAnalisis(
+              nadadores: ctx.nadadores,
+              macrociclos: ctx.macrociclosDelEntrenador!,
+              planes: ctx.repositorioPlanes!,
+              registros: ctx.registrosDelEntrenador!,
+              molestias: ctx.molestias,
+              peticiones: ctx.peticionesDeFeedback,
+              // Para los nadadores con un plan entregado y sin macrociclo,
+              // que es lo que dejaban las features 003 y 007.
+              asignaciones: ctx.asignacionesDelEntrenador,
+              hoy: ctx.hoy,
+            ),
     Contenido.homeDelEntrenador => HomeDelEntrenador(
       resumen: ctx.resumenDelEntrenador,
       noSePudoContar: ctx.noSePudoContar,
@@ -242,25 +301,26 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
     // sesión de hoy cuando no tiene ninguno** (M23). La sesión de hoy se
     // construye igual que antes, con su provider: lo que cambió es que va
     // dentro, como respaldo, en lugar de ser el contenido del destino.
-    Contenido.miMacrociclo => ctx.macrociclos == null || ctx.nadadorId == null
-        ? ChangeNotifierProvider<EstadoNadador>.value(
-            value: ctx.nadador,
-            child: PantallaSesionDelDia(selector: ctx.selectorDePerfil),
-          )
-        : PantallaMiMacrociclo(
-            nadadorId: ctx.nadadorId!,
-            macrociclos: ctx.macrociclos!,
-            planes: ctx.repositorioPlanes!,
-            registros: ctx.registrosDelNadador!,
-            hoy: ctx.hoy,
-            // Para que pueda marcar desde cualquier sesión del macrociclo,
-            // con el mismo formulario de la feature 003.
-            estado: ctx.nadador,
-            sinMacrociclo: ChangeNotifierProvider<EstadoNadador>.value(
+    Contenido.miMacrociclo =>
+      ctx.macrociclos == null || ctx.nadadorId == null
+          ? ChangeNotifierProvider<EstadoNadador>.value(
               value: ctx.nadador,
               child: PantallaSesionDelDia(selector: ctx.selectorDePerfil),
+            )
+          : PantallaMiMacrociclo(
+              nadadorId: ctx.nadadorId!,
+              macrociclos: ctx.macrociclos!,
+              planes: ctx.repositorioPlanes!,
+              registros: ctx.registrosDelNadador!,
+              hoy: ctx.hoy,
+              // Para que pueda marcar desde cualquier sesión del macrociclo,
+              // con el mismo formulario de la feature 003.
+              estado: ctx.nadador,
+              sinMacrociclo: ChangeNotifierProvider<EstadoNadador>.value(
+                value: ctx.nadador,
+                child: PantallaSesionDelDia(selector: ctx.selectorDePerfil),
+              ),
             ),
-          ),
     Contenido.miProgreso => ChangeNotifierProvider<EstadoNadador>.value(
       value: ctx.nadador,
       child: const PantallaMiProgreso(),

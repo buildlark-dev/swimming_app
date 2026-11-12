@@ -67,10 +67,7 @@ void main() {
         final plan = await repos.planes.obtener(id);
         if (plan != null) mesociclos.add(plan);
       }
-      return MacrocicloGuardado(
-        macrociclo: entregado,
-        mesociclos: mesociclos,
-      );
+      return MacrocicloGuardado(macrociclo: entregado, mesociclos: mesociclos);
     });
   }
 
@@ -163,9 +160,7 @@ void main() {
       await abrir(tester);
 
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('cuantas-cumplidas')))
-            .data!,
+        tester.widget<Text>(find.byKey(const Key('cuantas-cumplidas'))).data!,
         contains('0 de'),
       );
     });
@@ -254,9 +249,8 @@ void main() {
       await abrir(tester);
 
       final ultimo = await repos.planes.obtener('plan-3');
-      final sesion = (ultimo ?? (await repos.planes.listar()).last)
-          .sesiones
-          .last;
+      final sesion =
+          (ultimo ?? (await repos.planes.listar()).last).sesiones.last;
 
       final tile = find.byKey(Key('sesion-${sesion.id}'));
       await tester.ensureVisible(tile);
@@ -383,9 +377,7 @@ void main() {
 
       expect(find.byKey(Key('marcar-${futura.id}')), findsNothing);
       expect(
-        tester
-            .widget<Text>(find.byKey(Key('todavia-no-${futura.id}')))
-            .data!,
+        tester.widget<Text>(find.byKey(Key('todavia-no-${futura.id}'))).data!,
         'Todavía no llega ese día',
       );
     });
@@ -412,9 +404,7 @@ void main() {
       expect(guardados.single.sesionId, deHoy.id);
       expect(guardados.single.realizada, isTrue);
     });
-    testWidgets('y la pantalla se entera sin reiniciar la app', (
-      tester,
-    ) async {
+    testWidgets('y la pantalla se entera sin reiniciar la app', (tester) async {
       // **Encontrado recorriendo C10 en el Pixel 7, y es el defecto que más
       // se nota de los que ha dado esta feature.** Ana marcó su sesión: el
       // registro se guardó —en Firestore estaba, con su esfuerzo— y la
@@ -436,9 +426,8 @@ void main() {
       // fácil. Lo que el nadador necesita es verlo.
       await abrirParaMarcar(tester);
 
-      String loCumplido() => tester
-          .widget<Text>(find.byKey(const Key('cuantas-cumplidas')))
-          .data!;
+      String loCumplido() =>
+          tester.widget<Text>(find.byKey(const Key('cuantas-cumplidas'))).data!;
 
       expect(
         loCumplido(),
@@ -462,7 +451,6 @@ void main() {
         reason: 'se marcó, se guardó, y la pantalla siguió diciendo cero',
       );
     });
-
   });
 
   group('M26 — lo que quedó pendiente se dice, no se bloquea', () {
@@ -470,10 +458,7 @@ void main() {
       // A 20 días hay sesiones pasadas sin marcar: el aviso las nombra.
       await abrir(tester, cuando: hoyDePrueba.add(const Duration(days: 20)));
 
-      expect(
-        find.byKey(const Key('lo-que-quedo-pendiente')),
-        findsOneWidget,
-      );
+      expect(find.byKey(const Key('lo-que-quedo-pendiente')), findsOneWidget);
       expect(find.textContaining('por marcar'), findsWidgets);
     });
 
@@ -632,7 +617,6 @@ void main() {
     });
   });
 
-
   group('C13 — y la PANTALLA sigue contando lo que anotó', () {
     testWidgets('tras un reajuste, lo marcado antes sigue contando', (
       tester,
@@ -714,9 +698,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('cuantas-cumplidas')))
-            .data!,
+        tester.widget<Text>(find.byKey(const Key('cuantas-cumplidas'))).data!,
         contains('2 de'),
         reason:
             'el reajuste le dejó el historial en blanco en la pantalla, '

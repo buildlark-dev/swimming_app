@@ -23,11 +23,7 @@ void main() {
     conPantallaAlta(tester);
     final guardado = await macrocicloGuardado(repos);
     await tester.pumpWidget(
-      montarRevision(
-        repos: repos,
-        guardado: guardado,
-        alEntregar: alEntregar,
-      ),
+      montarRevision(repos: repos, guardado: guardado, alEntregar: alEntregar),
     );
     await tester.pumpAndSettle();
   }
@@ -51,15 +47,11 @@ void main() {
       await abrir(tester);
 
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('modelo-de-la-prueba')))
-            .data!,
+        tester.widget<Text>(find.byKey(const Key('modelo-de-la-prueba'))).data!,
         contains('umbral alto'),
       );
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('modelo-del-nadador')))
-            .data!,
+        tester.widget<Text>(find.byKey(const Key('modelo-del-nadador'))).data!,
         contains('agarre'),
       );
     });
@@ -115,9 +107,7 @@ void main() {
     ) async {
       await abrir(tester);
 
-      await tester.ensureVisible(
-        find.byKey(const Key('firmar-el-macrociclo')),
-      );
+      await tester.ensureVisible(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.tap(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.pumpAndSettle();
 
@@ -152,9 +142,7 @@ void main() {
     testWidgets('al firmar, el nadador todavía no tiene nada', (tester) async {
       await abrir(tester);
 
-      await tester.ensureVisible(
-        find.byKey(const Key('firmar-el-macrociclo')),
-      );
+      await tester.ensureVisible(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.tap(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.pumpAndSettle();
 
@@ -177,9 +165,7 @@ void main() {
       var aviso = 0;
       await abrir(tester, alEntregar: () => aviso++);
 
-      await tester.ensureVisible(
-        find.byKey(const Key('firmar-el-macrociclo')),
-      );
+      await tester.ensureVisible(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.tap(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.pumpAndSettle();
 
@@ -205,9 +191,7 @@ void main() {
       await abrir(tester);
       expect(find.byKey(const Key('reajustar-el-macrociclo')), findsNothing);
 
-      await tester.ensureVisible(
-        find.byKey(const Key('firmar-el-macrociclo')),
-      );
+      await tester.ensureVisible(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.tap(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('reajustar-el-macrociclo')), findsNothing);
@@ -224,9 +208,7 @@ void main() {
       tester,
     ) async {
       await abrir(tester);
-      await tester.ensureVisible(
-        find.byKey(const Key('firmar-el-macrociclo')),
-      );
+      await tester.ensureVisible(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.tap(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.pumpAndSettle();
       await tester.ensureVisible(
@@ -245,9 +227,7 @@ void main() {
       tester,
     ) async {
       await abrir(tester);
-      await tester.ensureVisible(
-        find.byKey(const Key('firmar-el-macrociclo')),
-      );
+      await tester.ensureVisible(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.tap(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.pumpAndSettle();
       await tester.ensureVisible(
@@ -282,9 +262,7 @@ void main() {
     testWidgets('y al terminar se dice que ya lo ve', (tester) async {
       await abrir(tester);
 
-      await tester.ensureVisible(
-        find.byKey(const Key('firmar-el-macrociclo')),
-      );
+      await tester.ensureVisible(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.tap(find.byKey(const Key('firmar-el-macrociclo')));
       await tester.pumpAndSettle();
       await tester.ensureVisible(

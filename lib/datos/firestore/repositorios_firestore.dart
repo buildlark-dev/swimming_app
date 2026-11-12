@@ -8,6 +8,7 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:natacion_app/datos/firestore/lo_que_haya.dart';
 import 'package:natacion_app/datos/serializacion.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
@@ -38,7 +39,7 @@ class RepositorioPlanesFirestore implements RepositorioPlanes {
   @override
   Future<Plan?> obtener(String id) async {
     try {
-      final documento = await _planes.doc(id).get();
+      final documento = await _planes.doc(id).leerLoQueHaya();
       final datos = documento.data();
       if (datos == null) return null;
 
@@ -60,7 +61,7 @@ class RepositorioPlanesFirestore implements RepositorioPlanes {
         consulta = consulta.where('estado', isEqualTo: estado.name);
       }
 
-      final instantanea = await consulta.get();
+      final instantanea = await consulta.leerLoQueHaya();
       return instantanea.docs
           .map((d) => planDesdeJson(d.data(), _biblioteca, id: d.id))
           .toList();
@@ -260,7 +261,7 @@ class RepositorioSesionesFirestore implements RepositorioSesiones {
   @override
   Future<List<Sesion>> obtenerDePlan(String planId) async {
     try {
-      final instantanea = await _sesionesDe(planId).get();
+      final instantanea = await _sesionesDe(planId).leerLoQueHaya();
       return instantanea.docs
           .map((d) => sesionDesdeJson(d.data(), _biblioteca, id: d.id))
           .toList();
@@ -310,7 +311,7 @@ class RepositorioNadadoresFirestore implements RepositorioNadadores {
   @override
   Future<Nadador?> obtener(String id) async {
     try {
-      final documento = await _nadadores.doc(id).get();
+      final documento = await _nadadores.doc(id).leerLoQueHaya();
       final datos = documento.data();
       return datos == null ? null : nadadorDesdeJson(datos, id: id);
     } on FirebaseException catch (e) {
@@ -321,7 +322,7 @@ class RepositorioNadadoresFirestore implements RepositorioNadadores {
   @override
   Future<List<Nadador>> listar() async {
     try {
-      final instantanea = await _nadadores.get();
+      final instantanea = await _nadadores.leerLoQueHaya();
       return instantanea.docs
           .map((d) => nadadorDesdeJson(d.data(), id: d.id))
           .toList();
@@ -389,7 +390,7 @@ class RepositorioAsignacionesFirestore implements RepositorioAsignaciones {
 
   @override
   Future<List<Asignacion>> listar() async {
-    final instantanea = await _coleccion.get();
+    final instantanea = await _coleccion.leerLoQueHaya();
     return instantanea.docs.map((d) => _desde(d.data())).toList();
   }
 
@@ -397,7 +398,7 @@ class RepositorioAsignacionesFirestore implements RepositorioAsignaciones {
   Future<List<Asignacion>> deNadador(String nadadorId) async {
     final instantanea = await _coleccion
         .where('nadadorId', isEqualTo: nadadorId)
-        .get();
+        .leerLoQueHaya();
     return instantanea.docs.map((d) => _desde(d.data())).toList();
   }
 
@@ -405,7 +406,7 @@ class RepositorioAsignacionesFirestore implements RepositorioAsignaciones {
   Future<List<Asignacion>> dePlan(String planId) async {
     final instantanea = await _coleccion
         .where('planId', isEqualTo: planId)
-        .get();
+        .leerLoQueHaya();
     return instantanea.docs.map((d) => _desde(d.data())).toList();
   }
 

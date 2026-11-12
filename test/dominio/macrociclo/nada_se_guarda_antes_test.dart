@@ -191,8 +191,7 @@ void main() {
         expect(
           await sesiones.obtenerDePlan(mesociclo.id!),
           isNotEmpty,
-          reason:
-              'el mesociclo ${mesociclo.nombre} se guardó sin sus sesiones',
+          reason: 'el mesociclo ${mesociclo.nombre} se guardó sin sus sesiones',
         );
       }
     });
@@ -205,10 +204,9 @@ void main() {
         macrociclos: macrociclos,
       );
 
-      expect(
-        guardado.macrociclo.mesociclos,
-        [for (final m in guardado.mesociclos) m.id],
-      );
+      expect(guardado.macrociclo.mesociclos, [
+        for (final m in guardado.mesociclos) m.id,
+      ]);
     });
 
     test('y cada mesociclo sabe de qué macrociclo es', () async {

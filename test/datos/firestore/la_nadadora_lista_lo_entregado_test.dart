@@ -82,7 +82,8 @@ void main() {
     expect(
       cuerpoDeNadador(),
       isNot(contains("'estado', isEqualTo: 'publicado'")),
-      reason: 'el estado tiene que venir del enum para que el compilador lo '
+      reason:
+          'el estado tiene que venir del enum para que el compilador lo '
           'siga cuando cambie',
     );
   });

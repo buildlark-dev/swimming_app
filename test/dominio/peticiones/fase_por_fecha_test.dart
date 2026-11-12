@@ -23,12 +23,14 @@ void main() {
 
   DateTime enDias(int dias) => hoy.add(Duration(days: dias));
 
-  FaseDerivada derivar(int? dias, {Categoria categoria = Categoria.competitivo}) =>
-      faseParaCompetencia(
-        fechaDeCompetencia: dias == null ? null : enDias(dias),
-        hoy: hoy,
-        categoria: categoria,
-      );
+  FaseDerivada derivar(
+    int? dias, {
+    Categoria categoria = Categoria.competitivo,
+  }) => faseParaCompetencia(
+    fechaDeCompetencia: dias == null ? null : enDias(dias),
+    hoy: hoy,
+    categoria: categoria,
+  );
 
   group('P21 — las tres fases, por días hasta la competencia', () {
     test('a 1 día, Realización', () {

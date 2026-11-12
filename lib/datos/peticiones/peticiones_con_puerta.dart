@@ -119,9 +119,7 @@ class PeticionesConPuerta implements RepositorioPeticiones {
   Future<RespuestasDePeticion?> _loRetenido(String nadadorId) async {
     try {
       final guardado = await almacen.leer(coleccionDeLoRetenido, nadadorId);
-      return guardado == null
-          ? null
-          : RespuestasDePeticion.desdeJson(guardado);
+      return guardado == null ? null : RespuestasDePeticion.desdeJson(guardado);
     } catch (_) {
       // Un almacén que no se puede leer no es una petición retenida.
       return null;

@@ -54,8 +54,7 @@ void main() {
     registros = _RegistrosEnMemoria();
   });
 
-  Sesion sesion(DateTime fecha) =>
-      Sesion(microcicloId: 'mc-1', fecha: fecha);
+  Sesion sesion(DateTime fecha) => Sesion(microcicloId: 'mc-1', fecha: fecha);
 
   Plan mesociclo() => Plan(
     nombre: 'Mesociclo 1: Acumulación',
@@ -213,9 +212,9 @@ void main() {
 
       final segunda = await planes.crearVersionDesde(primera.id!);
       await planes.guardarAprobado(
-        (await planes.obtener(segunda.id!))!.copiarCon(
-          estado: EstadoPlan.aprobado,
-        ),
+        (await planes.obtener(
+          segunda.id!,
+        ))!.copiarCon(estado: EstadoPlan.aprobado),
         const {},
       );
       final tercera = await planes.crearVersionDesde(segunda.id!);
@@ -258,9 +257,7 @@ void main() {
         planes: planes,
       );
 
-      final deEsaSesion = delLinaje.where(
-        (r) => r.sesionId == cambiada.id,
-      );
+      final deEsaSesion = delLinaje.where((r) => r.sesionId == cambiada.id);
       expect(deEsaSesion, hasLength(1));
       expect(deEsaSesion.single.realizada, isFalse);
       expect(deEsaSesion.single.observaciones, 'Al final no pude ir.');
@@ -272,10 +269,9 @@ void main() {
       // girando para siempre.
       final id = await planes.guardarBorrador(mesociclo());
       await planes.guardarAprobado(
-        (await planes.obtener(id))!.copiarCon(
-          estado: EstadoPlan.aprobado,
-          versionAnteriorId: id,
-        ),
+        (await planes.obtener(
+          id,
+        ))!.copiarCon(estado: EstadoPlan.aprobado, versionAnteriorId: id),
         const {},
       );
 

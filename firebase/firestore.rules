@@ -68,6 +68,28 @@ service cloud.firestore {
                .data.get('vigente', false) == true;
     }
 
+
+    // Vigente **y por alcance** (feature 010, decision D2).
+    //
+    // `tieneConsentimientoVigente` responde solo a la primera mitad. Los
+    // alcances son distintos y conceder uno no concede el otro (FR-023 de la
+    // feature 004), asi que preguntar solo por vigencia dejaria que una
+    // familia que acepto los datos de entrenamiento autorizara un video que
+    // nunca acepto.
+    //
+    // Hoy la unica puerta que lo usa es la creacion de una peticion de
+    // feedback, con 'datosDeEntrenamiento'. El alcance 'video' esta modelado
+    // desde la 004 y **no lo usa nadie**: la peticion rechaza el campo, asi
+    // que esta funcion es la puerta que ya esta puesta para cuando el video
+    // llegue. Ponerla ahora cuesta tres lineas; descubrirla despues costaria
+    // volver a pedirle consentimiento a cada familia.
+    function tieneConsentimientoDeAlcance(nadadorId, alcance) {
+      return exists(/databases/$(database)/documents/consentimientos/$(nadadorId))
+          && get(/databases/$(database)/documents/consentimientos/$(nadadorId))
+               .data.get('vigente', false) == true
+          && alcance in get(/databases/$(database)/documents/consentimientos/$(nadadorId))
+               .data.get('alcances', []);
+    }
     // --- Planes ---------------------------------------------------------
 
     // Un plan aprobado o publicado es inmutable (FR-025). Ni el entrenador
@@ -429,6 +451,68 @@ service cloud.firestore {
       }
     }
 
+
+    // --- Peticiones de feedback (feature 010) ----------------------------
+    //
+    // Un nadador pidiendole a su entrenador que mire **una** sesion que ya
+    // nado. **No confundir con `peticionesDePlan`**, que son las de la feature
+    // 008: dos colecciones parecidas en la misma base es como se escribe una
+    // regla contra la equivocada, y aqui hay datos de un menor.
+    //
+    // **El identificador del documento es determinista**, `nadadorId|planId|
+    // sesionId`. Esa es la pieza que hace que reenviar reescriba en lugar de
+    // duplicar, y la regla lo exige: con un identificador libre, la misma
+    // nadadora podria crear veinte peticiones sobre la misma sesion y ninguna
+    // regla podria contarlas.
+    //
+    // **El nadador escribe su pregunta; el entrenador solo escribe «la vi».**
+    // Es la misma reparticion que los registros desde la feature 004: lo que
+    // el nadador dice es suyo.
+    match /peticionesDeFeedback/{peticionId} {
+
+      function laSuya() {
+        return soyEseNadador(request.resource.data.nadadorId)
+            && peticionId == request.resource.data.nadadorId + '|'
+                           + request.resource.data.planId + '|'
+                           + request.resource.data.sesionId
+            && tieneConsentimientoDeAlcance(request.resource.data.nadadorId,
+                                            'datosDeEntrenamiento')
+            && request.resource.data.pregunta is string
+            && request.resource.data.pregunta.size() > 0
+            // **Sin video.** El campo existe en el modelo y la capacidad no
+            // existe; la puerta se escribe y se prueba hoy para que adjuntar
+            // uno mas adelante no cueste volver a pedir consentimiento.
+            //
+            // Es `!('video' in ...)` y no `video == null` a proposito: un
+            // documento con `video: null` **lleva** la clave, y lo que aqui se
+            // frena es que la lleve.
+            && !('video' in request.resource.data);
+      }
+
+      allow read: if esEntrenador()
+                  || soyEseNadador(resource.data.nadadorId);
+
+      allow create: if laSuya();
+
+      // Dos escrituras, y solo dos.
+      allow update: if
+            // Ella reenvia su propia pregunta sobre la misma sesion. El
+            // documento se llama como la pregunta, asi que no hay otro donde
+            // ponerla.
+            (laSuya() && soyEseNadador(resource.data.nadadorId))
+
+            // El entrenador marca «la vi». `hasOnly(['vistaEn'])` es la misma
+            // forma que la entrega de un plan en la feature 009, y es lo que
+            // impide que «vista» cuele una edicion de lo que ella escribio.
+            || (esEntrenador()
+                && request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['vistaEn']));
+
+      // Nadie borra una peticion desde el cliente, igual que los registros: lo
+      // que el nadador escribio es suyo, y el derecho al borrado del principio
+      // V se ejerce por la via del servidor, que puede dejar constancia.
+      allow delete: if false;
+    }
     // --- Vinculo cuenta <-> perfil de nadador ----------------------------
 
     match /usuarios/{uid} {

@@ -24,9 +24,8 @@ const String proyectoLocal = 'demo-natacion';
 const String nombreDeLaAppLocal = 'emuladores';
 
 /// La app de Firebase que esta app usa, según dónde esté.
-FirebaseApp appDeFirebase({required bool usarEmuladores}) => usarEmuladores
-    ? Firebase.app(nombreDeLaAppLocal)
-    : Firebase.app();
+FirebaseApp appDeFirebase({required bool usarEmuladores}) =>
+    usarEmuladores ? Firebase.app(nombreDeLaAppLocal) : Firebase.app();
 
 /// Dónde están los emuladores, **visto desde donde corre la app**.
 ///

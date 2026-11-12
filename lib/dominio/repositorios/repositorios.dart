@@ -6,6 +6,7 @@
 /// resultados del dominio, no como excepciones de la librería de datos.
 library;
 
+import 'package:natacion_app/dominio/analisis/peticion_de_feedback.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
 import 'package:natacion_app/dominio/cuentas/cuenta.dart';
 import 'package:natacion_app/dominio/entidades/asignacion.dart';
@@ -207,6 +208,45 @@ abstract class RepositorioRegistros {
   /// los planes «en uso» —publicados, asignados, y con algún registro de su
   /// nadador— sin preguntar nadador por nadador (decisión D10).
   Future<Set<String>> nadadoresConRegistros();
+}
+
+/// Lo que un nadador le pide a su entrenador que mire (feature 010, US4).
+///
+/// **El nadador escribe su pregunta; el entrenador solo escribe «la vi».** No
+/// hay un `guardar` general para los dos: hay `guardar`, que es lo que hace
+/// un dispositivo de nadador, y `marcarVista`, que es la única escritura del
+/// entrenador. Es la misma reparticion que los registros desde la feature
+/// 004: lo que el nadador dice es suyo.
+///
+/// `guardar` escribe **primero en el dispositivo** y encola el envío después,
+/// como los registros (garantía G1). Si escribiera primero en el servidor, un
+/// nadador al borde de la piscina sin señal no podría preguntar, que es justo
+/// el momento en que querría hacerlo.
+///
+/// Contrato: `specs/010-analysis-and-feedback/contracts/lectura_y_peticion.md`.
+abstract class RepositorioPeticionesDeFeedback {
+  /// Las de un nadador. Vacía si no ha pedido nada.
+  Future<List<PeticionDeFeedback>> deNadador(String nadadorId);
+
+  /// Las de un plan concreto, que es como las lee el entrenador.
+  ///
+  /// **Filtra por los dos**, nadador y plan, y el segundo filtro no es
+  /// redundante: una consulta de Firestore se demuestra por sus filtros, y
+  /// esa es la lección que la feature 009 pagó dos veces —siete reglas en
+  /// verde sobre una colección y ninguna sobre la consulta que la app hace de
+  /// verdad.
+  Future<List<PeticionDeFeedback>> deNadadorEnPlan(
+    String nadadorId,
+    String planId,
+  );
+
+  /// Guarda la petición. **No consulta la red y no puede fallar por su causa.**
+  Future<void> guardar(PeticionDeFeedback peticion);
+
+  /// El entrenador la marca vista. **Su única escritura aquí**: el servidor
+  /// rechaza cualquier cosa más ancha, así que un cliente que lo intentara
+  /// sería rechazado en lugar de permitido en silencio.
+  Future<void> marcarVista(String peticionId, DateTime cuando);
 }
 
 /// La bandeja de salida: lo que sostiene la promesa de que nada se pierde.

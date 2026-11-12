@@ -91,11 +91,20 @@ void main() {
       }
     });
 
-    test('H13 — ya solo queda un «todavía no»', () {
-      // Eran dos. La feature 008 llenó el `Generar` del nadador, que es para
-      // lo que el hueco estaba: el reparto es una función total y «todavía no»
-      // era una respuesta, no un sitio vacío. Queda el Análisis del
-      // entrenador, que espera a la 010.
+    test('H13 — ya no queda ningún «todavía no»', () {
+      // Eran dos. La feature 008 llenó el `Generar` del nadador y esta, la
+      // 010, llena el `Análisis` del entrenador, que era el último.
+      //
+      // **Lo que esta prueba vigila ahora es el camino de vuelta.** El día que
+      // se añada un destino, o un contenido para un rol que no lo tenga, esta
+      // es la primera prueba que se cae; y el hueco tendrá que declararse con
+      // un `TodaviaNo` que diga qué llegará y qué feature lo trae, en lugar de
+      // dejar una pantalla en blanco.
+      //
+      // `TodaviaNo` se queda en el tipo por eso mismo. No es un concepto
+      // muerto como el `BotonSecundario` que se quitó en la 005: `reparto` es
+      // una función total y «todavía no» es una de sus dos respuestas
+      // posibles. Quitarla dejaría al próximo hueco sin donde ir.
       final esperando = <String>[
         for (final rol in Rol.values)
           for (final destino in Destino.values)
@@ -103,22 +112,22 @@ void main() {
               '${destino.name}/${rol.name}',
       ];
 
-      expect(
-        esperando..sort(),
-        ['analisis/entrenador'],
-        reason:
-            'El Análisis del nadador NO es uno de ellos: lleva dentro «Mi '
-            'progreso» de la feature 003 (FR-031)',
-      );
+      expect(esperando, isEmpty);
     });
 
-    test('H13 — y dice qué feature lo trae', () {
+    test('H13 — el Análisis del entrenador lleva la lectura de la 010', () {
       final analisisDelEntrenador = reparto(Destino.analisis, Rol.entrenador);
 
-      expect((analisisDelEntrenador as TodaviaNo).feature, '010');
-      expect(analisisDelEntrenador.loQueLlegara, isNotEmpty);
+      expect(analisisDelEntrenador, isA<Contiene>());
+      expect(
+        (analisisDelEntrenador as Contiene).contenido,
+        Contenido.analisisDelEntrenador,
+        reason:
+            'la pestaña llevaba un TodaviaNo con feature: 010 escrito dentro, '
+            'y esa es la forma de que una promesa no se quede esperando a '
+            'nadie: la feature que la cumple está nombrada',
+      );
     });
-
     test('el Generar del nadador es su petición (feature 008)', () {
       expect(
         reparto(Destino.generar, Rol.nadador),

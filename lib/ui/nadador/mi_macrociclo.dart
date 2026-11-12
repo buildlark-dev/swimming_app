@@ -153,6 +153,7 @@ class _PantallaMiMacrocicloState extends State<PantallaMiMacrociclo> {
 
     return registros;
   }
+
   Future<void> _cargar() async {
     try {
       final suyos = await widget.macrociclos.deNadador(widget.nadadorId);

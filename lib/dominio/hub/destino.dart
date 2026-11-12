@@ -72,6 +72,17 @@ enum Contenido {
   /// se sigue abriendo; lo que cambió es por dónde.
   miMacrociclo,
 
+  /// Lo que sus nadadores respondieron, junto a la sesión que lo produjo
+  /// (feature 010).
+  ///
+  /// **Este destino llevaba desde la feature 007 con un `TodaviaNo` que
+  /// nombraba a la 010 por su número.** Esa es la forma de que una promesa no
+  /// se quede esperando a nadie, y esta es la feature que la cumple: la
+  /// metodología cierra un bucle —diagnosticar, modelar, programar,
+  /// *controlar*, reajustar— y el control era el único paso que el producto no
+  /// tenía. «Un registro que nadie lee no es control.»
+  analisisDelEntrenador,
+
   /// El recorrido del nadador, que la feature 003 entregó como «Mi progreso».
   miProgreso,
 
@@ -142,12 +153,7 @@ QueHay reparto(Destino destino, Rol rol) {
 
     case Destino.analisis:
       return esEntrenador
-          ? const TodaviaNo(
-              loQueLlegara:
-                  'Aquí verás lo que tus nadadores han hecho: qué '
-                  'cumplieron, qué anotaron y cómo sintieron el esfuerzo.',
-              feature: '010',
-            )
+          ? const Contiene(Contenido.analisisDelEntrenador)
           : const Contiene(Contenido.miProgreso);
 
     case Destino.ajustes:

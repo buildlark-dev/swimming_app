@@ -50,8 +50,9 @@ void usarEmuladorDeAuth({String? host, int puerto = 9099}) {
   // proyecto de verdad y los datos bajo el ficticio: dos bases distintas.
   // El host lo decide `hostEmulador`: en el emulador de Android, `localhost`
   // es el propio teléfono emulado y no la máquina que corre los emuladores.
-  fb.FirebaseAuth.instanceFor(app: appDeFirebase(usarEmuladores: true))
-      .useAuthEmulator(host ?? hostEmulador, puerto);
+  fb.FirebaseAuth.instanceFor(
+    app: appDeFirebase(usarEmuladores: true),
+  ).useAuthEmulator(host ?? hostEmulador, puerto);
 }
 
 class SesionFirebase implements Identidad {

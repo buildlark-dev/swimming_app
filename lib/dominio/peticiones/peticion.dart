@@ -113,10 +113,7 @@ class RespuestasDePeticion {
     // y el motor repartiría volumen sobre una sesión que no existe.
     final soloFechas = diasDisponibles.map(_soloLaFecha).toList();
     if (soloFechas.toSet().length != soloFechas.length) {
-      throw const RespuestaInvalida(
-        'diasDisponibles',
-        'hay un día repetido',
-      );
+      throw const RespuestaInvalida('diasDisponibles', 'hay un día repetido');
     }
 
     if (duracionSesionMinutos < 30 || duracionSesionMinutos > 180) {
@@ -157,7 +154,8 @@ class RespuestasDePeticion {
 
     return RespuestasDePeticion(
       estiloObjetivo:
-          Estilo.porNombre((datos['estiloObjetivo'] as String?) ?? '') ?? Estilo.libre,
+          Estilo.porNombre((datos['estiloObjetivo'] as String?) ?? '') ??
+          Estilo.libre,
       pruebaObjetivo: (datos['pruebaObjetivo'] as String?) ?? '',
       fechaDeCompetencia: fecha is String ? DateTime.tryParse(fecha) : null,
       diasDisponibles: [
@@ -165,7 +163,8 @@ class RespuestasDePeticion {
           if (dia is String && DateTime.tryParse(dia) != null)
             DateTime.parse(dia),
       ],
-      duracionSesionMinutos: (datos['duracionSesionMinutos'] as num?)?.toInt() ?? 0,
+      duracionSesionMinutos:
+          (datos['duracionSesionMinutos'] as num?)?.toInt() ?? 0,
       longitudPiscina: (datos['longitudPiscina'] as num?)?.toInt() ?? 0,
     );
   }

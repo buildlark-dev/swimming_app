@@ -266,20 +266,40 @@ void main() {
     });
   });
 
-  group('H11 — su Análisis todavía no', () {
-    testWidgets('dice qué llegará, y sin controles', (tester) async {
+  group('H11 — su Análisis, que la feature 010 llenó', () {
+    testWidgets('enseña a sus nadadores y ya no un «todavía no»', (
+      tester,
+    ) async {
       await abrirHub(tester, await montarHub(rol: Rol.entrenador));
 
       await tester.tap(find.text(Destino.analisis.etiqueta).last);
       await tester.pumpAndSettle();
 
-      final vacio = find.byKey(const Key('todavia-no'));
-      expect(vacio, findsOneWidget);
-      expect(find.textContaining('tus nadadores'), findsWidgets);
+      // Era un `TodaviaNo` con «feature: 010» escrito dentro. Esta es la 010.
+      expect(find.byKey(const Key('todavia-no')), findsNothing);
+
+      // En el HUB montado sin servidor, el `Análisis` sí tiene de dónde leer:
+      // los repositorios de memoria. Lo que no puede salir es un marco vacío
+      // ni un indicador girando para siempre.
       expect(
-        find.descendant(of: vacio, matching: find.byType(FilledButton)),
-        findsNothing,
+        find
+                .byKey(const Key('analisis-del-entrenador'))
+                .evaluate()
+                .isNotEmpty ||
+            find
+                .byKey(const Key('sin-nadadores-en-analisis'))
+                .evaluate()
+                .isNotEmpty ||
+            find
+                .byKey(const Key('sin-donde-leer-el-analisis'))
+                .evaluate()
+                .isNotEmpty,
+        isTrue,
+        reason:
+            'el destino tiene que resolver a algo que se pueda leer: la lista, '
+            'o la frase de que todavía no hay nadadores',
       );
+      expect(find.byType(CircularProgressIndicator), findsNothing);
     });
   });
 

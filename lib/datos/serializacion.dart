@@ -12,6 +12,7 @@ library;
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
 import 'package:natacion_app/dominio/entidades/envio_pendiente.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
+import 'package:natacion_app/dominio/analisis/peticion_de_feedback.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/entidades/parte.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
@@ -390,16 +391,15 @@ DateTime _fechaObligatoria(Object? valor, String campo) {
   return texto;
 }
 
-BloqueConfirmado bloqueDesdeJson(Map<String, dynamic> json) =>
-    BloqueConfirmado(
-      // Nula a propósito en las categorías que no usan ATR (M6). Ausente y
-      // «no reconocida» se tratan igual, porque las dos dan bloque sin fase y
-      // el motor prohíbe la fase donde no toca.
-      fase: FaseAtr.porNombre(json['fase'] as String? ?? ''),
-      desde: _fechaObligatoria(json['desde'], 'desde'),
-      hasta: _fechaObligatoria(json['hasta'], 'hasta'),
-      porQue: json['porQue'] as String? ?? '',
-    );
+BloqueConfirmado bloqueDesdeJson(Map<String, dynamic> json) => BloqueConfirmado(
+  // Nula a propósito en las categorías que no usan ATR (M6). Ausente y
+  // «no reconocida» se tratan igual, porque las dos dan bloque sin fase y
+  // el motor prohíbe la fase donde no toca.
+  fase: FaseAtr.porNombre(json['fase'] as String? ?? ''),
+  desde: _fechaObligatoria(json['desde'], 'desde'),
+  hasta: _fechaObligatoria(json['hasta'], 'hasta'),
+  porQue: json['porQue'] as String? ?? '',
+);
 
 EstructuraConfirmada estructuraDesdeJson(Map<String, dynamic> json) =>
     EstructuraConfirmada(
@@ -566,6 +566,29 @@ Map<String, dynamic> registroAJson(RegistroDeSesion registro) =>
         },
     };
 
+/// Una fecha venga como venga, **sin tumbar la lectura si viene rara**.
+///
+/// Hallazgo del recorrido de la 010 en el Pixel 7. `EnvioAFirestore` escribe
+/// `recibidoEn` con `FieldValue.serverTimestamp()`, así que el servidor lo
+/// guarda como `Timestamp`; esto lo leía con `as String?` y **todo registro que
+/// había viajado al servidor se volvía ilegible**. La excepción subía por
+/// `registrosDelLinaje` hasta la pantalla de la nadadora, que se quedaba
+/// diciendo «0 de 39» con su respuesta ya en Firestore.
+///
+/// La app tenía el mismo defecto nombrado del revés en `molestias_firestore`:
+/// «el `TypeError` de un `as Timestamp?` sobre texto es lo que dejó los
+/// `Ajustes` de una nadadora girando para siempre en la feature 007».
+///
+/// **Aquí no se nombra `Timestamp`**, y es a propósito: este archivo lo usan el
+/// almacén del dispositivo y las pruebas, y no puede saber de Firestore. Quien
+/// sí lo sabe es `RegistrosFirestore`, que normaliza antes de llamar aquí. Esto
+/// es el respaldo: lo que llegue sin forma de fecha deja un hueco, y el resto
+/// del documento se lee.
+DateTime? fechaDeJson(Object? valor) => switch (valor) {
+  final DateTime fecha => fecha,
+  final String texto => DateTime.tryParse(texto),
+  _ => null,
+};
 RegistroDeSesion registroDesdeJson(Map<String, dynamic> json) {
   final molestia = json['molestia'] as Map<String, dynamic>?;
 
@@ -575,10 +598,8 @@ RegistroDeSesion registroDesdeJson(Map<String, dynamic> json) {
     sesionId: json['sesionId'] as String? ?? '',
     versionDePlan: json['versionDePlan'] as String? ?? '',
     realizada: json['realizada'] as bool? ?? false,
-    registradoEn:
-        DateTime.tryParse(json['registradoEn'] as String? ?? '') ??
-        DateTime(2026),
-    recibidoEn: DateTime.tryParse(json['recibidoEn'] as String? ?? ''),
+    registradoEn: fechaDeJson(json['registradoEn']) ?? DateTime(2026),
+    recibidoEn: fechaDeJson(json['recibidoEn']),
     rpePercibido: json['rpePercibido'] as int?,
     observaciones: json['observaciones'] as String? ?? '',
     molestia: molestia == null
@@ -614,3 +635,40 @@ EnvioPendiente envioDesdeJson(Map<String, dynamic> json) => EnvioPendiente(
   ultimoIntento: DateTime.tryParse(json['ultimoIntento'] as String? ?? ''),
   ultimoError: json['ultimoError'] as String?,
 );
+
+// ---------------------------------------------------------------------------
+// Peticiones de feedback (feature 010)
+// ---------------------------------------------------------------------------
+
+/// Serializa una petición de feedback.
+///
+/// **No incluye ningún dato personal**: identificadores opacos y la pregunta
+/// que el nadador escribió (FR-029, principio V).
+///
+/// **`video` se omite, no se escribe nulo.** La regla del servidor rechaza una
+/// creación que *lleve* la clave `video`, y un `video: null` la lleva. Es la
+/// diferencia entre un campo ausente y un campo vacío, y en el lenguaje de
+/// reglas no es la misma cosa.
+Map<String, dynamic> peticionDeFeedbackAJson(
+  PeticionDeFeedback peticion,
+) => <String, dynamic>{
+  'id': peticion.id,
+  'nadadorId': peticion.nadadorId,
+  'planId': peticion.planId,
+  'sesionId': peticion.sesionId,
+  'pregunta': peticion.pregunta,
+  'pedidaEn': peticion.pedidaEn.toIso8601String(),
+  if (peticion.vistaEn != null) 'vistaEn': peticion.vistaEn!.toIso8601String(),
+};
+
+PeticionDeFeedback peticionDeFeedbackDesdeJson(Map<String, dynamic> json) =>
+    PeticionDeFeedback(
+      nadadorId: json['nadadorId'] as String? ?? '',
+      planId: json['planId'] as String? ?? '',
+      sesionId: json['sesionId'] as String? ?? '',
+      pregunta: json['pregunta'] as String? ?? '',
+      pedidaEn:
+          DateTime.tryParse(json['pedidaEn'] as String? ?? '') ??
+          DateTime(2026),
+      vistaEn: DateTime.tryParse(json['vistaEn'] as String? ?? ''),
+    );

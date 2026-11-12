@@ -217,7 +217,10 @@ class _PantallaRevisarMacrocicloState extends State<PantallaRevisarMacrociclo> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(_macrociclo.nombre, style: texto.titleLarge),
+                        child: Text(
+                          _macrociclo.nombre,
+                          style: texto.titleLarge,
+                        ),
                       ),
                       EtiquetaDeEstado(estado: _macrociclo.estado),
                     ],
@@ -483,7 +486,10 @@ class _Mesociclo extends StatelessWidget {
             ExpansionTile(
               key: Key('auditoria-mesociclo-$indice'),
               tilePadding: EdgeInsets.zero,
-              title: Text('Auditoría de la sección 16', style: texto.titleSmall),
+              title: Text(
+                'Auditoría de la sección 16',
+                style: texto.titleSmall,
+              ),
               children: [TablaAuditoria(resultado: auditoria)],
             ),
           ],

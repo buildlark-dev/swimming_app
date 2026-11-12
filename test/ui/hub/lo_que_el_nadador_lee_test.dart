@@ -83,11 +83,9 @@ void main() {
       servidor,
     ).registrosDelNadador.obtenerDePlan('n-ana', 'p1');
 
-    expect(
-      suyos.map((r) => r.sesionId).toList(),
-      ['s-1'],
-      reason: 'el HUB le seguía dando solo el almacén de este aparato',
-    );
+    expect(suyos.map((r) => r.sesionId).toList(), [
+      's-1',
+    ], reason: 'el HUB le seguía dando solo el almacén de este aparato');
   });
 
   test('y es la unión de verdad, no el servidor a secas', () {
@@ -114,9 +112,10 @@ void main() {
     final local = _Registros();
     final servidor = _Registros();
 
-    await conServidor(local, servidor).registrosDelNadador.guardar(
-      anotado('s-1'),
-    );
+    await conServidor(
+      local,
+      servidor,
+    ).registrosDelNadador.guardar(anotado('s-1'));
 
     expect(local.guardados, hasLength(1));
     expect(servidor.guardados, isEmpty);

@@ -17,6 +17,7 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:natacion_app/datos/firestore/lo_que_haya.dart';
 import 'package:natacion_app/datos/exportacion.dart';
 import 'package:natacion_app/datos/firestore/envio_registros.dart';
 import 'package:natacion_app/datos/serializacion.dart';
@@ -34,9 +35,11 @@ class RegistrosFirestore implements RepositorioRegistros {
   @override
   Future<RegistroDeSesion?> obtener(String registroId) async {
     try {
-      final documento = await _registros.doc(registroId).get();
+      final documento = await _registros.doc(registroId).leerLoQueHaya();
       final datos = documento.data();
-      return datos == null ? null : registroDesdeJson(datos);
+      return datos == null
+          ? null
+          : registroDesdeJson(_conFechasLegibles(datos));
     } on FirebaseException catch (e) {
       throw FalloDeDatos('No se pudo leer el registro: ${e.message}');
     }
@@ -51,11 +54,20 @@ class RegistrosFirestore implements RepositorioRegistros {
       final instantanea = await _registros
           .where('nadadorId', isEqualTo: nadadorId)
           .where('planId', isEqualTo: planId)
-          .get();
+          .leerLoQueHaya();
 
-      return instantanea.docs.map((d) => registroDesdeJson(d.data())).toList();
+      return [
+        for (final d in instantanea.docs)
+          registroDesdeJson(_conFechasLegibles(d.data())),
+      ];
     } on FirebaseException catch (e) {
       throw FalloDeDatos('No se pudieron leer los registros: ${e.message}');
+    } on Object catch (e) {
+      // Un documento que no se entiende **se reporta**, y en términos del
+      // dominio: `repositorios.dart` dice que los errores no suben como
+      // excepciones de la librería de datos. Sin esto un `TypeError` atraviesa
+      // la pantalla entera, que es justo lo que hizo `recibidoEn`.
+      throw FalloDeDatos('No se pudo entender un registro guardado: $e');
     }
   }
 
@@ -68,7 +80,7 @@ class RegistrosFirestore implements RepositorioRegistros {
     // Solo el entrenador puede hacerla: las reglas le dejan leer los registros
     // de su comunidad, y a un nadador solo los suyos.
     try {
-      final instantanea = await _registros.get();
+      final instantanea = await _registros.leerLoQueHaya();
       return instantanea.docs
           .map((d) => d.data()['nadadorId'] as String?)
           .whereType<String>()
@@ -83,7 +95,7 @@ class RegistrosFirestore implements RepositorioRegistros {
     try {
       final instantanea = await _registros
           .where('nadadorId', isEqualTo: nadadorId)
-          .get();
+          .leerLoQueHaya();
 
       return <String, dynamic>{
         'formato': formatoExportacion,
@@ -116,4 +128,44 @@ class RegistrosFirestore implements RepositorioRegistros {
       'que el derecho se ejerció.',
     );
   }
+}
+
+/// Un registro del servidor, con sus fechas puestas en la forma que
+/// `registroDesdeJson` entiende.
+///
+/// **Esto es lo que faltaba, y costó la pantalla de una nadadora.**
+/// `EnvioAFirestore` escribe `recibidoEn` con `FieldValue.serverTimestamp()`,
+/// así que vuelve como `Timestamp`; `registroDesdeJson` lo leía con
+/// `as String?` y lanzaba un `TypeError` que subía por `registrosDelLinaje`
+/// hasta la pantalla. Ana marcaba su sesión, el registro llegaba a Firestore
+/// con su esfuerzo y sus palabras, y la pantalla seguía diciendo «Sesiones
+/// cumplidas: 0 de 39».
+///
+/// **Quien sabe de `Timestamp` es este archivo, no la serialización.** Ese otro
+/// lo usan el almacén del dispositivo y las pruebas, que no conocen Firestore.
+/// Es la misma forma que `MolestiasFirestore` ya usaba para lo mismo.
+Map<String, dynamic> _conFechasLegibles(Map<String, dynamic> datos) {
+  DateTime? comoFecha(Object? valor) => switch (valor) {
+    final Timestamp marca => marca.toDate(),
+    final DateTime fecha => fecha,
+    final String texto => DateTime.tryParse(texto),
+    _ => null,
+  };
+
+  final normalizado = Map<String, dynamic>.of(datos);
+
+  for (final campo in const ['registradoEn', 'recibidoEn']) {
+    if (!normalizado.containsKey(campo)) continue;
+
+    final fecha = comoFecha(normalizado[campo]);
+    if (fecha == null) {
+      // No se adivina. Se quita, y `registroDesdeJson` decide el respaldo:
+      // una fecha inventada aquí sería peor que un hueco.
+      normalizado.remove(campo);
+    } else {
+      normalizado[campo] = fecha.toIso8601String();
+    }
+  }
+
+  return normalizado;
 }

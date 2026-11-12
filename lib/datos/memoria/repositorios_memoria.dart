@@ -7,6 +7,7 @@ library;
 
 import 'package:natacion_app/datos/serializacion.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
+import 'package:natacion_app/dominio/analisis/peticion_de_feedback.dart';
 import 'package:natacion_app/dominio/entidades/asignacion.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
@@ -203,8 +204,7 @@ class RepositorioMacrociclosMemoria implements RepositorioMacrociclos {
     // feature 008.
     return _macrociclos.values
         .where(
-          (m) =>
-              m.nadadorId == nadadorId && m.estado == EstadoPlan.publicado,
+          (m) => m.nadadorId == nadadorId && m.estado == EstadoPlan.publicado,
         )
         .toList(growable: false)
         .reversed
@@ -388,5 +388,69 @@ class RepositorioAsignacionesMemoria implements RepositorioAsignaciones {
     _asignaciones.remove(
       Asignacion.idDeterminista(planId: planId, nadadorId: nadadorId),
     );
+  }
+}
+
+/// Las peticiones de feedback, en memoria.
+///
+/// **Rechaza lo que Firestore rechaza.** Es la lección que este proyecto no
+/// deja de pagar: seis de los siete defectos de la feature 009 eran un doble
+/// más amable que el servidor, así que la pantalla pasaba todas las pruebas y
+/// fallaba en el Pixel 7.
+///
+/// Aquí eso significa tres negativas que no hacen falta para que esto
+/// funcione, y que están porque el servidor las tiene:
+///
+/// 1. una pregunta en blanco no se guarda —el constructor del dominio ya lo
+///    impide, y esto es el respaldo del lado de los datos—;
+/// 2. `marcarVista` **solo toca `vistaEn`**, igual que el `hasOnly(['vistaEn'])`
+///    de la regla: no se reescribe el documento entero. Entregar un plan
+///    fallaba en la feature 009 exactamente por eso;
+/// 3. marcar vista algo que no existe falla, en lugar de crear un documento a
+///    medias.
+class RepositorioPeticionesDeFeedbackMemoria
+    implements RepositorioPeticionesDeFeedback {
+  final _peticiones = <String, PeticionDeFeedback>{};
+
+  @override
+  Future<List<PeticionDeFeedback>> deNadador(String nadadorId) async => [
+    for (final peticion in _peticiones.values)
+      if (peticion.nadadorId == nadadorId) peticion,
+  ];
+
+  @override
+  Future<List<PeticionDeFeedback>> deNadadorEnPlan(
+    String nadadorId,
+    String planId,
+  ) async => [
+    // **Los dos filtros.** El segundo no es redundante: la consulta de
+    // Firestore se demuestra por sus filtros, y un doble que filtrara solo por
+    // nadador dejaría pasar la implementación que hace lo mismo.
+    for (final peticion in _peticiones.values)
+      if (peticion.nadadorId == nadadorId && peticion.planId == planId)
+        peticion,
+  ];
+
+  @override
+  Future<void> guardar(PeticionDeFeedback peticion) async {
+    if (peticion.pregunta.trim().isEmpty) {
+      throw const FalloDeDatos('la pregunta no puede estar vacía');
+    }
+    if (peticion.video != null) {
+      throw const FalloDeDatos('una petición con vídeo se rechaza');
+    }
+
+    // Identificador determinista: reenviar reescribe, no duplica.
+    _peticiones[peticion.id] = peticion;
+  }
+
+  @override
+  Future<void> marcarVista(String peticionId, DateTime cuando) async {
+    final peticion = _peticiones[peticionId];
+    if (peticion == null) {
+      throw FalloDeDatos('no existe la petición $peticionId');
+    }
+
+    _peticiones[peticionId] = peticion.vistaPor(cuando);
   }
 }

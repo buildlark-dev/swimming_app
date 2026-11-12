@@ -24,12 +24,14 @@ import 'package:natacion_app/dominio/metodologia/categorias.dart';
 void main() {
   const declaraLosModelos = 'lib/dominio/macrociclo/macrociclo.dart';
 
-  List<File> dominioDelMacrociclo() => Directory(
-    'lib/dominio/macrociclo',
-  ).listSync(recursive: true).whereType<File>().where((f) {
-    return f.path.endsWith('.dart') &&
-        f.path.replaceAll(r'\', '/') != declaraLosModelos;
-  }).toList();
+  List<File> dominioDelMacrociclo() => Directory('lib/dominio/macrociclo')
+      .listSync(recursive: true)
+      .whereType<File>()
+      .where((f) {
+        return f.path.endsWith('.dart') &&
+            f.path.replaceAll(r'\', '/') != declaraLosModelos;
+      })
+      .toList();
 
   test('la carpeta del macrociclo existe y tiene archivos', () {
     // Para que esta prueba no pase por vacía si un día se mueve la carpeta.
@@ -48,8 +50,8 @@ void main() {
         final linea = lineas[i];
         // Los comentarios pueden hablar de ellos: de eso trata media
         // documentación de esta feature. Lo que no puede es haber código.
-        final sinComentario = linea.trim().startsWith('///') ||
-            linea.trim().startsWith('//');
+        final sinComentario =
+            linea.trim().startsWith('///') || linea.trim().startsWith('//');
         if (sinComentario) continue;
 
         if (linea.contains('modeloDeLaPrueba') ||
@@ -135,17 +137,11 @@ void main() {
       fuente.indexOf('bool get hayEsqueleto'),
     );
 
-    final campos = RegExp(r'final \w+<?\w*>?\?? (\w+);')
-        .allMatches(clase)
-        .map((m) => m.group(1))
-        .toList();
+    final campos = RegExp(
+      r'final \w+<?\w*>?\?? (\w+);',
+    ).allMatches(clase).map((m) => m.group(1)).toList();
 
-    expect(campos, [
-      'bloques',
-      'porQue',
-      'avisos',
-      'diasHastaLaCompetencia',
-    ]);
+    expect(campos, ['bloques', 'porQue', 'avisos', 'diasHastaLaCompetencia']);
     expect(propuesto.hayEsqueleto, isTrue);
   });
 }

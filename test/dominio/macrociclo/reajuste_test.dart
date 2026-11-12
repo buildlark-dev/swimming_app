@@ -56,10 +56,7 @@ void main() {
       if (plan != null) mesociclos.add(plan);
     }
 
-    return MacrocicloGuardado(
-      macrociclo: entregado,
-      mesociclos: mesociclos,
-    );
+    return MacrocicloGuardado(macrociclo: entregado, mesociclos: mesociclos);
   }
 
   Future<MacrocicloReajustado> reajustar(
@@ -115,16 +112,19 @@ void main() {
   });
 
   group('M31 — lo que cambia recibe versión nueva', () {
-    test('el mesociclo reajustado estrena versión y apunta a la anterior', () async {
-      final macro = await entregado();
-      final cual = macro.mesociclos[1];
+    test(
+      'el mesociclo reajustado estrena versión y apunta a la anterior',
+      () async {
+        final macro = await entregado();
+        final cual = macro.mesociclos[1];
 
-      final reajustado = await reajustar(macro, {cual.id!});
+        final reajustado = await reajustar(macro, {cual.id!});
 
-      expect(reajustado.versionesNuevas, hasLength(1));
-      expect(reajustado.versionesNuevas.single.versionAnteriorId, cual.id);
-      expect(reajustado.versionesNuevas.single.id, isNot(cual.id));
-    });
+        expect(reajustado.versionesNuevas, hasLength(1));
+        expect(reajustado.versionesNuevas.single.versionAnteriorId, cual.id);
+        expect(reajustado.versionesNuevas.single.id, isNot(cual.id));
+      },
+    );
 
     test('los que no se tocaron se quedan como estaban', () async {
       final macro = await entregado();
@@ -141,9 +141,7 @@ void main() {
       final macro = await entregado();
       final reajustado = await reajustar(macro, {macro.mesociclos[1].id!});
 
-      final enElAlmacen = await repos.macrociclos.obtener(
-        macro.macrociclo.id!,
-      );
+      final enElAlmacen = await repos.macrociclos.obtener(macro.macrociclo.id!);
       expect(enElAlmacen!.mesociclos, reajustado.macrociclo.mesociclos);
       expect(enElAlmacen.mesociclos[1], isNot(macro.mesociclos[1].id));
     });
@@ -169,10 +167,7 @@ void main() {
       final macro = await entregado();
       final reajustado = await reajustar(macro, {macro.mesociclos[1].id!});
 
-      expect(
-        reajustado.versionesNuevas.single.estado,
-        EstadoPlan.borrador,
-      );
+      expect(reajustado.versionesNuevas.single.estado, EstadoPlan.borrador);
     });
 
     test('y se puede revisar y firmar con lo que ya existe', () async {
@@ -196,26 +191,22 @@ void main() {
     test('reajustar tres mesociclos deja un solo aviso', () async {
       final macro = await entregado();
 
-      final reajustado = await reajustar(
-        macro,
-        {for (final m in macro.mesociclos) m.id!},
-      );
+      final reajustado = await reajustar(macro, {
+        for (final m in macro.mesociclos) m.id!,
+      });
 
       expect(reajustado.versionesNuevas, hasLength(3));
       // Uno, no tres.
       expect(reajustado.macrociclo.ultimoReajuste, isNotNull);
-      expect(
-        reajustado.macrociclo.ultimoReajuste!.bloquesAjustados,
-        [1, 2, 3],
-      );
+      expect(reajustado.macrociclo.ultimoReajuste!.bloquesAjustados, [1, 2, 3]);
     });
 
     test('y el nadador lo lee en una frase, sin jerga', () async {
       final macro = await entregado();
-      final reajustado = await reajustar(
-        macro,
-        {macro.mesociclos[0].id!, macro.mesociclos[2].id!},
-      );
+      final reajustado = await reajustar(macro, {
+        macro.mesociclos[0].id!,
+        macro.mesociclos[2].id!,
+      });
 
       final frase = reajustado.aviso.comoSeLeElNadador;
 
@@ -241,9 +232,7 @@ void main() {
       final macro = await entregado();
       await reajustar(macro, {macro.mesociclos[1].id!});
 
-      final enElAlmacen = await repos.macrociclos.obtener(
-        macro.macrociclo.id!,
-      );
+      final enElAlmacen = await repos.macrociclos.obtener(macro.macrociclo.id!);
       expect(enElAlmacen!.ultimoReajuste, isNotNull);
       expect(enElAlmacen.ultimoReajuste!.bloquesAjustados, [2]);
     });
@@ -317,9 +306,7 @@ void main() {
         hoy: hoyDePrueba,
       );
 
-      final enElAlmacen = await repos.macrociclos.obtener(
-        macro.macrociclo.id!,
-      );
+      final enElAlmacen = await repos.macrociclos.obtener(macro.macrociclo.id!);
       expect(enElAlmacen!.estado, EstadoPlan.publicado);
     });
 
@@ -350,10 +337,7 @@ void main() {
       // Y el nadador sigue con las tres de antes, ninguna nueva.
       final suyas = await repos.asignaciones.deNadador('n-ana');
       expect(suyas, hasLength(3));
-      expect(
-        suyas.map((a) => a.planId),
-        contains(macro.mesociclos[1].id),
-      );
+      expect(suyas.map((a) => a.planId), contains(macro.mesociclos[1].id));
     });
   });
 

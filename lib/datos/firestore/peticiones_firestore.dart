@@ -13,6 +13,7 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:natacion_app/datos/firestore/lo_que_haya.dart';
 import 'package:natacion_app/dominio/peticiones/peticion.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 
@@ -32,14 +33,14 @@ class PeticionesFirestore implements RepositorioPeticiones {
 
   @override
   Future<PeticionDePlan?> miPeticion(String nadadorId) async {
-    final documento = await _peticiones.doc(nadadorId).get();
+    final documento = await _peticiones.doc(nadadorId).leerLoQueHaya();
     final datos = documento.data();
     return datos == null ? null : peticionDesdeJson(nadadorId, datos);
   }
 
   @override
   Future<List<PeticionDePlan>> cola() async {
-    final consulta = await _peticiones.get();
+    final consulta = await _peticiones.leerLoQueHaya();
 
     return [
       for (final documento in consulta.docs)

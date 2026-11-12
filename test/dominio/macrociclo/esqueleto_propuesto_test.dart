@@ -97,8 +97,7 @@ void main() {
       final (_, topeDeRealizacion) = FaseAtr.realizacion.semanasSegunIssurin;
       final realizacion = esqueleto().bloques.last;
 
-      final dias =
-          realizacion.hasta.difference(realizacion.desde).inDays + 1;
+      final dias = realizacion.hasta.difference(realizacion.desde).inDays + 1;
       expect(dias, topeDeRealizacion * 7);
     });
 
@@ -116,7 +115,8 @@ void main() {
       // Es la que absorbe la longitud del macrociclo, porque es la general: lo
       // que no es afinación ni transformación es base.
       final bloques = esqueleto().bloques;
-      final total = bloques.last.hasta.difference(bloques.first.desde).inDays + 1;
+      final total =
+          bloques.last.hasta.difference(bloques.first.desde).inDays + 1;
       final acumulacion =
           bloques.first.hasta.difference(bloques.first.desde).inDays + 1;
 

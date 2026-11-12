@@ -108,8 +108,7 @@ class BloqueConfirmado {
   /// Semanas enteras que cubre, para compararlas con las duraciones
   /// publicadas de la sección 12.
   int get semanas {
-    final dias =
-        _soloLaFecha(hasta).difference(_soloLaFecha(desde)).inDays + 1;
+    final dias = _soloLaFecha(hasta).difference(_soloLaFecha(desde)).inDays + 1;
     return (dias / 7).ceil();
   }
 
@@ -204,10 +203,7 @@ class EstructuraConfirmada {
       // Dos veces el mismo día no son dos sesiones: es un día contado dos
       // veces, y el motor repartiría volumen sobre una sesión que no existe.
       // La misma comprobación que `RespuestasDePeticion` hace en la 008.
-      throw const EstructuraInvalida(
-        'diasPorSemana',
-        'hay un día repetido',
-      );
+      throw const EstructuraInvalida('diasPorSemana', 'hay un día repetido');
     }
 
     if (duracionSesionMinutos < 30 || duracionSesionMinutos > 180) {
@@ -376,10 +372,7 @@ class Macrociclo {
     }
 
     if (mesociclos.toSet().length != mesociclos.length) {
-      throw const MacrocicloInvalido(
-        'mesociclos',
-        'hay un mesociclo repetido',
-      );
+      throw const MacrocicloInvalido('mesociclos', 'hay un mesociclo repetido');
     }
 
     return Macrociclo._(

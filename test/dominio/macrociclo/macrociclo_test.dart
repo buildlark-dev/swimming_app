@@ -31,12 +31,7 @@ BloqueConfirmado bloque({
   required DateTime desde,
   required DateTime hasta,
   String porQue = 'Acumulación, las primeras 4 semanas del macrociclo.',
-}) => BloqueConfirmado(
-  fase: fase,
-  desde: desde,
-  hasta: hasta,
-  porQue: porQue,
-);
+}) => BloqueConfirmado(fase: fase, desde: desde, hasta: hasta, porQue: porQue);
 
 EstructuraConfirmada estructura({List<BloqueConfirmado>? bloques}) =>
     EstructuraConfirmada(
@@ -50,7 +45,8 @@ EstructuraConfirmada estructura({List<BloqueConfirmado>? bloques}) =>
               fase: FaseAtr.realizacion,
               desde: d(11),
               hasta: d(20),
-              porQue: 'Realización, las últimas 2 semanas antes de la '
+              porQue:
+                  'Realización, las últimas 2 semanas antes de la '
                   'competencia.',
             ),
           ],
@@ -104,12 +100,15 @@ void main() {
       );
     });
 
-    test('el orden de los mesociclos es el de la preparación y se conserva', () {
-      // «Su orden es el de la preparación, no un accidente del
-      // almacenamiento»: ni se ordena alfabéticamente ni se normaliza.
-      final m = macrociclo(mesociclos: const ['plan-z', 'plan-a', 'plan-m']);
-      expect(m.mesociclos, ['plan-z', 'plan-a', 'plan-m']);
-    });
+    test(
+      'el orden de los mesociclos es el de la preparación y se conserva',
+      () {
+        // «Su orden es el de la preparación, no un accidente del
+        // almacenamiento»: ni se ordena alfabéticamente ni se normaliza.
+        final m = macrociclo(mesociclos: const ['plan-z', 'plan-a', 'plan-m']);
+        expect(m.mesociclos, ['plan-z', 'plan-a', 'plan-m']);
+      },
+    );
 
     test('la lista de mesociclos no se puede modificar por fuera', () {
       // Sin esto, quien reciba el macrociclo podría reordenar la preparación

@@ -17,6 +17,8 @@ import 'package:natacion_app/ui/nadador/perfil_activo.dart';
 /// ya no lleva dentro la lista de los suyos, porque un plan aprobado es
 /// inmutable y porque las reglas de acceso no saben recorrer listas.
 void main() {
+  final hoyDePrueba = DateTime(2026, 10, 20);
+
   Plan plan({required String id, required EstadoPlan estado}) => Plan(
     id: id,
     nombre: 'Microciclo $id',
@@ -43,6 +45,7 @@ void main() {
           nadador,
           [plan(id: 'p1', estado: EstadoPlan.borrador)],
           [asignacion('p1', 'n1')],
+          hoy: hoyDePrueba,
         ),
         isNull,
       );
@@ -54,6 +57,7 @@ void main() {
           nadador,
           [plan(id: 'p1', estado: EstadoPlan.aprobado)],
           [asignacion('p1', 'n1')],
+          hoy: hoyDePrueba,
         ),
         isNull,
         reason:
@@ -68,6 +72,7 @@ void main() {
           nadador,
           [plan(id: 'p1', estado: EstadoPlan.publicado)],
           [asignacion('p1', 'n1')],
+          hoy: hoyDePrueba,
         )?.id,
         'p1',
       );
@@ -81,6 +86,7 @@ void main() {
           nadador,
           [plan(id: 'p1', estado: EstadoPlan.publicado)],
           [asignacion('p1', 'n2')],
+          hoy: hoyDePrueba,
         ),
         isNull,
       );
@@ -89,16 +95,16 @@ void main() {
     test('un publicado sin asignar no es de nadie', () {
       final planes = [plan(id: 'p1', estado: EstadoPlan.publicado)];
 
-      expect(planDe(nadador, planes, const []), isNull);
-      expect(planDe(otro, planes, const []), isNull);
+      expect(planDe(nadador, planes, const [], hoy: hoyDePrueba), isNull);
+      expect(planDe(otro, planes, const [], hoy: hoyDePrueba), isNull);
     });
 
     test('un plan puede ser de varios a la vez', () {
       final planes = [plan(id: 'p1', estado: EstadoPlan.publicado)];
       final asignaciones = [asignacion('p1', 'n1'), asignacion('p1', 'n2')];
 
-      expect(planDe(nadador, planes, asignaciones)?.id, 'p1');
-      expect(planDe(otro, planes, asignaciones)?.id, 'p1');
+      expect(planDe(nadador, planes, asignaciones, hoy: hoyDePrueba)?.id, 'p1');
+      expect(planDe(otro, planes, asignaciones, hoy: hoyDePrueba)?.id, 'p1');
     });
   });
 
@@ -113,7 +119,10 @@ void main() {
         asignacion('nuevo', 'n1'),
       ];
 
-      expect(planDe(nadador, planes, asignaciones)?.id, 'nuevo');
+      expect(
+        planDe(nadador, planes, asignaciones, hoy: hoyDePrueba)?.id,
+        'nuevo',
+      );
     });
 
     test('ignora los que no están publicados aunque sean posteriores', () {
@@ -126,18 +135,26 @@ void main() {
         asignacion('borrador', 'n1'),
       ];
 
-      expect(planDe(nadador, planes, asignaciones)?.id, 'publicado');
+      expect(
+        planDe(nadador, planes, asignaciones, hoy: hoyDePrueba)?.id,
+        'publicado',
+      );
     });
   });
 
   group('casos límite', () {
     test('sin planes no hay nada que entregar', () {
-      expect(planDe(nadador, const [], const []), isNull);
+      expect(planDe(nadador, const [], const [], hoy: hoyDePrueba), isNull);
     });
 
     test('una asignación sin su plan no inventa uno', () {
       // Puede pasar si el entrenador borra un borrador que nunca se publicó.
-      expect(planDe(nadador, const [], [asignacion('fantasma', 'n1')]), isNull);
+      expect(
+        planDe(nadador, const [], [
+          asignacion('fantasma', 'n1'),
+        ], hoy: hoyDePrueba),
+        isNull,
+      );
     });
 
     test('un perfil sin identificador no recibe nada, y no revienta', () {
@@ -146,6 +163,7 @@ void main() {
           const Nadador(nombre: 'Sin id'),
           [plan(id: 'p1', estado: EstadoPlan.publicado)],
           [asignacion('p1', 'n1')],
+          hoy: hoyDePrueba,
         ),
         isNull,
       );
@@ -164,6 +182,71 @@ void main() {
     test('dos asignaciones del mismo par son la misma', () {
       expect(asignacion('p1', 'n1'), asignacion('p1', 'n1'));
       expect(asignacion('p1', 'n1'), isNot(asignacion('p1', 'n2')));
+    });
+  });
+
+  group('de varios entregados, el de ahora', () {
+    // Hallazgo del recorrido de la 010. Hasta la feature 009 un nadador tenía
+    // un plan entregado y «el último» quería decir «el suyo». Desde que hay
+    // macrociclos, **cada mesociclo es un plan asignado**, así que «el último»
+    // pasó a ser el que la consulta devolviera de último: a Ana le tocó el
+    // Mesociclo 3, que empezaba tres meses más tarde, y su Home le decía «Hoy
+    // no hay sesión» un día que sí tenía.
+    Plan mesociclo(String id, DateTime desde, DateTime hasta) => Plan(
+      id: id,
+      nombre: id,
+      categoria: Categoria.precompetitivo,
+      estiloObjetivo: Estilo.libre,
+      estado: EstadoPlan.publicado,
+      fechaInicio: desde,
+      fechaFin: hasta,
+    );
+
+    final meso1 = mesociclo(
+      'meso-1',
+      DateTime(2026, 10, 5),
+      DateTime(2026, 11, 29),
+    );
+    final meso2 = mesociclo(
+      'meso-2',
+      DateTime(2026, 12, 1),
+      DateTime(2026, 12, 27),
+    );
+    final meso3 = mesociclo(
+      'meso-3',
+      DateTime(2027, 1, 4),
+      DateTime(2027, 1, 17),
+    );
+
+    test('gana el que contiene hoy, no el último de la lista', () {
+      expect(
+        planDe(
+          nadador,
+          [meso2, meso3, meso1],
+          [
+            asignacion('meso-1', 'n1'),
+            asignacion('meso-2', 'n1'),
+            asignacion('meso-3', 'n1'),
+          ],
+          hoy: hoyDePrueba,
+        )?.id,
+        'meso-1',
+      );
+    });
+
+    test('un plan suelto de la feature 003 no desplaza al de hoy', () {
+      expect(
+        planDe(
+          nadador,
+          [meso1, plan(id: 'suelto', estado: EstadoPlan.publicado)],
+          [asignacion('meso-1', 'n1'), asignacion('suelto', 'n1')],
+          hoy: hoyDePrueba,
+        )?.id,
+        'meso-1',
+        reason:
+            'el plan sin fechas es el que la 003 entregaba; el que dice '
+            'cuándo empieza y cuándo acaba manda sobre él',
+      );
     });
   });
 }

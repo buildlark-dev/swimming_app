@@ -30,21 +30,21 @@ void main() {
       expect(constancia.versionDelTexto, 'v1');
     });
 
-    test('y si la fecha no se entiende, se queda sin fecha, no sin constancia', () {
-      final constancia = constanciaDesde({
-        'vigente': true,
-        'otorgadoEn': 42,
-      });
+    test(
+      'y si la fecha no se entiende, se queda sin fecha, no sin constancia',
+      () {
+        final constancia = constanciaDesde({'vigente': true, 'otorgadoEn': 42});
 
-      expect(constancia.vigente, isTrue);
-      expect(
-        constancia.otorgadoEn,
-        isNull,
-        reason:
-            'Inventar una fecha para una constancia de consentimiento sería '
-            'peor que no tenerla: es un dato legal',
-      );
-    });
+        expect(constancia.vigente, isTrue);
+        expect(
+          constancia.otorgadoEn,
+          isNull,
+          reason:
+              'Inventar una fecha para una constancia de consentimiento sería '
+              'peor que no tenerla: es un dato legal',
+        );
+      },
+    );
 
     test('un documento vacío no afirma que hubo consentimiento', () {
       expect(constanciaDesde(const {}).vigente, isFalse);

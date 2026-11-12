@@ -175,11 +175,17 @@ void main() {
       final jueves = sesion('s-jueves', DateTime(2026, 11, 12));
       abrirCon([martes, jueves]);
 
-      expect((await estado.responder(sesion: jueves, realizada: true)).si, isTrue);
+      expect(
+        (await estado.responder(sesion: jueves, realizada: true)).si,
+        isTrue,
+      );
       expect(registros.cuantosHay, 1);
 
       // Y el martes sigue abierto: se puede marcar después.
-      expect((await estado.responder(sesion: martes, realizada: true)).si, isTrue);
+      expect(
+        (await estado.responder(sesion: martes, realizada: true)).si,
+        isTrue,
+      );
       expect(registros.cuantosHay, 2);
     });
   });
@@ -220,9 +226,8 @@ class _BandejaEnMemoria implements BandejaDeSalida {
       _cola[registroId] = EnvioPendiente(registroId: registroId);
 
   @override
-  Future<List<EnvioPendiente>> pendientes() async => _cola.values
-      .where((e) => e.estado != EstadoDeEnvio.enviado)
-      .toList();
+  Future<List<EnvioPendiente>> pendientes() async =>
+      _cola.values.where((e) => e.estado != EstadoDeEnvio.enviado).toList();
 
   @override
   Future<EnvioPendiente?> estadoDe(String registroId) async =>

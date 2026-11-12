@@ -301,7 +301,10 @@ void main() {
       // Es el registro de un acto del entrenador. Guardar solo el día
       // perdería cuál de dos confirmaciones del mismo día fue.
       final recuperado = macrocicloDesdeJson(macrocicloAJson(macrociclo()));
-      expect(recuperado.estructura.confirmadaEn, DateTime(2026, 10, 31, 20, 15));
+      expect(
+        recuperado.estructura.confirmadaEn,
+        DateTime(2026, 10, 31, 20, 15),
+      );
     });
 
     test('las tres entradas del motor sobreviven', () {

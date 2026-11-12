@@ -27,6 +27,7 @@ import 'package:natacion_app/datos/recursos/recursos_iniciales.dart';
 import 'package:natacion_app/dominio/consentimiento/constancia.dart';
 import 'package:natacion_app/dominio/cuentas/cuenta.dart';
 import 'package:natacion_app/dominio/datos_personales/derechos_del_titular.dart';
+import 'package:natacion_app/dominio/calculo/el_plan_de_ahora.dart';
 import 'package:natacion_app/dominio/entidades/asignacion.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
@@ -164,6 +165,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       red: widget.recursos.red,
       transporte: widget.recursos.transporte,
     ),
+    // Para que pueda preguntarle algo de una sesión que ya nadó (feature 010).
+    // Nulo sin servidor, y entonces la pantalla no lo ofrece.
+    peticiones: _repos.peticionesDeFeedback,
   );
 
   /// Lo que hay cargado para pintar. **La fuente de verdad son los
@@ -222,16 +226,27 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
       final suyas = await _repos.asignaciones.deNadador(nadadorId);
 
-      // De haber varios, el último: es el que está entrenando. Misma regla que
-      // `planDe`, que no se puede reutilizar aquí porque esa trabaja sobre la
-      // lista completa de planes y el nadador no puede pedirla.
-      Plan? plan;
+      // De haber varios, **el de ahora**: el que contiene hoy. Misma regla que
+      // `planDe`, que no se puede reutilizar entera aquí porque esa trabaja
+      // sobre la lista completa de planes y el nadador no puede pedirla — así
+      // que se comparte la elección, que es donde estaba el defecto.
+      //
+      // Esto se quedaba con el último que iterara la consulta. Desde la 009
+      // cada mesociclo es un plan asignado, así que a Ana le tocó el Mesociclo
+      // 3: su Home decía «Hoy no hay sesión» teniéndola, y su `Análisis` le
+      // enseñaba sesiones de dentro de tres meses.
+      final publicados = <Plan>[];
       for (final asignacion in suyas) {
         final candidato = await _repos.planes.obtener(asignacion.planId);
         if (candidato != null && candidato.estado == EstadoPlan.publicado) {
-          plan = candidato;
+          publicados.add(candidato);
         }
       }
+
+      final plan = elPlanDeAhora(
+        publicados,
+        widget.hoyParaPruebas ?? DateTime.now(),
+      );
 
       final registros = plan == null
           ? <RegistroDeSesion>[]
@@ -364,7 +379,12 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   /// Sigue siendo la herramienta del entrenador para abrir la app como uno de
   /// sus nadadores, y en modo local la única forma de ver ese recorrido.
   Future<void> _abrirComoNadador(Nadador nadador) async {
-    final plan = planDe(nadador, _planes, _asignaciones);
+    final plan = planDe(
+      nadador,
+      _planes,
+      _asignaciones,
+      hoy: widget.hoyParaPruebas ?? DateTime.now(),
+    );
     final registros = plan == null
         ? <RegistroDeSesion>[]
         : await _repos.registrosDelNadador.obtenerDePlan(
@@ -418,20 +438,19 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
           macrociclos: _repos.macrociclos,
           alVolver: () => Navigator.of(contextoDeLaRuta).pop(),
-          alConfirmar: (guardado) => Navigator.of(
-            contextoDeLaRuta,
-          ).pushReplacement<void, void>(
-            MaterialPageRoute(
-              builder: (contextoDeLaRevision) => PantallaRevisarMacrociclo(
-                guardado: guardado,
-                hoy: DateTime.now(),
-                planes: _repos.planes,
-                asignaciones: _repos.asignaciones,
-                macrociclos: _repos.macrociclos,
-                alVolver: () => Navigator.of(contextoDeLaRevision).pop(),
+          alConfirmar: (guardado) =>
+              Navigator.of(contextoDeLaRuta).pushReplacement<void, void>(
+                MaterialPageRoute(
+                  builder: (contextoDeLaRevision) => PantallaRevisarMacrociclo(
+                    guardado: guardado,
+                    hoy: DateTime.now(),
+                    planes: _repos.planes,
+                    asignaciones: _repos.asignaciones,
+                    macrociclos: _repos.macrociclos,
+                    alVolver: () => Navigator.of(contextoDeLaRevision).pop(),
+                  ),
+                ),
               ),
-            ),
-          ),
         ),
       ),
     );
@@ -575,10 +594,20 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
           ? null
           : _verSuMacrociclo,
       quienTieneMacrociclo: _macrocicloDe.keys.toSet(),
-      macrociclos: widget.recursos.firestore == null ? null : _repos.macrociclos,
+      macrociclos: widget.recursos.firestore == null
+          ? null
+          : _repos.macrociclos,
       // **Su teléfono y el servidor**: su historial no se queda en un
       // aparato (hallazgo del recorrido de la 009).
       registrosDelNadador: _repos.registrosDelNadador,
+      // **Del servidor, no de su dispositivo** (feature 010, decisión D3).
+      registrosDelEntrenador: _repos.registrosParaElEntrenador,
+      // Aparte de `macrociclos`, que es el del nadador y se queda nulo sin
+      // servidor para que `Ver Plan` enseñe su sesión de hoy.
+      macrociclosDelEntrenador: _repos.macrociclos,
+      // Lo que los nadadores le preguntaron sobre una sesión (US4).
+      peticionesDeFeedback: _repos.peticionesDeFeedback,
+      asignacionesDelEntrenador: _repos.asignaciones,
       hoy: widget.hoyParaPruebas ?? DateTime.now(),
       selectorDePerfil: _selector,
       uid: widget.cuenta?.id ?? '',
