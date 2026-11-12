@@ -107,7 +107,7 @@ produced them.
 - [X] T027 [US1] Wire both into `lib/ui/hub/contenidos.dart` and `lib/ui/hub/hub.dart`, passing the coach's reader from T015
 - [X] T028 [US1] Add the methodology stamp to every reading shown in `lib/ui/analisis/lectura_de_un_nadador.dart`, per FR-004, reading `versionMetodologia` off the plan rather than a constant
 - [X] T029 [US1] Check the new screens at 130% and 200% text size by adding them to the feature 005 bench in `test/ui/tema/tamano_de_letra_test.dart`. `CabeceraSeccion` lost a `Flexible` for four features before feature 009 found it
-- [ ] T030 [US1] Walk C1 and C2 of [quickstart.md](./quickstart.md) on the Pixel 7, checking the records in the emulator rather than on the screen
+- [X] T030 [US1] Walk C1 and C2 of [quickstart.md](./quickstart.md) on the Pixel 7, checking the records in the emulator rather than on the screen
 
 **Checkpoint**: the coach reads what his swimmers answered. The constitution's "un registro que
 nadie lee no es control" is satisfied, and the feature could ship here.
@@ -134,7 +134,7 @@ without opening any of them, and what he reads suggests nothing.
 - [X] T035 [US2] Mark swimmers with discomfort in `lib/ui/analisis/pantalla_analisis.dart`, using the informative tone of feature 005 and not an error tone — a report is information, not a failure
 - [X] T036 [US2] Mark the session in `lib/ui/analisis/lectura_de_un_nadador.dart` and show what she wrote, verbatim
 - [X] T037 [US2] Confirm no suggestion leaks into `lib/ui/analisis/pantalla_analisis.dart` or `lib/ui/analisis/lectura_de_un_nadador.dart`: re-read both against FR-011 and the constitution's principle IV
-- [ ] T038 [US2] Walk C3 of [quickstart.md](./quickstart.md) on the Pixel 7
+- [X] T038 [US2] Walk C3 of [quickstart.md](./quickstart.md) on the Pixel 7
 
 **Checkpoint**: a pain report cannot be buried, and the app says nothing about what to do with it.
 
@@ -163,7 +163,7 @@ exists.
   labels, and the lock that no third figure exists (T039, T040).
 - [X] T042 [US3] Use it from `lib/ui/analisis/lectura_de_un_nadador.dart`
 - [X] T043 [US3] Show adherence from `progreso`, labelled, in `lib/ui/analisis/lectura_de_un_nadador.dart`
-- [ ] T044 [US3] Walk C4 of [quickstart.md](./quickstart.md) on the Pixel 7, scanning for any derived number
+- [X] T044 [US3] Walk C4 of [quickstart.md](./quickstart.md) on the Pixel 7, scanning for any derived number
 
 **Checkpoint**: principle VIII's separation holds in the type and on the screen.
 
@@ -215,7 +215,12 @@ marks it seen.
 - [X] T065 [US4] Show pending requests on the session in `lib/ui/analisis/lectura_de_un_nadador.dart`, and the control to mark one seen (FR-017)
 - [X] T066 [US4] Confirm the interface mentions video nowhere, in either role, per FR-023. Grep `lib/ui/analisis/` and `lib/ui/nadador/mi_progreso.dart` for the word and expect nothing
 - [X] T067 [US4] Wire the repository into `lib/ui/hub/repositorios_del_hub.dart` and `lib/ui/hub/hub.dart`
-- [ ] T068 [US4] Walk C6, C7, C8 and C9 of [quickstart.md](./quickstart.md) on the Pixel 7, checking `vistaEn` and `pregunta` in the emulator — if marking seen changed her question, the update rule is not doing its job
+- [X] T068 [US4] Walk C6, C7, C8 and C9 of [quickstart.md](./quickstart.md) on the Pixel 7, checking `vistaEn` and `pregunta` in the emulator — if marking seen changed her question, the update rule is not doing its job
+
+  **C8's second half is pending**: that she can tell he saw it, on her side of
+  the phone. The coach's half is walked and checked in the emulator; hers is
+  covered by `el_entrenador_lo_vio_test.dart` and by the merge rule that takes
+  `vistaEn` from the server, and needs one more sign-in to see on the device.
 
 **Checkpoint**: all four stories work, each demonstrable on its own.
 
@@ -416,3 +421,51 @@ the `Análisis` reads `adherencia`, which counts `hechas` and is right.
 recorded: it blocks nothing here. The fix is one condition, but it changes a
 tested behaviour of feature 009, so it belongs with that feature rather than
 inside this one.
+
+---
+
+## The walk, as it went
+
+Pixel 7 against the emulators, 2026-11-11 and 12. **Five defects before C1 was
+through, and not one of them was reachable from a Dart test.** Three were this
+feature's and are fixed; two belonged to earlier features and one of those was
+fixed because it blocked this walk.
+
+| | What it looked like | Where it was |
+|---|---|---|
+| 1 | The list said she reported a discomfort; opening her said she had no macrocycle and showed nothing | 010 — the reading went through the macrocycle only |
+| 2 | Her discomfort vanished from the reading while the list kept marking her | 010 — an answer whose session is not in the plan was dropped in silence (and a typo in the seed) |
+| 3 | She marks a session, it reaches Firestore with her effort, and her screen still says "0 de 39" | 010 — **every record that had reached the server was unreadable**, and the exception escaped the read |
+| 4 | Her Home and her `Análisis` showed a mesocycle from February | 007/009 — "the last assigned plan" stopped meaning "her plan" when 009 made every mesocycle one. Fixed: it blocked C6, C7 and C8 |
+| 5 | She asks with no signal and the screen says nothing | 010 — **asking waited on the network**: Firestore accepts the write and leaves the Future open, and my double threw where the real thing hangs |
+
+Defect 3 is the one worth remembering: the coach's `Análisis` reads through the
+same repository, so it would have broken **the moment any swimmer answered
+anything for real**. It worked during the walk only because seeded records carry
+no `recibidoEn`.
+
+Defect 5 taught the old lesson one turn further. This project knew the double
+must refuse what the server refuses. It must also **return where the server
+would hang**: a double that throws is kinder than one that never answers.
+
+### What each check showed
+
+- **C1** — he reads her answers from his own device, with the records written on
+  hers. Adherence 1 of 39, labelled; methodology 3.6.0 off the plan.
+- **C2** — a swimmer with nothing delivered gets a sentence and a next step.
+- **C3** — only she is marked on the list, the mark does not reorder it, and
+  inside, the discomfort is apart, in the `cuidado` tone, with her words
+  verbatim. Nothing proposes anything.
+- **C4** — "2000 m · 50% técnico · RPE previsto 2" and "La hizo · esfuerzo
+  percibido 7 de 10", each named, and no third figure anywhere on the screen.
+- **C6** — asked with airplane mode on. "Guardada. Se la mandaremos cuando
+  tengas internet.", and it reached the server when the signal came back, under
+  the deterministic id, with `video` **absent** rather than null.
+- **C7** — the boundary is visible: 18/11 and later offer nothing, 09/11 and
+  06/11 offer it. Not offered and disabled — not offered at all.
+- **C8** — he marks it seen; in the emulator `vistaEn` is set and `pregunta` is
+  byte-for-byte hers, with no key added to the document.
+- **C9** — walked as both roles. Video is not named anywhere, and a test over
+  every file in `lib/ui` keeps it that way.
+- **C10** — 28 rules tests with their negative controls, in
+  `reglas_peticiones_feedback.test.js` and `reglas_analisis.test.js`.
