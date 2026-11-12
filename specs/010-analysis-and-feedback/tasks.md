@@ -479,3 +479,24 @@ would hang**: a double that throws is kinder than one that never answers.
   every file in `lib/ui` keeps it that way.
 - **C10** — 28 rules tests with their negative controls, in
   `reglas_peticiones_feedback.test.js` and `reglas_analisis.test.js`.
+
+---
+
+## Deployed
+
+2026-11-12, to `swimming-app-ab45f`, from this branch before merging — the same
+order feature 009 used.
+
+1. **Rules and indexes first**, so `peticionesDeFeedback` and the scoped-consent
+   helper are standing before any client that uses them arrives.
+2. **Functions**: ten updated, none added. This feature adds no server function;
+   the consent scope it needed was already written by feature 004 and the gate
+   went into the rules, where it can be proven without deploying anything.
+3. **Hosting**, from a release web build with no `--dart-define`, since
+   `USAR_EMULADORES` is false by default.
+
+Checked on what is **served**, not on what was built: `/`, `/main.dart.js` and
+`/version.json` all 200, the bundle names `swimming-app-ab45f`, and it contains
+no `demo-natacion` and no `10.0.2.2`. That last check exists because an APK
+built without the flag once talked to the real project and signing in failed
+with "El correo o la contraseña no coinciden" — the mirror of the same mistake.
