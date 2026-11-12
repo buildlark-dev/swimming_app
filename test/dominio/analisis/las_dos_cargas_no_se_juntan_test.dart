@@ -41,7 +41,19 @@ void main() {
   late String codigo;
 
   setUpAll(() {
-    codigo = sinComentarios(File(ruta).readAsStringSync());
+    // **Los finales de línea se normalizan**, y no es cosmético: este cerrojo
+    // parte el cuerpo de la clase por la línea en blanco que separa sus
+    // miembros, y en Windows git materializa el archivo con CRLF. Entonces
+    // `split('\n\n')` no parte nada, el cuerpo entero sale como un solo
+    // miembro, y la prueba se queda sin nada que examinar.
+    //
+    // Lo cazó su propio guardia contra pruebas vacías, en una `main` recién
+    // fusionada: «no se examinó ningún miembro». Es exactamente para lo que
+    // ese guardia está, y sin él este cerrojo habría pasado a verde sin
+    // comprobar nada en todas las máquinas Windows del proyecto.
+    codigo = sinComentarios(
+      File(ruta).readAsStringSync().replaceAll('\r\n', '\n'),
+    );
   });
 
   test('la prueba no pasa por vacía: el archivo existe y declara el tipo', () {
