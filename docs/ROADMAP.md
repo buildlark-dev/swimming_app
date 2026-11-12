@@ -88,15 +88,31 @@ than one coach — the community area of principle VII. It is recorded here the 
 feature 003's identity gap was recorded until 004 closed it.
 
 
-**What the 010 walk found and left for next.** The swimmer's Home shows an
-arbitrary mesocycle of her macrocycle — "no session today" on a day she has one,
-and a count out of 6 over a macrocycle of 39. The HUB picks her plan as the last
-of her published assignments, which meant "the plan she was given" until feature
-009 made every mesocycle an assigned plan; now it is whichever the query returns
-last, so it is arbitrary rather than merely wrong.
-`ProgresoEnElMacrociclo.mesocicloActual` already answers this and nothing calls
-it. Diagnosis in `specs/010-analysis-and-feedback/tasks.md`; it is the first
-thing to pick up.
+**What the 010 walk found, and what it cost.** The walk on the Pixel 7 found
+five defects before C1 was through, and none of them was reachable from a Dart
+test — the same lesson feature 009 paid for. Three were 010's own and are fixed;
+two belonged to earlier features.
+
+The one worth repeating here, because it is the shape this project keeps
+meeting: **every record that had reached the server was unreadable**.
+`FieldValue.serverTimestamp()` writes `recibidoEn` as a `Timestamp` and the
+deserialiser read it as a string, so the exception escaped up through
+`registrosDelLinaje` and the swimmer's screen kept saying "0 de 39" with her
+answer already in Firestore. The coach's `Análisis` reads through the same
+repository, so it would have broken the moment anyone answered for real. The app
+had already named this defect, mirrored, in `molestias_firestore.dart`.
+
+The second: the HUB picked a swimmer's plan as **the last of her published
+assignments**, which meant "the plan she was given" until feature 009 made every
+mesocycle an assigned plan. It then became whichever the query returned last —
+arbitrary, not merely wrong. Fixed with `elPlanDeAhora`: the plan that contains
+today, then the next to start, then the last to have ended.
+
+Left for next, diagnosed in `specs/010-analysis-and-feedback/tasks.md`: the
+pending list counts a session the swimmer answered with "I did not do it".
+`ProgresoEnElMacrociclo.pendientes` excludes only `hechas`, and the class's own
+documentation forbids exactly that conflation.
+
 **The deferred manual checks** — T088 and T089 of feature 004, and C1/C2 of
 feature 003 — close after 010. They need a real device and the coach's own eyes.
 

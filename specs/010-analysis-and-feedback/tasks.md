@@ -379,8 +379,15 @@ and is deliberately null before, after and in a gap. Connecting it is the same
 shape as feature 009 connecting `registrosDelLinaje` — something built, tested
 and never called.
 
-Recorded here by the coach's decision rather than fixed inside 010, so this
-feature closes on what its spec promised. It is the first thing to pick up next.
+**Recorded first, then fixed** — because it turned out to block this feature's
+own walk. Her `Análisis` is driven by the same choice, and that is where 010
+puts "ask your coach": with a February mesocycle selected she had no session to
+ask about, so C6, C7 and C8 could not be walked at all. The coach changed the
+decision once that was clear.
+
+Fixed in `lib/dominio/calculo/el_plan_de_ahora.dart`, shared by both places that
+chose "the last": `planDe`, which the coach uses to open the app as one of his
+swimmers, and the swimmer's own path through the hub.
 
 ### "Te quedó una sesión por marcar" about a session she marked
 
@@ -403,8 +410,9 @@ respuesta donde hay un hueco."* `sinContestar` keeps the two apart correctly;
 `pendientes` does not, and `pendientes` is what the swimmer reads.
 
 **Not a defect of this feature**: `ProgresoEnElMacrociclo` is feature 009's, and
-the `Análisis` reads `adherencia`, which counts `hechas` and is right. Recorded
-rather than fixed, by the same decision the coach made about the Home.
+the `Análisis` reads `adherencia`, which counts `hechas` and is right.
 
-The fix is one condition, but it changes a tested behaviour of feature 009, so it
-belongs with that feature's own walk rather than inside this one.
+**Recorded and not fixed**, and unlike the Home finding above this one stayed
+recorded: it blocks nothing here. The fix is one condition, but it changes a
+tested behaviour of feature 009, so it belongs with that feature rather than
+inside this one.
