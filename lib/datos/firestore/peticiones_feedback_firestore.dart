@@ -18,6 +18,7 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:natacion_app/datos/firestore/lo_que_haya.dart';
 import 'package:natacion_app/datos/serializacion.dart';
 import 'package:natacion_app/dominio/analisis/peticion_de_feedback.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
@@ -42,7 +43,7 @@ class PeticionesFeedbackFirestore implements RepositorioPeticionesDeFeedback {
     try {
       final instantanea = await _peticiones
           .where('nadadorId', isEqualTo: nadadorId)
-          .get();
+          .leerLoQueHaya();
 
       return instantanea.docs
           .map((d) => peticionDeFeedbackDesdeJson(d.data()))
@@ -61,7 +62,7 @@ class PeticionesFeedbackFirestore implements RepositorioPeticionesDeFeedback {
       final instantanea = await _peticiones
           .where('nadadorId', isEqualTo: nadadorId)
           .where('planId', isEqualTo: planId)
-          .get();
+          .leerLoQueHaya();
 
       return instantanea.docs
           .map((d) => peticionDeFeedbackDesdeJson(d.data()))

@@ -6,6 +6,8 @@
 /// (FR-005).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:natacion_app/dominio/calculo/progreso_nadador.dart';
 import 'package:natacion_app/dominio/calculo/sesion_del_dia.dart';
@@ -158,8 +160,32 @@ class EstadoNadador extends ChangeNotifier {
     await sincronizador.guardar(registro);
     _recordar(registro);
 
-    // Intento inmediato. Si no hay red, el registro ya está a salvo.
-    await sincronizar();
+    // **Intento inmediato, y no se espera** (garantía G1).
+    //
+    // La línea de arriba ya dejó el registro a salvo: escrito en el
+    // dispositivo y encolado. Lo que viene después es intentar que salga, y
+    // eso depende de la red, así que no puede estar entre ella y la respuesta
+    // de la pantalla.
+    //
+    // Esperarlo fue un defecto de verdad, y el recorrido en el Pixel 7 lo
+    // encontró en su peor forma: con el avión puesto, el SDK de Firestore
+    // acepta la escritura en su cola y no completa el Future, sin lanzar
+    // nada. «Marcar como realizada» se quedaba girando **para siempre**, con
+    // la anotación ya guardada y sin manera de que ella lo supiera. El envío
+    // está acotado desde entonces, pero ni a ese plazo hay que esperar.
+    //
+    // `sincronizar` avisa por su cuenta con `notifyListeners`, que es como la
+    // pantalla se entera de que la bandeja se vació.
+    //
+    // **Y el aviso se enciende aquí**, no al volver del intento. Está
+    // pendiente desde este instante —`guardar` encoló— y es justo lo que
+    // FR-017 le promete decirle: «Guardado el progreso, se enviará cuando
+    // tengas acceso a internet». Dejarlo para después del intento era atar la
+    // frase a la red otra vez, por la puerta de atrás.
+    _hayPendientes = await sincronizador.hayPendientes();
+    notifyListeners();
+
+    unawaited(sincronizar());
     return const Si();
   }
 

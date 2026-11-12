@@ -16,6 +16,7 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:natacion_app/datos/firestore/lo_que_haya.dart';
 import 'package:natacion_app/datos/firestore/repositorios_firestore.dart';
 import 'package:natacion_app/datos/serializacion.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
@@ -33,7 +34,7 @@ class RepositorioMacrociclosFirestore implements RepositorioMacrociclos {
   @override
   Future<Macrociclo?> obtener(String id) async {
     try {
-      final documento = await _macrociclos.doc(id).get();
+      final documento = await _macrociclos.doc(id).leerLoQueHaya();
       final datos = documento.data();
       if (datos == null) return null;
       return macrocicloDesdeJson(datos, id: id);
@@ -64,7 +65,7 @@ class RepositorioMacrociclosFirestore implements RepositorioMacrociclos {
       final instantanea = await _macrociclos
           .where('nadadorId', isEqualTo: nadadorId)
           .where('estado', isEqualTo: EstadoPlan.publicado.name)
-          .get();
+          .leerLoQueHaya();
 
       final leidos = <Macrociclo>[];
       for (final documento in instantanea.docs) {
@@ -98,7 +99,7 @@ class RepositorioMacrociclosFirestore implements RepositorioMacrociclos {
       // Una sola lectura de la colección. Sin filtro de estado a propósito:
       // el entrenador tiene que poder volver también a uno que firmó y
       // todavía no entregó, que es justo el que se le quedaba inalcanzable.
-      final instantanea = await _macrociclos.get();
+      final instantanea = await _macrociclos.leerLoQueHaya();
 
       final cual = <String, String>{};
       final cuando = <String, String>{};

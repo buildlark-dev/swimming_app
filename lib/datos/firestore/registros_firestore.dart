@@ -17,6 +17,7 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:natacion_app/datos/firestore/lo_que_haya.dart';
 import 'package:natacion_app/datos/exportacion.dart';
 import 'package:natacion_app/datos/firestore/envio_registros.dart';
 import 'package:natacion_app/datos/serializacion.dart';
@@ -34,7 +35,7 @@ class RegistrosFirestore implements RepositorioRegistros {
   @override
   Future<RegistroDeSesion?> obtener(String registroId) async {
     try {
-      final documento = await _registros.doc(registroId).get();
+      final documento = await _registros.doc(registroId).leerLoQueHaya();
       final datos = documento.data();
       return datos == null
           ? null
@@ -53,7 +54,7 @@ class RegistrosFirestore implements RepositorioRegistros {
       final instantanea = await _registros
           .where('nadadorId', isEqualTo: nadadorId)
           .where('planId', isEqualTo: planId)
-          .get();
+          .leerLoQueHaya();
 
       return [
         for (final d in instantanea.docs)
@@ -79,7 +80,7 @@ class RegistrosFirestore implements RepositorioRegistros {
     // Solo el entrenador puede hacerla: las reglas le dejan leer los registros
     // de su comunidad, y a un nadador solo los suyos.
     try {
-      final instantanea = await _registros.get();
+      final instantanea = await _registros.leerLoQueHaya();
       return instantanea.docs
           .map((d) => d.data()['nadadorId'] as String?)
           .whereType<String>()
@@ -94,7 +95,7 @@ class RegistrosFirestore implements RepositorioRegistros {
     try {
       final instantanea = await _registros
           .where('nadadorId', isEqualTo: nadadorId)
-          .get();
+          .leerLoQueHaya();
 
       return <String, dynamic>{
         'formato': formatoExportacion,

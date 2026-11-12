@@ -11,6 +11,7 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:natacion_app/datos/firestore/lo_que_haya.dart';
 import 'package:natacion_app/datos/firestore/envio_registros.dart';
 import 'package:natacion_app/dominio/peticiones/molestias_enlazadas.dart';
 
@@ -28,7 +29,7 @@ class MolestiasFirestore implements LectorDeMolestias {
       final consulta = await firestore
           .collection(coleccionRegistros)
           .where('nadadorId', isEqualTo: nadadorId)
-          .get();
+          .leerLoQueHaya();
 
       final molestias = <MolestiaEnlazada>[];
 
@@ -83,7 +84,9 @@ class MolestiasFirestore implements LectorDeMolestias {
   @override
   Future<Set<String>> quienesReportaron({required DateTime desde}) async {
     try {
-      final consulta = await firestore.collection(coleccionRegistros).get();
+      final consulta = await firestore
+          .collection(coleccionRegistros)
+          .leerLoQueHaya();
 
       final quienes = <String>{};
 
