@@ -139,10 +139,10 @@ without touching anything" — does not: the record arrives and the notice goes,
 but only when the app is next opened. `Sincronizador.alVolverLaRed` exists, is
 tested, and **nothing in `lib/` listens to it**; and the probe behind it could
 not have fired anyway. Wiring it is a change with a decision inside it, so it
-was recorded rather than bolted on, and **it is now feature 011**. T089 of
-feature 004 — siblings on one phone, a session expiring poolside — is still open
-and needs its own setup; it is 011's natural companion, since both are the
-swimmer's journey on a real device.
+was recorded rather than bolted on, and **it is now feature 011**. The checks
+themselves — T071 here, T088 and T089 of feature 004 — stay open until after
+feature 013, by the coach's decision: they are walked together, on a real device,
+once there is more to walk in one trip.
 
 ## What 011, 012 and 013 carry
 
@@ -185,10 +185,13 @@ And the three smaller ones:
   the outbox still counts it pending. Nothing is lost or duplicated, the id is
   deterministic, but the sentence stays on screen after it stops being true.
 
-Closing this closes **T071 of feature 003 and T088 of feature 004**, which have
-been open since there was nowhere to deploy. T089 of feature 004 — siblings on
-one phone, a session expiring poolside — is the natural companion of 011's walk,
-since both are the swimmer's journey on a real device.
+**It removes the cause but does not close the check.** T071 of feature 003,
+T088 of feature 004 and T089 of feature 004 stay open: the coach decided to walk
+them all together **after feature 013**, when there is more to walk in one trip.
+So 011 proves by test everything that can be proven without a phone and says
+explicitly what is left for that walk — which is the honest way round, since a
+scenario is closed by someone standing at a poolside with the airplane mode on,
+not by the commit that should make it pass.
 
 ### 012 — The coach → swimmer relation
 
