@@ -109,17 +109,17 @@ would show. Nothing else in the feature has to exist.
 
 ### Locks for User Story 2 ⚠️ write first, see red
 
-- [ ] T017 [P] [US2] Lock the rules of `solicitudesDeIngreso` in `firebase/test/reglas_comunidad.test.js`: she creates her own and may withdraw it; she **cannot** write `aceptada`; the coach of that community reads the ones addressed to him **by a query filtered on `comunidadId`**, not by reading the collection; nobody else reads any of it
-- [ ] T018 [P] [US2] Lock the deterministic id in `firebase/test/reglas_comunidad.test.js`: the id is `nadadorId|comunidadId`, a document whose id disagrees with its fields is refused, and asking twice is the same asking (data-model.md)
-- [ ] T019 [P] [US2] Lock the sign-up step in `test/ui/alta/paso_comunidad_test.dart`: the community is offered **by name**; skipping finishes the account; with no community named she is told so in plain words and can still finish (FR-006)
+- [X] T017 [P] [US2] Lock the rules of `solicitudesDeIngreso` in `firebase/test/reglas_comunidad.test.js`: she creates her own and may withdraw it; she **cannot** write `aceptada`; the coach of that community reads the ones addressed to him **by a query filtered on `comunidadId`**, not by reading the collection; nobody else reads any of it
+- [X] T018 [P] [US2] Lock the deterministic id in `firebase/test/reglas_comunidad.test.js`: the id is `nadadorId|comunidadId`, a document whose id disagrees with its fields is refused, and asking twice is the same asking (data-model.md)
+- [X] T019 [P] [US2] Lock the sign-up step in `test/ui/alta/paso_comunidad_test.dart`: the community is offered **by name**; skipping finishes the account; with no community named she is told so in plain words and can still finish (FR-006)
 - [ ] T020 [P] [US2] Lock FR-008 in `test/dominio/comunidad/una_sola_solicitud_test.dart`: a swimmer has at most one waiting request, and asking elsewhere withdraws the first
-- [ ] T021 [US2] Run the negative control for T017–T020 and record it in `specs/012-coach-swimmer-link/tasks.md`
+- [X] T021 [US2] Run the negative control for T017–T020 and record it in `specs/012-coach-swimmer-link/tasks.md`
 
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] Add the `solicitudesDeIngreso` rules to `firebase/firestore.rules`
-- [ ] T023 [P] [US2] Create `lib/datos/firestore/solicitudes_firestore.dart`: raise, withdraw, read mine, read the ones for a community
-- [ ] T024 [US2] Create the joining step in `lib/ui/alta/paso_comunidad.dart` and place it in the flow in `lib/ui/alta/pantalla_alta.dart`, **without adding a step she cannot skip** (FR-004, FR-005)
+- [X] T022 [US2] Add the `solicitudesDeIngreso` rules to `firebase/firestore.rules`
+- [X] T023 [P] [US2] Create `lib/datos/firestore/solicitudes_firestore.dart`: raise, withdraw, read mine, read the ones for a community
+- [X] T024 [US2] Create the joining step in `lib/ui/alta/paso_comunidad.dart` and place it in the flow in `lib/ui/alta/pantalla_alta.dart`, **without adding a step she cannot skip** (FR-004, FR-005)
 - [ ] T025 [US2] Let her see and withdraw what she asked, in `lib/ui/alta/estado_alta.dart` and wherever she looks afterwards (FR-007)
 - [ ] T026 [US2] Name the community in the guardian's consent request when there is one, in `firebase/functions/src/consentimiento.ts` and its mail body in `firebase/functions/src/correo.ts` (FR-028). It is strictly more information for the guardian and changes nothing about what the consent permits
 

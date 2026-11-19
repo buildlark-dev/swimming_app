@@ -11,6 +11,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:natacion_app/ui/alta/estado_alta.dart';
 import 'package:natacion_app/ui/alta/paso_acudiente.dart';
+import 'package:natacion_app/ui/alta/paso_comunidad.dart';
 import 'package:natacion_app/ui/alta/paso_nacimiento.dart';
 import 'package:natacion_app/ui/alta/paso_nombre.dart';
 import 'package:natacion_app/ui/alta/paso_pais.dart';
@@ -83,6 +84,7 @@ class PantallaAlta extends StatelessWidget {
                     PasoDelAlta.pais => const PasoPais(),
                     PasoDelAlta.terminos => const PasoTerminos(),
                     PasoDelAlta.acudiente => const PasoAcudiente(),
+                    PasoDelAlta.comunidad => const PasoComunidad(),
                   },
                 ),
               ),

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:natacion_app/datos/firestore/solicitudes_firestore.dart';
+import 'package:natacion_app/datos/firestore/comunidades_firestore.dart';
 import 'package:natacion_app/datos/auth/sesion_firebase.dart';
 import 'package:natacion_app/datos/firestore/configuracion.dart';
 import 'package:natacion_app/datos/firestore/envio_registros.dart';
@@ -388,6 +390,15 @@ class _Acceso extends StatelessWidget {
                 // El alta acaba de crear su ficha de nadador: hay que releer
                 // quién es, o entra con una cuenta que todavía no lo sabe.
                 alGuardarElPerfil: sesion.refrescarCuenta,
+                // Para que pueda pedir entrar a una comunidad mientras crea su
+                // cuenta (feature 012, US2). Nulos sin servidor, y entonces
+                // ese paso no aparece.
+                comunidades: recursos.firestore == null
+                    ? null
+                    : RepositorioComunidadesFirestore(recursos.firestore!),
+                solicitudes: recursos.firestore == null
+                    ? null
+                    : RepositorioSolicitudesFirestore(recursos.firestore!),
                 dentro: PantallaPrincipal(
                   recursos: recursos,
                   cuenta: sesion.cuenta,
