@@ -477,10 +477,10 @@ class _RedSimulada implements EstadoDeRed {
   @override
   Stream<bool> get cambios => _controlador.stream;
 
-  /// Lo que la bandeja anota de cada intento (feature 011, D1).
+  /// Lo que la bandeja anota de cada intento. No esta en la interfaz del
+  /// dominio: la bandeja lo recibe como un `alIntentar` (feature 011, D1).
   final anotados = <bool>[];
 
-  @override
   void anotarIntento({required bool llego}) => anotados.add(llego);
 }
 

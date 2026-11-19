@@ -91,7 +91,7 @@ suite; on a phone after feature 013.
 - [X] T008 [P] [US1] Lock FR-004 in `test/dominio/sincronizacion/el_sondeo_tambien_lleva_plazo_test.dart`: a transport that accepts and never answers leaves nothing hanging — `sincronizar()` returns, the record stays queued, and the attempt counts as failed (G3)
 - [X] T009 [P] [US1] Lock FR-002 and D1 in `test/datos/red/la_red_es_el_ultimo_intento_test.dart`: `hayConexion()` reports the outcome of the last attempt, is **optimistic before any attempt has happened**, and `cambios` emits when that outcome changes
 - [X] T010 [P] [US1] Lock FR-008 in `test/ui/nadador/nada_de_la_red_le_llega_test.dart`: a test over every file under `lib/ui/` that the swimmer can reach, asserting none of them contains a network error, a status code, a count of attempts, or a control that says retry. Model it on feature 010's test over `lib/ui` for video
-- [ ] T011 [US1] Run the negative control for T004–T010 and record each result in `specs/011-swimmer-journey-repairs/tasks.md`: remove the schedule and T005/T006 go red; restore the 300-second cap and T005 goes red; remove the cut-short and T007 goes red; make the mute transport throw instead of hang and say which locks stop proving anything. **A lock whose control does not go red is not a lock** — feature 010 shipped one of those and caught it only by running the control
+- [X] T011 [US1] Run the negative control for T004–T010 and record each result in `specs/011-swimmer-journey-repairs/tasks.md`: remove the schedule and T005/T006 go red; restore the 300-second cap and T005 goes red; remove the cut-short and T007 goes red; make the mute transport throw instead of hang and say which locks stop proving anything. **A lock whose control does not go red is not a lock** — feature 010 shipped one of those and caught it only by running the control
 
 ### Implementation for User Story 1
 
@@ -103,7 +103,7 @@ suite; on a phone after feature 013.
 - [X] T017 [US1] Remove the probe that never probed from `lib/main.dart` (`sondear: () async => datos != null`) and wire whatever D1 replaces it with. Leave a comment naming what happened: the line sat directly beneath a comment describing the opposite behaviour, and nobody noticed for seven features
 - [X] T018 [US1] Decide `Sincronizador.alVolverLaRed` in `lib/dominio/sincronizacion/bandeja_salida.dart`: with the schedule in place it has no caller and no distinct meaning, so either wire it or **retire it with the reason written where it used to be**. Do not leave a tested member with no listener — that is one of the two defects this feature exists to fix
 - [X] T019 [US1] Start the schedule when the swimmer's journey opens and stop it in `dispose()` in `lib/ui/nadador/estado_nadador.dart`, which the HUB already calls (D6). A schedule that outlives sign-out would keep one swimmer's queue working under her brother's account, which is feature 004's C7
-- [ ] T020 [US1] Update `specs/003-consumo-del-nadador/contracts/sincronizacion.md` to point at [the amendment](./contracts/sincronizacion-enmendada.md), without rewriting it: the eight guarantees are unchanged and the original is the record of what was promised
+- [X] T020 [US1] Update `specs/003-consumo-del-nadador/contracts/sincronizacion.md` to point at [the amendment](./contracts/sincronizacion-enmendada.md), without rewriting it: the eight guarantees are unchanged and the original is the record of what was promised
 
 **Checkpoint**: US1 is independently demonstrable — annotate with a refusing transport,
 make it answer, and the record goes with nothing else called.
@@ -121,13 +121,13 @@ the pending list while an unanswered past session stays in it.
 ### Locks for User Story 2 ⚠️ write first, see red
 
 - [X] T021 [P] [US2] Lock FR-010 and FR-011 in `test/dominio/macrociclo/lo_que_contesto_no_esta_pendiente_test.dart`: a past session answered "I did not do it" is **not** pending; a past session with no answer **is**; one marked done is not; today's unanswered is not; one with no date is not
-- [ ] T022 [P] [US2] Lock FR-012 in `test/ui/nadador/una_regla_dos_pantallas_test.dart`: the count the swimmer reads and the count the coach reads come from the same rule and are equal for the same sessions
-- [ ] T023 [US2] Run the negative control for T021–T022 and record it in `specs/011-swimmer-journey-repairs/tasks.md`: restore `pendientes` to excluding only `hechas` and confirm T021 goes red on the "I did not do it" case specifically
+- [X] T022 [P] [US2] Lock FR-012 in `test/ui/nadador/una_regla_dos_pantallas_test.dart`: the count the swimmer reads and the count the coach reads come from the same rule and are equal for the same sessions
+- [X] T023 [US2] Run the negative control for T021–T022 and record it in `specs/011-swimmer-journey-repairs/tasks.md`: restore `pendientes` to excluding only `hechas` and confirm T021 goes red on the "I did not do it" case specifically
 
 ### Implementation for User Story 2
 
 - [X] T024 [US2] Change `pendientes` to derive from `sinContestar` in `lib/dominio/macrociclo/progreso_en_el_macrociclo.dart`, and add the sentence that explains why this getter existed beside a correct one and used the wrong set
-- [ ] T025 [US2] Check every caller still reads what it means to: `lib/ui/nadador/mi_macrociclo.dart` (the swimmer's list) and the coach's reading in `lib/ui/analisis/`. Nothing should need changing — confirm that by reading, not by assuming
+- [X] T025 [US2] Check every caller still reads what it means to: `lib/ui/nadador/mi_macrociclo.dart` (the swimmer's list) and the coach's reading in `lib/ui/analisis/`. Nothing should need changing — confirm that by reading, not by assuming
 
 **Checkpoint**: US2 is independently demonstrable and touches no file US1 touched.
 
@@ -143,17 +143,17 @@ loading and never says she has no plan.
 
 ### Locks for User Story 3 ⚠️ write first, see red
 
-- [ ] T026 [P] [US3] Lock the type in `test/dominio/lectura/lectura_test.dart`: `Cargando`, `Hay`, `NoHay` and `NoSePudo` are exhaustive at the point of use, and a `switch` that omits one does not compile — the whole reason for a sealed type over a flag
-- [ ] T027 [P] [US3] Lock FR-013 for the progress screen in `test/ui/nadador/no_dice_que_falta_mientras_busca_test.dart`: while the reading is in flight the screen shows that it is loading and **the empty state's words appear nowhere**; once finished with nothing, they appear; once failed, it says it could not be read
-- [ ] T028 [P] [US3] Lock FR-014 in `test/ui/nadador/las_palabras_del_vacio_no_cambian_test.dart`: the sentence «Todavía no tienes un plan asignado» and its explanation are byte-for-byte what they are today, and reachable only from `NoHay`
-- [ ] T029 [US3] Run the negative control for T026–T028 and record it in `specs/011-swimmer-journey-repairs/tasks.md`: make the screen treat `Cargando` as `NoHay` and confirm T027 goes red
+- [X] T026 [P] [US3] Lock the type in `test/dominio/lectura/lectura_test.dart`: `Cargando`, `Hay`, `NoHay` and `NoSePudo` are exhaustive at the point of use, and a `switch` that omits one does not compile — the whole reason for a sealed type over a flag
+- [X] T027 [P] [US3] Lock FR-013 for the progress screen in `test/ui/nadador/no_dice_que_falta_mientras_busca_test.dart`: while the reading is in flight the screen shows that it is loading and **the empty state's words appear nowhere**; once finished with nothing, they appear; once failed, it says it could not be read
+- [X] T028 [P] [US3] Lock FR-014 in `test/ui/nadador/las_palabras_del_vacio_no_cambian_test.dart`: the sentence «Todavía no tienes un plan asignado» and its explanation are byte-for-byte what they are today, and reachable only from `NoHay`
+- [X] T029 [US3] Run the negative control for T026–T028 and record it in `specs/011-swimmer-journey-repairs/tasks.md`: make the screen treat `Cargando` as `NoHay` and confirm T027 goes red
 
 ### Implementation for User Story 3
 
-- [ ] T030 [P] [US3] Create the sealed `Lectura<T>` in `lib/dominio/lectura/lectura.dart` with `Cargando`, `Hay(valor)`, `NoHay` and `NoSePudo(motivo)` — no Flutter import, and no words for the swimmer: the screen owns the phrasing (data-model.md)
-- [ ] T031 [US3] Expose the swimmer's plan and progress as a `Lectura` instead of a nullable in `lib/ui/nadador/estado_nadador.dart`, so the two meanings of `null` stop sharing one value (depends on T030)
-- [ ] T032 [US3] Handle the four cases in `lib/ui/nadador/pantalla_mi_progreso.dart`, keeping `EstadoVacio` and its existing words for `NoHay` only (depends on T031)
-- [ ] T033 [US3] Do the same in `lib/ui/nadador/pantalla_sesion_del_dia.dart`, which carries the identical sentence. Fixing one and leaving the other is how this defect survives to the next walk
+- [X] T030 [P] [US3] Create the sealed `Lectura<T>` in `lib/dominio/lectura/lectura.dart` with `Cargando`, `Hay(valor)`, `NoHay` and `NoSePudo(motivo)` — no Flutter import, and no words for the swimmer: the screen owns the phrasing (data-model.md)
+- [X] T031 [US3] Expose the swimmer's plan and progress as a `Lectura` instead of a nullable in `lib/ui/nadador/estado_nadador.dart`, so the two meanings of `null` stop sharing one value (depends on T030)
+- [X] T032 [US3] Handle the four cases in `lib/ui/nadador/pantalla_mi_progreso.dart`, keeping `EstadoVacio` and its existing words for `NoHay` only (depends on T031)
+- [X] T033 [US3] Do the same in `lib/ui/nadador/pantalla_sesion_del_dia.dart`, which carries the identical sentence. Fixing one and leaving the other is how this defect survives to the next walk
 
 **Checkpoint**: US3 is independently demonstrable; both of her screens tell the four
 states apart.
@@ -174,7 +174,7 @@ sequential with US1 rather than parallel to it.
 ### Locks for User Story 4 ⚠️ write first, see red
 
 - [X] T034 [P] [US4] Lock FR-015 in `test/dominio/sincronizacion/el_exito_tardio_cuenta_test.dart`: an attempt that exceeds its deadline and **then completes** leaves the record sent and the outbox empty, and no additional call is made to the transport or to any reader to find that out
-- [ ] T035 [P] [US4] Lock FR-016 in `test/dominio/sincronizacion/el_aviso_solo_se_apaga_si_llego_test.dart`: a record the transport never confirms stays queued and the notice stays, however many cycles pass
+- [X] T035 [P] [US4] Lock FR-016 in `test/dominio/sincronizacion/el_aviso_solo_se_apaga_si_llego_test.dart`: a record the transport never confirms stays queued and the notice stays, however many cycles pass
 - [X] T036 [US4] Run the negative control for T034–T035 and record it in `specs/011-swimmer-journey-repairs/tasks.md`: drop the late-success handling and confirm T034 goes red; clear the notice optimistically on timeout and confirm T035 goes red
 
 ### Implementation for User Story 4
@@ -188,16 +188,130 @@ sequential with US1 rather than parallel to it.
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T039 Run the four gates and write the numbers in `specs/011-swimmer-journey-repairs/tasks.md` beside T001's baseline. The difference is the locks this feature needed
-- [ ] T040 Confirm `npm --prefix firebase test` ends on **exactly** the number it started on, and that `git diff` shows no change under `firebase/`. This feature adds no rule; a moved number means something grew
-- [ ] T041 Confirm `git diff pubspec.yaml pubspec.lock` is empty. Principle VII's gate for this feature was refusing a connectivity dependency, and this is how that refusal is checked rather than remembered
-- [ ] T042 [P] Rewrite the 011 paragraphs in `docs/ROADMAP.md` to say what was actually built, the way features 009 and 010 did — including that the attempt is the probe, and what it costs per hour
-- [ ] T043 [P] Record in `specs/011-swimmer-journey-repairs/tasks.md` what is left for the post-013 walk: C1 and C2 of feature 003 and C7 and C8 of feature 004, tasks T071, T088 and T089, with what this feature proved about each in simulated time and what only a phone can add
-- [ ] T044 Re-read the Constitution Check table in [plan.md](./plan.md) against what was actually built and correct it if anything drifted. A gate that is only true at planning time is not a gate
-- [ ] T045 Run [quickstart.md](./quickstart.md) V1 to V9 and record what each showed, in this file
+- [X] T039 Run the four gates and write the numbers in `specs/011-swimmer-journey-repairs/tasks.md` beside T001's baseline. The difference is the locks this feature needed
+- [X] T040 Confirm `npm --prefix firebase test` ends on **exactly** the number it started on, and that `git diff` shows no change under `firebase/`. This feature adds no rule; a moved number means something grew
+- [X] T041 Confirm `git diff pubspec.yaml pubspec.lock` is empty. Principle VII's gate for this feature was refusing a connectivity dependency, and this is how that refusal is checked rather than remembered
+- [X] T042 [P] Rewrite the 011 paragraphs in `docs/ROADMAP.md` to say what was actually built, the way features 009 and 010 did — including that the attempt is the probe, and what it costs per hour
+- [X] T043 [P] Record in `specs/011-swimmer-journey-repairs/tasks.md` what is left for the post-013 walk: C1 and C2 of feature 003 and C7 and C8 of feature 004, tasks T071, T088 and T089, with what this feature proved about each in simulated time and what only a phone can add
+- [X] T044 Re-read the Constitution Check table in [plan.md](./plan.md) against what was actually built and correct it if anything drifted. A gate that is only true at planning time is not a gate
+- [X] T045 Run [quickstart.md](./quickstart.md) V1 to V9 and record what each showed, in this file
 - [ ] T046 [P] Mark feature 011 on the roadmap in `docs/ROADMAP.md` once the PR merges
 
 ---
+
+
+---
+
+## How it went
+
+**After, 2026-11-18:**
+
+| Gate | Before | After | Added |
+|---|---|---|---|
+| `flutter analyze` | No issues | No issues | — |
+| `flutter test` | 2133 | **2202** | **+69** |
+| `npm --prefix firebase test` | 174 | 174 | — |
+| `npm --prefix firebase/functions test` | 45 | 45 | — |
+
+The rules suite ends on the number it started on, and `git diff` under `firebase/` is
+empty: this feature added no rule and touched no document. `git diff pubspec.yaml
+pubspec.lock` is empty too, which is how principle VII's refusal of a connectivity
+dependency gets **checked** instead of remembered.
+
+### The negative controls, and what each one turned red
+
+Run, not assumed. A lock whose control does not go red is not a lock, and feature 010
+shipped one of those.
+
+| Control | What went red |
+|---|---|
+| Remove the schedule from `_replantearElDespertar` | the retries and the cost locks: nothing retries, nothing is attempted |
+| Restore the 300-second cap | `y se detiene en un minuto, no en cinco` |
+| Restore `1 << (intentos - 1)` without the guard | `y no se desborda por muchos intentos que lleve`, and the suite hangs |
+| Remove `_honrarSiLlegaTarde` | 2 of the 4 late-success cases |
+| Make the screen treat `Cargando` as `NoHay` | `mientras busca, no dice que no tiene plan` |
+| Restore `pendientes` to excluding only `hechas` | the "I did not do it" case, specifically |
+| Set `TransporteMudo.lanza` (a double that throws) | the deadline and late-success locks stop proving anything — which is why `dobles_de_sincronizacion_test.dart` exists |
+
+### Four existing tests were inverted, and that is the headline
+
+They encoded the defects. Each was flipped with the reason written where it happened:
+
+- Two asserted that a session answered "I did not do it" **stays pending**. One carried a
+  comment justifying it — *«pendiente es "no está hecha", y eso incluye la que el nadador
+  dijo que no hizo»* — which contradicts the documentation of `dijoQueNo` three lines
+  above it in the production file.
+- One fixed the network gate: *«sin red no se intenta, y no cuenta como intento»*.
+- One asserted the **consent gate is skipped** when offline. It now asserts the opposite,
+  and is better for it: now that we always attempt, consent is always checked, and an
+  atajo in front of a minor's consent was the worst place for one.
+
+### What the implementation found that the plan did not
+
+- **`esperaHastaElSiguiente` overflowed.** `1 << 64` is zero, so after about 64 attempts
+  the wait became zero seconds — the tight loop that code exists to prevent. Unreachable
+  since feature 003 because nothing retried without the swimmer opening the app; the
+  first simulated hour here found it, by hanging the suite.
+- **The network gate had to go**, not just be rewired. The plan said the probe should be
+  the attempt; it did not follow that a gate consulting the probe *before* attempting
+  deadlocks. `sinRed` survives with a new meaning: a conclusion drawn after, not a guess
+  made before.
+- **The real `Despertador` cannot be the default.** Sixteen tests construct a
+  `Sincronizador`; with a real self-rescheduling timer each one the suite never ends.
+  One production site wires it and `el_despertar_esta_cableado_test.dart` watches that
+  site — because "built, tested, never connected" is the defect this feature is about,
+  and it would have been absurd to recreate it here.
+- **`Future.timeout` uses real time**, not the injected clock. Two locks had to shorten
+  `esperaAlEnvio` to milliseconds or each simulated hour cost ten real minutes.
+- **A screen that spins has to be able to stop.** The `Cargando` state broke
+  `pumpAndSettle` in a HUB test, which was right to break: an account with no swimmer
+  profile would have spun for ever. The HUB now always answers — found, nothing, or
+  could not read.
+
+
+### What each quickstart check showed, 2026-11-18
+
+All nine, in simulated time. None of them needed a phone, and none of them closes a
+scenario that does.
+
+- **V1** — with an empty outbox nothing is scheduled and the transport is never touched,
+  over a simulated hour. Zero wake-ups, zero attempts. (4 cases)
+- **V2** — the retries space out 1, 2, 4, 8… and stop growing at 60 seconds, and the
+  record goes with **nothing calling `sincronizar()` from outside**. Plus the overflow
+  case the implementation found. (7 cases)
+- **V3** — with three records all in long waits, one succeeding releases the other two in
+  the same pass. The single-record control also arrives inside the minute. (3 cases)
+- **V4** — a transport that accepts and never answers leaves nothing hanging, counts as
+  failed, and does not turn the deadline into the retry cadence. (3 cases)
+- **V5** — the notice is on screen while nothing has arrived, survives six simulated
+  hours, is not cleared by a late *failure*, and goes the moment something lands.
+  (4 cases)
+- **V6** — nothing a swimmer can reach mentions a network error, a status code, a count
+  of attempts or retrying, over every file in `lib/ui/nadador`. And the FR-017 sentence is
+  intact, word for word.
+- **V7** — a session answered "I did not do it" leaves the pending list; an unanswered
+  one stays; today's and undated ones never count; and the coach reads the same number,
+  from the same rule, with a source check that no screen rebuilds it.
+- **V8** — while reading, the screen says it is loading and the empty state's words appear
+  nowhere; read-and-empty shows them; read-and-failed says it could not be read, without
+  showing the reason, which talks about sockets.
+- **V9** — `dobles_de_sincronizacion_test.dart` asserts the mute transport's future is
+  still incomplete after five turns of the event loop, and that switching it to throw is
+  the control that makes the other locks stop proving anything. (8 cases)
+
+### What is left for the walk after feature 013
+
+By the coach's decision, C1 and C2 of feature 003 and C7 and C8 of feature 004 — tasks
+T071, T088 and T089 — are walked together **after feature 013**. This feature closes none
+of them. What it does leave:
+
+- **C2 step 5** — "restore the network and wait without touching anything" — is proven in
+  simulated time by `reintenta_mientras_quede_algo_test.dart` and
+  `un_envio_logrado_suelta_la_cola_test.dart`. What a phone adds is the part no test
+  reaches: a real radio, a real airplane mode, and a real walk out of a building.
+- **C1** was already repaired in feature 010's walk; the check itself is still owed.
+- **C7** — siblings on one phone — got slightly safer here, since the schedule stops in
+  `dispose()` rather than outliving a sign-out, but it is not verified.
 
 ## Dependencies & Execution Order
 

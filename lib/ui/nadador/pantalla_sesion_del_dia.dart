@@ -6,6 +6,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/dominio/lectura/lectura.dart';
 import 'package:natacion_app/dominio/calculo/sesion_del_dia.dart';
 import 'package:natacion_app/dominio/metodologia/estilos.dart';
 import 'package:natacion_app/dominio/entidades/sesion.dart';
@@ -63,12 +64,28 @@ class _Hoy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (estado.plan == null) {
-      return const EstadoVacio(
-        icono: Icons.event_busy_outlined,
-        titulo: 'Todavía no tienes un plan asignado',
-        queHacer: 'Cuando tu entrenador te asigne uno, aparecerá aquí.',
-      );
+    // **La misma frase vivía aquí y en `Mi progreso`**, y las dos la sacaban
+    // de un `plan == null` que significaba dos cosas. Arreglar una y dejar la
+    // otra es dejársela al siguiente recorrido (feature 011, D4).
+    switch (estado.progreso) {
+      case Cargando():
+        return const Center(child: CircularProgressIndicator());
+      case NoSePudo():
+        return const EstadoVacio(
+          icono: Icons.cloud_off_outlined,
+          titulo: 'No se pudo cargar tu plan',
+          queHacer:
+              'Vuelve a entrar en un momento. Lo que anotaste sigue '
+              'guardado en el teléfono.',
+        );
+      case NoHay():
+        return const EstadoVacio(
+          icono: Icons.event_busy_outlined,
+          titulo: 'Todavía no tienes un plan asignado',
+          queHacer: 'Cuando tu entrenador te asigne uno, aparecerá aquí.',
+        );
+      case Hay():
+        break;
     }
 
     return switch (estado.hoy) {

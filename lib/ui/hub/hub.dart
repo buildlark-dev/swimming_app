@@ -229,11 +229,20 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   /// publicado.
   Future<void> _abrirMiPerfil() async {
     final nadadorId = widget.cuenta?.nadadorId;
-    if (nadadorId == null) return;
+    // **Siempre hay que contestarle algo** (feature 011, D4). Si esto vuelve
+    // sin decir nada, su pantalla se queda en «todavía buscando» para
+    // siempre, que es cambiar una mentira por un giro infinito.
+    if (nadadorId == null) {
+      _nadador.noSePudoAbrir('esta cuenta no tiene un perfil de nadador');
+      return;
+    }
 
     try {
       final nadador = await _repos.nadadores.obtener(nadadorId);
-      if (nadador == null) return;
+      if (nadador == null) {
+        _nadador.noSePudoAbrir('no se encontró el perfil de esta cuenta');
+        return;
+      }
 
       final suyas = await _repos.asignaciones.deNadador(nadadorId);
 
@@ -271,10 +280,15 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       if (!mounted) return;
       _nadador.abrirComo(nadador, plan: plan, registros: registros);
       await _nadador.sincronizar();
-    } on FalloDeDatos {
+    } on FalloDeDatos catch (e) {
       // Sin red y sin caché, entra igual: su plan aparecerá cuando se pueda
       // leer. Dejarlo fuera de la app por un problema de lectura sería lo
       // contrario de lo que la feature 003 promete.
+      //
+      // **Pero se le dice que no se pudo**, en vez de dejarla mirando un
+      // estado vacío que afirma algo falso o un giro que no termina. No se
+      // sabe si tiene plan; eso es lo que la pantalla cuenta (D4).
+      if (mounted) _nadador.noSePudoAbrir('$e');
     }
   }
 

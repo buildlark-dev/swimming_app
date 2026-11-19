@@ -155,10 +155,10 @@ class RedDeMentira implements EstadoDeRed {
     return hayConexionAhora;
   }
 
-  /// Lo anotado por la bandeja, en orden. Feature 011, D1.
+  /// Lo anotado por la bandeja, en orden. No esta en la interfaz del dominio:
+  /// la bandeja lo recibe como un `alIntentar` (feature 011, D1).
   final anotados = <bool>[];
 
-  @override
   void anotarIntento({required bool llego}) {
     anotados.add(llego);
     if (hayConexionAhora != llego) {

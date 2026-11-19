@@ -14,6 +14,7 @@ import 'package:natacion_app/dominio/calculo/sesion_del_dia.dart';
 import 'package:natacion_app/datos/peticiones/peticiones_de_las_dos_partes.dart';
 import 'package:natacion_app/dominio/analisis/peticion_de_feedback.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
+import 'package:natacion_app/dominio/lectura/lectura.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/macrociclo/puede_marcarse.dart';
@@ -70,10 +71,39 @@ class EstadoNadador extends ChangeNotifier {
     return queTocaHoy(actual, _ahora());
   }
 
-  ProgresoDelNadador? get progreso {
+  /// En qué estado está la lectura de su plan.
+  ///
+  /// **«Todavía no sé» no es «no hay».** Esto era un `ProgresoDelNadador?`, y
+  /// el nulo significaba las dos cosas a la vez: que nadie había preguntado
+  /// todavía y que no había nada. La pantalla elegía el significado más
+  /// contundente de los dos y le decía a la nadadora, durante los veinte
+  /// segundos que su plan tarda en cargar sin conexión, que no tiene plan
+  /// asignado. Lo encontró el recorrido de la feature 010 y lo arregla la 011
+  /// (decisión D4).
+  Lectura<ProgresoDelNadador> get progreso {
+    if (_noSePudo != null) return NoSePudo(_noSePudo!);
+    if (!_yaSePregunto) return const Cargando();
+
     final actual = _plan;
-    if (actual == null) return null;
-    return ProgresoDelNadador(plan: actual, registros: _registros);
+    if (actual == null) return const NoHay();
+    return Hay(ProgresoDelNadador(plan: actual, registros: _registros));
+  }
+
+  /// Si alguien ya intentó abrirle su plan. Antes de eso no se sabe nada.
+  bool _yaSePregunto = false;
+
+  /// Por qué no se pudo leer, si no se pudo.
+  String? _noSePudo;
+
+  /// La lectura falló. Ni hay ni deja de haber: no se sabe.
+  ///
+  /// El motivo es **para la pantalla**, que lo redacta. Al nadador no se le
+  /// enseña tal cual: ni un error de red, ni un código, ni un contador de
+  /// intentos (FR-008).
+  void noSePudoAbrir(String motivo) {
+    _noSePudo = motivo;
+    _yaSePregunto = true;
+    notifyListeners();
   }
 
   /// El registro de una sesión, si el nadador ya respondió.
@@ -93,6 +123,10 @@ class EstadoNadador extends ChangeNotifier {
     _nadador = nadador;
     _plan = plan;
     _registros = registros ?? const [];
+    // Ya se preguntó: a partir de aquí, un plan nulo significa «no hay», y no
+    // «todavía no lo sé» (feature 011, D4).
+    _yaSePregunto = true;
+    _noSePudo = null;
     // **Las de quien estaba antes no se quedan.** El grupo son hermanos que
     // comparten teléfono, y una pregunta de ella colgando del perfil de él
     // sería lo mismo que la garantía A7 prohíbe al cerrar sesión.
