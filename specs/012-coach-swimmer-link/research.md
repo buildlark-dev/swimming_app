@@ -153,28 +153,40 @@ here.
 
 ---
 
-## D5 — The swimmers who already exist are linked once, by the server, before anything else
+## D5 — There is nobody to migrate, and that deletes a decision
 
-**Decision**: a one-time server step links every existing swimmer to the one existing
-coach's community, and it runs before the tightened rules are deployed.
+**Decision**: no migration, no deploy ordering, no one-time server step. The **seed**
+creates a community and puts the seeded swimmers in it, and that is the whole of it.
 
 **Rationale**:
 
-FR-027 says nobody loses her coach for a moment. The order is therefore: create the
-community, link everyone to it, **then** tighten the rules. The reverse order has a window
-in which the coach can see none of his swimmers, and that window is a deploy long.
+This decision used to say the opposite. It specified a one-time server step that linked
+every existing swimmer to the one existing coach's community, running **before** the
+tightened rules went out, because the reverse order leaves a window — a deploy long — in
+which the coach can see none of his swimmers.
 
-The link is a statement of fact rather than a guess: today a swimmer only exists because
-the coach created her profile himself, from his own screen. There is no one else she could
-belong to.
+All of that rested on an assumption that was never checked: that the swimmers in the
+product belong to somebody. **They do not.** The coach said so plainly — *«todavía no
+existe nadie a quien vincular»* — and the profiles that exist are his own test data.
+
+So the migration disappears, the deploy ordering disappears, and with them a class of
+risk that was about to become a task, a requirement and a success criterion. What is left
+is much smaller and lives somewhere else entirely: `sembrar-emulador.js` has to create a
+community and put the seeded swimmers in it, or the walk exercises a product that nobody
+belongs to.
+
+**It is worth keeping the deleted reasoning visible**, because the day there *are*
+swimmers with a coach — which is the point of the feature — the ordering argument comes
+back exactly as it was written: link first, tighten second.
 
 **Alternatives considered**:
 
-- **Lazily, on first read.** Rejected: it makes the first read after deploy do a write, it
-  needs the client to be trusted with that write, and it fails for exactly the swimmers
-  nobody opens.
-- **By hand, in the console.** Rejected: it is not repeatable, and the emulators need the
-  same thing to happen for the walk to mean anything.
+- **Write the migration anyway, defensively.** Rejected: code for a population that does
+  not exist cannot be tested against that population, so it would ship unproven and be
+  trusted later for precisely the case nobody checked.
+- **Leave the old plan in place and let it find nothing.** Rejected for the same reason,
+  plus it would leave a deploy ordering requirement that no longer protects anything, and
+  requirements that protect nothing get dropped at the worst moment.
 
 ---
 

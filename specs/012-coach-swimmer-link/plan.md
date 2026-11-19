@@ -55,8 +55,10 @@ tens of swimmers, not thousands. Where a single query becomes several, the numbe
 stated
 
 **Constraints**: a minor's data may only be read by the coach she belongs to, and the
-consent gate of feature 004 is unchanged and composed with this, not replaced. No swimmer
-who exists today may lose her coach for a moment (FR-027)
+consent gate of feature 004 is unchanged and composed with this, not replaced. A swimmer
+with no community is nobody's, and must not be stranded by that (FR-027). **There is no
+population to migrate** — the coach confirmed it — which removes a migration and a deploy
+ordering that an earlier draft of this plan carried; see research D5
 
 **Scale/Scope**: five queries rewritten, two collections added, one field added, one
 server function added, and the rules of six collections tightened

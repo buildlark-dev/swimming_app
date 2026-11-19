@@ -47,16 +47,18 @@ barely moves, the boundary is not being tested.
 
 ---
 
-## V0 — The order of the deploy, rehearsed
+## V0 — The seed builds a product somebody belongs to
 
-Before anything else, because getting it wrong costs a window in which the coach sees
-none of his swimmers (FR-027).
+**There is no migration to rehearse.** The coach confirmed there is nobody to link, so
+nothing has to happen in a particular order at deploy time. What is left is the seed.
 
-1. Create the community and link every existing swimmer to it.
-2. **Then** deploy the tightened rules.
-3. Confirm, between the two, that the coach still sees everyone.
+1. Confirm `sembrar-emulador.js` creates a community for the seeded coach.
+2. Confirm the seeded swimmers are in it, and that at least one is **not**, so every
+   "he cannot see her" check below has something real to fail against.
+3. Confirm a second coach exists with his own community.
 
-**Fails if** there is any moment where a swimmer who existed before has no coach.
+**Fails if** everybody in the seed belongs to everybody, because then V5 passes without
+proving anything.
 
 ---
 

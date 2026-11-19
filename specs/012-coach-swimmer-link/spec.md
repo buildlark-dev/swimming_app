@@ -191,8 +191,10 @@ reading her, while her own history on her own device is untouched.
 - **The swimmer whose profile the coach created himself.** She belongs to him from the
   moment he created her — there is nobody else she could belong to, and no request makes
   sense for a profile that only he can see.
-- **Everybody who already exists.** Every swimmer in the product today was created by the
-  one coach there is. They belong to him, and nothing about their day changes.
+- **Everybody who already exists — which is nobody.** There is no swimmer in the product
+  with a coach to be kept, confirmed by the coach himself. The profiles that exist are
+  test data of his own. So this feature has **no population to migrate**, and the only
+  place anybody needs linking is the seed that the walk runs on.
 - **A minor leaves.** Her guardian consented to her data being kept and used; the coach
   reading it was part of that. Ending the membership ends the reading and does not touch
   the consent, which is about her data and not about him.
@@ -275,8 +277,11 @@ reading her, while her own history on her own device is untouched.
 
 **What this may not break**
 
-- **FR-027**: Every swimmer who exists when this feature ships MUST keep working exactly
-  as before, with no gap in which her coach cannot see her.
+- **FR-027**: A swimmer who already has a profile but no community MUST NOT be stranded:
+  she keeps her account, her history and her own screens, and she can ask to join. She is
+  simply nobody's until somebody accepts her. **There is no population to migrate** — the
+  coach has confirmed there is nobody to link — so this requirement is about the shape
+  the product has from now on, not about a one-time rescue.
 - **FR-028**: A minor's guardian MUST be told which community is involved when their
   consent is requested, when there is one to name.
 - **FR-029**: Nothing here weakens the consent gate of feature 004. Consent governs
@@ -307,8 +312,8 @@ reading her, while her own history on her own device is untouched.
   anything to fetch it, in the place he already looks.
 - **SC-004**: A swimmer waiting to be accepted can sign in and move through the app, and
   **every screen that would otherwise be empty tells her why**.
-- **SC-005**: 100% of the swimmers who exist before this feature keep working after it,
-  with their coach able to see them throughout.
+- **SC-005**: A swimmer with a profile and no community can sign in, see her own history
+  and ask to join — **zero** screens that strand her or claim something false.
 - **SC-006**: Ending a membership stops the coach reading her **immediately**, and leaves
   100% of what she wrote intact.
 - **SC-007**: The negative control of the rules suite is re-run and its numbers recorded.
@@ -319,9 +324,13 @@ reading her, while her own history on her own device is untouched.
 - **One community per swimmer, one coach per community.** The constitution describes a
   community led by *a* coach, singular. Several coaches sharing a group, or a swimmer in
   two groups, is a bigger product than this and nothing today needs it.
-- **Every swimmer who exists today belongs to the one coach who exists today**, because
-  he created every one of their profiles himself from his own screen. Linking them is a
-  statement of fact, not a guess, and FR-027 requires it to be invisible to everyone.
+- **There is nobody to link.** The coach confirmed it: no swimmer in the product has a
+  coach that this feature would have to preserve, and the profiles that exist are his own
+  test data. That removes a migration, a deploy ordering and a whole class of risk from
+  this feature — and it is worth writing down, because the opposite was assumed until he
+  said so, and the assumption had already grown a requirement and a success criterion.
+  What remains is that the **seed** creates a community and puts the seeded swimmers in
+  it, so the walk exercises a product that has one.
 - **Discovery is by name, offered, not searched.** With one community there is nothing to
   search. A list or a search becomes necessary the day there are many, and inventing it
   now would be inventing a product nobody has asked for.
