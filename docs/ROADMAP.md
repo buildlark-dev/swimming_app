@@ -21,8 +21,8 @@ was lost. A roadmap that lives in a chat is not a roadmap.
 | **008** The swimmer's request | A checklist that becomes a draft, the draft reaches the coach's queue, and nothing leaves without his signature | Merged |
 | **009** Ver Plan and progression | The macrocycle, confirmed once and delivered whole; the swimmer annotates it as they go, and a readjustment versions what changed | Merged |
 | **010** Análisis | The detailed journey, and asking the coach for feedback | Merged |
-| **011** Repairs to the swimmer's journey | The send that retries by itself, and the four defects the walks recorded | Next |
-| **012** The coach → swimmer relation | Each coach reads only his own swimmers, which is the door into the community area | Planned |
+| **011** Repairs to the swimmer's journey | The send that retries by itself, and the four defects the walks recorded | Merged |
+| **012** The coach → swimmer relation | Each coach reads only his own swimmers, which is the door into the community area | Next |
 | **013** Video | Uploading, watching and retention, on the consent scope modelled since 004 | Planned |
 
 ## What each of the later ones is waiting on
