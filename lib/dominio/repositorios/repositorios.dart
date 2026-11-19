@@ -6,6 +6,8 @@
 /// resultados del dominio, no como excepciones de la librería de datos.
 library;
 
+import 'package:natacion_app/dominio/comunidad/comunidad.dart';
+import 'package:natacion_app/dominio/comunidad/solicitud_de_ingreso.dart';
 import 'package:natacion_app/dominio/analisis/peticion_de_feedback.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
 import 'package:natacion_app/dominio/cuentas/cuenta.dart';
@@ -361,4 +363,45 @@ abstract class RepositorioPeticiones {
 
   /// El entrenador la abre: pasa a `enRevision`. Lo mueve él y nadie más.
   Future<void> marcarEnRevision(String nadadorId);
+}
+
+/// Las comunidades: el letrero que una nadadora ve antes de pertenecer a nada.
+///
+/// Contrato: `specs/012-coach-swimmer-link/contracts/la-frontera.md`.
+abstract class RepositorioComunidades {
+  /// La de este entrenador, si ya la nombró. Nula si todavía no.
+  Future<Comunidad?> deEntrenador(String entrenadorId);
+
+  /// Una por su identificador, para cuando solo se tiene ese.
+  Future<Comunidad?> obtener(String comunidadId);
+
+  /// Las que se le pueden ofrecer a quien está creando su cuenta.
+  ///
+  /// **Vacía es una respuesta**, y la pantalla la dice en vez de ofrecer una
+  /// lista en blanco (FR-006).
+  Future<List<Comunidad>> lasQueSePuedenOfrecer();
+
+  /// La crea o le cambia el nombre. Solo su entrenador.
+  Future<void> guardar(Comunidad comunidad);
+}
+
+/// Las solicitudes de ingreso.
+///
+/// **Resolverlas no está aquí.** Aceptar escribe además la pertenencia, y las
+/// dos cosas tienen que pasar juntas o ninguna, así que eso es un acto del
+/// servidor y no de un cliente en un teléfono (research D4).
+abstract class RepositorioSolicitudes {
+  /// La de esta nadadora, si tiene alguna sin resolver. Nula si no.
+  Future<SolicitudDeIngreso?> laMia(String nadadorId);
+
+  /// Las que esperan en esta comunidad. **Consulta filtrada por comunidad**:
+  /// una consulta se demuestra por sus filtros, no documento a documento.
+  Future<List<SolicitudDeIngreso>> lasQueEsperanEn(String comunidadId);
+
+  /// Pide entrar. Si ya había una esperando en otro sitio, aquella se retira:
+  /// una nadadora tiene como mucho una esperando (FR-008).
+  Future<void> pedir(SolicitudDeIngreso solicitud);
+
+  /// Ella se arrepiente, antes de que contesten.
+  Future<void> retirar(String nadadorId, String comunidadId);
 }

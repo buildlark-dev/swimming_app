@@ -36,18 +36,18 @@ Flutter app at the repository root. Domain in `lib/dominio/` (pure Dart), data i
 
 ## Phase 1: Setup
 
-- [ ] T001 Record the baseline in `specs/012-coach-swimmer-link/tasks.md` beside this line: run the four gates on `012-coach-swimmer-link` before any change — `flutter analyze`, `flutter test`, `npm --prefix firebase test`, `npm --prefix firebase/functions test`. The rules number is the one that matters this time: a boundary feature whose rules suite barely grows is a boundary that is not being tested
+- [X] T001 Record the baseline in `specs/012-coach-swimmer-link/tasks.md` beside this line: run the four gates on `012-coach-swimmer-link` before any change — `flutter analyze`, `flutter test`, `npm --prefix firebase test`, `npm --prefix firebase/functions test`. The rules number is the one that matters this time: a boundary feature whose rules suite barely grows is a boundary that is not being tested
 
 **Before, 2026-11-19:**
 
 | Gate | Result |
 |---|---|
-| `flutter analyze` | _to fill_ |
-| `flutter test` | _to fill_ |
-| `npm --prefix firebase test` | _to fill_ |
-| `npm --prefix firebase/functions test` | _to fill_ |
+| `flutter analyze` | No issues |
+| `flutter test` | 2202 passed, 0 failed |
+| `npm --prefix firebase test` | 174 passed, 0 failed |
+| `npm --prefix firebase/functions test` | 45 passed, 0 failed |
 
-- [ ] T002 Build a seed that this feature can be proven against, in `firebase/functions/tools/sembrar-emulador.js`: a community for the seeded coach with the seeded swimmers in it, **a second coach with his own community and his own swimmer**, and **one swimmer who belongs to nobody**. Without the second coach every "he cannot see her" check passes for the wrong reason, and without the unlinked swimmer there is nothing to test the waiting and stranded states against (quickstart V0)
+- [X] T002 Build a seed that this feature can be proven against, in `firebase/functions/tools/sembrar-emulador.js`: a community for the seeded coach with the seeded swimmers in it, **a second coach with his own community and his own swimmer**, and **one swimmer who belongs to nobody**. Without the second coach every "he cannot see her" check passes for the wrong reason, and without the unlinked swimmer there is nothing to test the waiting and stranded states against (quickstart V0)
 
 ---
 
@@ -56,12 +56,12 @@ Flutter app at the repository root. Domain in `lib/dominio/` (pure Dart), data i
 **Purpose**: the three domain types every story speaks in, and the interfaces that let
 the data layer be doubled. Pure Dart, no Firebase.
 
-- [ ] T003 [P] Create `Comunidad` in `lib/dominio/comunidad/comunidad.dart`: an id, an `entrenadorId` and a `nombre`. The constructor **refuses** a blank name and one over 60 characters, the way every entity in this project refuses what it cannot represent
-- [ ] T004 [P] Lock `Comunidad` in `test/dominio/comunidad/comunidad_test.dart`: the two refusals, and that `entrenadorId` cannot be changed on a copy — a community that can change hands is a different product (data-model.md)
-- [ ] T005 [P] Create `Membresia` in `lib/dominio/comunidad/membresia.dart`: which swimmer, which community, since when. A value and not a document — it is what `comunidadId` and `miembroDesde` mean together
-- [ ] T006 [P] Create `SolicitudDeIngreso` in `lib/dominio/comunidad/solicitud_de_ingreso.dart` with the four states `esperando`, `aceptada`, `rechazada`, `retirada`, and the transitions each side may make
-- [ ] T007 [P] Lock the transitions in `test/dominio/comunidad/solicitud_de_ingreso_test.dart`: a swimmer's copy may go to `retirada` and **nowhere else** — `aceptada` is a word that belongs to the coach, and the type refuses it rather than trusting a screen to
-- [ ] T008 Add the three repository interfaces to `lib/dominio/repositorios/repositorios.dart`: communities, join requests, and whatever the membership needs. Interfaces only; no Firestore anywhere near them
+- [X] T003 [P] Create `Comunidad` in `lib/dominio/comunidad/comunidad.dart`: an id, an `entrenadorId` and a `nombre`. The constructor **refuses** a blank name and one over 60 characters, the way every entity in this project refuses what it cannot represent
+- [X] T004 [P] Lock `Comunidad` in `test/dominio/comunidad/comunidad_test.dart`: the two refusals, and that `entrenadorId` cannot be changed on a copy — a community that can change hands is a different product (data-model.md)
+- [X] T005 [P] Create `Membresia` in `lib/dominio/comunidad/membresia.dart`: which swimmer, which community, since when. A value and not a document — it is what `comunidadId` and `miembroDesde` mean together
+- [X] T006 [P] Create `SolicitudDeIngreso` in `lib/dominio/comunidad/solicitud_de_ingreso.dart` with the four states `esperando`, `aceptada`, `rechazada`, `retirada`, and the transitions each side may make
+- [X] T007 [P] Lock the transitions in `test/dominio/comunidad/solicitud_de_ingreso_test.dart`: a swimmer's copy may go to `retirada` and **nowhere else** — `aceptada` is a word that belongs to the coach, and the type refuses it rather than trusting a screen to
+- [X] T008 Add the three repository interfaces to `lib/dominio/repositorios/repositorios.dart`: communities, join requests, and whatever the membership needs. Interfaces only; no Firestore anywhere near them
 
 **Checkpoint**: the vocabulary exists and is proven. Stories can start.
 
