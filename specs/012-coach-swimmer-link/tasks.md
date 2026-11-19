@@ -67,6 +67,13 @@ the data layer be doubled. Pure Dart, no Firebase.
 
 ---
 
+
+**Control negativo de `reglas_comunidad.test.js`, 2026-11-19** (T012): apuntada a
+`comunidades_sin_regla` y `solicitudes_sin_regla`, **8 de las 22 pruebas nuevas pasan
+igual** y las 14 que caen son las que afirman un éxito o dependen de leer datos reales.
+Es la misma proporción que la feature 008 midió y la 010 repitió: contra una colección
+sin reglas, toda negación pasa gratis. Las ocho que sobreviven son `assertFails` y no
+prueban nada por sí solas — están por su contraparte positiva, no al revés.
 ## Phase 3: User Story 1 — The coach names what is his (Priority: P1) 🎯 MVP
 
 **Goal**: he sets a name in his settings, and that is what a swimmer will be offered.
@@ -76,17 +83,17 @@ would show. Nothing else in the feature has to exist.
 
 ### Locks for User Story 1 ⚠️ write first, see red
 
-- [ ] T009 [P] [US1] Lock the rules of `comunidades` in `firebase/test/reglas_comunidad.test.js`: its coach writes it; **any signed-in account reads it**, because a swimmer must see the name before she is anyone's (research D3); nobody else writes it; and `entrenadorId` cannot be changed after creation
-- [ ] T010 [P] [US1] Lock that one coach has one community in `firebase/test/reglas_comunidad.test.js`: the document id **is** the coach's account id, so "one" is a fact of the key and not a rule somebody has to remember
-- [ ] T011 [P] [US1] Lock the screen in `test/ui/ajustes/mi_comunidad_test.dart`: the coach finds where to name it among what is already in settings, a blank name is refused with words he can act on, and a swimmer never sees this control
-- [ ] T012 [US1] Run the negative control for T009–T011 and record it in `specs/012-coach-swimmer-link/tasks.md`: point the rules suite at a collection with no rule and write down how many pass anyway
+- [X] T009 [P] [US1] Lock the rules of `comunidades` in `firebase/test/reglas_comunidad.test.js`: its coach writes it; **any signed-in account reads it**, because a swimmer must see the name before she is anyone's (research D3); nobody else writes it; and `entrenadorId` cannot be changed after creation
+- [X] T010 [P] [US1] Lock that one coach has one community in `firebase/test/reglas_comunidad.test.js`: the document id **is** the coach's account id, so "one" is a fact of the key and not a rule somebody has to remember
+- [X] T011 [P] [US1] Lock the screen in `test/ui/ajustes/mi_comunidad_test.dart`: the coach finds where to name it among what is already in settings, a blank name is refused with words he can act on, and a swimmer never sees this control
+- [X] T012 [US1] Run the negative control for T009–T011 and record it in `specs/012-coach-swimmer-link/tasks.md`: point the rules suite at a collection with no rule and write down how many pass anyway
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Add the `comunidades` rules to `firebase/firestore.rules` per [contracts/la-frontera.md](./contracts/la-frontera.md)
-- [ ] T014 [P] [US1] Create `lib/datos/firestore/comunidades_firestore.dart`: read one, read by coach, create and rename
-- [ ] T015 [US1] Create the settings section in `lib/ui/ajustes/mi_comunidad.dart` and wire it into `lib/ui/ajustes/pantalla_ajustes.dart`, beside apariencia, mis datos, mis derechos, lo que acepté and supresión
-- [ ] T016 [US1] Make renaming change nothing else (FR-003), and add the case to `test/ui/ajustes/mi_comunidad_test.dart`: a rename with a membership and a waiting request in place moves neither
+- [X] T013 [US1] Add the `comunidades` rules to `firebase/firestore.rules` per [contracts/la-frontera.md](./contracts/la-frontera.md)
+- [X] T014 [P] [US1] Create `lib/datos/firestore/comunidades_firestore.dart`: read one, read by coach, create and rename
+- [X] T015 [US1] Create the settings section in `lib/ui/ajustes/mi_comunidad.dart` and wire it into `lib/ui/ajustes/pantalla_ajustes.dart`, beside apariencia, mis datos, mis derechos, lo que acepté and supresión
+- [X] T016 [US1] Make renaming change nothing else (FR-003), and add the case to `test/ui/ajustes/mi_comunidad_test.dart`: a rename with a membership and a waiting request in place moves neither
 
 **Checkpoint**: US1 is demonstrable on its own — a named community, nothing else needed.
 

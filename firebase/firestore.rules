@@ -522,6 +522,105 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // --- La comunidad y como se entra en ella (feature 012) -------------
+
+    // **El letrero, no la lista.** Cualquiera que haya entrado lee el nombre
+    // de una comunidad, porque una nadadora tiene que verlo **antes** de
+    // pertenecer a nada: si hiciera falta pertenecer para leerlo, no habria
+    // manera de empezar (research D3).
+    //
+    // Lo que se expone es un nombre que el entrenador eligio para que lo vean
+    // quienes todavia no son sus nadadores. Quien esta dentro no se guarda
+    // aqui, asi que leer el letrero no cuenta a nadie.
+    match /comunidades/{comunidadId} {
+      allow read: if autenticado();
+
+      // El identificador **es** el del entrenador: asi «una comunidad por
+      // entrenador» es un hecho de la clave y no una regla que haya que
+      // recordar.
+      allow create: if esEntrenador()
+                    && comunidadId == request.auth.uid
+                    && request.resource.data.entrenadorId == request.auth.uid;
+
+      // Renombrar, y nada mas. **`entrenadorId` no se toca**: una comunidad
+      // que pudiera cambiar de manos es otro producto, y uno con preguntas
+      // que este no se ha hecho.
+      allow update: if esEntrenador()
+                    && comunidadId == request.auth.uid
+                    && resource.data.entrenadorId == request.auth.uid
+                    && request.resource.data.entrenadorId
+                       == resource.data.entrenadorId;
+
+      allow delete: if false;
+    }
+
+    // La comunidad a la que pertenece una nadadora, si pertenece a alguna.
+    // **Se lee de su ficha y de ningun otro sitio** (research D1): terminar
+    // una pertenencia tiene que cortar la lectura de inmediato, y una copia
+    // es algo que todavia puede dar la respuesta vieja.
+    function comunidadDe(nadadorId) {
+      return get(/databases/$(database)/documents/nadadores/$(nadadorId))
+        .data.get('comunidadId', '');
+    }
+
+    // La del entrenador que pregunta: la suya es la que lleva su propio
+    // identificador, por lo mismo de arriba.
+    function miComunidad() {
+      return esEntrenador() ? request.auth.uid : '';
+    }
+
+    function esDeMiComunidad(nadadorId) {
+      return esEntrenador()
+          && exists(/databases/$(database)/documents/nadadores/$(nadadorId))
+          && comunidadDe(nadadorId) == miComunidad()
+          && comunidadDe(nadadorId) != '';
+    }
+
+    // --- Las solicitudes de ingreso -------------------------------------
+
+    match /solicitudesDeIngreso/{solicitudId} {
+      function esMia() {
+        return soyEseNadador(resource.data.nadadorId);
+      }
+
+      function laPidoYo() {
+        return soyEseNadador(request.resource.data.nadadorId);
+      }
+
+      // Ella lee la suya; el entrenador lee las de su comunidad.
+      //
+      // **Y la consulta del entrenador va filtrada por `comunidadId`.** Es la
+      // unica forma en que se puede demostrar: las reglas no filtran, asi que
+      // o la consulta se demuestra entera por sus filtros o se rechaza entera.
+      allow read: if esMia()
+                  || (esEntrenador()
+                      && resource.data.comunidadId == miComunidad());
+
+      // El identificador es determinista y tiene que concordar con lo que
+      // lleva dentro: pedir dos veces es pedir lo mismo.
+      allow create: if laPidoYo()
+                    && solicitudId == request.resource.data.nadadorId
+                                      + '|'
+                                      + request.resource.data.comunidadId
+                    && request.resource.data.estado == 'esperando'
+                    && exists(/databases/$(database)/documents/comunidades/$(request.resource.data.comunidadId));
+
+      // **Lo unico que ella puede hacerle.** «aceptada» es una palabra del
+      // entrenador, y aceptar escribe ademas la pertenencia, asi que eso es un
+      // acto del servidor y no de un cliente (research D4).
+      allow update: if esMia()
+                    && resource.data.estado == 'esperando'
+                    && request.resource.data.estado == 'retirada'
+                    && request.resource.data.nadadorId
+                       == resource.data.nadadorId
+                    && request.resource.data.comunidadId
+                       == resource.data.comunidadId;
+
+      // Retirarla la deja en `retirada`, que es un dato. Borrarla seria
+      // quitar la constancia de que alguien pidio entrar.
+      allow delete: if false;
+    }
+
     // --- Propuestas de ejercicio y glosario -----------------------------
 
     match /propuestasEjercicio/{propuestaId} {

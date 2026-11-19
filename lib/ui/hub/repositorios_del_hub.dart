@@ -10,6 +10,7 @@
 ///    registros, así que el recorrido del nadador no se podía comprobar.
 library;
 
+import 'package:natacion_app/datos/firestore/comunidades_firestore.dart';
 import 'package:natacion_app/datos/firestore/consentimientos.dart';
 import 'package:natacion_app/datos/registros_de_las_dos_partes.dart';
 import 'package:natacion_app/datos/firestore/macrociclos_firestore.dart';
@@ -37,6 +38,7 @@ class RepositoriosDelHub {
     this.registrosDelServidor,
     this.peticiones,
     this.peticionesDeFeedback,
+    this.comunidades,
   });
 
   /// Los de verdad: con servidor persisten; sin él, no.
@@ -91,6 +93,7 @@ class RepositoriosDelHub {
               local: PeticionesFeedbackLocales(almacen),
               servidor: PeticionesFeedbackFirestore(db),
             ),
+      comunidades: db == null ? null : RepositorioComunidadesFirestore(db),
       peticiones: db == null
           ? null
           : PeticionesConPuerta(
@@ -130,6 +133,10 @@ class RepositoriosDelHub {
   /// Nulo sin servidor: no hay a quién pedirle nada ni dónde guardarlo, y la
   /// pantalla calla en lugar de ofrecer un botón que no termina lo que empieza.
   final RepositorioPeticionesDeFeedback? peticionesDeFeedback;
+
+  /// Donde el entrenador nombra lo suyo, y de donde sale el letrero que una
+  /// nadadora ve al darse de alta (feature 012). Nulo sin servidor.
+  final RepositorioComunidades? comunidades;
 
   /// Si lo que mandó un nadador sigue retenido en el dispositivo.
   Future<bool> estaRetenida(String nadadorId) async {

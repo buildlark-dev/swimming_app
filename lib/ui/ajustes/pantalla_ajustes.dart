@@ -11,6 +11,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/ajustes/mi_comunidad.dart';
 import 'package:natacion_app/datos/perfil/repositorio_perfil.dart';
 import 'package:natacion_app/datos/preferencias/apariencia.dart';
 import 'package:natacion_app/datos/servidor/operaciones.dart';
@@ -40,6 +41,7 @@ class PantallaAjustes extends StatefulWidget {
     this.derechos,
     this.alElegirApariencia,
     this.conmutadorDeRecorrido,
+    this.comunidades,
   });
 
   /// De quién es esta pantalla. Nunca de otra persona.
@@ -62,6 +64,12 @@ class PantallaAjustes extends StatefulWidget {
   /// Solo en modo local: sin rol que consultar, el recorrido se elige a
   /// propósito (decisión D13).
   final Widget? conmutadorDeRecorrido;
+
+  /// Donde el entrenador le pone nombre a lo suyo (feature 012, US1).
+  ///
+  /// Nulo sin servidor: entonces la sección no se pinta, porque no hay dónde
+  /// guardarlo.
+  final RepositorioComunidades? comunidades;
 
   @override
   State<PantallaAjustes> createState() => _PantallaAjustesState();
@@ -175,6 +183,16 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
           ),
           const SizedBox(height: Espaciado.amplio),
           LoQueAcepte(perfil: perfil, constancia: _constancia),
+          const SizedBox(height: Espaciado.amplio),
+        ],
+        // **Solo el entrenador.** Una nadadora no tiene comunidad que nombrar,
+        // y que su `nadadorId` sea nulo es justo lo que distingue la cuenta de
+        // él de la de ella en esta pantalla.
+        if (widget.nadadorId == null) ...[
+          MiComunidad(
+            entrenadorId: widget.uid,
+            comunidades: widget.comunidades,
+          ),
           const SizedBox(height: Espaciado.amplio),
         ],
         MisDerechos(derechos: widget.derechos, nadadorId: widget.nadadorId),

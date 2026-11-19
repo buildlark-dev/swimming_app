@@ -77,6 +77,7 @@ class ContextoDelHub {
     this.registrosDelEntrenador,
     this.macrociclosDelEntrenador,
     this.peticionesDeFeedback,
+    this.comunidades,
     this.asignacionesDelEntrenador,
     required this.hoy,
     this.alMirar,
@@ -180,6 +181,9 @@ class ContextoDelHub {
   /// Lo que los nadadores preguntan sobre una sesión (feature 010, US4).
   /// Nulo sin servidor.
   final RepositorioPeticionesDeFeedback? peticionesDeFeedback;
+
+  /// Donde el entrenador nombra lo suyo (feature 012). Nulo sin servidor.
+  final RepositorioComunidades? comunidades;
 
   /// A quién se le entregó cada plan, para leer a un nadador que tiene un
   /// plan suelto y ningún macrociclo (hallazgo del recorrido de la 010).
@@ -339,6 +343,7 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
       derechos: ctx.derechos,
       alElegirApariencia: ctx.alElegirApariencia,
       conmutadorDeRecorrido: ctx.conmutadorDeRecorrido,
+      comunidades: ctx.comunidades,
     ),
   };
 }

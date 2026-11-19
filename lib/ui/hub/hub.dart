@@ -632,6 +632,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       macrociclosDelEntrenador: _repos.macrociclos,
       // Lo que los nadadores le preguntaron sobre una sesión (US4).
       peticionesDeFeedback: _repos.peticionesDeFeedback,
+      comunidades: _repos.comunidades,
       asignacionesDelEntrenador: _repos.asignaciones,
       hoy: widget.hoyParaPruebas ?? DateTime.now(),
       selectorDePerfil: _selector,
