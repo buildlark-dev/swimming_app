@@ -190,15 +190,42 @@ void main() {
     });
   });
 
-  group('sin red, la puerta ni se consulta', () {
-    test('no hay a quién preguntar y tampoco hay a dónde enviar', () async {
+  group('la puerta se consulta antes de cada intento', () {
+    // **Esta prueba decía otra cosa hasta la feature 011.** Decía «sin red, la
+    // puerta ni se consulta», y fijaba un atajo: había una puerta de red
+    // delante de todo, y sin red no se llegaba ni a preguntar por el
+    // consentimiento.
+    //
+    // Esa puerta de red se quitó (feature 011, D1): con el intento como
+    // sondeo, preguntar antes es lo que impedía enterarse. Y entonces lo que
+    // hay que fijar aquí es lo contrario, y es más importante: **ahora que se
+    // intenta siempre, el consentimiento se comprueba siempre**, antes de
+    // cada salida, y no se cuela un dato de una menor por el hueco que dejó
+    // un atajo de conectividad (principio V).
+    test('aunque no haya red, el consentimiento se comprueba igual', () async {
       final taller = _Taller(puertaAbierta: true, hayRed: false);
       await taller.sincronizador.guardar(registro());
 
-      final resultado = await taller.sincronizador.sincronizar();
+      await taller.sincronizador.sincronizar();
 
-      expect(resultado.sinRed, isTrue);
-      expect(taller.puerta.consultas, 0);
+      expect(
+        taller.puerta.consultas,
+        greaterThan(0),
+        reason:
+            'lo que sale del teléfono pasa por la puerta, haya red o no la '
+            'haya. El atajo de antes dependía de una puerta de red que ya no '
+            'existe, y un atajo delante del consentimiento es el peor sitio '
+            'posible para un atajo',
+      );
+    });
+
+    test('y si está cerrada, no sale nada', () async {
+      final taller = _Taller(puertaAbierta: false, hayRed: false);
+      await taller.sincronizador.guardar(registro());
+
+      await taller.sincronizador.sincronizar();
+
+      expect(taller.transporte.enviados, isEmpty);
     });
   });
 }

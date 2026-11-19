@@ -56,13 +56,42 @@ class EnvioPendiente {
 
   /// Cuánto hay que esperar antes del siguiente intento.
   ///
-  /// Crece con los intentos y se detiene en cinco minutos. **No se reintenta en
-  /// bucle apretado**: el teléfono tiene batería limitada y es de alguien que
+  /// Crece con los intentos y **se detiene en un minuto**. No se reintenta en
+  /// bucle apretado: el teléfono tiene batería limitada y es de alguien que
   /// está nadando.
+  ///
+  /// ## El techo bajó de cinco minutos a uno (feature 011, decisión D2)
+  ///
+  /// La razón de aquel techo sigue siendo buena, y es la de arriba. Lo que
+  /// cambió es que **ahora hay algo que reintenta solo**: cuando se escribió,
+  /// nada despertaba a la bandeja, así que el techo solo decía cada cuánto
+  /// podía intentarlo quien ya estuviera mirando.
+  ///
+  /// Con el despertar en marcha, cinco minutos son cinco minutos **después de
+  /// que vuelva la red** en los que el registro sigue sin salir, con todo el
+  /// mecanismo puesto y la promesa igual de rota. SC-001 dice un minuto, y un
+  /// intento por minuto sigue sin ser el bucle apretado que esto evita.
+  /// ## Y el tope se comprueba **antes** de desplazar
+  ///
+  /// `1 << (intentos - 1)` desborda. `1 << 63` cabe en un entero de Dart;
+  /// `1 << 64` vuelve a **cero**, y una espera de cero segundos es justo el
+  /// bucle apretado que esto existe para evitar: la bandeja se despierta, no
+  /// espera nada, se vuelve a despertar.
+  ///
+  /// No es teórico y no se encontró razonando: lo encontró esta misma feature
+  /// al dejar que algo reintentara solo. Una nadadora sin señal unas horas
+  /// pasa de sesenta intentos sin despeinarse. Antes de la 011 nadie
+  /// reintentaba tantas veces porque nadie reintentaba sin que ella abriera la
+  /// app, así que el desbordamiento estaba ahí, inalcanzable, desde la 003.
   Duration get esperaHastaElSiguiente {
     if (intentos <= 0) return Duration.zero;
-    final segundos = 1 << (intentos - 1); // 1, 2, 4, 8, 16...
-    const techoEnSegundos = 300;
+
+    const techoEnSegundos = 60;
+    // 1 << 6 son 64, que ya pasa del techo: de ahí en adelante no hace falta
+    // desplazar nada, y desplazar es lo que rompe.
+    if (intentos > 6) return const Duration(seconds: techoEnSegundos);
+
+    final segundos = 1 << (intentos - 1); // 1, 2, 4, 8, 16, 32
     return Duration(
       seconds: segundos > techoEnSegundos ? techoEnSegundos : segundos,
     );

@@ -150,12 +150,19 @@ void main() {
       expect(p.pendientes.map((s) => s.id), ['s2', 's3', 's4']);
     });
 
-    test('una sesión respondida con «no la hice» sigue pendiente', () {
-      // El nadador dijo lo que pasó. Lo que pasó es que no la hizo, y eso es
-      // justo lo que el reajuste necesita leer.
+    test('una sesión respondida con «no la hice» ya no está pendiente', () {
+      // **Invertida en la feature 011.** El nadador dijo lo que pasó, y eso es
+      // justo lo que el reajuste necesita leer — pero leerlo es asunto de
+      // `dijoQueNo`, que sigue conteniéndola. Lo que no puede es seguir en la
+      // lista de lo que le falta por contestar, porque ya contestó.
       final p = progreso(registros: [registro('s2', realizada: false)]);
 
-      expect(p.pendientes.map((s) => s.id), contains('s2'));
+      expect(p.pendientes.map((s) => s.id), isNot(contains('s2')));
+      expect(
+        p.dijoQueNo,
+        contains('s2'),
+        reason: 'el dato no se pierde: cambia de lista, que es lo correcto',
+      );
     });
 
     test('la de hoy no cuenta como pendiente: el día no ha acabado', () {
@@ -252,12 +259,23 @@ void main() {
       expect(p.sinContestar, isNot(contains('s7')));
     });
 
-    test('una sesión respondida con «no» sigue contando como pendiente', () {
-      // Lo pendiente y lo no contestado no son lo mismo: pendiente es «no
-      // está hecha», y eso incluye la que el nadador dijo que no hizo.
+    test('una sesión respondida con «no» deja de contar como pendiente', () {
+      // **Esta prueba decía lo contrario, y fijaba el defecto.** Decía que
+      // «pendiente es "no está hecha", y eso incluye la que el nadador dijo
+      // que no hizo» — justo lo que la documentación de `dijoQueNo`, tres
+      // líneas más arriba en el propio archivo, dice que no se puede hacer:
+      // mezclarlas le enseña al entrenador un hueco donde hay una respuesta.
+      //
+      // Lo encontró el recorrido de la feature 010 y lo arregla la 011. La
+      // regla correcta ya estaba aquí, en `sinContestar`, probada y sin que
+      // nadie la llamara.
       final p = progreso(registros: [registro('s2', realizada: false)]);
 
-      expect(p.pendientes.map((s) => s.id), contains('s2'));
+      expect(
+        p.pendientes.map((s) => s.id),
+        isNot(contains('s2')),
+        reason: 'ella contestó: volver a pedírsela es no haber escuchado',
+      );
       expect(p.dijoQueNo, contains('s2'));
       expect(p.sinContestar, isNot(contains('s2')));
     });

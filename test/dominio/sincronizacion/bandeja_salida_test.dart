@@ -112,35 +112,62 @@ void main() {
       expect(await sincronizador.hayPendientes(), isFalse);
     });
 
-    test('sin red no se intenta, y no cuenta como intento', () async {
-      red.hayConexionAhora = false;
+    test('sin red se intenta, y lo que se sabe sale del intento', () async {
+      // **Esta prueba decía lo contrario hasta la feature 011**, y decía:
+      // «sin red no se intenta, y no cuenta como intento». Había una puerta
+      // —`if (!await red.hayConexion()) return sinRed`— y esto la fijaba.
+      //
+      // La puerta se quitó (decisión D1). Con el intento como sondeo se
+      // cierra sobre sí misma: un fallo deja la red en falso, la puerta
+      // bloquea el siguiente intento, y entonces no vuelve a saberse nada
+      // nunca. Y una puerta delante de lo único que puede contestar la
+      // pregunta es, literalmente, el defecto que la 011 arregla.
+      //
+      // Lo que se gana: `sinRed` pasa de ser una suposición de antes a ser
+      // una conclusión de después. Lo que se pierde: la distinción «no se
+      // intentó porque no había red», que nunca fue conocible por adelantado.
+      envio.fallaLasProximas = 1;
       final registro = unRegistro();
       await sincronizador.guardar(registro);
 
       final resultado = await sincronizador.sincronizar();
 
-      expect(resultado.sinRed, isTrue);
+      expect(
+        resultado.sinRed,
+        isTrue,
+        reason: 'se intentó y no llegó: eso es lo que hoy se sabe de la red',
+      );
       expect(envio.enviados, isEmpty);
       expect(
         (await bandeja.estadoDe(registro.id))!.intentos,
-        0,
+        greaterThan(0),
         reason:
-            'No haber podido intentarlo no es haber fallado: contarlo '
-            'alargaría la espera del siguiente reintento sin motivo',
+            'y ahora sí cuenta: el intento es el sondeo, así que sondear '
+            'cuesta un intento. Es lo que paga poder enterarse',
       );
     });
 
-    test('el flujo de cambios de red dispara la sincronización', () async {
-      red.hayConexionAhora = false;
-      await sincronizador.guardar(unRegistro());
-
-      final futuro = sincronizador.alVolverLaRed.first;
-      red.hayConexionAhora = true;
-      red.emitir(true);
-
-      final resultado = await futuro;
-      expect(resultado.enviados, hasLength(1));
-    });
+    // **La prueba de `alVolverLaRed` se retiró aquí** (feature 011, T018).
+    //
+    // Decía: «el flujo de cambios de red dispara la sincronización», y era
+    // cierta. Lo que no era cierto es que sirviera para algo: nadie en `lib/`
+    // escuchaba ese flujo, y el sondeo detrás —`() async => datos != null`—
+    // preguntaba si Firestore se había inicializado, cierto con el avión
+    // puesto y para siempre, así que no emitía nunca.
+    //
+    // Una prueba en verde sobre una pieza que no estaba montada. Siete
+    // features.
+    //
+    // El disparador no se cableó: se sustituyó. Con el intento como sondeo no
+    // hay un «volvió la red» separado que escuchar, porque el propio intento
+    // es el descubrimiento. Lo que la nadadora tenía prometido se cumple
+    // igual, y ahora de verdad: ella no toca nada y lo suyo sale.
+    //
+    // Lo prueban, en su sitio:
+    // `reintenta_mientras_quede_algo_test.dart` (que sale sola),
+    // `sin_cola_no_se_sondea_test.dart` (que no cuesta nada si no hay nada) y
+    // `el_despertar_esta_cableado_test.dart` (que está **conectado**, que es
+    // lo que aquí faltaba).
   });
 
   group('S3 — lo pendiente sobrevive al cierre de la app', () {
@@ -332,8 +359,14 @@ void main() {
     });
 
     test('la espera entre reintentos tiene techo', () {
+      // **El techo bajó de cinco minutos a uno** en la feature 011 (D2). La
+      // razón de aquel techo sigue valiendo —no machacar el teléfono de
+      // alguien que está nadando— y un intento por minuto la respeta. Lo que
+      // cambió es que ahora hay algo que reintenta solo: con cinco minutos,
+      // el registro se quedaría hasta cinco minutos sin salir **después** de
+      // que volviera la red.
       const muchos = EnvioPendiente(registroId: 'r', intentos: 30);
-      expect(muchos.esperaHastaElSiguiente, const Duration(minutes: 5));
+      expect(muchos.esperaHastaElSiguiente, const Duration(minutes: 1));
     });
   });
 
@@ -443,6 +476,12 @@ class _RedSimulada implements EstadoDeRed {
 
   @override
   Stream<bool> get cambios => _controlador.stream;
+
+  /// Lo que la bandeja anota de cada intento (feature 011, D1).
+  final anotados = <bool>[];
+
+  @override
+  void anotarIntento({required bool llego}) => anotados.add(llego);
 }
 
 class _EnvioSimulado implements EnvioDeRegistros {

@@ -35,9 +35,33 @@ void main() {
 
   EstadoNadador estadoCon({required bool pendientes}) {
     final bandeja = _Bandeja(pendientes: pendientes);
+
+    // **La cola apunta a un registro que existe**, y antes no hacía falta.
+    //
+    // Había una puerta de red delante del envío, así que con `_SinRed` nunca
+    // se llegaba a buscar el registro. Quitada la puerta (feature 011, D1) sí
+    // se busca, no estaba, y la bandeja hacía lo correcto: una entrada que
+    // apunta a un registro borrado se saca de la cola, porque reintentarla
+    // eternamente no la va a resucitar. El aviso desaparecía por una razón
+    // legítima y por un doble incompleto.
+    final registros = _Registros();
+    if (pendientes) {
+      registros.sembrar(
+        RegistroDeSesion(
+          nadadorId: 'n1',
+          planId: 'p1',
+          sesionId: 's1',
+          versionDePlan: '1',
+          realizada: true,
+          registradoEn: hoy,
+        ),
+        como: 'r1',
+      );
+    }
+
     final estado = EstadoNadador(
       sincronizador: Sincronizador(
-        registros: _Registros(),
+        registros: registros,
         bandeja: bandeja,
         red: _SinRed(),
         transporte: _Quieto(hoy),
@@ -302,6 +326,10 @@ class _Registros implements RepositorioRegistros {
 
   final Map<String, RegistroDeSesion> _guardados = {};
 
+  /// Pone un registro bajo el identificador que la cola espera.
+  void sembrar(RegistroDeSesion registro, {required String como}) =>
+      _guardados[como] = registro;
+
   @override
   Future<RegistroDeSesion?> obtener(String id) async => _guardados[id];
 
@@ -333,6 +361,16 @@ class _Quieto implements EnvioDeRegistros {
 
   final DateTime cuando;
 
+  /// **No entrega**, y desde la feature 011 esa es la forma de decir «sin
+  /// conexión».
+  ///
+  /// Antes bastaba con un doble de red que contestara que no: había una
+  /// puerta delante del envío. La puerta se quitó (D1), porque con el intento
+  /// como sondeo preguntar antes es lo que impedía enterarse. Así que ahora
+  /// la falta de red se simula donde de verdad está, en el transporte: con
+  /// uno que entregaba, el registro salía y el aviso no tenía nada que
+  /// anunciar.
   @override
-  Future<DateTime> enviar(RegistroDeSesion registro) async => cuando;
+  Future<DateTime> enviar(RegistroDeSesion registro) async =>
+      throw Exception('sin conexión con el servidor');
 }

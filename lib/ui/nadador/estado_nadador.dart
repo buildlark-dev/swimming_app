@@ -102,6 +102,24 @@ class EstadoNadador extends ChangeNotifier {
     // Y se leen las suyas, sin bloquear la pintura: la pantalla sale con lo
     // que hay y se despierta cuando lleguen.
     recargarPeticiones();
+
+    // **Y la bandeja empieza a mirarse sola** (feature 011, D6).
+    //
+    // Desde aquí y no desde un widget: un despertar dentro de un `initState`
+    // muere y renace con cada reconstrucción y con cada cambio de pestaña.
+    // Vive lo que vive el recorrido de la nadadora, que es lo que el HUB crea
+    // y lo que el HUB desecha.
+    unawaited(sincronizador.empezar());
+  }
+
+  @override
+  void dispose() {
+    // **Un despertar que sobreviva al cierre de sesión** seguiría moviendo la
+    // cola de una nadadora bajo la cuenta de su hermano, que es exactamente
+    // el escenario C7 de la feature 004 — todavía sin caminar, y no es cosa
+    // de empeorarlo mientras nadie lo mira.
+    sincronizador.parar();
+    super.dispose();
   }
 
   /// Guarda la respuesta del nadador.

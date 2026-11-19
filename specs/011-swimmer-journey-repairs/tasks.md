@@ -36,16 +36,16 @@ data in `lib/datos/`, interface in `lib/ui/`, tests mirroring under `test/`.
 
 ## Phase 1: Setup
 
-- [ ] T001 Record the baseline in `specs/011-swimmer-journey-repairs/tasks.md` beside this line: run the four gates on `011-swimmer-journey-repairs` before any change and write the numbers here — `flutter analyze`, `flutter test`, `npm --prefix firebase test`, `npm --prefix firebase/functions test`. Feature 010 could say "the 53 tests added are the locks its walks needed" only because it had this number
+- [X] T001 Record the baseline in `specs/011-swimmer-journey-repairs/tasks.md` beside this line: run the four gates on `011-swimmer-journey-repairs` before any change and write the numbers here — `flutter analyze`, `flutter test`, `npm --prefix firebase test`, `npm --prefix firebase/functions test`. Feature 010 could say "the 53 tests added are the locks its walks needed" only because it had this number
 
 **Before, 2026-11-18:**
 
 | Gate | Result |
 |---|---|
-| `flutter analyze` | _to fill_ |
-| `flutter test` | _to fill_ |
-| `npm --prefix firebase test` | _to fill_ |
-| `npm --prefix firebase/functions test` | _to fill_ |
+| `flutter analyze` | No issues |
+| `flutter test` | 2133 passed, 0 failed |
+| `npm --prefix firebase test` | 174 passed, 0 failed |
+| `npm --prefix firebase/functions test` | 45 passed, 0 failed |
 
 **The rules number is a gate, not a note.** This feature adds no rule and touches no
 document. If `npm --prefix firebase test` ends on a different number than it started on,
@@ -58,10 +58,18 @@ something grew that was not meant to, and that is worth finding out before mergi
 **Purpose**: the one thing both US1 and US4 need before either can be locked — a double
 that behaves like the real SDK instead of like a polite stub.
 
-- [ ] T002 Create the shared sync doubles in `test/dominio/sincronizacion/dobles_de_sincronizacion.dart`: an in-memory record store, an in-memory outbox, and `_TransporteMudo`, a transport that **accepts and never answers** (returns `Completer<DateTime>().future`), with a switch to make it answer and a count of attempts
-- [ ] T003 Lock the double itself in `test/dominio/sincronizacion/dobles_de_sincronizacion_test.dart`: assert that the mute transport's future is **still incomplete** after a pump, so nobody later "fixes" it into throwing. The whole feature rests on this double telling the truth
+- [X] T002 Create the shared sync doubles in `test/dominio/sincronizacion/dobles_de_sincronizacion.dart`: an in-memory record store, an in-memory outbox, and `_TransporteMudo`, a transport that **accepts and never answers** (returns `Completer<DateTime>().future`), with a switch to make it answer and a count of attempts
+- [X] T003 Lock the double itself in `test/dominio/sincronizacion/dobles_de_sincronizacion_test.dart`: assert that the mute transport's future is **still incomplete** after a pump, so nobody later "fixes" it into throwing. The whole feature rests on this double telling the truth
 
 **Checkpoint**: the doubles exist and are proven to hang. Stories can start.
+
+**T013 was done here, out of order, and the reason is worth keeping.** The seam — the
+injected `Despertador` — had to exist before the locks that use it, because a test
+against an API that does not exist does not go red, it fails to compile, and "it does not
+compile" is not the same signal as "the behaviour is missing". So the seam went in first,
+carrying **no behaviour**: `lib/dominio/sincronizacion/despertador.dart` and a constructor
+parameter that nothing yet reads. Everything the locks actually guard was still absent
+when they were written, which is the part principle III cares about.
 
 ---
 
@@ -76,25 +84,25 @@ suite; on a phone after feature 013.
 
 ### Locks for User Story 1 ⚠️ write first, see red
 
-- [ ] T004 [P] [US1] Lock FR-003 in `test/dominio/sincronizacion/sin_cola_no_se_sondea_test.dart`: with an empty outbox, **no wake-up is ever scheduled and the transport is never touched** — assert the injected scheduler received zero requests and the transport's attempt count is zero
-- [ ] T005 [P] [US1] Lock the schedule in `test/dominio/sincronizacion/reintenta_mientras_quede_algo_test.dart`: with one record queued and a transport that refuses, advancing the injected clock produces retries spaced 1, 2, 4, 8… seconds, **and the spacing stops growing at 60 seconds** (FR-006, D2)
-- [ ] T006 [P] [US1] Lock SC-004 in `test/dominio/sincronizacion/lo_que_cuesta_sondear_test.dart`: over one simulated hour with one record queued and no network, the transport is attempted **at most 60 times**, and with an empty queue **zero times**
-- [ ] T007 [P] [US1] Lock FR-005 in `test/dominio/sincronizacion/un_envio_logrado_suelta_la_cola_test.dart`: with records A and B both in long delays, when A's attempt succeeds **B is attempted at once** instead of serving out its own delay. Its negative control is the single-record case, which has no cut-short by design (research D2) and must still arrive inside the minute
-- [ ] T008 [P] [US1] Lock FR-004 in `test/dominio/sincronizacion/el_sondeo_tambien_lleva_plazo_test.dart`: a transport that accepts and never answers leaves nothing hanging — `sincronizar()` returns, the record stays queued, and the attempt counts as failed (G3)
-- [ ] T009 [P] [US1] Lock FR-002 and D1 in `test/datos/red/la_red_es_el_ultimo_intento_test.dart`: `hayConexion()` reports the outcome of the last attempt, is **optimistic before any attempt has happened**, and `cambios` emits when that outcome changes
-- [ ] T010 [P] [US1] Lock FR-008 in `test/ui/nadador/nada_de_la_red_le_llega_test.dart`: a test over every file under `lib/ui/` that the swimmer can reach, asserting none of them contains a network error, a status code, a count of attempts, or a control that says retry. Model it on feature 010's test over `lib/ui` for video
+- [X] T004 [P] [US1] Lock FR-003 in `test/dominio/sincronizacion/sin_cola_no_se_sondea_test.dart`: with an empty outbox, **no wake-up is ever scheduled and the transport is never touched** — assert the injected scheduler received zero requests and the transport's attempt count is zero
+- [X] T005 [P] [US1] Lock the schedule in `test/dominio/sincronizacion/reintenta_mientras_quede_algo_test.dart`: with one record queued and a transport that refuses, advancing the injected clock produces retries spaced 1, 2, 4, 8… seconds, **and the spacing stops growing at 60 seconds** (FR-006, D2)
+- [X] T006 [P] [US1] Lock SC-004 in `test/dominio/sincronizacion/lo_que_cuesta_sondear_test.dart`: over one simulated hour with one record queued and no network, the transport is attempted **at most 60 times**, and with an empty queue **zero times**
+- [X] T007 [P] [US1] Lock FR-005 in `test/dominio/sincronizacion/un_envio_logrado_suelta_la_cola_test.dart`: with records A and B both in long delays, when A's attempt succeeds **B is attempted at once** instead of serving out its own delay. Its negative control is the single-record case, which has no cut-short by design (research D2) and must still arrive inside the minute
+- [X] T008 [P] [US1] Lock FR-004 in `test/dominio/sincronizacion/el_sondeo_tambien_lleva_plazo_test.dart`: a transport that accepts and never answers leaves nothing hanging — `sincronizar()` returns, the record stays queued, and the attempt counts as failed (G3)
+- [X] T009 [P] [US1] Lock FR-002 and D1 in `test/datos/red/la_red_es_el_ultimo_intento_test.dart`: `hayConexion()` reports the outcome of the last attempt, is **optimistic before any attempt has happened**, and `cambios` emits when that outcome changes
+- [X] T010 [P] [US1] Lock FR-008 in `test/ui/nadador/nada_de_la_red_le_llega_test.dart`: a test over every file under `lib/ui/` that the swimmer can reach, asserting none of them contains a network error, a status code, a count of attempts, or a control that says retry. Model it on feature 010's test over `lib/ui` for video
 - [ ] T011 [US1] Run the negative control for T004–T010 and record each result in `specs/011-swimmer-journey-repairs/tasks.md`: remove the schedule and T005/T006 go red; restore the 300-second cap and T005 goes red; remove the cut-short and T007 goes red; make the mute transport throw instead of hang and say which locks stop proving anything. **A lock whose control does not go red is not a lock** — feature 010 shipped one of those and caught it only by running the control
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Lower the retry delay's cap from 300 to 60 seconds in `lib/dominio/entidades/envio_pendiente.dart`, and rewrite the doc comment to carry the new reason: the old cap predates anything retrying on a schedule, and one attempt a minute is still not the tight loop it was guarding against
-- [ ] T013 [US1] Add the injected wake-up seam to `lib/dominio/sincronizacion/bandeja_salida.dart` — a `Despertador` the constructor takes, defaulting to a real timer — so the eight guarantees keep being proven without a second of real time elapsing (principle II, D6)
-- [ ] T014 [US1] Implement "keep the queue moving" in `lib/dominio/sincronizacion/bandeja_salida.dart`: while the outbox is non-empty, keep a wake-up scheduled on the soonest record's delay; **schedule nothing while it is empty**; stop cleanly on request (depends on T013)
-- [ ] T015 [US1] Implement FR-005 in `lib/dominio/sincronizacion/bandeja_salida.dart`: when one attempt succeeds, clear the remaining records' retry delays so the next pass tries them at once (depends on T014)
-- [ ] T016 [US1] Rewrite `lib/datos/red/estado_de_red.dart` so the network is the outcome of the last attempt (D1): drop the injected `sondear`, add a way for the outbox to report an attempt's result, keep `cambios` emitting only on change, and keep the file's original paragraph about pool wifi — it was right all along
-- [ ] T017 [US1] Remove the probe that never probed from `lib/main.dart` (`sondear: () async => datos != null`) and wire whatever D1 replaces it with. Leave a comment naming what happened: the line sat directly beneath a comment describing the opposite behaviour, and nobody noticed for seven features
-- [ ] T018 [US1] Decide `Sincronizador.alVolverLaRed` in `lib/dominio/sincronizacion/bandeja_salida.dart`: with the schedule in place it has no caller and no distinct meaning, so either wire it or **retire it with the reason written where it used to be**. Do not leave a tested member with no listener — that is one of the two defects this feature exists to fix
-- [ ] T019 [US1] Start the schedule when the swimmer's journey opens and stop it in `dispose()` in `lib/ui/nadador/estado_nadador.dart`, which the HUB already calls (D6). A schedule that outlives sign-out would keep one swimmer's queue working under her brother's account, which is feature 004's C7
+- [X] T012 [P] [US1] Lower the retry delay's cap from 300 to 60 seconds in `lib/dominio/entidades/envio_pendiente.dart`, and rewrite the doc comment to carry the new reason: the old cap predates anything retrying on a schedule, and one attempt a minute is still not the tight loop it was guarding against
+- [X] T013 [US1] Add the injected wake-up seam to `lib/dominio/sincronizacion/bandeja_salida.dart` — a `Despertador` the constructor takes, defaulting to a real timer — so the eight guarantees keep being proven without a second of real time elapsing (principle II, D6)
+- [X] T014 [US1] Implement "keep the queue moving" in `lib/dominio/sincronizacion/bandeja_salida.dart`: while the outbox is non-empty, keep a wake-up scheduled on the soonest record's delay; **schedule nothing while it is empty**; stop cleanly on request (depends on T013)
+- [X] T015 [US1] Implement FR-005 in `lib/dominio/sincronizacion/bandeja_salida.dart`: when one attempt succeeds, clear the remaining records' retry delays so the next pass tries them at once (depends on T014)
+- [X] T016 [US1] Rewrite `lib/datos/red/estado_de_red.dart` so the network is the outcome of the last attempt (D1): drop the injected `sondear`, add a way for the outbox to report an attempt's result, keep `cambios` emitting only on change, and keep the file's original paragraph about pool wifi — it was right all along
+- [X] T017 [US1] Remove the probe that never probed from `lib/main.dart` (`sondear: () async => datos != null`) and wire whatever D1 replaces it with. Leave a comment naming what happened: the line sat directly beneath a comment describing the opposite behaviour, and nobody noticed for seven features
+- [X] T018 [US1] Decide `Sincronizador.alVolverLaRed` in `lib/dominio/sincronizacion/bandeja_salida.dart`: with the schedule in place it has no caller and no distinct meaning, so either wire it or **retire it with the reason written where it used to be**. Do not leave a tested member with no listener — that is one of the two defects this feature exists to fix
+- [X] T019 [US1] Start the schedule when the swimmer's journey opens and stop it in `dispose()` in `lib/ui/nadador/estado_nadador.dart`, which the HUB already calls (D6). A schedule that outlives sign-out would keep one swimmer's queue working under her brother's account, which is feature 004's C7
 - [ ] T020 [US1] Update `specs/003-consumo-del-nadador/contracts/sincronizacion.md` to point at [the amendment](./contracts/sincronizacion-enmendada.md), without rewriting it: the eight guarantees are unchanged and the original is the record of what was promised
 
 **Checkpoint**: US1 is independently demonstrable — annotate with a refusing transport,
@@ -112,13 +120,13 @@ the pending list while an unanswered past session stays in it.
 
 ### Locks for User Story 2 ⚠️ write first, see red
 
-- [ ] T021 [P] [US2] Lock FR-010 and FR-011 in `test/dominio/macrociclo/lo_que_contesto_no_esta_pendiente_test.dart`: a past session answered "I did not do it" is **not** pending; a past session with no answer **is**; one marked done is not; today's unanswered is not; one with no date is not
+- [X] T021 [P] [US2] Lock FR-010 and FR-011 in `test/dominio/macrociclo/lo_que_contesto_no_esta_pendiente_test.dart`: a past session answered "I did not do it" is **not** pending; a past session with no answer **is**; one marked done is not; today's unanswered is not; one with no date is not
 - [ ] T022 [P] [US2] Lock FR-012 in `test/ui/nadador/una_regla_dos_pantallas_test.dart`: the count the swimmer reads and the count the coach reads come from the same rule and are equal for the same sessions
 - [ ] T023 [US2] Run the negative control for T021–T022 and record it in `specs/011-swimmer-journey-repairs/tasks.md`: restore `pendientes` to excluding only `hechas` and confirm T021 goes red on the "I did not do it" case specifically
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Change `pendientes` to derive from `sinContestar` in `lib/dominio/macrociclo/progreso_en_el_macrociclo.dart`, and add the sentence that explains why this getter existed beside a correct one and used the wrong set
+- [X] T024 [US2] Change `pendientes` to derive from `sinContestar` in `lib/dominio/macrociclo/progreso_en_el_macrociclo.dart`, and add the sentence that explains why this getter existed beside a correct one and used the wrong set
 - [ ] T025 [US2] Check every caller still reads what it means to: `lib/ui/nadador/mi_macrociclo.dart` (the swimmer's list) and the coach's reading in `lib/ui/analisis/`. Nothing should need changing — confirm that by reading, not by assuming
 
 **Checkpoint**: US2 is independently demonstrable and touches no file US1 touched.
@@ -165,14 +173,14 @@ sequential with US1 rather than parallel to it.
 
 ### Locks for User Story 4 ⚠️ write first, see red
 
-- [ ] T034 [P] [US4] Lock FR-015 in `test/dominio/sincronizacion/el_exito_tardio_cuenta_test.dart`: an attempt that exceeds its deadline and **then completes** leaves the record sent and the outbox empty, and no additional call is made to the transport or to any reader to find that out
+- [X] T034 [P] [US4] Lock FR-015 in `test/dominio/sincronizacion/el_exito_tardio_cuenta_test.dart`: an attempt that exceeds its deadline and **then completes** leaves the record sent and the outbox empty, and no additional call is made to the transport or to any reader to find that out
 - [ ] T035 [P] [US4] Lock FR-016 in `test/dominio/sincronizacion/el_aviso_solo_se_apaga_si_llego_test.dart`: a record the transport never confirms stays queued and the notice stays, however many cycles pass
-- [ ] T036 [US4] Run the negative control for T034–T035 and record it in `specs/011-swimmer-journey-repairs/tasks.md`: drop the late-success handling and confirm T034 goes red; clear the notice optimistically on timeout and confirm T035 goes red
+- [X] T036 [US4] Run the negative control for T034–T035 and record it in `specs/011-swimmer-journey-repairs/tasks.md`: drop the late-success handling and confirm T034 goes red; clear the notice optimistically on timeout and confirm T035 goes red
 
 ### Implementation for User Story 4
 
-- [ ] T037 [US4] Keep the timed-out attempt's future in `lib/dominio/sincronizacion/bandeja_salida.dart` and honour a late completion by marking the record sent, without issuing any new request (D3). `Future.timeout` does not cancel what it wraps, so the answer arrives for free (depends on T014)
-- [ ] T038 [US4] Make sure a late completion cannot raise an unhandled error after the attempt was abandoned, in `lib/dominio/sincronizacion/bandeja_salida.dart` — a failure arriving after nobody is listening must be swallowed, not crash the app on a street corner (depends on T037)
+- [X] T037 [US4] Keep the timed-out attempt's future in `lib/dominio/sincronizacion/bandeja_salida.dart` and honour a late completion by marking the record sent, without issuing any new request (D3). `Future.timeout` does not cancel what it wraps, so the answer arrives for free (depends on T014)
+- [X] T038 [US4] Make sure a late completion cannot raise an unhandled error after the attempt was abandoned, in `lib/dominio/sincronizacion/bandeja_salida.dart` — a failure arriving after nobody is listening must be swallowed, not crash the app on a street corner (depends on T037)
 
 **Checkpoint**: all four stories independently functional.
 

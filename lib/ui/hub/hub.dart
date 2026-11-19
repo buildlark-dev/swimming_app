@@ -37,6 +37,7 @@ import 'package:natacion_app/dominio/hub/destino.dart';
 import 'package:natacion_app/dominio/hub/resumen_del_entrenador.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
+import 'package:natacion_app/dominio/sincronizacion/despertador.dart';
 import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/dominio/macrociclo/guardar_macrociclo.dart';
@@ -164,6 +165,16 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       bandeja: BandejaLocal(_almacen),
       red: widget.recursos.red,
       transporte: widget.recursos.transporte,
+      // **El segundo disparador del contrato, cableado** (feature 011).
+      //
+      // Sin esta línea la bandeja no se mira sola y lo que ella anota sin
+      // señal solo sale cuando vuelve a abrir la app. Es el único sitio de
+      // producción donde se pone, y `el_despertar_esta_cableado_test.dart`
+      // vigila que siga aquí: lo que esta feature arregla es, literalmente,
+      // algo construido, probado y nunca conectado.
+      despertador: DespertadorDeReloj(),
+      // Y lo que diga cada intento es lo que se sabe de la red (D1).
+      alIntentar: widget.recursos.alIntentar,
     ),
     // Para que pueda preguntarle algo de una sesión que ya nadó (feature 010).
     // Nulo sin servidor, y entonces la pantalla no lo ofrece.
