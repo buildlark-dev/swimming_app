@@ -12,6 +12,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/dominio/lectura/lectura.dart';
 import 'package:natacion_app/ui/tema/avisos.dart';
 import 'package:natacion_app/dominio/analisis/peticion_de_feedback.dart';
 import 'package:natacion_app/dominio/calculo/progreso_nadador.dart';
@@ -33,18 +34,37 @@ class PantallaMiProgreso extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mi progreso')),
-      body: progreso == null
-          ? const Padding(
-              padding: EdgeInsets.all(Espaciado.amplio),
-              child: EstadoVacio(
-                icono: Icons.event_busy_outlined,
-                titulo: 'Todavía no tienes un plan asignado',
-                queHacer:
-                    'Cuando tu entrenador te asigne uno, tu progreso '
-                    'aparecerá aquí.',
-              ),
-            )
-          : ListView(
+      // **Los cuatro casos, y el compilador obliga a atenderlos todos.**
+      //
+      // Esto era `progreso == null ? elVacío : laLista`, y el nulo significaba
+      // a la vez «todavía no ha llegado» y «no hay». La nadadora leía que no
+      // tenía plan asignado durante los veinte segundos que tardaba en cargar
+      // el que sí tiene (feature 011, D4).
+      body: switch (progreso) {
+        Cargando() => const Center(child: CircularProgressIndicator()),
+        NoSePudo() => const Padding(
+          padding: EdgeInsets.all(Espaciado.amplio),
+          // **No dice que no haya**: dice que no se pudo mirar. Y no enseña
+          // el motivo, que habla de red y de servidores (FR-008).
+          child: EstadoVacio(
+            icono: Icons.cloud_off_outlined,
+            titulo: 'No se pudo cargar tu progreso',
+            queHacer:
+                'Vuelve a entrar en un momento. Lo que anotaste sigue '
+                'guardado en el teléfono.',
+          ),
+        ),
+        NoHay() => const Padding(
+          padding: EdgeInsets.all(Espaciado.amplio),
+          child: EstadoVacio(
+            icono: Icons.event_busy_outlined,
+            titulo: 'Todavía no tienes un plan asignado',
+            queHacer:
+                'Cuando tu entrenador te asigne uno, tu progreso '
+                'aparecerá aquí.',
+          ),
+        ),
+        Hay(valor: final progreso) => ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 AvisoSincronizacion(estado: estado),
@@ -61,6 +81,7 @@ class PantallaMiProgreso extends StatelessWidget {
                 const SizedBox(height: 60),
               ],
             ),
+      },
     );
   }
 }

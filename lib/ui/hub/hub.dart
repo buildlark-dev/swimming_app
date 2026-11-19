@@ -37,6 +37,7 @@ import 'package:natacion_app/dominio/hub/destino.dart';
 import 'package:natacion_app/dominio/hub/resumen_del_entrenador.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/dominio/sincronizacion/bandeja_salida.dart';
+import 'package:natacion_app/dominio/sincronizacion/despertador.dart';
 import 'package:natacion_app/ui/componentes/aviso.dart';
 import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/dominio/macrociclo/guardar_macrociclo.dart';
@@ -164,6 +165,16 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       bandeja: BandejaLocal(_almacen),
       red: widget.recursos.red,
       transporte: widget.recursos.transporte,
+      // **El segundo disparador del contrato, cableado** (feature 011).
+      //
+      // Sin esta línea la bandeja no se mira sola y lo que ella anota sin
+      // señal solo sale cuando vuelve a abrir la app. Es el único sitio de
+      // producción donde se pone, y `el_despertar_esta_cableado_test.dart`
+      // vigila que siga aquí: lo que esta feature arregla es, literalmente,
+      // algo construido, probado y nunca conectado.
+      despertador: DespertadorDeReloj(),
+      // Y lo que diga cada intento es lo que se sabe de la red (D1).
+      alIntentar: widget.recursos.alIntentar,
     ),
     // Para que pueda preguntarle algo de una sesión que ya nadó (feature 010).
     // Nulo sin servidor, y entonces la pantalla no lo ofrece.
@@ -218,11 +229,20 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   /// publicado.
   Future<void> _abrirMiPerfil() async {
     final nadadorId = widget.cuenta?.nadadorId;
-    if (nadadorId == null) return;
+    // **Siempre hay que contestarle algo** (feature 011, D4). Si esto vuelve
+    // sin decir nada, su pantalla se queda en «todavía buscando» para
+    // siempre, que es cambiar una mentira por un giro infinito.
+    if (nadadorId == null) {
+      _nadador.noSePudoAbrir('esta cuenta no tiene un perfil de nadador');
+      return;
+    }
 
     try {
       final nadador = await _repos.nadadores.obtener(nadadorId);
-      if (nadador == null) return;
+      if (nadador == null) {
+        _nadador.noSePudoAbrir('no se encontró el perfil de esta cuenta');
+        return;
+      }
 
       final suyas = await _repos.asignaciones.deNadador(nadadorId);
 
@@ -260,10 +280,15 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       if (!mounted) return;
       _nadador.abrirComo(nadador, plan: plan, registros: registros);
       await _nadador.sincronizar();
-    } on FalloDeDatos {
+    } on FalloDeDatos catch (e) {
       // Sin red y sin caché, entra igual: su plan aparecerá cuando se pueda
       // leer. Dejarlo fuera de la app por un problema de lectura sería lo
       // contrario de lo que la feature 003 promete.
+      //
+      // **Pero se le dice que no se pudo**, en vez de dejarla mirando un
+      // estado vacío que afirma algo falso o un giro que no termina. No se
+      // sabe si tiene plan; eso es lo que la pantalla cuenta (D4).
+      if (mounted) _nadador.noSePudoAbrir('$e');
     }
   }
 

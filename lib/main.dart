@@ -163,14 +163,31 @@ class _PantallaInicioState extends State<PantallaInicio> {
     // imposible probar nada con cuentas sin desplegar.
     if (usarEmuladores && datos != null) usarEmuladorDeAuth();
 
+    // Una sola instancia: la que la bandeja informa es la que el HUB lee.
+    final laRed = RedSegunElUltimoIntento();
+
     return RecursosIniciales(
       biblioteca: biblioteca,
       versionMetodologia: version,
       indiceTerminos: indice,
-      // La detección de red sondea de verdad en lugar de preguntarle al
-      // sistema: «hay wifi» y «el servidor responde» son cosas distintas, y a
-      // pie de piscina la segunda es la que importa.
-      red: RedPorSondeo(sondear: () async => datos != null),
+      // **La detección de red es el resultado del último intento.**
+      //
+      // Aquí había esto, debajo de un comentario que decía lo contrario de lo
+      // que la línea hacía:
+      //
+      //     red: RedPorSondeo(sondear: () async => datos != null),
+      //
+      // Que pregunta si Firestore se inicializó: cierto con el modo avión
+      // puesto, y cierto para siempre. El valor no cambiaba nunca, así que el
+      // stream no emitía nunca, así que el disparador «al volver la red» no
+      // podía saltar — y encima nadie lo escuchaba. Siete features con la
+      // promesa de la 003 a medias y el comentario correcto justo encima.
+      //
+      // Ahora no se sondea nada: se intenta enviar, que ya ocurre y desde la
+      // feature 010 tiene plazo, y lo que diga ese intento es lo que se sabe
+      // de la red (feature 011, decisión D1).
+      red: laRed,
+      alIntentar: laRed.anotarIntento,
       transporte: _TransporteSiHayFirestore(datos),
       // Sin Firestore no hay con quién autenticarse. La app arranca igual y
       // entra en modo local, que es lo que permite seguir desarrollando sin

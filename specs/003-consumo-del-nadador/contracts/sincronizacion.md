@@ -84,6 +84,17 @@ lo que lee está al día (D1).
 Los reintentos se espacian de forma creciente. **No se reintenta en bucle apretado**: un
 teléfono al borde de una piscina tiene batería limitada y es de alguien que está nadando.
 
+> **Enmendado por la feature 011.** El segundo disparador nunca tuvo mecanismo:
+> `alVolverLaRed` existía y estaba probado, y nadie lo escuchaba; y el sondeo detrás
+> preguntaba si Firestore se había inicializado, cierto con el avión puesto y para
+> siempre. La promesa al nadador no cambia —él no toca nada y lo suyo sale— pero la forma
+> de cumplirla sí: **el intento es el sondeo**, y mientras quede algo en la bandeja se
+> vuelve a intentar solo. El techo de la espera baja de cinco minutos a uno.
+>
+> Las ocho garantías siguen intactas. Lo que cambia está en
+> [`specs/011-swimmer-journey-repairs/contracts/sincronizacion-enmendada.md`](../../011-swimmer-journey-repairs/contracts/sincronizacion-enmendada.md),
+> y este documento se deja como está porque es el registro de lo que se prometió.
+
 ---
 
 ## Lo que el dominio no sabe

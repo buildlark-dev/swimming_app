@@ -18,6 +18,7 @@ class RecursosIniciales {
     required this.indiceTerminos,
     required this.red,
     required this.transporte,
+    this.alIntentar,
     this.identidad,
     this.operaciones,
     this.firestore,
@@ -33,6 +34,16 @@ class RecursosIniciales {
 
   /// Si hay red, para el recorrido del nadador (feature 003).
   final EstadoDeRed red;
+
+  /// A quién contarle cómo fue cada intento de envío (feature 011, D1).
+  ///
+  /// **Nulo en las pruebas, y por eso es un campo aparte.** En producción lo
+  /// rellena `main.dart` con `RedSegunElUltimoIntento.anotarIntento`, que es
+  /// quien convierte el resultado de un intento en lo que la app sabe de la
+  /// red. Meterlo en la interfaz `EstadoDeRed` habría obligado a once dobles
+  /// de las pruebas a escribir un método que ignoran, porque en Dart
+  /// `implements` exige implementarlo aunque traiga cuerpo.
+  final void Function({required bool llego})? alIntentar;
 
   /// Quién lleva los registros del nadador a su destino.
   final EnvioDeRegistros transporte;

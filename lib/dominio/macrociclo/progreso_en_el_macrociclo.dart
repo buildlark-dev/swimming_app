@@ -113,7 +113,7 @@ class ProgresoEnElMacrociclo {
     for (final mesociclo in _mesociclos) ...mesociclo.sesiones,
   ]);
 
-  /// Lo que quedó atrás sin marcar, de la más antigua a la más reciente.
+  /// Lo que quedó atrás **sin contestar**, de la más antigua a la más reciente.
   ///
   /// **Se muestra, no se obliga** (decisión D6). Es la lista que el nadador lee
   /// cuando marca una sesión con otras atrás sin marcar, y la que su entrenador
@@ -121,14 +121,26 @@ class ProgresoEnElMacrociclo {
   ///
   /// La de **hoy no cuenta**: el día no ha acabado. Y una sesión sin fecha
   /// tampoco: no se adivina cuándo se iba a hacer.
+  ///
+  /// ## Esto excluía solo `hechas`, y es el defecto que la 011 arregla
+  ///
+  /// Decir «no la hice» es contestar. Esta lista las contaba igual que a las
+  /// mudas, así que a ella se le volvía a pedir una sesión que ya había
+  /// respondido, y él leía un hueco donde había una respuesta — que es
+  /// **exactamente** lo que la documentación de [dijoQueNo], tres líneas más
+  /// arriba, dice que no se puede hacer.
+  ///
+  /// Lo llamativo es que la regla correcta ya estaba escrita y probada aquí
+  /// mismo, en [sinContestar], y no la llamaba nadie en `lib/`. Algo correcto,
+  /// construido, probado y nunca conectado; la misma forma que el disparador
+  /// «al volver la red» de la feature 003.
   List<Sesion> get pendientes {
+    final mudas = sinContestar;
+
     final atrasadas = <Sesion>[
       for (final mesociclo in _mesociclos)
         for (final sesion in mesociclo.sesiones)
-          if (sesion.fecha != null &&
-              _soloLaFecha(sesion.fecha!).isBefore(_hoy) &&
-              !(sesion.id != null && hechas.contains(sesion.id)))
-            sesion,
+          if (sesion.id != null && mudas.contains(sesion.id)) sesion,
     ]..sort((a, b) => a.fecha!.compareTo(b.fecha!));
 
     return List.unmodifiable(atrasadas);

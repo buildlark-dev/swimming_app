@@ -161,7 +161,13 @@ void main() {
     testWidgets('guardar sin red muestra el aviso exacto de FR-017', (
       tester,
     ) async {
+      // **Sin red se dice en el transporte** desde la feature 011. La puerta
+      // que consultaba `hayConexion()` antes de enviar se quitó (D1): con el
+      // intento como sondeo, preguntar antes es lo que impedía enterarse. Un
+      // doble de red que conteste que no ya no retiene nada; uno que no
+      // entrega, sí.
       red.hayConexionAhora = false;
+      transporte.fallaLasProximas = 99;
       final plan = planCon([sesion(id: 's1', fecha: hoy)]);
       estado.abrirComo(
         const Nadador(id: 'n1', nombre: 'Perfil de prueba'),
@@ -463,8 +469,19 @@ class _RedSimulada implements EstadoDeRed {
 class _TransporteSimulado implements EnvioDeRegistros {
   final List<RegistroDeSesion> enviados = [];
 
+  /// Cuántos de los próximos envíos no llegan.
+  ///
+  /// Desde la feature 011 esta es la forma de simular que no hay red: ya no
+  /// hay una puerta que pregunte antes de enviar, porque el intento **es** el
+  /// sondeo (D1).
+  int fallaLasProximas = 0;
+
   @override
   Future<DateTime> enviar(RegistroDeSesion registro) async {
+    if (fallaLasProximas > 0) {
+      fallaLasProximas--;
+      throw Exception('sin conexión con el servidor');
+    }
     enviados.add(registro);
     return DateTime(2026, 10, 14, 7);
   }

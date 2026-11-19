@@ -139,10 +139,10 @@ without touching anything" — does not: the record arrives and the notice goes,
 but only when the app is next opened. `Sincronizador.alVolverLaRed` exists, is
 tested, and **nothing in `lib/` listens to it**; and the probe behind it could
 not have fired anyway. Wiring it is a change with a decision inside it, so it
-was recorded rather than bolted on, and **it is now feature 011**. T089 of
-feature 004 — siblings on one phone, a session expiring poolside — is still open
-and needs its own setup; it is 011's natural companion, since both are the
-swimmer's journey on a real device.
+was recorded rather than bolted on, and **it is now feature 011**. The checks
+themselves — T071 here, T088 and T089 of feature 004 — stay open until after
+feature 013, by the coach's decision: they are walked together, on a real device,
+once there is more to walk in one trip.
 
 ## What 011, 012 and 013 carry
 
@@ -155,40 +155,52 @@ open an area. So they go in that order, declared here.
 
 ### 011 — Repairs to the swimmer's journey
 
-Everything the two walks found and left written down, and nothing else. No new
-product surface: at the end of it the app does what it already promises.
+**Built, and the headline is the shape, not the fix.** Two of the four defects were the
+same mistake: something correct, built, tested, and **never connected**.
+`Sincronizador.alVolverLaRed` had a test and no listener, for seven features.
+`ProgresoEnElMacrociclo.sinContestar` had the exact rule the pending list needed, had
+tests asserting that done, refused and unanswered partition the past sessions, and
+nothing in `lib/` ever called it. A green suite says nothing about whether a part is
+fitted.
 
-**The network trigger, which is the one that matters.** The sync contract names
-three triggers — on save, on network return, on app open — and the second was
-never wired. `Sincronizador.alVolverLaRed` exists and is tested, and **nothing
-in `lib/` listens to it**; it could not have fired anyway, because the probe
-behind it is `sondear: () async => datos != null`, which asks "did Firestore
-initialise?" and is true with the airplane on. So C2 of feature 003 stops at
-step 5: the record does arrive and the notice does go, but only when the app is
-next opened.
+**The approach: the attempt is the probe.** Nothing is asked about the network any more.
+The outbox keeps trying what is queued, and the result of trying is the only true answer
+— it tests the whole path to the server rather than the first hop out of the phone. That
+is what `estado_de_red.dart` had said the detection should be since feature 003, written
+directly above a line that did the opposite: `sondear: () async => datos != null`, which
+asks whether Firestore initialised and is true with the airplane on. The value never
+changed, so the stream never emitted, so the trigger could never fire — and nothing
+listened to it anyway. Two independent failures, either one sufficient.
 
-It was left for its own feature because it has a decision inside it — what to
-probe, how often, and what that costs — and because `estado_de_red.dart` has
-said from the beginning what the probe should be: "a write is attempted and one
-sees whether it arrives". With the send bounded, that is finally possible.
+Nothing is probed while the queue is empty, because there is nothing to attempt. The
+cost, which the spec required as a number: **66 attempts in the first hour** with one
+record queued and no network — six quick ones while the wait grows, then one a minute —
+zero reads, zero billable operations, and zero of everything with an empty queue.
 
-And the three smaller ones:
+**No new dependency.** "Detect connectivity" is the sentence that ends in a connectivity
+package, and the one it would answer is the wrong question: the OS knows whether an
+interface exists, and a pool with wifi that does not reach the internet is the normal
+case here. The refusal is checked by a gate, not remembered: `git diff` on the pubspec
+must be empty.
 
-- `ProgresoEnElMacrociclo.pendientes` counts a session the swimmer answered
-  with "I did not do it". It excludes only `hechas`, and that class's own
-  documentation forbids the conflation.
-- `Mi progreso` says "Todavía no tienes un plan asignado" for the twenty
-  seconds its plan takes to load offline — an empty state shown before the data
-  has had its chance, and false while it says it.
-- The pending notice can outlive the send. Firestore's own queue delivers the
-  write our deadline stopped waiting for, so the server holds the record while
-  the outbox still counts it pending. Nothing is lost or duplicated, the id is
-  deterministic, but the sentence stays on screen after it stops being true.
+**What the work found that the planning did not.** `EnvioPendiente`'s retry wait
+**overflowed**: `1 << 64` is zero, so past about sixty-four attempts the wait became zero
+seconds — the tight loop that code exists to prevent. It had been unreachable since
+feature 003 precisely because nothing retried without the swimmer opening the app, and
+the first simulated hour of this feature found it by hanging the suite. The gate in front
+of the send also had to go rather than be rewired: with the attempt as the probe, a gate
+that consults the probe before attempting deadlocks.
 
-Closing this closes **T071 of feature 003 and T088 of feature 004**, which have
-been open since there was nowhere to deploy. T089 of feature 004 — siblings on
-one phone, a session expiring poolside — is the natural companion of 011's walk,
-since both are the swimmer's journey on a real device.
+**Four existing tests encoded the defects and were inverted**, each with the reason
+written where it happened. One of them justified itself with a comment contradicting the
+documentation three lines above it in the production file. Another asserted that the
+**consent gate is skipped** when there is no network; it now asserts the opposite, and
+principle V is stronger for it.
+
+**It removes the causes; it closes no scenario.** C1 and C2 of feature 003 and C7 and C8
+of feature 004 — T071, T088 and T089 — are walked together after feature 013, by the
+coach's decision. What a phone adds to C2 is the part no test reaches: a real radio, a
+real airplane mode, and a real walk out of a building.
 
 ### 012 — The coach → swimmer relation
 
