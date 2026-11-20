@@ -168,6 +168,9 @@ class EstadoAlta extends ChangeNotifier {
           nadadorId: nadadorId,
           comunidadId: elegida,
           pedidaEn: _ahora(),
+          // Su nombre va dentro de la solicitud: el entrenador no puede leer
+          // su ficha hasta aceptarla, asi que sin esto decide sobre «alguien».
+          nombre: _perfil.nombre.trim(),
         ),
       );
     } on FalloDeDatos {

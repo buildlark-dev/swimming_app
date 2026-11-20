@@ -102,6 +102,24 @@ async function sembrarVinculos() {
       .collection('consentimientos')
       .doc('n-ana')
       .set({ vigente: true, alcances: ['datosDeEntrenamiento'] });
+
+    // **Y a que comunidad pertenecen** (feature 012). Hasta ahora esta semilla
+    // no lo decia porque no hacia falta: la regla era `esEntrenador()`, sin
+    // mas, y cualquier entrenador leia a cualquier nadadora. Ahora la
+    // pertenencia es la frontera, asi que una nadadora sin ella no es de
+    // nadie — y esta suite se quedaba sin sujeto.
+    await db
+      .collection('comunidades')
+      .doc('u-entrenador')
+      .set({ entrenadorId: 'u-entrenador', nombre: 'Club de prueba' });
+    await db
+      .collection('nadadores')
+      .doc('n-ana')
+      .set({ nombre: 'Ana', comunidadId: 'u-entrenador' });
+    await db
+      .collection('nadadores')
+      .doc('n-juan')
+      .set({ nombre: 'Juan', comunidadId: 'u-entrenador' });
   });
 }
 
@@ -126,17 +144,26 @@ test('el entrenador lee el registro de una nadadora', async () => {
   );
 });
 
-test('el entrenador lee la coleccion entera, que es como cuenta', async () => {
+test('la coleccion entera ya NO se lee, y es el precio de la frontera', async () => {
+  // **Esta prueba afirmaba lo contrario, y la feature 012 la invirtio.**
+  //
+  // Decia: «el entrenador lee la coleccion entera, que es como cuenta», y era
+  // la decision D10 de la feature 008 — una consulta en vez de una por
+  // nadador, porque contar nadador a nadador crece con el grupo.
+  //
+  // Esa consulta no sobrevive a que la regla pregunte **de quien** es cada
+  // registro: las reglas no filtran, asi que o la consulta se demuestra entera
+  // por sus filtros o Firestore la rechaza entera. Es la misma leccion que la
+  // feature 009 pago dos veces, cobrada ahora por el otro lado.
+  //
+  // Lo que la sustituye esta en `registros_firestore.dart`: la misma cuenta,
+  // acotada por la lista de sus nadadores, en unas pocas consultas en vez de
+  // una. El numero esta escrito en el quickstart de la 012.
   await sembrarVinculos();
   await sembrarRegistro();
   await sembrarRegistro('n-juan|plan-1|s1|plan-1', { nadadorId: 'n-juan' });
 
-  // Una consulta, no una por nadador: es la decision D10 de la feature 008, y
-  // es tambien como la 010 marca en la lista quien conto una molestia.
-  const leidos = await assertSucceeds(
-    elEntrenador().collection(COLECCION).get(),
-  );
-  assert.equal(leidos.size, 2);
+  await assertFails(elEntrenador().collection(COLECCION).get());
 });
 
 test('el entrenador consulta los de una nadadora por su id', async () => {
@@ -211,28 +238,48 @@ test('sin sesion no se lee nada', async () => {
   );
 });
 
-// --- El limite declarado (T022, FR-025, decision D1) ---------------------
+// --- El limite, ya cerrado (era T022, FR-025; lo cierra la feature 012) ---
 
-test('UN SEGUNDO ENTRENADOR LEE A LA NADADORA DEL PRIMERO, y pasa', async () => {
+test('UN SEGUNDO ENTRENADOR NO LEE A LA NADADORA DEL PRIMERO', async () => {
   await sembrarVinculos();
   await sembrarRegistro();
 
-  // **Esta prueba afirma que algo SALE BIEN cuando la spec preferiria que no.**
+  // **Esta prueba afirmaba lo contrario, y decia por que.**
   //
-  // No hay vinculo entrenador -> nadador en el producto: `Nadador` no tiene
-  // dueno y la regla dice `esEntrenador()`, sin mas. La constitucion describe
-  // una comunidad dirigida por *un* entrenador, en singular, asi que la regla
-  // es la correcta para lo que existe — pero FR-024 pedia «solo sus
-  // nadadores» y eso no se puede cumplir hoy.
+  // Decia: «esta prueba afirma que algo SALE BIEN cuando la spec preferiria
+  // que no», porque no habia vinculo entrenador -> nadador en el producto. La
+  // feature 010 no pudo cumplir FR-024, asi que lo enmendo, dejo el motivo
+  // escrito al lado, y puso aqui el limite **afirmado y no silenciado**:
   //
-  // Se enmendo FR-024, el motivo quedo escrito al lado en la spec, y esto es
-  // lo que FR-025 exige: **el limite afirmado, no silenciado.** El dia que
-  // exista un segundo entrenador, esta es la primera prueba que se cae, y es
-  // justo lo que tiene que pasar.
+  // > El dia que exista un segundo entrenador, esta es la primera prueba que
+  // > se cae, y es justo lo que tiene que pasar.
+  //
+  // Ese dia es hoy. Se cayo, y se invierte.
   //
   // La feature 003 declaro una limitacion igual —las reglas no distinguian a
-  // un nadador de otro porque no habia identidad— y la 004 la cerro.
-  await assertSucceeds(
+  // un nadador de otro porque no habia identidad— y la 004 la cerro. Esta es
+  // la segunda vez que el producto cierra algo que habia declarado en vez de
+  // esconder.
+  await assertFails(
     otroEntrenador().collection(COLECCION).doc('n-ana|plan-1|s1|plan-1').get(),
+  );
+});
+
+test('y el suyo SI la lee: la frontera no es que no funcione nada', async () => {
+  // **La contraparte positiva de la de arriba, y hace falta de verdad.**
+  //
+  // La prueba invertida era una de las cinco `assertSucceeds` que hacian
+  // significativo el control negativo de esta suite: contra una coleccion sin
+  // reglas pasaban 5 de 10, y las unicas que fallaban eran las cinco que
+  // afirman un exito. Invertirla deja a la suite con una menos para notar que
+  // las reglas no estan cargadas siquiera.
+  //
+  // Esta la repone, y dice algo que antes no se podia decir: que la
+  // pertenencia **deja leer**, no solo que impide.
+  await sembrarVinculos();
+  await sembrarRegistro();
+
+  await assertSucceeds(
+    elEntrenador().collection(COLECCION).doc('n-ana|plan-1|s1|plan-1').get(),
   );
 });

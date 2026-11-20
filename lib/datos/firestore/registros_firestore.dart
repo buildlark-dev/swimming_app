@@ -17,6 +17,7 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:natacion_app/datos/firestore/mis_nadadores.dart';
 import 'package:natacion_app/datos/firestore/lo_que_haya.dart';
 import 'package:natacion_app/datos/exportacion.dart';
 import 'package:natacion_app/datos/firestore/envio_registros.dart';
@@ -25,9 +26,13 @@ import 'package:natacion_app/dominio/entidades/registro_sesion.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 
 class RegistrosFirestore implements RepositorioRegistros {
-  const RegistrosFirestore(this.firestore);
+  const RegistrosFirestore(this.firestore, {this.mios});
 
   final FirebaseFirestore firestore;
+
+  /// Quiénes son los suyos (feature 012). Nulo en el recorrido de la nadadora,
+  /// que lee los suyos filtrando por su propio identificador.
+  final MisNadadores? mios;
 
   CollectionReference<Map<String, dynamic>> get _registros =>
       firestore.collection(coleccionRegistros);
@@ -73,18 +78,43 @@ class RegistrosFirestore implements RepositorioRegistros {
 
   @override
   Future<Set<String>> nadadoresConRegistros() async {
-    // Una sola consulta a la colección, que es lo que la decisión D10 compra:
-    // contar «en uso» preguntando nadador por nadador serían N consultas, y el
-    // número de nadadores crece.
+    // **Acotada a los suyos** (feature 012, FR-014), y este comentario decía
+    // otra cosa durante dos features:
     //
-    // Solo el entrenador puede hacerla: las reglas le dejan leer los registros
-    // de su comunidad, y a un nadador solo los suyos.
+    // > Solo el entrenador puede hacerla: las reglas le dejan leer los
+    // > registros de su comunidad, y a un nadador solo los suyos.
+    //
+    // No era verdad. No había comunidad ninguna: la regla decía
+    // `esEntrenador()`, sin más, y la consulta era la colección entera. El
+    // comentario describía esta feature dos features antes de que existiera.
+    //
+    // **Lo que esto cuesta.** La decisión D10 de la feature 007 compró «una
+    // sola consulta» a propósito, porque contar nadador a nadador serían N. El
+    // precio ahora es una consulta para saber quiénes son los suyos más una
+    // por cada lote de 30 nadadores: con el grupo sembrado, **dos**. Con
+    // treinta nadadores, dos. Con sesenta, tres. El cambio se hace con los
+    // ojos abiertos: lo que D10 quería evitar era N, y esto no es N.
+    final quienes = mios;
+    if (quienes == null) {
+      throw const FalloDeDatos(
+        'Saber quién ha respondido es del entrenador, y esta sesión no trae '
+        'comunidad. La consulta sin filtro la rechaza el servidor.',
+      );
+    }
+
     try {
-      final instantanea = await _registros.leerLoQueHaya();
-      return instantanea.docs
-          .map((d) => d.data()['nadadorId'] as String?)
-          .whereType<String>()
-          .toSet();
+      final conRegistros = <String>{};
+      for (final lote in await quienes.enLotes()) {
+        final instantanea = await _registros
+            .where('nadadorId', whereIn: lote)
+            .leerLoQueHaya();
+        conRegistros.addAll(
+          instantanea.docs
+              .map((d) => d.data()['nadadorId'] as String?)
+              .whereType<String>(),
+        );
+      }
+      return conRegistros;
     } on FirebaseException catch (e) {
       throw FalloDeDatos('No se pudo saber quién ha respondido: ${e.message}');
     }

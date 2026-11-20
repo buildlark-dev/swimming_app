@@ -15,6 +15,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/auditoria/auditoria.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
+import 'package:natacion_app/dominio/comunidad/solicitud_de_ingreso.dart';
 import 'package:natacion_app/dominio/entidades/nadador.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
 
@@ -39,6 +40,14 @@ typedef AlCerrarPeticion =
       String? motivo,
     });
 
+/// Lo que el entrenador decide sobre quien quiere entrar (feature 012).
+///
+/// **Pasa por el servidor**, igual que cerrar una petición y por una razón más
+/// fuerte: aceptar escribe la pertenencia en la ficha de ella y cierra la
+/// solicitud, y las dos cosas tienen que ocurrir juntas o ninguna.
+typedef AlResolverIngreso =
+    Future<void> Function({required String nadadorId, required bool acepto});
+
 class ColaDelEntrenador extends StatefulWidget {
   const ColaDelEntrenador({
     super.key,
@@ -50,6 +59,9 @@ class ColaDelEntrenador extends StatefulWidget {
     required this.versionMetodologia,
     this.alCerrar,
     this.hoyParaPruebas,
+    this.solicitudes,
+    this.miComunidad,
+    this.alResolverIngreso,
   });
 
   final RepositorioPeticiones? peticiones;
@@ -69,6 +81,20 @@ class ColaDelEntrenador extends StatefulWidget {
 
   final DateTime? hoyParaPruebas;
 
+  /// Quién ha pedido entrar en su comunidad (feature 012, FR-009).
+  ///
+  /// **Aquí y no en un sexto destino.** Esto ya es el sitio donde lo que los
+  /// nadadores le piden espera su firma; pedir entrar es otra cosa que alguien
+  /// le pide. Un destino más habría movido los cinco del HUB y el cerrojo de
+  /// la feature 007 que mide si sus etiquetas caben a 320 px.
+  final RepositorioSolicitudes? solicitudes;
+
+  /// Su comunidad: es su propio identificador de cuenta. Nulo sin servidor o
+  /// si quien abre no es un entrenador, y entonces la sección no existe.
+  final String? miComunidad;
+
+  final AlResolverIngreso? alResolverIngreso;
+
   DateTime get hoy => hoyParaPruebas ?? DateTime.now();
 
   @override
@@ -84,10 +110,95 @@ class _ColaDelEntrenadorState extends State<ColaDelEntrenador> {
   /// Cuál está abierta. Nula = la lista.
   PeticionDePlan? _abierta;
 
+  /// Quién quiere entrar (feature 012).
+  List<SolicitudDeIngreso> _ingresos = const [];
+  Map<String, Nadador> _fichasDeIngreso = const {};
+  String? _noSePudieronLeerIngresos;
+  String? _noSePudoResolver;
+
+  /// A quién se está contestando ahora mismo, para no dejarle pulsar dos veces.
+  String? _resolviendo;
+
   @override
   void initState() {
     super.initState();
     _cargar();
+    unawaited(_cargarIngresos());
+  }
+
+  /// Lee quién quiere entrar.
+  ///
+  /// Aparte de `_cargar` a propósito: **que la cola de peticiones falle no
+  /// puede llevarse por delante las solicitudes**, ni al revés. Son dos cosas
+  /// distintas que ocurren en la misma pantalla, y juntarlas en un `try` haría
+  /// que un fallo de una escondiera la otra.
+  Future<void> _cargarIngresos() async {
+    final repo = widget.solicitudes;
+    final comunidad = widget.miComunidad;
+    if (repo == null || comunidad == null) return;
+
+    try {
+      final esperando = await repo.lasQueEsperanEn(comunidad);
+
+      final fichas = <String, Nadador>{};
+      for (final solicitud in esperando) {
+        // **Una ficha ilegible no esconde la solicitud.** Sin perfil, la
+        // decisión sigue siendo suya; esconderla la dejaría esperando para
+        // siempre. Se enseña con lo que haya.
+        try {
+          final ficha = await widget.nadadores.obtener(solicitud.nadadorId);
+          if (ficha != null) fichas[solicitud.nadadorId] = ficha;
+        } catch (_) {
+          continue;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _ingresos = esperando;
+        _fichasDeIngreso = fichas;
+        _noSePudieronLeerIngresos = null;
+      });
+    } catch (problema) {
+      // Una lista que no se pudo leer no es una lista vacía. Tercera vez que
+      // se escribe esto en este archivo, y por tercera razón distinta.
+      if (!mounted) return;
+      setState(() {
+        _noSePudieronLeerIngresos =
+            'No se pudo leer quién quiere entrar en tu comunidad. Puede que '
+            'alguien esté esperando ($problema).';
+      });
+    }
+  }
+
+  Future<void> _resolver(String nadadorId, {required bool acepto}) async {
+    final resolver = widget.alResolverIngreso;
+    if (resolver == null || _resolviendo != null) return;
+
+    setState(() {
+      _resolviendo = nadadorId;
+      _noSePudoResolver = null;
+    });
+
+    try {
+      await resolver(nadadorId: nadadorId, acepto: acepto);
+      if (!mounted) return;
+      setState(() {
+        _ingresos = _ingresos.where((s) => s.nadadorId != nadadorId).toList();
+        _resolviendo = null;
+      });
+    } catch (problema) {
+      // **Una decisión que no llegó no puede parecer tomada.** Quitarla de la
+      // lista y callarse dejaría a la nadadora esperando para siempre y a él
+      // convencido de que ya contestó. Se queda donde estaba, y se dice.
+      if (!mounted) return;
+      setState(() {
+        _resolviendo = null;
+        _noSePudoResolver = acepto
+            ? 'No se pudo aceptar su ingreso. Sigue esperando ($problema).'
+            : 'No se pudo responder. Sigue esperando ($problema).';
+      });
+    }
   }
 
   Future<void> _cargar() async {
@@ -160,10 +271,18 @@ class _ColaDelEntrenadorState extends State<ColaDelEntrenador> {
       );
     }
 
+    // **Quien quiere entrar va arriba, y va siempre.** Antes de esto la
+    // pantalla volvía temprano en tres sitios —no se pudo leer, no hay nada,
+    // y la lista—, así que una solicitud esperando se perdía entera el día
+    // que la cola de peticiones estuviera vacía o fallara. Son dos cosas
+    // distintas que coinciden en la misma pantalla.
+    final deIngreso = _seccionDeIngresos(context);
+
     if (_noSePudoLeer != null) {
       return ListView(
         padding: const EdgeInsets.all(Espaciado.amplio),
         children: [
+          ...deIngreso,
           Aviso(
             tono: TonoDeAviso.cuidado,
             icono: Icons.cloud_off_outlined,
@@ -175,16 +294,30 @@ class _ColaDelEntrenadorState extends State<ColaDelEntrenador> {
     }
 
     if (_peticiones.isEmpty) {
-      return const Center(
-        key: Key('cola-vacia'),
-        child: Padding(
-          padding: EdgeInsets.all(Espaciado.seccion),
-          child: Text(
-            'Nadie te ha pedido nada todavía.\n'
-            'Cuando alguno te pida un entrenamiento, aparecerá aquí.',
-            textAlign: TextAlign.center,
+      if (deIngreso.isEmpty) {
+        return const Center(
+          key: Key('cola-vacia'),
+          child: Padding(
+            padding: EdgeInsets.all(Espaciado.seccion),
+            child: Text(
+              'Nadie te ha pedido nada todavía.\n'
+              'Cuando alguno te pida un entrenamiento, aparecerá aquí.',
+              textAlign: TextAlign.center,
+            ),
           ),
-        ),
+        );
+      }
+
+      return ListView(
+        padding: const EdgeInsets.all(Espaciado.amplio),
+        children: [
+          ...deIngreso,
+          const Text(
+            'Nadie te ha pedido un entrenamiento todavía.',
+            key: Key('cola-vacia-con-ingresos'),
+          ),
+          const SizedBox(height: Espaciado.generoso),
+        ],
       );
     }
 
@@ -194,6 +327,7 @@ class _ColaDelEntrenadorState extends State<ColaDelEntrenador> {
     return ListView(
       padding: const EdgeInsets.all(Espaciado.amplio),
       children: [
+        ...deIngreso,
         if (esperando.isNotEmpty) ...[
           Text(
             'Esperando tu respuesta',
@@ -218,6 +352,59 @@ class _ColaDelEntrenadorState extends State<ColaDelEntrenador> {
     );
   }
 
+  /// La sección de quien quiere entrar, o nada.
+  ///
+  /// **Nada cuando no hay nadie**, y eso no es cosmética: un encabezado que se
+  /// pinta siempre no distingue una pantalla que leyó y no encontró a nadie de
+  /// una que no leyó.
+  List<Widget> _seccionDeIngresos(BuildContext context) {
+    final problemaAlLeer = _noSePudieronLeerIngresos;
+    final problemaAlResolver = _noSePudoResolver;
+
+    if (problemaAlLeer != null) {
+      return [
+        Aviso(
+          tono: TonoDeAviso.cuidado,
+          icono: Icons.cloud_off_outlined,
+          claveDelMensaje: const Key('ingresos-no-se-pudieron-leer'),
+          mensaje: problemaAlLeer,
+        ),
+        const SizedBox(height: Espaciado.amplio),
+      ];
+    }
+
+    if (_ingresos.isEmpty) return const [];
+
+    return [
+      Text(
+        'Quieren entrar en tu comunidad',
+        key: const Key('ingresos-esperando'),
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      const SizedBox(height: Espaciado.corto),
+      if (problemaAlResolver != null) ...[
+        Aviso(
+          tono: TonoDeAviso.cuidado,
+          icono: Icons.cloud_off_outlined,
+          claveDelMensaje: const Key('ingreso-no-se-pudo'),
+          mensaje: problemaAlResolver,
+        ),
+        const SizedBox(height: Espaciado.corto),
+      ],
+      for (final solicitud in _ingresos)
+        _QuiereEntrar(
+          solicitud: solicitud,
+          ficha: _fichasDeIngreso[solicitud.nadadorId],
+          contestando: _resolviendo == solicitud.nadadorId,
+          // **Sin callback, sin botones.** Sin servidor no hay a quién
+          // mandárselo, y un botón que no lleva a ninguna parte es peor que
+          // no tenerlo.
+          alDecidir: widget.alResolverIngreso == null ? null : _resolver,
+        ),
+      const SizedBox(height: Espaciado.amplio),
+    ];
+  }
+
   Future<void> _abrir(PeticionDePlan peticion) async {
     setState(() => _abierta = peticion);
 
@@ -230,6 +417,86 @@ class _ColaDelEntrenadorState extends State<ColaDelEntrenador> {
         // Que no se pueda marcar no le impide trabajarla.
       }
     }
+  }
+}
+
+/// Una persona que quiere entrar, con las dos respuestas (feature 012).
+///
+/// **Las dos están, y ninguna es la de por defecto.** Principio IV: aceptar a
+/// alguien en el grupo es una decisión del entrenador, no del software, y
+/// «aceptar al abrir» es el atajo que un día parece cómodo.
+class _QuiereEntrar extends StatelessWidget {
+  const _QuiereEntrar({
+    required this.solicitud,
+    required this.ficha,
+    required this.contestando,
+    required this.alDecidir,
+  });
+
+  final SolicitudDeIngreso solicitud;
+  final Nadador? ficha;
+  final bool contestando;
+  final Future<void> Function(String nadadorId, {required bool acepto})?
+  alDecidir;
+
+  @override
+  Widget build(BuildContext context) {
+    // **El nombre sale de la solicitud, no de su ficha.**
+    //
+    // Y no es una optimización: su ficha él **no la puede leer** hasta
+    // aceptarla, que es la garantía F3 funcionando. Esto decía
+    // `ficha?.nombre`, y el recorrido del quickstart lo enseñó diciendo
+    // «Alguien que todavía no tiene perfil» y pidiéndole que decidiera sobre
+    // una desconocida. La solicitud lo lleva dentro justo para esto.
+    //
+    // La ficha se sigue mirando por si ya es suya —volver a pedir existiendo
+    // ya la pertenencia—, y sirve de respaldo para las solicitudes escritas
+    // antes de que la solicitud llevara nombre.
+    final nombre = [
+      solicitud.nombre.trim(),
+      ficha?.nombre.trim() ?? '',
+    ].firstWhere((n) => n.isNotEmpty, orElse: () => 'Alguien sin nombre');
+    final cuando = solicitud.pedidaEn;
+    final decidir = alDecidir;
+
+    return Tarjeta(
+      key: Key('ingreso-${solicitud.nadadorId}'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(nombre, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: Espaciado.minimo),
+          Text(
+            // Con año: una solicitud de hace dos días y una de hace cuatro
+            // meses no se atienden igual, y sin año no se distinguen.
+            'Lo pidió el ${cuando.day}/${cuando.month}/${cuando.year}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          if (decidir != null) ...[
+            const SizedBox(height: Espaciado.corto),
+            Row(
+              children: [
+                FilledButton(
+                  key: Key('aceptar-${solicitud.nadadorId}'),
+                  onPressed: contestando
+                      ? null
+                      : () => decidir(solicitud.nadadorId, acepto: true),
+                  child: const Text('Aceptar'),
+                ),
+                const SizedBox(width: Espaciado.corto),
+                TextButton(
+                  key: Key('rechazar-${solicitud.nadadorId}'),
+                  onPressed: contestando
+                      ? null
+                      : () => decidir(solicitud.nadadorId, acepto: false),
+                  child: const Text('Ahora no'),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 

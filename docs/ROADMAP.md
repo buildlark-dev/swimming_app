@@ -218,7 +218,64 @@ It is the door into the community area of principle VII, which is why it comes
 before video rather than after: a video belongs to a swimmer, and who may watch
 it is a question with no answer until this exists.
 
+#### What was built
+
+**Membership lives in one place**: `comunidadId` on the swimmer's own profile,
+written only by the server. No `membresias` collection, no copy on records,
+plans or requests — because the copy is the thing that cannot be unmade when a
+membership ends, and ending one has to cut the reading immediately.
+
+The relation is born in three steps the coach controls. He names his community
+in Settings; she asks while creating her account, from a list that shows his
+name; the request waits in the queue feature 008 already built, and **nothing
+happens without his signature**. Meanwhile she uses the app normally and the
+screen where her plan would be tells her where she stands.
+
+**The boundary is the point.** The rule that said `esEntrenador()` now asks
+whose swimmer this is, across six collections, and the test that asserted a
+second coach could read the first coach's swimmer has been inverted — the
+second time this product closes something it had declared rather than hidden.
+The rules suite grew from 174 tests to 223.
+
+**What the five rewritten queries cost.** Every query the coach makes used to
+read a whole collection, which worked because any coach could read anyone.
+Rules do not filter: a query is proved by its filters or refused entire. So all
+five — his swimmer list, who has answered, who has a macrocycle, the request
+queue, the assignments — now carry the list of his swimmers in their filters.
+A sixth was found during the work, in `molestias_firestore.dart`, and it was
+the worst of them: it swallowed its own failure, so with the boundary in place
+it would have answered "nobody reported a discomfort" for ever, silently.
+
+The cost is one query for "who are mine" plus one per batch of thirty, with no
+caching — **two queries where feature 007's decision D10 bought one**, and a
+full refresh makes eight where it made four. D10 existed to avoid N; this is
+not N, and at this scale the trade is the same one the consent gate accepted in
+feature 004.
+
+**What is not closed**: `planes`. A plan carries no owner — only
+`nadadoresIds`, empty in a draft, and a draft is exactly what its author must
+be able to read — so the rule has nothing to ask, and giving plans an owner
+means migrating documents that already exist. What leaks is the coach's
+training design, not a fact about a swimmer: who was given which plan lives in
+`asignaciones`, and that is closed. Her boundary is complete; his is half, and
+the limitation is asserted in a test rather than left unsaid.
+
 ### 013 — Video
+
+**What 012 hands it.** "Who may watch a swimmer's video" was a question with no
+place to get an answer; now it has one. A video belongs to a swimmer, a swimmer
+belongs to at most one community, and `esDeMiComunidad()` in
+`firebase/firestore.rules` is the single predicate that answers it — the same
+one the six tightened collections already use, so video does not invent a
+seventh way of asking.
+
+Three things 012 settled that video would otherwise have had to settle itself:
+**membership lives in one place**, so revoking it cuts access to the video in
+the next query rather than requiring a sweep; **a query is proved by its
+filters**, so the listing of a swimmer's videos has to carry her id, the way
+the other six now do; and **the consent gate composes rather than being
+replaced** — `Alcance.video` still decides whether the file may exist at all,
+and membership decides only who may watch one that may.
 
 Feature 010 shaped it and refused to build it, by the coach's decision on Q1:
 the request already carries a `video` field, the server carries the gate in

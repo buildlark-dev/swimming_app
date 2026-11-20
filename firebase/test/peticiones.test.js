@@ -67,6 +67,21 @@ async function sembrarVinculos({ conConsentimiento = true } = {}) {
     await db.collection('usuarios').doc('u-ana').set({ nadadorId: 'n-ana' });
     await db.collection('usuarios').doc('u-juan').set({ nadadorId: 'n-juan' });
 
+    // **Y de quien son** (feature 012). Hasta ahora esta semilla no lo decia
+    // porque la regla era `esEntrenador()`, sin mas, y cualquier entrenador
+    // leia la cola de cualquiera. Con la pertenencia como frontera, una
+    // nadadora sin ella no es de nadie y esta suite se queda sin sujeto.
+    await db
+      .collection('comunidades')
+      .doc('u-entrenador')
+      .set({ entrenadorId: 'u-entrenador', nombre: 'Club de prueba' });
+    for (const ficha of ['n-ana', 'n-juan']) {
+      await db
+        .collection('nadadores')
+        .doc(ficha)
+        .set({ nombre: ficha, comunidadId: 'u-entrenador' });
+    }
+
     if (conConsentimiento) {
       for (const ficha of ['n-ana', 'n-juan']) {
         await db.collection('consentimientos').doc(ficha).set({ vigente: true });
@@ -268,7 +283,11 @@ test('P13 — ni la borra para poder mandar otra', async () => {
 
 // --- El entrenador: lee todo, escribe el estado y nada mas --------------
 
-test('el entrenador lee cualquier peticion', async () => {
+test('el entrenador lee la peticion de los suyos', async () => {
+  // **Decia «cualquier peticion», y era verdad.** La feature 012 puso la
+  // pertenencia como frontera: ahora es la de los suyos, y por eso esta prueba
+  // siembra de quien es n-ana antes de leerla.
+  await sembrarVinculos();
   await sembrarPeticion('n-ana', 'esperando');
 
   await assertSucceeds(
@@ -277,6 +296,7 @@ test('el entrenador lee cualquier peticion', async () => {
 });
 
 test('el entrenador la pasa a en revision', async () => {
+  await sembrarVinculos();
   await sembrarPeticion('n-ana', 'esperando');
 
   await assertSucceeds(

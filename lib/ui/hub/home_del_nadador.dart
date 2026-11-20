@@ -14,9 +14,9 @@ import 'package:flutter/material.dart';
 import 'package:natacion_app/dominio/calculo/sesion_del_dia.dart';
 import 'package:natacion_app/dominio/hub/resumen_del_nadador.dart';
 import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
-import 'package:natacion_app/ui/componentes/estado_vacio.dart';
 import 'package:natacion_app/ui/componentes/tarjeta.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
+import 'package:natacion_app/ui/nadador/sin_plan_todavia.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:provider/provider.dart';
 
@@ -42,14 +42,21 @@ class HomeDelNadador extends StatelessWidget {
           key: const Key('home-nadador'),
           padding: const EdgeInsets.all(Espaciado.amplio),
           children: [
+            // **La cuarta pantalla que decía esto, y la encontró el
+            // recorrido** (feature 012). Las pruebas de US4 montaban las dos
+            // que la spec nombra —`Mi progreso` y la sesión del día— y esta
+            // no, así que a quien espera a que la acepten la portada le seguía
+            // diciendo que esperara un plan de un entrenador que todavía no es
+            // suyo. Es exactamente la frase que FR-020 existe para impedir, y
+            // es la primera que ella ve al abrir la app.
+            //
+            // Ahora decide lo mismo que las otras tres y en el mismo sitio.
             if (!resumen.tienePlan)
-              const EstadoVacio(
-                key: Key('home-sin-plan'),
-                icono: Icons.pool_outlined,
-                titulo: 'Todavía no tienes un plan',
-                queHacer:
-                    'Cuando tu entrenador te entregue uno, tu sesión del '
-                    'día aparecerá aquí.',
+              SinPlanTodavia(
+                key: const Key('home-sin-plan'),
+                dondeEsta: estado.dondeEsta,
+                terminadaEn: estado.pertenenciaTerminadaEn,
+                corta: true,
               )
             else ...[
               _Hoy(resumen: resumen, irAVerPlan: irAVerPlan),

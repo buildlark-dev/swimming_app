@@ -11,8 +11,10 @@
 library;
 
 import 'package:natacion_app/datos/firestore/comunidades_firestore.dart';
+import 'package:natacion_app/datos/firestore/solicitudes_firestore.dart';
 import 'package:natacion_app/datos/firestore/consentimientos.dart';
 import 'package:natacion_app/datos/registros_de_las_dos_partes.dart';
+import 'package:natacion_app/datos/firestore/mis_nadadores.dart';
 import 'package:natacion_app/datos/firestore/macrociclos_firestore.dart';
 import 'package:natacion_app/datos/firestore/peticiones_feedback_firestore.dart';
 import 'package:natacion_app/datos/firestore/peticiones_firestore.dart';
@@ -39,6 +41,7 @@ class RepositoriosDelHub {
     this.peticiones,
     this.peticionesDeFeedback,
     this.comunidades,
+    this.solicitudes,
   });
 
   /// Los de verdad: con servidor persisten; sin él, no.
@@ -46,11 +49,21 @@ class RepositoriosDelHub {
   /// Hasta la feature 004 `main.dart` usaba los de memoria **aunque los de
   /// Firestore existieran desde la 001**: estaban escritos y nadie los
   /// llamaba, y el trabajo del entrenador se perdía al recargar.
+  /// [miComunidadId] es la comunidad de quien abre, cuando es un entrenador
+  /// (feature 012). **Las cinco consultas del entrenador dependen de ella**:
+  /// desde que la pertenencia es la frontera, una consulta sin filtro la
+  /// rechaza el servidor entera. Nula en el recorrido de la nadadora, que no
+  /// lista a nadie.
   factory RepositoriosDelHub.de(
     RecursosIniciales recursos,
-    AlmacenLocal almacen,
-  ) {
+    AlmacenLocal almacen, {
+    String? miComunidadId,
+  }) {
     final db = recursos.firestore;
+
+    final mios = db == null || miComunidadId == null
+        ? null
+        : MisNadadores(db: db, comunidadId: miComunidadId);
 
     final sesiones = db == null
         ? RepositorioSesionesMemoria()
@@ -66,20 +79,20 @@ class RepositoriosDelHub {
       sesiones: sesiones,
       nadadores: db == null
           ? RepositorioNadadoresMemoria()
-          : RepositorioNadadoresFirestore(db),
+          : RepositorioNadadoresFirestore(db, comunidadId: miComunidadId),
       asignaciones: db == null
           ? RepositorioAsignacionesMemoria()
-          : RepositorioAsignacionesFirestore(db),
+          : RepositorioAsignacionesFirestore(db, mios: mios),
       // El nivel de encima del plan (feature 009). Sin servidor va en memoria,
       // igual que los planes: se puede trabajar en local y no persiste.
       macrociclos: db == null
           ? RepositorioMacrociclosMemoria()
-          : RepositorioMacrociclosFirestore(db),
+          : RepositorioMacrociclosFirestore(db, mios: mios),
       registrosLocales: RegistrosLocales(almacen),
       // Para saber quién ha respondido algo hace falta leer la colección del
       // servidor, no el almacén de este dispositivo. Sin servidor no hay a
       // quién preguntar y el resumen cuenta con lo local.
-      registrosDelServidor: db == null ? null : RegistrosFirestore(db),
+      registrosDelServidor: db == null ? null : RegistrosFirestore(db, mios: mios),
       // Sin servidor no hay peticiones: no hay a quien pedirle nada ni donde
       // guardarlo. La pantalla lo dice en lugar de ofrecer una lista que no
       // lleva a ninguna parte.
@@ -94,10 +107,11 @@ class RepositoriosDelHub {
               servidor: PeticionesFeedbackFirestore(db),
             ),
       comunidades: db == null ? null : RepositorioComunidadesFirestore(db),
+      solicitudes: db == null ? null : RepositorioSolicitudesFirestore(db),
       peticiones: db == null
           ? null
           : PeticionesConPuerta(
-              servidor: PeticionesFirestore(db),
+              servidor: PeticionesFirestore(db, mios: mios),
               puerta: PuertaFirestore(db),
               almacen: almacen,
             ),
@@ -137,6 +151,13 @@ class RepositoriosDelHub {
   /// Donde el entrenador nombra lo suyo, y de donde sale el letrero que una
   /// nadadora ve al darse de alta (feature 012). Nulo sin servidor.
   final RepositorioComunidades? comunidades;
+
+  /// Quién ha pedido entrar (feature 012). Nulo sin servidor.
+  ///
+  /// **Leer y pedir viven aquí; resolver no.** Aceptar escribe además la
+  /// pertenencia, y las dos cosas tienen que pasar juntas o ninguna, así que
+  /// eso es un acto del servidor y va por `OperacionesDelServidor`.
+  final RepositorioSolicitudes? solicitudes;
 
   /// Si lo que mandó un nadador sigue retenido en el dispositivo.
   Future<bool> estaRetenida(String nadadorId) async {

@@ -65,6 +65,96 @@ void main() {
     );
   });
 
+  // --- Y la otra mitad: la solicitud llega hasta su cola ------------------
+  //
+  // El mismo defecto con otro nombre otra vez. Un repositorio de solicitudes
+  // que exista, tenga pruebas y no llegue hasta la cola del entrenador deja la
+  // feature justo donde la 008 dejó `alVolverLaRed`: correcta y desconectada.
+  // Y aquí el precio es peor que un contador en cero — es alguien esperando
+  // para siempre a que la acepten.
+
+  test('el paquete de repositorios construye el de solicitudes', () {
+    final fuente = leer('lib/ui/hub/repositorios_del_hub.dart');
+
+    expect(fuente, contains('RepositorioSolicitudesFirestore(db)'));
+  });
+
+  test('el HUB se lo pasa a los contenidos, con su comunidad', () {
+    final fuente = leer('lib/ui/hub/hub.dart');
+
+    expect(fuente, contains('solicitudes: _repos.solicitudes'));
+    expect(
+      fuente,
+      contains('miComunidad: _miComunidad'),
+      reason:
+          'sin la comunidad, la consulta de solicitudes no se puede demostrar '
+          'por sus filtros y el servidor la rechaza entera',
+    );
+  });
+
+  test('y los contenidos a la cola del entrenador', () {
+    final fuente = leer('lib/ui/hub/contenidos.dart');
+
+    expect(fuente, contains('solicitudes: ctx.solicitudes'));
+    expect(fuente, contains('alResolverIngreso: ctx.alResolverIngreso'));
+  });
+
+  test('resolver pasa por el servidor, no por el cliente', () {
+    // Aceptar escribe la pertenencia y cierra la solicitud, y las dos cosas
+    // tienen que ocurrir juntas o ninguna (garantía F5). Si esto se cableara
+    // al repositorio, media aceptación sería posible.
+    final fuente = leer('lib/ui/hub/hub.dart');
+
+    expect(fuente, contains('aceptarIngreso'));
+    expect(fuente, contains('rechazarIngreso'));
+  });
+
+  // --- Y la tercera: ella se entera de dónde está ------------------------
+
+  test('el HUB averigua dónde está ella al abrirle lo suyo', () {
+    final fuente = leer('lib/ui/hub/hub.dart');
+
+    expect(
+      fuente,
+      contains('_averiguarDondeEsta'),
+      reason:
+          'sin esto, `DondeEsta` existe, tiene pruebas y nadie lo llama: la '
+          'nadadora que espera lee «todavía no tienes un plan asignado» y se '
+          'queda esperando a un entrenador que no sabe que existe',
+    );
+    expect(fuente, contains('anotarDondeEsta'));
+  });
+
+  test('y las pantallas lo usan para elegir el vacío', () {
+    // **Son cuatro, no dos.** La portada —`home_del_nadador`— decía la misma
+    // frase con otras palabras, y no estaba ni en la spec ni en las pruebas de
+    // US4: lo encontró el recorrido del quickstart, con el aviso de espera ya
+    // puesto en dos pantallas y la primera que ella ve al abrir la app
+    // diciéndole lo contrario.
+    //
+    // La cuarta, `mi_macrociclo`, enseña la sesión del día cuando no hay
+    // macrociclo, así que le llega por ahí y no hace falta listarla.
+    for (final pantalla in [
+      'lib/ui/nadador/pantalla_mi_progreso.dart',
+      'lib/ui/nadador/pantalla_sesion_del_dia.dart',
+      'lib/ui/hub/home_del_nadador.dart',
+    ]) {
+      final fuente = leer(pantalla);
+      expect(fuente, contains('SinPlanTodavia('), reason: 'en $pantalla');
+      expect(
+        fuente,
+        contains('dondeEsta: estado.dondeEsta'),
+        reason: 'en $pantalla',
+      );
+      expect(
+        fuente,
+        contains('terminadaEn: estado.pertenenciaTerminadaEn'),
+        reason: 'sin esto, a quien sacaron del grupo se le dice que todavía '
+            'no se ha unido a ninguno ($pantalla)',
+      );
+    }
+  });
+
   test('la prueba no pasa por vacía', () {
     // Sin esto, renombrar cualquiera de esos archivos dejaría los cuatro
     // `expect` de arriba pasando por casualidad sobre texto que ya no existe.

@@ -8,6 +8,7 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:natacion_app/datos/firestore/mis_nadadores.dart';
 import 'package:natacion_app/datos/firestore/lo_que_haya.dart';
 import 'package:natacion_app/datos/serializacion.dart';
 import 'package:natacion_app/dominio/biblioteca/biblioteca.dart';
@@ -301,9 +302,17 @@ class RepositorioSesionesFirestore implements RepositorioSesiones {
 }
 
 class RepositorioNadadoresFirestore implements RepositorioNadadores {
-  RepositorioNadadoresFirestore(this._db);
+  RepositorioNadadoresFirestore(this._db, {this.comunidadId});
 
   final FirebaseFirestore _db;
+
+  /// La comunidad de quien pregunta, cuando quien pregunta es un entrenador
+  /// (feature 012). **De esto depende que `listar()` se pueda hacer**: la
+  /// regla ya no es `esEntrenador()`, sin más, y las reglas no filtran.
+  ///
+  /// Nulo en el recorrido de la nadadora, que no lista a nadie: lee su propia
+  /// ficha por identificador y nada más.
+  final String? comunidadId;
 
   CollectionReference<Map<String, dynamic>> get _nadadores =>
       _db.collection(coleccionNadadores);
@@ -321,8 +330,24 @@ class RepositorioNadadoresFirestore implements RepositorioNadadores {
 
   @override
   Future<List<Nadador>> listar() async {
+    // **Filtrada por comunidad** (feature 012, FR-014). Era la colección
+    // entera, y funcionaba porque cualquier entrenador leía a cualquier
+    // nadador. Esta es la consulta de la que salen las otras cuatro: todas
+    // están expresadas en términos de «sus nadadores», y aquí es donde los
+    // consigue.
+    final mia = comunidadId;
+    if (mia == null) {
+      throw const FalloDeDatos(
+        'Listar nadadores es del entrenador, y esta sesión no trae comunidad. '
+        'La consulta sin filtro la rechaza el servidor, así que se dice aquí '
+        'en lugar de fallar con un código de Firebase.',
+      );
+    }
+
     try {
-      final instantanea = await _nadadores.leerLoQueHaya();
+      final instantanea = await _nadadores
+          .where('comunidadId', isEqualTo: mia)
+          .leerLoQueHaya();
       return instantanea.docs
           .map((d) => nadadorDesdeJson(d.data(), id: d.id))
           .toList();
@@ -373,9 +398,13 @@ class RepositorioNadadoresFirestore implements RepositorioNadadores {
 /// documento. No duplica por construcción, no por una comprobación que alguien
 /// pueda olvidar.
 class RepositorioAsignacionesFirestore implements RepositorioAsignaciones {
-  RepositorioAsignacionesFirestore(this._db);
+  RepositorioAsignacionesFirestore(this._db, {this.mios});
 
   final FirebaseFirestore _db;
+
+  /// Quiénes son los suyos (feature 012). Nulo en el recorrido de la nadadora,
+  /// que solo usa `deNadador`.
+  final MisNadadores? mios;
 
   CollectionReference<Map<String, dynamic>> get _coleccion =>
       _db.collection('asignaciones');
@@ -390,8 +419,25 @@ class RepositorioAsignacionesFirestore implements RepositorioAsignaciones {
 
   @override
   Future<List<Asignacion>> listar() async {
-    final instantanea = await _coleccion.leerLoQueHaya();
-    return instantanea.docs.map((d) => _desde(d.data())).toList();
+    // **Acotada a los suyos** (feature 012, FR-014). A quién se le entregó
+    // cada plan es un hecho sobre ella —quién entrena con quién—, aunque el
+    // plan no lo sea.
+    final quienes = mios;
+    if (quienes == null) {
+      throw const FalloDeDatos(
+        'Listar asignaciones es del entrenador, y esta sesión no trae '
+        'comunidad. La consulta sin filtro la rechaza el servidor.',
+      );
+    }
+
+    final asignaciones = <Asignacion>[];
+    for (final lote in await quienes.enLotes()) {
+      final instantanea = await _coleccion
+          .where('nadadorId', whereIn: lote)
+          .leerLoQueHaya();
+      asignaciones.addAll(instantanea.docs.map((d) => _desde(d.data())));
+    }
+    return asignaciones;
   }
 
   @override

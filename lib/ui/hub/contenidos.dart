@@ -27,6 +27,7 @@ import 'package:natacion_app/ui/editor/estado_editor.dart';
 import 'package:natacion_app/ui/editor/pantalla_editor.dart';
 import 'package:natacion_app/ui/generacion/pantalla_peticion.dart';
 import 'package:natacion_app/ui/ajustes/pantalla_ajustes.dart';
+import 'package:natacion_app/dominio/comunidad/membresia.dart';
 import 'package:natacion_app/dominio/peticiones/molestias_enlazadas.dart';
 import 'package:natacion_app/ui/hub/cola_del_entrenador.dart';
 import 'package:natacion_app/ui/hub/home_del_entrenador.dart';
@@ -60,6 +61,16 @@ class ContextoDelHub {
     this.repositorioPlanes,
     this.molestias,
     this.alCerrarPeticion,
+    this.solicitudes,
+    this.miComunidad,
+    this.alResolverIngreso,
+    this.alSacarDeLaComunidad,
+    this.alSalirDeLaComunidad,
+    this.dondeEsta,
+    this.nombreDeMiComunidad,
+    this.alRetirarSolicitud,
+    this.alPedirEntrar,
+    this.vecesQueCambioLaComunidad = 0,
     required this.editor,
     required this.nadador,
     required this.planes,
@@ -123,6 +134,40 @@ class ContextoDelHub {
 
   /// Cierra una petición a través del servidor. Nulo sin servidor.
   final AlCerrarPeticion? alCerrarPeticion;
+
+  /// Quien ha pedido entrar en su comunidad (feature 012, FR-009).
+  final RepositorioSolicitudes? solicitudes;
+
+  /// Su comunidad: su propio identificador de cuenta. Nulo si quien abre no es
+  /// un entrenador, y entonces la seccion no existe.
+  final String? miComunidad;
+
+  /// Resolver pasa por el servidor: aceptar escribe la pertenencia y cierra la
+  /// solicitud, y las dos cosas ocurren juntas o ninguna (garantia F5).
+  final AlResolverIngreso? alResolverIngreso;
+
+  /// Sacarla de su comunidad (feature 012, FR-025). Nulo sin servidor.
+  final Future<void> Function(Nadador)? alSacarDeLaComunidad;
+
+  /// Y que ella se vaya de la suya. Nulo sin servidor o si no pertenece a
+  /// ninguna: un control que no lleva a ninguna parte es peor que no tenerlo.
+  final Future<void> Function()? alSalirDeLaComunidad;
+
+  /// Dónde está ella respecto de pertenecer a algo (feature 012).
+  final DondeEsta? dondeEsta;
+
+  /// El letrero con el que reconoce su comunidad.
+  final String? nombreDeMiComunidad;
+
+  /// Retirar lo que pidió, mientras nadie le ha contestado (FR-007).
+  final Future<void> Function()? alRetirarSolicitud;
+
+  /// Abrir donde elige comunidad y pide entrar (FR-005). Nulo sin servidor.
+  final VoidCallback? alPedirEntrar;
+
+  /// Cuántas veces ha cambiado quién pertenece a su comunidad en esta sesión.
+  /// Solo sirve para que las pantallas que cachean su lista la relean.
+  final int vecesQueCambioLaComunidad;
 
   final EstadoEditor editor;
   final EstadoNadador nadador;
@@ -264,6 +309,7 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
       alEmpezarUnMacrociclo: ctx.alEmpezarUnMacrociclo,
       alVerSuMacrociclo: ctx.alVerSuMacrociclo,
       quienTieneMacrociclo: ctx.quienTieneMacrociclo,
+      alSacarDeLaComunidad: ctx.alSacarDeLaComunidad,
     ),
     // El `Análisis` del entrenador (feature 010). El destino llevaba desde la
     // 007 con un «todavía no» que nombraba a esta feature por su número.
@@ -285,6 +331,13 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
               ),
             )
           : PantallaAnalisis(
+              // **Se vuelve a leer cuando cambia quién es suyo** (feature 012).
+              // Esta pantalla carga su lista en `initState` y nada la
+              // despertaba: el recorrido del quickstart aceptó a alguien y
+              // `Análisis` siguió sin ella hasta recargar la app. La clave
+              // cambia al aceptar o al sacar, y eso basta para que Flutter
+              // monte un estado nuevo y lea otra vez.
+              key: ValueKey('analisis-${ctx.vecesQueCambioLaComunidad}'),
               nadadores: ctx.nadadores,
               macrociclos: ctx.macrociclosDelEntrenador!,
               planes: ctx.repositorioPlanes!,
@@ -344,6 +397,11 @@ Widget _pantallaDe(Contenido contenido, ContextoDelHub ctx) {
       alElegirApariencia: ctx.alElegirApariencia,
       conmutadorDeRecorrido: ctx.conmutadorDeRecorrido,
       comunidades: ctx.comunidades,
+      alSalirDeLaComunidad: ctx.alSalirDeLaComunidad,
+      dondeEsta: ctx.dondeEsta,
+      nombreDeMiComunidad: ctx.nombreDeMiComunidad,
+      alRetirarSolicitud: ctx.alRetirarSolicitud,
+      alPedirEntrar: ctx.alPedirEntrar,
     ),
   };
 }
@@ -428,6 +486,9 @@ class _GenerarDelEntrenadorState extends State<_GenerarDelEntrenador> {
                 biblioteca: ctx.biblioteca,
                 versionMetodologia: ctx.versionMetodologia,
                 alCerrar: ctx.alCerrarPeticion,
+                solicitudes: ctx.solicitudes,
+                miComunidad: ctx.miComunidad,
+                alResolverIngreso: ctx.alResolverIngreso,
               ),
             ],
           ),

@@ -266,6 +266,13 @@ class _PantallaMiMacrocicloState extends State<PantallaMiMacrociclo> {
     }
 
     // M23: sin macrociclo, lo que la feature 003 le dio.
+    //
+    // **Y por eso esta es la tercera pantalla y no hubo que tocarla**
+    // (feature 012, T058): lo que enseña aquí es `PantallaSesionDelDia`, así
+    // que el aviso de «esperando que el entrenador acepte tu ingreso» le llega
+    // por el mismo sitio. Decidir el vacío en un solo sitio —
+    // `SinPlanTodavia`— es lo que hace que esto sea verdad en vez de una
+    // coincidencia.
     if (_macrociclo == null) {
       return KeyedSubtree(
         key: const Key('sin-macrociclo-la-sesion-de-hoy'),

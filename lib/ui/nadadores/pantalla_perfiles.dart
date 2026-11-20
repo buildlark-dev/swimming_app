@@ -12,6 +12,7 @@ import 'package:natacion_app/dominio/metodologia/estilos.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/ui/componentes/campo.dart';
 import 'package:natacion_app/ui/componentes/estado_vacio.dart';
+import 'package:natacion_app/ui/comunidad/terminar_la_pertenencia.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 
 class PantallaPerfiles extends StatefulWidget {
@@ -21,6 +22,7 @@ class PantallaPerfiles extends StatefulWidget {
     this.alEmpezarUnMacrociclo,
     this.alVerSuMacrociclo,
     this.quienTieneMacrociclo = const {},
+    this.alSacarDeLaComunidad,
   });
 
   final RepositorioNadadores repositorio;
@@ -48,6 +50,11 @@ class PantallaPerfiles extends StatefulWidget {
   /// con una lista de nadadores, preguntar uno a uno serían N lecturas para
   /// pintar una lista.
   final Set<String> quienTieneMacrociclo;
+
+  /// Sacarla de su comunidad (feature 012, FR-025). Nulo sin servidor, y
+  /// entonces la ficha no ofrece el control: uno deshabilitado como señuelo
+  /// está prohibido desde la feature 007 (H12).
+  final Future<void> Function(Nadador)? alSacarDeLaComunidad;
 
   @override
   State<PantallaPerfiles> createState() => _PantallaPerfilesState();
@@ -111,6 +118,7 @@ class _PantallaPerfilesState extends State<PantallaPerfiles> {
                         widget.quienTieneMacrociclo.contains(nadador.id)
                         ? widget.alVerSuMacrociclo
                         : null,
+                    alSacarDeLaComunidad: widget.alSacarDeLaComunidad,
                   ),
               ],
             ),
@@ -123,11 +131,13 @@ class _TarjetaPerfil extends StatelessWidget {
     required this.nadador,
     this.alEmpezarUnMacrociclo,
     this.alVerSuMacrociclo,
+    this.alSacarDeLaComunidad,
   });
 
   final Nadador nadador;
   final void Function(Nadador)? alEmpezarUnMacrociclo;
   final void Function(Nadador)? alVerSuMacrociclo;
+  final Future<void> Function(Nadador)? alSacarDeLaComunidad;
 
   @override
   Widget build(BuildContext context) {
@@ -186,6 +196,17 @@ class _TarjetaPerfil extends StatelessWidget {
                   icon: const Icon(Icons.view_timeline_outlined),
                   label: const Text('Empezar un macrociclo'),
                 ),
+              ),
+            ],
+            // **Lo último de la tarjeta, y a propósito** (feature 012,
+            // FR-025). Lo que el entrenador viene a hacer aquí es trabajar con
+            // ella; sacarla es lo raro, y lo raro no va primero. El control
+            // pregunta antes: desde su lado no se deshace.
+            if (alSacarDeLaComunidad != null) ...[
+              const SizedBox(height: Espaciado.corto),
+              TerminarLaPertenencia(
+                quien: nadador,
+                alTerminar: () => alSacarDeLaComunidad!(nadador),
               ),
             ],
           ],

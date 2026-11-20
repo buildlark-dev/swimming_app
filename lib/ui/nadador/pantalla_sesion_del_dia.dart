@@ -13,6 +13,7 @@ import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/dominio/notacion/renderizador.dart';
 import 'package:natacion_app/ui/nadador/aviso_sincronizacion.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
+import 'package:natacion_app/ui/nadador/sin_plan_todavia.dart';
 import 'package:natacion_app/ui/nadador/formulario_registro.dart';
 import 'package:natacion_app/ui/componentes/cabecera_seccion.dart';
 import 'package:natacion_app/ui/componentes/estado_vacio.dart';
@@ -79,10 +80,13 @@ class _Hoy extends StatelessWidget {
               'guardado en el teléfono.',
         );
       case NoHay():
-        return const EstadoVacio(
-          icono: Icons.event_busy_outlined,
-          titulo: 'Todavía no tienes un plan asignado',
-          queHacer: 'Cuando tu entrenador te asigne uno, aparecerá aquí.',
+        // La misma decisión que en `Mi progreso`, tomada en el mismo sitio
+        // (feature 012). Aquí hay menos espacio, así que el apoyo va corto;
+        // el titular es el mismo en las tres pantallas.
+        return SinPlanTodavia(
+          dondeEsta: estado.dondeEsta,
+          terminadaEn: estado.pertenenciaTerminadaEn,
+          corta: true,
         );
       case Hay():
         break;

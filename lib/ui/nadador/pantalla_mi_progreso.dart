@@ -20,6 +20,7 @@ import 'package:natacion_app/dominio/entidades/sesion.dart';
 import 'package:natacion_app/dominio/macrociclo/puede_marcarse.dart';
 import 'package:natacion_app/ui/componentes/estado_vacio.dart';
 import 'package:natacion_app/ui/nadador/aviso_sincronizacion.dart';
+import 'package:natacion_app/ui/nadador/sin_plan_todavia.dart';
 import 'package:natacion_app/ui/tema/espaciado.dart';
 import 'package:natacion_app/ui/nadador/estado_nadador.dart';
 import 'package:provider/provider.dart';
@@ -54,14 +55,15 @@ class PantallaMiProgreso extends StatelessWidget {
                 'guardado en el teléfono.',
           ),
         ),
-        NoHay() => const Padding(
-          padding: EdgeInsets.all(Espaciado.amplio),
-          child: EstadoVacio(
-            icono: Icons.event_busy_outlined,
-            titulo: 'Todavía no tienes un plan asignado',
-            queHacer:
-                'Cuando tu entrenador te asigne uno, tu progreso '
-                'aparecerá aquí.',
+        // **No hay plan, y por qué no lo hay son dos cosas** (feature 012).
+        // La respuesta depende de si pertenece a alguna comunidad, y decidirlo
+        // aquí dentro habría dejado la misma frase copiada en las tres
+        // pantallas que la cargan.
+        NoHay() => Padding(
+          padding: const EdgeInsets.all(Espaciado.amplio),
+          child: SinPlanTodavia(
+            dondeEsta: estado.dondeEsta,
+            terminadaEn: estado.pertenenciaTerminadaEn,
           ),
         ),
         Hay(valor: final progreso) => ListView(

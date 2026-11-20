@@ -82,10 +82,16 @@ class RepositorioSolicitudesFirestore implements RepositorioSolicitudes {
       // **Si había otra esperando, se retira primero** (FR-008). Una nadadora
       // tiene como mucho una solicitud esperando: pedir en otro sitio es
       // cambiar de idea, no pedir dos veces.
-      final anterior = await laMia(solicitud.nadadorId);
-      if (anterior != null &&
-          anterior.estado.estaEsperando &&
-          anterior.comunidadId != solicitud.comunidadId) {
+      //
+      // Cuál retirar lo decide el dominio, que es donde se puede comprobar sin
+      // levantar un servidor. Aquí estaban las tres condiciones escritas a
+      // mano, y la tercera —que no se retire la del mismo sitio— es justo la
+      // que un reintento sin señal pone a prueba.
+      final anterior = laQueHayQueRetirar(
+        await laMia(solicitud.nadadorId),
+        solicitud.comunidadId,
+      );
+      if (anterior != null) {
         await retirar(anterior.nadadorId, anterior.comunidadId);
       }
 
@@ -94,6 +100,10 @@ class RepositorioSolicitudesFirestore implements RepositorioSolicitudes {
         'comunidadId': solicitud.comunidadId,
         'estado': solicitud.estado.clave,
         'pedidaEn': solicitud.pedidaEn.toIso8601String(),
+        // **Su nombre viaja con la solicitud** (feature 012). Sin esto el
+        // entrenador tiene que decidir sobre «alguien»: su ficha no la puede
+        // leer hasta aceptarla, y eso es la garantia F3 funcionando.
+        'nombre': solicitud.nombre,
       });
     } on FirebaseException catch (e) {
       throw FalloDeDatos('No se pudo pedir el ingreso: ${e.message}');
@@ -127,6 +137,7 @@ class RepositorioSolicitudesFirestore implements RepositorioSolicitudes {
       nadadorId: nadadorId,
       comunidadId: comunidadId,
       pedidaEn: pedidaEn,
+      nombre: datos['nombre'] as String? ?? '',
       estado:
           EstadoDeSolicitud.porClave(datos['estado'] as String?) ??
           EstadoDeSolicitud.esperando,

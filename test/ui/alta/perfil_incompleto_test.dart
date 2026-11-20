@@ -161,6 +161,21 @@ class _RepositorioQueFalla implements RepositorioPerfil {
 }
 
 class _Servidor implements OperacionesDelServidor {
+  // La feature 012 anadio estas dos. Este doble no las usa: lo que prueba es
+  // otro camino, y lo que importa es que siga cumpliendo la interfaz.
+  @override
+  Future<void> aceptarIngreso({required String nadadorId}) async {}
+
+  @override
+  Future<void> rechazarIngreso({required String nadadorId}) async {}
+
+  @override
+  Future<void> sacarDeLaComunidad({required String nadadorId}) async {}
+
+  @override
+  Future<void> salirDeLaComunidad() async {}
+
+
   // La feature 008 aÃ±adiÃ³ esta operaciÃ³n a la interfaz. Este doble no la
   // usa: lo que prueba es otro camino.
   @override

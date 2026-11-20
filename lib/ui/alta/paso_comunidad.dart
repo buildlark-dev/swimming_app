@@ -146,6 +146,25 @@ class _Opcion extends StatelessWidget {
 }
 
 /// Lo que ve después de pedir, y cómo se arrepiente (FR-007).
+/// Lo que pidió, y cómo retirarlo.
+///
+/// **Esto no se usa en el alta, y no es un descuido: es que aquí no cabe.**
+///
+/// Se escribió para este paso y se quedó sin llamar —la quinta vez que este
+/// proyecto construye algo correcto y no lo conecta—, pero al ir a conectarlo
+/// se vio por qué no encajaba: durante el alta ella no ha pedido nada
+/// todavía. La solicitud la manda `terminar()`, después de guardar el perfil,
+/// así que un «pediste unirte a X» en este paso estaría afirmando algo que no
+/// ha ocurrido. Lo que tiene aquí es una **elección**, y eso ya se ve: la
+/// opción queda marcada.
+///
+/// Donde sí existe la solicitud es después, en Ajustes, y ahí vive
+/// `MiPertenencia` (FR-007), que además distingue esperar de pertenecer —algo
+/// que este widget no sabe hacer—.
+///
+/// Se conserva porque es el texto que el entrenador aprobó y porque el día que
+/// el alta mande la solicitud en el propio paso, este es el aviso que va. Si
+/// ese día no llega, lo correcto es borrarlo, no dejarlo creciendo.
 class LoQuePediste extends StatelessWidget {
   const LoQuePediste({
     super.key,

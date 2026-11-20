@@ -36,6 +36,7 @@ class PlanesDelEntrenador extends StatefulWidget {
     this.alEmpezarUnMacrociclo,
     this.alVerSuMacrociclo,
     this.quienTieneMacrociclo = const {},
+    this.alSacarDeLaComunidad,
   });
 
   final List<Plan> planes;
@@ -67,6 +68,11 @@ class PlanesDelEntrenador extends StatefulWidget {
 
   /// Quiénes tienen macrociclo, de una sola consulta.
   final Set<String> quienTieneMacrociclo;
+
+  /// Sacarla de su comunidad (feature 012, FR-025). Nulo sin servidor, y
+  /// entonces la ficha no ofrece el control: uno deshabilitado como señuelo
+  /// está prohibido desde la feature 007 (H12).
+  final Future<void> Function(Nadador)? alSacarDeLaComunidad;
 
   @override
   State<PlanesDelEntrenador> createState() => _PlanesDelEntrenadorState();
@@ -167,6 +173,7 @@ class _PlanesDelEntrenadorState extends State<PlanesDelEntrenador> {
                 alEmpezarUnMacrociclo: widget.alEmpezarUnMacrociclo,
                 alVerSuMacrociclo: widget.alVerSuMacrociclo,
                 quienTieneMacrociclo: widget.quienTieneMacrociclo,
+                alSacarDeLaComunidad: widget.alSacarDeLaComunidad,
               ),
             ],
           ),

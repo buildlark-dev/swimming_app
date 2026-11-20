@@ -19,7 +19,7 @@
  */
 
 import { createHash, randomBytes } from 'node:crypto';
-import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { FieldValue, Firestore, getFirestore } from 'firebase-admin/firestore';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import {
   BASE_DE_LA_APP,
@@ -29,6 +29,50 @@ import {
 import { logger } from 'firebase-functions';
 
 const COL_SOLICITUDES = 'solicitudes';
+
+/**
+ * The name of the community she belongs to, or has asked to join (FR-028).
+ *
+ * Null when there is none, or when it cannot be read. **Never a guess**: this
+ * goes into an email asking somebody to authorise the handling of a minor's
+ * data, and a made-up name there is worse than no name.
+ *
+ * It looks at the membership first and the request second, in that order,
+ * because that is the order of truth: if she already belongs, that is where
+ * she is, whatever any old request says.
+ */
+export async function nombreDeSuComunidad(
+  db: Firestore,
+  nadadorId: string
+): Promise<string | null> {
+  try {
+    const ficha = await db.collection('nadadores').doc(nadadorId).get();
+    let comunidadId: string = ficha.data()?.['comunidadId'] ?? '';
+
+    if (!comunidadId) {
+      const pedidas = await db
+        .collection('solicitudesDeIngreso')
+        .where('nadadorId', '==', nadadorId)
+        .where('estado', '==', 'esperando')
+        .limit(1)
+        .get();
+      comunidadId = pedidas.docs[0]?.data()['comunidadId'] ?? '';
+    }
+
+    if (!comunidadId) return null;
+
+    const comunidad = await db
+      .collection('comunidades')
+      .doc(comunidadId)
+      .get();
+    const nombre: string = comunidad.data()?.['nombre'] ?? '';
+    return nombre.trim() === '' ? null : nombre.trim();
+  } catch (_) {
+    // Un correo que sale sin el nombre sigue sirviendo; uno que no sale deja
+    // a una menor sin poder guardar nada.
+    return null;
+  }
+}
 const COL_CONSENTIMIENTOS = 'consentimientos';
 const HISTORIAL = 'historial';
 
@@ -200,6 +244,19 @@ export const emitirSolicitud = onCall(
     canjeadaEn: null,
   });
 
+  // **Which community, when there is one** (feature 012, FR-028).
+  //
+  // Es estrictamente más información para quien decide, y **no cambia nada de
+  // lo que el consentimiento permite**: autorizar que se guarden sus datos de
+  // entrenamiento es lo mismo con nombre que sin él. Pero un acudiente que lee
+  // «se registró en una app» y un acudiente que lee «se registró y pidió
+  // entrar en el Club Acuático del Valle» no están decidiendo con lo mismo
+  // delante, y el segundo es el que puede reconocer de qué le hablan.
+  //
+  // Si no se puede leer, no se menciona. Inventar un nombre en un correo que
+  // pide una autorización legal sería peor que no darlo.
+  const comunidad = await nombreDeSuComunidad(getFirestore(), nadadorId);
+
   // **The link has to be absolute.** It used to be `/consentimiento?t=...`,
   // which is a path: fine inside a page, useless in an inbox. Nobody noticed
   // because until feature 006 no email was ever actually sent.
@@ -208,6 +265,9 @@ export const emitirSolicitud = onCall(
     'Autorización para el entrenamiento de su hijo o hija',
     `Su hijo o hija se registró en una app de planificación de entrenamiento ` +
       `de natación, y para guardar sus datos hace falta su permiso.\n\n` +
+      (comunidad
+        ? `Pidió entrar en: ${comunidad}.\n\n`
+        : '') +
       `Para leer la información y responder, abra este enlace:\n\n` +
       `${BASE_DE_LA_APP.value()}/consentimiento?t=${token}\n\n` +
       `El enlace sirve una sola vez y vence en ${DIAS_DE_VIGENCIA} días. ` +

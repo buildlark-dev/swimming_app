@@ -47,6 +47,35 @@ enum EstadoDeSolicitud {
   bool get estaResuelta => !estaEsperando;
 }
 
+/// Qué hay que retirar antes de pedir entrar en [aDonde] (FR-008).
+///
+/// **Una nadadora tiene como mucho una solicitud esperando.** Pedir en otro
+/// sitio es cambiar de idea, no pedir dos veces: dos entrenadores con la misma
+/// solicitud delante pueden aceptarla los dos, y entonces la pertenencia —que
+/// vive en un solo sitio— decide por orden de llegada quién se queda con ella.
+/// Nadie habría elegido eso; sería el resultado de no haber elegido nada.
+///
+/// Devuelve la que hay que retirar, o nula si no hay nada que retirar:
+///
+/// - Sin solicitud anterior, nada.
+/// - Si la anterior ya está resuelta, nada: no ocupa sitio.
+/// - **Si la anterior es a la misma comunidad, nada**, y esto importa más de
+///   lo que parece. El identificador es determinista, así que volver a pedir
+///   en el mismo sitio reescribe el mismo documento; retirarlo primero sería
+///   dejarlo en `retirada` un instante por un reintento sin señal.
+///
+/// Esto vive aquí y no dentro del repositorio para poder comprobarse sin
+/// servidor (principio II). El repositorio lo usa; la decisión es del dominio.
+SolicitudDeIngreso? laQueHayQueRetirar(
+  SolicitudDeIngreso? anterior,
+  String aDonde,
+) {
+  if (anterior == null) return null;
+  if (anterior.estado.estaResuelta) return null;
+  if (anterior.comunidadId == aDonde) return null;
+  return anterior;
+}
+
 class TransicionNoEsSuya implements Exception {
   const TransicionNoEsSuya(this.porQue);
 
@@ -61,9 +90,25 @@ class SolicitudDeIngreso {
     required this.nadadorId,
     required this.comunidadId,
     required this.pedidaEn,
+    this.nombre = '',
     this.estado = EstadoDeSolicitud.esperando,
     this.resueltaEn,
   });
+
+  /// Cómo se llama quien pide, dicho por ella misma.
+  ///
+  /// **La solicitud lo lleva dentro, y tiene que llevarlo.** La garantía F3
+  /// dice que antes de aceptar el entrenador no lee **nada** de ella «más allá
+  /// de lo que la propia solicitud lleva», y FR-009 dice que vea quién le pidió
+  /// entrar. Las dos cosas solo son ciertas a la vez si el nombre viaja aquí:
+  /// con el nombre en su ficha —que él todavía no puede leer, y no debe— la
+  /// cola le enseñaba «Alguien que todavía no tiene perfil» y le pedía decidir
+  /// sobre una desconocida. Lo encontró el recorrido del quickstart.
+  ///
+  /// Lo escribe ella al pedir, sobre su propia solicitud, que es lo único que
+  /// la regla le deja crear. Vacío si no se pudo leer; la pantalla lo dice en
+  /// lugar de inventarlo.
+  final String nombre;
 
   /// Quién pidió.
   final String nadadorId;
@@ -118,6 +163,7 @@ class SolicitudDeIngreso {
         nadadorId: nadadorId,
         comunidadId: comunidadId,
         pedidaEn: pedidaEn,
+        nombre: nombre,
         estado: otro,
         resueltaEn: cuando,
       );

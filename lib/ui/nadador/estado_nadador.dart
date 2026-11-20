@@ -9,6 +9,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:natacion_app/dominio/comunidad/membresia.dart';
 import 'package:natacion_app/dominio/calculo/progreso_nadador.dart';
 import 'package:natacion_app/dominio/calculo/sesion_del_dia.dart';
 import 'package:natacion_app/datos/peticiones/peticiones_de_las_dos_partes.dart';
@@ -87,6 +88,34 @@ class EstadoNadador extends ChangeNotifier {
     final actual = _plan;
     if (actual == null) return const NoHay();
     return Hay(ProgresoDelNadador(plan: actual, registros: _registros));
+  }
+
+  /// Dónde está ella respecto de pertenecer a algo (feature 012, FR-020).
+  ///
+  /// **Al lado de `progreso`, y no dentro.** Son dos preguntas independientes
+  /// —«¿tengo plan?» y «¿pertenezco a algo?»— y la pantalla necesita las dos
+  /// para no decirle algo falso: mandar a esperar un plan a quien todavía no
+  /// tiene entrenador es exactamente el defecto que la feature 011 arregló
+  /// para «todavía no sé» contra «no hay», con otro disfraz (research D6).
+  ///
+  /// Nula mientras nadie lo haya averiguado. Sin servidor se queda así, y la
+  /// pantalla no dice nada de pertenencias, que es lo correcto: en modo local
+  /// no hay comunidades.
+  DondeEsta? get dondeEsta => _dondeEsta;
+
+  /// Cuándo dejó de pertenecer, si le pasó (FR-026). Sale de su propia ficha:
+  /// lo escribe el servidor al terminar la pertenencia.
+  DateTime? get pertenenciaTerminadaEn => _nadador?.pertenenciaTerminadaEn;
+  DondeEsta? _dondeEsta;
+
+  /// Lo que se averiguó sobre su pertenencia.
+  ///
+  /// **FR-022: el aviso se va solo.** Quien lea esto después de que la
+  /// acepten recibe `Pertenece`, la pantalla se repinta y ella no tiene que
+  /// tocar nada para que el cartel desaparezca.
+  void anotarDondeEsta(DondeEsta donde) {
+    _dondeEsta = donde;
+    notifyListeners();
   }
 
   /// Si alguien ya intentó abrirle su plan. Antes de eso no se sabe nada.

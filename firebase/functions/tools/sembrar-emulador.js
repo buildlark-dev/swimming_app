@@ -260,7 +260,7 @@ async function main() {
   // nadador **sin consentimiento vigente** —que la app, bien hecha, impide
   // crear—, uno en una categoría **sin ATR**, y fechas de competencia justo
   // en los días frontera de la derivación.
-  await sembrarParaPeticiones();
+  await sembrarParaPeticiones(usuario.uid);
 
   // **El rol se vuelve a poner al final, y no es redundante.** El disparador
   // `alCrearseUnaCuenta` corre cuando la cuenta se crea y escribe el rol por
@@ -304,7 +304,7 @@ main().then(() => process.exit(0));
  * - Tres peticiones con la competencia a **15, 16 y 44 días**, que son los
  *   días frontera de la derivación (C8). A mano, esas fechas se calculan mal.
  */
-async function sembrarParaPeticiones() {
+async function sembrarParaPeticiones(entrenadorUid) {
   const CLAVE_COMUN = CLAVE;
 
   async function cuentaDe(correo, nadadorId, nombreVisible, rol = 'nadador') {
@@ -331,7 +331,12 @@ async function sembrarParaPeticiones() {
   }
 
   // --- Sin consentimiento vigente (C12) ---------------------------------
+  // **En su comunidad, como todos los de esta siembra** (feature 012). Sin
+  // esto la pantalla del entrenador no los ve, y los recorridos C8, C9 y C12
+  // se quedan sin sujeto: la frontera no distingue a una nadadora de prueba de
+  // una de otro entrenador.
   await db.collection('nadadores').doc('n-sin-permiso').set({
+    comunidadId: entrenadorUid,
     nombre: 'Samuel Ríos',
     fechaNacimiento: '2015-03-11',
     categoria: 'precompetitivo',
@@ -348,6 +353,7 @@ async function sembrarParaPeticiones() {
 
   // --- Categoría sin ATR (C9) -------------------------------------------
   await db.collection('nadadores').doc('n-inicia').set({
+    comunidadId: entrenadorUid,
     nombre: 'Lucía Mesa',
     fechaNacimiento: '2018-09-02',
     categoria: 'iniciacion',
@@ -385,6 +391,7 @@ async function sembrarParaPeticiones() {
 
   for (const quien of fronteras) {
     await db.collection('nadadores').doc(quien.id).set({
+      comunidadId: entrenadorUid,
       nombre: quien.nombre,
       fechaNacimiento: '2011-01-15',
       categoria: 'precompetitivo',

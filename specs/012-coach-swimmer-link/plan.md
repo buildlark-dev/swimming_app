@@ -91,6 +91,37 @@ missing rule has dropped, that is a finding, not a footnote. A test that asserts
 is free to pass for the wrong reason; only the ones that assert a success can tell you the
 rules are loaded at all.
 
+### Re-read against what was built, 2026-11-19
+
+A gate that is only true at planning time is not a gate. Every row still holds, with three
+corrections and one failure that the work earned:
+
+- **II — Pure Dart domain.** Holds, and got stricter than planned. The "at most one
+  waiting request" rule was written inline in the Firestore repository; it moved to
+  `laQueHayQueRetirar` in the domain, where it can be checked without a server. Its third
+  condition — do not withdraw a request to the *same* community — is the one a retry with
+  no signal puts to the test, and it was the one no test could reach.
+- **III — Tests before the thing they guard.** Holds, and the warning was right **twice
+  over**: the inversion cost the analysis suite not one `assertSucceeds` but two, because
+  the whole-collection read had to be inverted as well. So the compensating assertion that
+  FR-018 made conditional was genuinely needed. Numbers in `tasks.md`.
+- **V — Minors' data.** Holds, and one line of it needed checking rather than asserting:
+  the join request now carries the swimmer's **name**, because guarantee F3 and FR-009 are
+  only both true if it does. That is one more fact travelling before a coach has accepted
+  her — and it is the minimum that lets him decide about a person instead of an
+  identifier, it is hers to state about herself, and it is what the contract already
+  anticipated with «más allá de lo que la propia solicitud lleva».
+- **VII — No unjustified dependency.** Holds: `git diff pubspec.yaml pubspec.lock` is
+  empty. The `whereIn` batching is thirty lines of Dart, not a package.
+
+**What did not hold, and is recorded rather than hidden**: `planes` could not be brought
+inside the boundary. A plan has no owner — only `nadadoresIds`, empty in a draft, and a
+draft is exactly what its author must be able to read — so the rule has nothing to ask,
+and giving plans an owner means migrating documents that already exist. Her boundary is
+complete; his is half. The limitation is an asserted test in `reglas_frontera.test.js`,
+not a silence, which is what feature 010 did with FR-024 and the reason this feature
+existed to close it.
+
 ## Project Structure
 
 ### Documentation (this feature)
