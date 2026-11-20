@@ -12,6 +12,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 import 'package:natacion_app/datos/local/almacen_local.dart';
 import 'package:natacion_app/datos/perfil/repositorio_perfil.dart';
 import 'package:natacion_app/datos/servidor/operaciones.dart';
@@ -36,6 +37,8 @@ class PuertaDelPerfil extends StatefulWidget {
     this.almacen,
     this.nadadorId,
     this.alGuardarElPerfil,
+    this.comunidades,
+    this.solicitudes,
   });
 
   final String uid;
@@ -56,6 +59,12 @@ class PuertaDelPerfil extends StatefulWidget {
   /// tres derechos de la Ley 1581—. Se arreglaba solo al recargar la app, que
   /// es justo la clase de fallo que nadie reporta.
   final Future<void> Function()? alGuardarElPerfil;
+
+  /// Para que pueda pedir entrar mientras crea su cuenta (feature 012, US2).
+  ///
+  /// Nulos sin servidor, y entonces ese paso del alta no aparece.
+  final RepositorioComunidades? comunidades;
+  final RepositorioSolicitudes? solicitudes;
 
   /// Lo que hay detrás, una vez se sabe quién es.
   final Widget dentro;
@@ -138,6 +147,8 @@ class _PuertaDelPerfilState extends State<PuertaDelPerfil> {
         correoDeLaCuenta: widget.correo,
         almacen: widget.almacen,
         nadadorId: widget.nadadorId,
+        comunidades: widget.comunidades,
+        solicitudes: widget.solicitudes,
       )..recuperar(),
       child: PantallaAlta(
         alTerminar: (resultado) {

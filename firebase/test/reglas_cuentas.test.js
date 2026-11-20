@@ -74,6 +74,10 @@ async function sembrar(escribir) {
  * reglas le prohiben.
  */
 async function darDeAlta(uid, nadadorId, { conConsentimiento = false } = {}) {
+  // Y en la comunidad del entrenador de estas pruebas (feature 012): dar de
+  // alta a alguien es meterlo en su grupo, y desde que la pertenencia es la
+  // frontera una ficha sin ella no la lee nadie.
+  await sembrarLaPertenencia(nadadorId);
   await sembrar(async (db) => {
     await db.collection('usuarios').doc(uid).set({ nadadorId });
     if (conConsentimiento) {
@@ -93,6 +97,24 @@ const unPlan = {
   estado: 'publicado',
   nadadoresIds: ['n1'],
 };
+
+/// Deja a la nadadora n1 dentro de la comunidad del entrenador de estas
+/// pruebas (feature 012).
+///
+/// Hasta ahora no hacia falta: la regla era `esEntrenador()`, sin mas. Con la
+/// pertenencia como frontera, una nadadora sin ella no es de nadie.
+async function sembrarLaPertenencia(nadadorId = 'n1') {
+  await sembrar(async (db) => {
+    await db
+      .collection('comunidades')
+      .doc('u-entrenador')
+      .set({ entrenadorId: 'u-entrenador', nombre: 'Club de prueba' });
+    await db
+      .collection('nadadores')
+      .doc(nadadorId)
+      .set({ nombre: 'Nadadora de prueba', comunidadId: 'u-entrenador' });
+  });
+}
 
 const unRegistro = {
   nadadorId: 'n1',
@@ -220,6 +242,7 @@ test('A3 — el nadador no crea un plan', async () => {
 // --- A5: el entrenador lee los registros, no los escribe -----------------
 
 test('A5 — el entrenador lee un registro de su comunidad', async () => {
+  await sembrarLaPertenencia();
   await sembrar(async (db) => {
     await db.collection('registros').doc('r1').set(unRegistro);
   });

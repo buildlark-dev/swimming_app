@@ -11,6 +11,9 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/ajustes/mi_comunidad.dart';
+import 'package:natacion_app/ui/comunidad/mi_pertenencia.dart';
+import 'package:natacion_app/dominio/comunidad/membresia.dart';
 import 'package:natacion_app/datos/perfil/repositorio_perfil.dart';
 import 'package:natacion_app/datos/preferencias/apariencia.dart';
 import 'package:natacion_app/datos/servidor/operaciones.dart';
@@ -40,6 +43,12 @@ class PantallaAjustes extends StatefulWidget {
     this.derechos,
     this.alElegirApariencia,
     this.conmutadorDeRecorrido,
+    this.comunidades,
+    this.alSalirDeLaComunidad,
+    this.dondeEsta,
+    this.nombreDeMiComunidad,
+    this.alRetirarSolicitud,
+    this.alPedirEntrar,
   });
 
   /// De quién es esta pantalla. Nunca de otra persona.
@@ -62,6 +71,32 @@ class PantallaAjustes extends StatefulWidget {
   /// Solo en modo local: sin rol que consultar, el recorrido se elige a
   /// propósito (decisión D13).
   final Widget? conmutadorDeRecorrido;
+
+  /// Donde el entrenador le pone nombre a lo suyo (feature 012, US1).
+  ///
+  /// Nulo sin servidor: entonces la sección no se pinta, porque no hay dónde
+  /// guardarlo.
+  final RepositorioComunidades? comunidades;
+
+  /// Salir de su comunidad (feature 012, FR-025).
+  ///
+  /// **Aquí porque aquí es donde ella gobierna su cuenta**: al lado de sus
+  /// datos, sus derechos y la supresión. Nula sin servidor, o si no pertenece
+  /// a ninguna, y entonces la sección no existe.
+  final Future<void> Function()? alSalirDeLaComunidad;
+
+  /// Dónde está ella respecto de pertenecer a algo (feature 012). Decide si
+  /// esta pantalla le ofrece salir, retirar lo que pidió, o nada.
+  final DondeEsta? dondeEsta;
+
+  /// El nombre con el que lo reconoce: el letrero que el entrenador organizó.
+  final String? nombreDeMiComunidad;
+
+  /// Retirar lo que pidió, mientras nadie le ha contestado (FR-007).
+  final Future<void> Function()? alRetirarSolicitud;
+
+  /// Abrir donde elige comunidad y pide entrar (FR-005). Nulo sin servidor.
+  final VoidCallback? alPedirEntrar;
 
   @override
   State<PantallaAjustes> createState() => _PantallaAjustesState();
@@ -177,6 +212,31 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
           LoQueAcepte(perfil: perfil, constancia: _constancia),
           const SizedBox(height: Espaciado.amplio),
         ],
+        // **Solo el entrenador.** Una nadadora no tiene comunidad que nombrar,
+        // y que su `nadadorId` sea nulo es justo lo que distingue la cuenta de
+        // él de la de ella en esta pantalla.
+        if (widget.nadadorId == null) ...[
+          MiComunidad(
+            entrenadorId: widget.uid,
+            comunidades: widget.comunidades,
+          ),
+          const SizedBox(height: Espaciado.amplio),
+        ],
+        // Y lo mismo por el otro lado: ella se va cuando quiera (FR-025).
+        // El control es el mismo widget que el de él, porque la decisión es
+        // simétrica y dos copias serían dos sitios donde eso puede dejar de
+        // ser verdad.
+        // Lo suyo: salir de donde está, o retirar lo que pidió (FR-007,
+        // FR-025). Qué de las dos cosas depende de dónde esté, y si no está
+        // en ninguna de las dos, no hay sección.
+        MiPertenencia(
+          dondeEsta: widget.dondeEsta,
+          nombreDeLaComunidad: widget.nombreDeMiComunidad,
+          alSalir: widget.alSalirDeLaComunidad,
+          alRetirarSolicitud: widget.alRetirarSolicitud,
+          alPedirEntrar: widget.alPedirEntrar,
+        ),
+        if (widget.dondeEsta != null) const SizedBox(height: Espaciado.amplio),
         MisDerechos(derechos: widget.derechos, nadadorId: widget.nadadorId),
         const SizedBox(height: Espaciado.amplio),
         SeccionApariencia(alElegir: widget.alElegirApariencia),

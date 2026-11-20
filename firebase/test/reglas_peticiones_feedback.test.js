@@ -91,6 +91,22 @@ async function sembrarVinculos({ alcances, vigente = true } = {}) {
     const db = sinReglas.firestore();
     await db.collection('usuarios').doc('u-ana').set({ nadadorId: 'n-ana' });
     await db.collection('usuarios').doc('u-juan').set({ nadadorId: 'n-juan' });
+
+    // **Y de quien son** (feature 012). Hasta ahora esta semilla no lo decia
+    // porque la regla era `esEntrenador()`, sin mas, y cualquier entrenador
+    // leia la pregunta de cualquiera. Con la pertenencia como frontera, una
+    // nadadora sin ella no es de nadie.
+    await db
+      .collection('comunidades')
+      .doc('u-entrenador')
+      .set({ entrenadorId: 'u-entrenador', nombre: 'Club de prueba' });
+    for (const ficha of ['n-ana', 'n-juan']) {
+      await db
+        .collection('nadadores')
+        .doc(ficha)
+        .set({ nombre: ficha, comunidadId: 'u-entrenador' });
+    }
+
     await db
       .collection('consentimientos')
       .doc('n-ana')

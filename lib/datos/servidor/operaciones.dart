@@ -154,6 +154,45 @@ abstract class OperacionesDelServidor {
     String? planId,
     String? motivo,
   });
+
+  /// Acepta a alguien en su comunidad (feature 012).
+  ///
+  /// **Pasa por el servidor porque son dos escrituras y tienen que ocurrir
+  /// juntas o ninguna**: la pertenencia en la ficha de ella y la solicitud
+  /// cerrada. Media aceptación es una nadadora que no pertenece a nadie y que
+  /// ya no tiene solicitud que enseñar (garantía F5). Un cliente no puede
+  /// prometer eso: pierde la señal entre las dos y no hay forma de saber
+  /// después cuál de las mitades llegó.
+  ///
+  /// Las reglas lo respaldan: `comunidadId` no lo escribe ningún cliente, y
+  /// «aceptada» es una palabra que la copia de ella no puede escribir.
+  ///
+  /// La comunidad **no viaja**: el servidor la saca del token de quien llama.
+  /// Si pudiera mandarse, se podría aceptar a alguien en el grupo de otro.
+  Future<void> aceptarIngreso({required String nadadorId});
+
+  /// Dice que no, sin motivo escrito.
+  ///
+  /// **No se le debe una explicación a quien todavía no es su nadadora**, y un
+  /// texto libre viajando hasta una desconocida es un problema sin ninguna
+  /// ventaja (FR-011). No le impide volver a pedir, aquí o en otro sitio
+  /// (FR-012).
+  Future<void> rechazarIngreso({required String nadadorId});
+
+  /// La saca de su comunidad (feature 012, FR-025).
+  ///
+  /// **Pasa por el servidor** porque `comunidadId` no lo escribe ningún
+  /// cliente, y porque la comunidad se saca del token de quien llama: poder
+  /// mandarla sería poder sacar a alguien del grupo de otro entrenador.
+  Future<void> sacarDeLaComunidad({required String nadadorId});
+
+  /// Ella se va de la suya.
+  ///
+  /// **Simétrica con la de arriba, y a propósito**: pertenecer es algo que a
+  /// ella le pasa, y una salida que dependiera de que él la acepte sería una
+  /// puerta con cerrojo por fuera (garantía F7). No lleva argumentos: quién es
+  /// y de dónde sale los lee el servidor de su propia ficha.
+  Future<void> salirDeLaComunidad();
 }
 
 /// Lo que el servidor contesta al corregir un perfil.
@@ -371,6 +410,33 @@ class OperacionesFirebase implements OperacionesDelServidor {
         motivo: motivo,
       ),
     );
+  }
+
+  @override
+  Future<void> aceptarIngreso({required String nadadorId}) async {
+    // **Solo va el nadadorId.** La comunidad la saca el servidor del token de
+    // quien llama: mandarla sería poder aceptar a alguien en el grupo de otro,
+    // que es justo la frontera que esta feature construye.
+    await _llamar('aceptarIngreso', {'nadadorId': nadadorId});
+  }
+
+  @override
+  Future<void> rechazarIngreso({required String nadadorId}) async {
+    // Y sin motivo. No hay campo donde quepa, ni aquí ni en el servidor, que
+    // es más fuerte que acordarse de no mandarlo.
+    await _llamar('rechazarIngreso', {'nadadorId': nadadorId});
+  }
+
+  @override
+  Future<void> sacarDeLaComunidad({required String nadadorId}) async {
+    await _llamar('sacarDeLaComunidad', {'nadadorId': nadadorId});
+  }
+
+  @override
+  Future<void> salirDeLaComunidad() async {
+    // Sin argumentos: quién es y de qué comunidad sale los lee el servidor de
+    // `usuarios/{uid}` y de su ficha. Mandarlos permitiría sacar a cualquiera.
+    await _llamar('salirDeLaComunidad', const {});
   }
 
   Future<Map<String, dynamic>?> _llamar(

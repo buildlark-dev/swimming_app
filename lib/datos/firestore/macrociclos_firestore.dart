@@ -17,6 +17,7 @@ library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:natacion_app/datos/firestore/lo_que_haya.dart';
+import 'package:natacion_app/datos/firestore/mis_nadadores.dart';
 import 'package:natacion_app/datos/firestore/repositorios_firestore.dart';
 import 'package:natacion_app/datos/serializacion.dart';
 import 'package:natacion_app/dominio/entidades/plan.dart';
@@ -24,9 +25,13 @@ import 'package:natacion_app/dominio/macrociclo/macrociclo.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 
 class RepositorioMacrociclosFirestore implements RepositorioMacrociclos {
-  RepositorioMacrociclosFirestore(this._db);
+  RepositorioMacrociclosFirestore(this._db, {this.mios});
 
   final FirebaseFirestore _db;
+
+  /// Quiénes son los suyos (feature 012). Nulo en el recorrido de la nadadora,
+  /// que usa `deNadador` con su propio identificador.
+  final MisNadadores? mios;
 
   CollectionReference<Map<String, dynamic>> get _macrociclos =>
       _db.collection(coleccionMacrociclos);
@@ -95,28 +100,45 @@ class RepositorioMacrociclosFirestore implements RepositorioMacrociclos {
 
   @override
   Future<Map<String, String>> macrocicloPorNadador() async {
-    try {
-      // Una sola lectura de la colección. Sin filtro de estado a propósito:
-      // el entrenador tiene que poder volver también a uno que firmó y
-      // todavía no entregó, que es justo el que se le quedaba inalcanzable.
-      final instantanea = await _macrociclos.leerLoQueHaya();
+    // **Acotada a los suyos** (feature 012, FR-014). Era una sola lectura de
+    // la colección entera, y su prueba de reglas lo afirmaba — avisando de lo
+    // que costaría el día que se cayera. Se cayó: ahora son una consulta para
+    // saber quiénes son los suyos más una por cada lote de 30.
+    //
+    // Sin filtro de estado, eso no cambia: el entrenador tiene que poder
+    // volver también a uno que firmó y todavía no entregó, que es justo el que
+    // se le quedaba inalcanzable.
+    final quienes = mios;
+    if (quienes == null) {
+      throw const FalloDeDatos(
+        'Saber quién tiene macrociclo es del entrenador, y esta sesión no '
+        'trae comunidad. La consulta sin filtro la rechaza el servidor.',
+      );
+    }
 
+    try {
       final cual = <String, String>{};
       final cuando = <String, String>{};
 
-      for (final documento in instantanea.docs) {
-        final datos = documento.data();
-        final nadadorId = datos['nadadorId'] as String?;
-        if (nadadorId == null) continue;
+      for (final lote in await quienes.enLotes()) {
+        final instantanea = await _macrociclos
+            .where('nadadorId', whereIn: lote)
+            .leerLoQueHaya();
 
-        // Gana la competencia más próxima: es con la que está trabajando. Las
-        // fechas son 'aaaa-mm-dd', así que comparar el texto basta.
-        final fecha = datos['fechaDeCompetencia'] as String? ?? '';
-        final anterior = cuando[nadadorId];
-        if (anterior != null && anterior.compareTo(fecha) <= 0) continue;
+        for (final documento in instantanea.docs) {
+          final datos = documento.data();
+          final nadadorId = datos['nadadorId'] as String?;
+          if (nadadorId == null) continue;
 
-        cual[nadadorId] = documento.id;
-        cuando[nadadorId] = fecha;
+          // Gana la competencia más próxima: es con la que está trabajando.
+          // Las fechas son 'aaaa-mm-dd', así que comparar el texto basta.
+          final fecha = datos['fechaDeCompetencia'] as String? ?? '';
+          final anterior = cuando[nadadorId];
+          if (anterior != null && anterior.compareTo(fecha) <= 0) continue;
+
+          cual[nadadorId] = documento.id;
+          cuando[nadadorId] = fecha;
+        }
       }
 
       return cual;

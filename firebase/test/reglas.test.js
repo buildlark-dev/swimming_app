@@ -253,6 +253,26 @@ test('el entrenador gestiona nadadores', async () => {
 // feature 004, y entonces se anaden sus casos aqui.
 // ---------------------------------------------------------------------------
 
+/// Deja a la nadadora n1 dentro de la comunidad del entrenador de estas
+/// pruebas.
+///
+/// **Hasta la feature 012 no hacia falta decirlo**: la regla era
+/// `esEntrenador()`, sin mas, y cualquier entrenador leia a cualquier
+/// nadadora. Ahora la pertenencia es la frontera, asi que sin esto n1 no es de
+/// nadie y A5 se queda sin sujeto.
+async function sembrarLaPertenencia() {
+  await sembrar(async (db) => {
+    await db
+      .collection('comunidades')
+      .doc('entrenador-1')
+      .set({ entrenadorId: 'entrenador-1', nombre: 'Club de prueba' });
+    await db
+      .collection('nadadores')
+      .doc('n1')
+      .set({ nombre: 'Nadadora de prueba', comunidadId: 'entrenador-1' });
+  });
+}
+
 const unRegistro = {
   nadadorId: 'n1',
   planId: 'p1',
@@ -286,6 +306,7 @@ test('A5 — el entrenador lee los registros pero NO los escribe', async () => {
   // que podia escribir aqui, porque no habia identidad de nadador y dejar la
   // coleccion abierta era peor. Con cuentas, lo que el nadador responde solo
   // lo escribe el nadador: es su carga interna, no la del entrenador.
+  await sembrarLaPertenencia();
   await sembrar(async (db) => {
     await db.collection('registros').doc('r1').set(unRegistro);
   });

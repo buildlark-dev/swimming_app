@@ -502,6 +502,15 @@ Map<String, dynamic> nadadorAJson(Nadador nadador) => <String, dynamic>{
       )
       .toList(),
   'diagnosticoTecnico': nadador.diagnosticoTecnico,
+  // **La pertenencia no se escribe desde el cliente** (feature 012, F6): la
+  // regla lo prohíbe y el servidor es quien la pone. Va aquí para que quien
+  // lea este mapa no la pierda al reescribir la ficha, y por eso se omite
+  // cuando no la hay en vez de mandar un nulo que la borraría.
+  if (nadador.comunidadId != null) 'comunidadId': nadador.comunidadId,
+  if (nadador.miembroDesde != null)
+    'miembroDesde': nadador.miembroDesde!.toIso8601String(),
+  if (nadador.pertenenciaTerminadaEn != null)
+    'pertenenciaTerminadaEn': nadador.pertenenciaTerminadaEn!.toIso8601String(),
 };
 
 Nadador nadadorDesdeJson(Map<String, dynamic> json, {String? id}) {
@@ -534,6 +543,10 @@ Nadador nadadorDesdeJson(Map<String, dynamic> json, {String? id}) {
     diagnosticoTecnico:
         ((json['diagnosticoTecnico'] as List<dynamic>?) ?? const [])
             .cast<String>(),
+    // A quién pertenece, si pertenece a alguien (feature 012).
+    comunidadId: json['comunidadId'] as String?,
+    miembroDesde: fechaDeJson(json['miembroDesde']),
+    pertenenciaTerminadaEn: fechaDeJson(json['pertenenciaTerminadaEn']),
   );
 }
 

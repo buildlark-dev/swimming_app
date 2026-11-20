@@ -13,6 +13,7 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:natacion_app/datos/firestore/mis_nadadores.dart';
 import 'package:natacion_app/datos/firestore/lo_que_haya.dart';
 import 'package:natacion_app/dominio/peticiones/peticion.dart';
 import 'package:natacion_app/dominio/repositorios/repositorios.dart';
@@ -24,9 +25,13 @@ import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 const String coleccionPeticiones = 'peticionesDePlan';
 
 class PeticionesFirestore implements RepositorioPeticiones {
-  const PeticionesFirestore(this.firestore);
+  const PeticionesFirestore(this.firestore, {this.mios});
 
   final FirebaseFirestore firestore;
+
+  /// Quiénes son los suyos (feature 012). Nulo en el recorrido de la nadadora,
+  /// que solo usa `miPeticion` y `enviar`.
+  final MisNadadores? mios;
 
   CollectionReference<Map<String, dynamic>> get _peticiones =>
       firestore.collection(coleccionPeticiones);
@@ -40,12 +45,31 @@ class PeticionesFirestore implements RepositorioPeticiones {
 
   @override
   Future<List<PeticionDePlan>> cola() async {
-    final consulta = await _peticiones.leerLoQueHaya();
+    // **Acotada a los suyos** (feature 012, FR-014). Era la colección entera.
+    //
+    // El documento se llama como la nadadora, pero el filtro va por el campo
+    // `nadadorId` que lleva dentro: en un `list` el comodín del identificador
+    // no está ligado, y la regla fallaba con «Null value error» sobre la cola
+    // entera. Está escrito también en `firestore.rules`, donde se separó `get`
+    // de `list` por eso mismo.
+    final quienes = mios;
+    if (quienes == null) {
+      throw const FalloDeDatos(
+        'La cola de peticiones es del entrenador, y esta sesión no trae '
+        'comunidad. La consulta sin filtro la rechaza el servidor.',
+      );
+    }
 
-    return [
-      for (final documento in consulta.docs)
-        peticionDesdeJson(documento.id, documento.data()),
-    ];
+    final enCola = <PeticionDePlan>[];
+    for (final lote in await quienes.enLotes()) {
+      final consulta = await _peticiones
+          .where('nadadorId', whereIn: lote)
+          .leerLoQueHaya();
+      enCola.addAll(
+        consulta.docs.map((d) => peticionDesdeJson(d.id, d.data())),
+      );
+    }
+    return enCola;
   }
 
   @override

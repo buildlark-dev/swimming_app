@@ -99,10 +99,29 @@ async function sembrarVinculos() {
     const db = sinReglas.firestore();
     await db.collection('usuarios').doc('u-ana').set({ nadadorId: 'n-ana' });
     await db.collection('usuarios').doc('u-juan').set({ nadadorId: 'n-juan' });
+
+    // **Y de quien son** (feature 012). Hasta ahora esta semilla no lo decia
+    // porque la regla era `esEntrenador()`, sin mas, y cualquier entrenador
+    // escribia el macrociclo de cualquiera. Con la pertenencia como frontera,
+    // una nadadora sin ella no es de nadie.
+    await db
+      .collection('comunidades')
+      .doc('u-entrenador')
+      .set({ entrenadorId: 'u-entrenador', nombre: 'Club de prueba' });
+    for (const ficha of ['n-ana', 'n-juan']) {
+      await db
+        .collection('nadadores')
+        .doc(ficha)
+        .set({ nombre: ficha, comunidadId: 'u-entrenador' });
+    }
   });
 }
 
 async function sembrarMacrociclo(extra = {}) {
+  // Con los vinculos, siempre. Todo macrociclo de esta suite es de n-ana, y
+  // desde la feature 012 la regla pregunta de quien es antes de dejar leerlo o
+  // escribirlo: sin pertenencia, ni su propio entrenador lo toca.
+  await sembrarVinculos();
   await entorno.withSecurityRulesDisabled(async (sinReglas) => {
     await sinReglas
       .firestore()
@@ -115,6 +134,7 @@ async function sembrarMacrociclo(extra = {}) {
 // --- Lo que el entrenador puede (las que importan) -----------------------
 
 test('el entrenador crea un macrociclo en borrador', async () => {
+  await sembrarVinculos();
   await assertSucceeds(
     elEntrenador().collection(COLECCION).doc('macro-1').set(macrociclo()),
   );
@@ -258,14 +278,33 @@ test('el entrenador lista los de un nadador sin filtrar por estado', async () =>
   );
 });
 
-test('el entrenador lista la coleccion entera, para saber quien tiene uno', async () => {
-  // **Una sola consulta para pintar la lista de nadadores.** Preguntar ficha
-  // por ficha serian N lecturas; la decision D10 de la feature 008 ya la tomo
-  // para los registros y aqui vale igual. Si esto se cayera, volver a un
-  // macrociclo entregado costaria una lectura por nadador.
+test('la coleccion entera ya NO se lista, y la lista se acota a los suyos', async () => {
+  // **Esta prueba afirmaba lo contrario, y la feature 012 la invirtio.**
+  //
+  // Decia: «una sola consulta para pintar la lista de nadadores», y era la
+  // decision D10 de la feature 008 aplicada aqui — preguntar ficha por ficha
+  // serian N lecturas. Y avisaba de lo que costaria el dia que se cayera:
+  // «volver a un macrociclo entregado costaria una lectura por nadador».
+  //
+  // Lo que se cayo no es el coste: es que la regla ahora pregunta **de quien**
+  // es cada macrociclo, y las reglas no filtran, asi que o la consulta se
+  // demuestra entera por sus filtros o Firestore la rechaza entera.
+  //
+  // Lo que la sustituye esta en `macrociclos_firestore.dart`: la misma cuenta,
+  // acotada por la lista de sus nadadores, en unas pocas consultas en vez de
+  // una. El numero esta escrito en el quickstart de la 012.
   await sembrarMacrociclo({ estado: 'publicado' });
 
-  await assertSucceeds(elEntrenador().collection(COLECCION).get());
+  await assertFails(elEntrenador().collection(COLECCION).get());
+
+  // Y la contraparte positiva, que es la consulta que la app hace ahora.
+  const vistos = await assertSucceeds(
+    elEntrenador()
+      .collection(COLECCION)
+      .where('nadadorId', 'in', ['n-ana'])
+      .get(),
+  );
+  assert.equal(vistos.size, 1);
 });
 
 test('la nadadora NO lista la coleccion entera', async () => {

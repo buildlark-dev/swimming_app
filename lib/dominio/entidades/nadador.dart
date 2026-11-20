@@ -58,6 +58,9 @@ class Nadador {
     this.pruebaObjetivo = '',
     this.marcas = const <Marca>[],
     this.diagnosticoTecnico = const <String>[],
+    this.comunidadId,
+    this.miembroDesde,
+    this.pertenenciaTerminadaEn,
   });
 
   final String? id;
@@ -106,6 +109,46 @@ class Nadador {
 
   /// Errores técnicos observados. Alimenta el criterio C10.
   final List<String> diagnosticoTecnico;
+
+  /// A qué comunidad pertenece, si pertenece a alguna (feature 012).
+  ///
+  /// **Esto es la pertenencia, y vive aquí y en ningún otro sitio.** No se
+  /// copia en sus registros, ni en sus planes, ni en sus peticiones, y esa es
+  /// la decisión que sostiene la feature entera: terminar una pertenencia
+  /// tiene que cortar la lectura **de inmediato**, y una copia es algo que
+  /// todavía puede dar la respuesta vieja.
+  ///
+  /// Es, palabra por palabra, lo que la puerta de consentimiento de la feature
+  /// 004 ya dejó escrito: desnormalizarlo crearía la posibilidad de que el
+  /// estado discrepe de sí mismo en dos sitios.
+  ///
+  /// **Nulo significa que no es de nadie**, y no hay un tercer valor: si está
+  /// esperando, eso lo dice su solicitud, no esto. Dos sitios para la misma
+  /// pregunta son dos sitios que pueden contestar distinto.
+  final String? comunidadId;
+
+  /// Desde cuándo. Nulo si no pertenece a ninguna.
+  final DateTime? miembroDesde;
+
+  /// Cuándo dejó de pertenecer, si alguna vez perteneció (FR-026).
+  ///
+  /// **Para que ella se entere sin tener que preguntarle a nadie.** Que la
+  /// saquen de un grupo sin que nadie lo diga es la clase de cosa que se
+  /// descubre un martes al abrir la app y no encontrar el plan.
+  ///
+  /// No dice quién ni por qué: es un dato sobre su cuenta, no sobre el
+  /// entrenador. Un motivo escrito viajando hasta ella sería un texto libre
+  /// sobre una persona, con las mismas pegas que FR-011 ya pesó para el
+  /// rechazo.
+  final DateTime? pertenenciaTerminadaEn;
+
+  /// Si pertenece a la comunidad de quien pregunta.
+  ///
+  /// La pregunta que hace toda la feature 012, en un sitio.
+  bool esDeLaComunidad(String? comunidadDeQuienPregunta) =>
+      comunidadId != null &&
+      comunidadDeQuienPregunta != null &&
+      comunidadId == comunidadDeQuienPregunta;
 
   /// Edad en años cumplidos, si se conoce la fecha de nacimiento.
   ///

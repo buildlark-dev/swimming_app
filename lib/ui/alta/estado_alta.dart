@@ -18,8 +18,11 @@ import 'package:flutter/foundation.dart';
 import 'package:natacion_app/datos/local/almacen_local.dart';
 import 'package:natacion_app/datos/recursos/textos_legales.dart';
 import 'package:natacion_app/datos/servidor/operaciones.dart';
+import 'package:natacion_app/dominio/comunidad/comunidad.dart';
+import 'package:natacion_app/dominio/comunidad/solicitud_de_ingreso.dart';
 import 'package:natacion_app/dominio/consentimiento/declaracion.dart';
 import 'package:natacion_app/dominio/cuentas/perfil.dart';
+import 'package:natacion_app/dominio/repositorios/repositorios.dart';
 
 /// Cada paso del alta. El orden es el orden.
 enum PasoDelAlta {
@@ -29,7 +32,11 @@ enum PasoDelAlta {
   terminos('Términos y condiciones'),
 
   /// Solo para menores de edad.
-  acudiente('El correo de tu acudiente');
+  acudiente('El correo de tu acudiente'),
+
+  /// A quién pedirle entrar. **Se puede saltar** (feature 012, FR-005): su
+  /// cuenta es suya desde que la crea, y lo que queda pendiente es pertenecer.
+  comunidad('Con quién entrenas');
 
   const PasoDelAlta(this.titulo);
 
@@ -57,6 +64,8 @@ class EstadoAlta extends ChangeNotifier {
     required this.correoDeLaCuenta,
     this.almacen,
     this.nadadorId,
+    this.comunidades,
+    this.solicitudes,
     DateTime Function()? reloj,
   }) : _ahora = reloj ?? DateTime.now;
 
@@ -70,6 +79,16 @@ class EstadoAlta extends ChangeNotifier {
   final AlmacenLocal? almacen;
 
   final String? nadadorId;
+
+  /// De dónde salen los letreros que se le ofrecen, y dónde se guarda lo que
+  /// pide (feature 012, US2).
+  ///
+  /// **Nulos sin servidor**, y entonces el paso no aparece: no hay a quién
+  /// pedirle nada, y un paso que no puede terminar lo que empieza es peor que
+  /// ningún paso.
+  final RepositorioComunidades? comunidades;
+  final RepositorioSolicitudes? solicitudes;
+
   final DateTime Function() _ahora;
 
   static const _coleccion = 'alta';
@@ -90,7 +109,76 @@ class EstadoAlta extends ChangeNotifier {
     PasoDelAlta.pais,
     PasoDelAlta.terminos,
     if (esMenor) PasoDelAlta.acudiente,
+    // Solo si hay servidor. Ver `comunidades`.
+    if (comunidades != null) PasoDelAlta.comunidad,
   ];
+
+  // --- A quién pedirle entrar (feature 012, US2) ------------------------
+
+  List<Comunidad> _comunidades = const [];
+  bool _cargandoComunidades = false;
+  String? _comunidadElegida;
+
+  /// Los letreros que se le pueden ofrecer. **Vacía es una respuesta** y la
+  /// pantalla la dice, en vez de enseñar una lista en blanco (FR-006).
+  List<Comunidad> get comunidadesQueSePuedenOfrecer =>
+      List.unmodifiable(_comunidades);
+
+  bool get cargandoComunidades => _cargandoComunidades;
+
+  /// Cuál eligió, o nulo si prefirió dejarlo para después.
+  String? get comunidadElegida => _comunidadElegida;
+
+  void elegirComunidad(String? comunidadId) {
+    _comunidadElegida = comunidadId;
+    notifyListeners();
+  }
+
+  /// Lee los letreros. Se llama al entrar en el paso, no al arrancar el alta:
+  /// quien no va a llegar hasta ahí no tiene por qué pagar la lectura.
+  Future<void> cargarComunidades() async {
+    final repo = comunidades;
+    if (repo == null || _comunidades.isNotEmpty) return;
+
+    _cargandoComunidades = true;
+    notifyListeners();
+
+    try {
+      _comunidades = await repo.lasQueSePuedenOfrecer();
+    } on FalloDeDatos {
+      // **Sin letreros se sigue.** No poder leer la lista no es motivo para
+      // dejar a alguien a medias de crear su cuenta; podrá pedirlo después.
+      _comunidades = const [];
+    } finally {
+      _cargandoComunidades = false;
+      notifyListeners();
+    }
+  }
+
+  /// Pide entrar, si eligió algo. Se llama después de guardar el perfil,
+  /// porque antes de eso no existe el nadador al que pertenecería.
+  Future<void> _pedirEntrarSiEligio(String nadadorId) async {
+    final elegida = _comunidadElegida;
+    final repo = solicitudes;
+    if (elegida == null || repo == null) return;
+
+    try {
+      await repo.pedir(
+        SolicitudDeIngreso(
+          nadadorId: nadadorId,
+          comunidadId: elegida,
+          pedidaEn: _ahora(),
+          // Su nombre va dentro de la solicitud: el entrenador no puede leer
+          // su ficha hasta aceptarla, asi que sin esto decide sobre «alguien».
+          nombre: _perfil.nombre.trim(),
+        ),
+      );
+    } on FalloDeDatos {
+      // **No se le echa atrás el alta por esto.** La cuenta ya está creada y
+      // es suya; lo que no salió es la solicitud, y pedirla otra vez desde
+      // Ajustes es un botón, no un alta entera.
+    }
+  }
 
   PasoDelAlta get pasoActual => pasos[_paso.clamp(0, pasos.length - 1)];
 
@@ -189,6 +277,9 @@ class EstadoAlta extends ChangeNotifier {
     // **Se puede seguir sin darlo** (FR-019). Lo que no se puede es darlo
     // mal.
     PasoDelAlta.acudiente => problemaDelAcudiente == null,
+    // Y este se puede saltar entero (feature 012, FR-005): «todavía no» es
+    // una respuesta, no un paso a medias.
+    PasoDelAlta.comunidad => true,
   };
 
   bool get _faltaLaFecha =>
@@ -250,6 +341,12 @@ class EstadoAlta extends ChangeNotifier {
         pais: _perfil.pais,
         versionDeTerminos: _perfil.terminos!.version,
       );
+
+      // **Pedir entrar va aquí**, después de guardar el perfil: antes de esto
+      // no existía el nadador al que pertenecería (feature 012, US2). Y va
+      // antes de pedir el consentimiento, para que la solicitud al acudiente
+      // pueda nombrar la comunidad (FR-028).
+      await _pedirEntrarSiEligio(guardado.nadadorId);
 
       final correo = _perfil.correoDelAcudiente?.trim();
 

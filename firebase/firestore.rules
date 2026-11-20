@@ -53,6 +53,40 @@ service cloud.firestore {
           && miNadadorId() == nadadorId;
     }
 
+
+    // --- Quien pertenece a quien (feature 012) --------------------------
+
+    // La comunidad a la que pertenece una nadadora, si pertenece a alguna.
+    // **Se lee de su ficha y de ningun otro sitio** (research D1): terminar
+    // una pertenencia tiene que cortar la lectura de inmediato, y una copia
+    // es algo que todavia puede dar la respuesta vieja.
+    //
+    // Cuesta una lectura por documento leido. Es el mismo precio que la
+    // puerta de consentimiento acepta desde la feature 004, y por la razon
+    // escrita alli: a esta escala es irrelevante, y ahorrarselo copiando el
+    // dato crearia la posibilidad de que diga dos cosas distintas en dos
+    // sitios.
+    function comunidadDe(nadadorId) {
+      return get(/databases/$(database)/documents/nadadores/$(nadadorId))
+        .data.get('comunidadId', '');
+    }
+
+    // La del entrenador que pregunta: la suya lleva su propio identificador,
+    // asi que «una comunidad por entrenador» es un hecho de la clave.
+    function miComunidad() {
+      return esEntrenador() ? request.auth.uid : '';
+    }
+
+    // **La pregunta que hace toda la feature.** La cadena vacia no vale como
+    // respuesta: una nadadora que no es de nadie no es de nadie, y no del
+    // entrenador cuyo identificador resulte estar vacio.
+    function esDeMiComunidad(nadadorId) {
+      return esEntrenador()
+          && miComunidad() != ''
+          && exists(/databases/$(database)/documents/nadadores/$(nadadorId))
+          && comunidadDe(nadadorId) == miComunidad();
+    }
+
     // --- La puerta de consentimiento ------------------------------------
 
     // Un nadador menor sin consentimiento vigente no tiene datos aqui. Lo que
@@ -241,17 +275,22 @@ service cloud.firestore {
       // El nadador lee **el suyo y solo cuando esta entregado**. Las dos
       // condiciones por separado, igual que en los planes: un borrador no es
       // de nadie todavia, y un aprobado esta firmado pero no entregado.
-      allow read: if esEntrenador()
+      //
+      // **Y el entrenador, solo los de su comunidad** (feature 012, FR-014).
+      // La consulta de la app va acotada por `nadadorId`, que es la unica
+      // forma de demostrarla: las reglas no filtran.
+      allow read: if esDeMiComunidad(resource.data.nadadorId)
                   || (soyEseNadador(resource.data.nadadorId)
                       && resource.data.estado == 'publicado');
 
-      allow create: if esEntrenador()
+      allow create: if esDeMiComunidad(request.resource.data.nadadorId)
                     && request.resource.data.estado == 'borrador';
 
       // El estado solo avanza por su camino: borrador -> aprobado ->
       // publicado. Un borrador que pudiera saltar a publicado dejaria llegar
       // a un nadador un macrociclo que el entrenador nunca firmo.
-      allow update: if esEntrenador()
+      allow update: if esDeMiComunidad(resource.data.nadadorId)
+                    && esDeMiComunidad(request.resource.data.nadadorId)
                     && (
                       (request.resource.data.estado == resource.data.estado
                        && !macrocicloExistenteEsInmutable())
@@ -260,7 +299,8 @@ service cloud.firestore {
                       || esElReajuste()
                     );
 
-      allow delete: if esEntrenador() && !macrocicloExistenteEsInmutable();
+      allow delete: if esDeMiComunidad(resource.data.nadadorId)
+                    && !macrocicloExistenteEsInmutable();
     }
 
     // --- Asignaciones ----------------------------------------------------
@@ -275,11 +315,15 @@ service cloud.firestore {
     // falta recorrerla, y el lenguaje de reglas no tiene bucles, asi que la
     // puerta se habria quedado sin poder hacerse cumplir en el servidor.
     match /asignaciones/{asignacionId} {
-      allow read: if esEntrenador()
+      // **A quien se le entrego cada plan es un hecho sobre ella**, aunque el
+      // plan no lo sea: quien entrena con quien. Asi que esto va por
+      // pertenencia (feature 012, FR-014) y la consulta de la app va acotada
+      // por `nadadorId`.
+      allow read: if esDeMiComunidad(resource.data.nadadorId)
                   || (esNadador()
                       && resource.data.nadadorId == miNadadorId());
 
-      allow create: if esEntrenador()
+      allow create: if esDeMiComunidad(request.resource.data.nadadorId)
                     && asignacionId == request.resource.data.planId + '|'
                                      + request.resource.data.nadadorId
                     && tieneConsentimientoVigente(request.resource.data.nadadorId);
@@ -291,14 +335,40 @@ service cloud.firestore {
 
       // Retirar un plan es del entrenador. No borra los registros que el
       // nadador ya envio: eso es suyo.
-      allow delete: if esEntrenador();
+      allow delete: if esDeMiComunidad(resource.data.nadadorId);
     }
 
     // --- Nadadores ------------------------------------------------------
 
     match /nadadores/{nadadorId} {
-      allow read: if esEntrenador() || soyEseNadador(nadadorId);
-      allow write: if esEntrenador();
+      // **Los suyos, y nadie mas** (feature 012, FR-014). Decia
+      // `esEntrenador()`, sin mas, y la feature 010 lo declaro en vez de
+      // inventarlo: dejo una prueba afirmando que un segundo entrenador leia a
+      // la nadadora del primero y lo conseguia. Ese dia llego.
+      //
+      // La consulta de la app va filtrada por `comunidadId`, que es la unica
+      // forma en que esto se puede demostrar: las reglas no filtran.
+      allow read: if soyEseNadador(nadadorId)
+                  || (esEntrenador()
+                      && resource.data.get('comunidadId', '') == miComunidad());
+
+      // **Crear si**: es como el entrenador da de alta a alguien de su grupo,
+      // y la ficha nace sin comunidad — se la pone el servidor al aceptarla o
+      // al crearla desde su pantalla.
+      allow create: if esEntrenador()
+                    && !('comunidadId' in request.resource.data);
+
+      // **`comunidadId` no lo escribe ningun cliente** (F6). Ni el entrenador
+      // sobre la ficha de otra persona, ni ella sobre la suya. Lo pone el
+      // servidor, porque aceptar escribe ademas la solicitud y las dos cosas
+      // tienen que pasar juntas o ninguna.
+      allow update: if esEntrenador()
+                    && resource.data.get('comunidadId', '') == miComunidad()
+                    && request.resource.data.get('comunidadId', '')
+                       == resource.data.get('comunidadId', '');
+
+      allow delete: if esEntrenador()
+                    && resource.data.get('comunidadId', '') == miComunidad();
     }
 
     // --- Registros del nadador ------------------------------------------
@@ -342,7 +412,16 @@ service cloud.firestore {
       // El entrenador lee los de su comunidad. **No los escribe**: lo que el
       // nadador responde es su carga interna, no la del entrenador. Es un
       // cambio deliberado respecto de la 003, donde era lo unico permitido.
-      allow read: if esEntrenador() || soyEseNadador(resource.data.nadadorId);
+      // **Los de su comunidad** (feature 012, FR-014). Decia `esEntrenador()`,
+      // sin mas, y el comentario de arriba ya afirmaba que leia «los de su
+      // comunidad» dos features antes de que hubiera ninguna.
+      //
+      // Cuesta una lectura por documento, que es el mismo precio que la puerta
+      // de consentimiento acepta desde la feature 004 y por la razon escrita
+      // alli: a esta escala es irrelevante, y ahorrarselo copiando el dato
+      // crearia la posibilidad de que diga dos cosas distintas en dos sitios.
+      allow read: if soyEseNadador(resource.data.nadadorId)
+                  || esDeMiComunidad(resource.data.nadadorId);
 
       allow create: if soyEseNadador(request.resource.data.nadadorId)
                     && tieneConsentimientoVigente(request.resource.data.nadadorId)
@@ -403,7 +482,19 @@ service cloud.firestore {
         return datos.get('estado', 'esperando') in ['esperando', 'enRevision'];
       }
 
-      allow read: if esEntrenador() || soyEseNadador(nadadorId);
+      // **La cola es de los suyos** (feature 012, FR-014). El documento se
+      // llama como ella, y ademas lleva su `nadadorId` dentro —`mandaLaSuya()`
+      // lo exige—, asi que la cola se puede consultar acotada por ese campo.
+      //
+      // **`get` y `list` por separado, y no es cosmetica.** En un `list` el
+      // comodin `{nadadorId}` no esta ligado —la consulta apunta a la
+      // coleccion, no a un documento—, y la regla se caia con «Null value
+      // error» sobre la cola entera. En un `get` si lo esta, y ahi el comodin
+      // es mejor que el campo: un documento que no existe no tiene `resource`.
+      allow get: if esDeMiComunidad(nadadorId) || soyEseNadador(nadadorId);
+
+      allow list: if esDeMiComunidad(resource.data.get('nadadorId', ''))
+                  || soyEseNadador(resource.data.get('nadadorId', ''));
 
       // Una peticion recien mandada: **solo manda**, nada mas. Ni estado, ni
       // fecha de envio, ni plan, ni fecha de respuesta. Un cliente que pudiera
@@ -432,7 +523,7 @@ service cloud.firestore {
             // Cerrar —aprobar o rechazar— pasa por el servidor, que es quien
             // pone la fecha y quien archiva: si el cliente pudiera, la fecha
             // seria una declaracion suya.
-            || (esEntrenador()
+            || (esDeMiComunidad(nadadorId)
                 && request.resource.data.diff(resource.data)
                      .affectedKeys().hasOnly(['estado'])
                 && resource.data.get('estado', 'esperando') == 'esperando'
@@ -446,7 +537,7 @@ service cloud.firestore {
       // El historial lo escribe el servidor al cerrar. Se lee igual que el
       // documento del que cuelga.
       match /historial/{peticionId} {
-        allow read: if esEntrenador() || soyEseNadador(nadadorId);
+        allow read: if esDeMiComunidad(nadadorId) || soyEseNadador(nadadorId);
         allow write: if false;
       }
     }
@@ -489,7 +580,10 @@ service cloud.firestore {
             && !('video' in request.resource.data);
       }
 
-      allow read: if esEntrenador()
+      // **Las de los suyos** (feature 012, FR-014). La consulta de la app ya
+      // iba acotada por `nadadorId` desde la feature 010, asi que aqui no hubo
+      // nada que reescribir: solo la regla que faltaba.
+      allow read: if esDeMiComunidad(resource.data.nadadorId)
                   || soyEseNadador(resource.data.nadadorId);
 
       allow create: if laSuya();
@@ -504,7 +598,7 @@ service cloud.firestore {
             // El entrenador marca «la vi». `hasOnly(['vistaEn'])` es la misma
             // forma que la entrega de un plan en la feature 009, y es lo que
             // impide que «vista» cuele una edicion de lo que ella escribio.
-            || (esEntrenador()
+            || (esDeMiComunidad(resource.data.nadadorId)
                 && request.resource.data.diff(resource.data).affectedKeys()
                      .hasOnly(['vistaEn']));
 
@@ -520,6 +614,84 @@ service cloud.firestore {
       // Lo escribe el servidor al asociar un perfil. Si el cliente pudiera,
       // cualquiera se declararia dueno del perfil de otro y leeria sus planes.
       allow write: if false;
+    }
+
+    // --- La comunidad y como se entra en ella (feature 012) -------------
+
+    // **El letrero, no la lista.** Cualquiera que haya entrado lee el nombre
+    // de una comunidad, porque una nadadora tiene que verlo **antes** de
+    // pertenecer a nada: si hiciera falta pertenecer para leerlo, no habria
+    // manera de empezar (research D3).
+    //
+    // Lo que se expone es un nombre que el entrenador eligio para que lo vean
+    // quienes todavia no son sus nadadores. Quien esta dentro no se guarda
+    // aqui, asi que leer el letrero no cuenta a nadie.
+    match /comunidades/{comunidadId} {
+      allow read: if autenticado();
+
+      // El identificador **es** el del entrenador: asi «una comunidad por
+      // entrenador» es un hecho de la clave y no una regla que haya que
+      // recordar.
+      allow create: if esEntrenador()
+                    && comunidadId == request.auth.uid
+                    && request.resource.data.entrenadorId == request.auth.uid;
+
+      // Renombrar, y nada mas. **`entrenadorId` no se toca**: una comunidad
+      // que pudiera cambiar de manos es otro producto, y uno con preguntas
+      // que este no se ha hecho.
+      allow update: if esEntrenador()
+                    && comunidadId == request.auth.uid
+                    && resource.data.entrenadorId == request.auth.uid
+                    && request.resource.data.entrenadorId
+                       == resource.data.entrenadorId;
+
+      allow delete: if false;
+    }
+
+
+    // --- Las solicitudes de ingreso -------------------------------------
+
+    match /solicitudesDeIngreso/{solicitudId} {
+      function esMia() {
+        return soyEseNadador(resource.data.nadadorId);
+      }
+
+      function laPidoYo() {
+        return soyEseNadador(request.resource.data.nadadorId);
+      }
+
+      // Ella lee la suya; el entrenador lee las de su comunidad.
+      //
+      // **Y la consulta del entrenador va filtrada por `comunidadId`.** Es la
+      // unica forma en que se puede demostrar: las reglas no filtran, asi que
+      // o la consulta se demuestra entera por sus filtros o se rechaza entera.
+      allow read: if esMia()
+                  || (esEntrenador()
+                      && resource.data.comunidadId == miComunidad());
+
+      // El identificador es determinista y tiene que concordar con lo que
+      // lleva dentro: pedir dos veces es pedir lo mismo.
+      allow create: if laPidoYo()
+                    && solicitudId == request.resource.data.nadadorId
+                                      + '|'
+                                      + request.resource.data.comunidadId
+                    && request.resource.data.estado == 'esperando'
+                    && exists(/databases/$(database)/documents/comunidades/$(request.resource.data.comunidadId));
+
+      // **Lo unico que ella puede hacerle.** «aceptada» es una palabra del
+      // entrenador, y aceptar escribe ademas la pertenencia, asi que eso es un
+      // acto del servidor y no de un cliente (research D4).
+      allow update: if esMia()
+                    && resource.data.estado == 'esperando'
+                    && request.resource.data.estado == 'retirada'
+                    && request.resource.data.nadadorId
+                       == resource.data.nadadorId
+                    && request.resource.data.comunidadId
+                       == resource.data.comunidadId;
+
+      // Retirarla la deja en `retirada`, que es un dato. Borrarla seria
+      // quitar la constancia de que alguien pidio entrar.
+      allow delete: if false;
     }
 
     // --- Propuestas de ejercicio y glosario -----------------------------

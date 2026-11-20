@@ -27,3 +27,13 @@ export { emitirSolicitud, canjear, revocar } from './consentimiento';
 export { guardarPerfil } from './perfil';
 export { corregirPerfil, suprimirMisDatos } from './datos_personales';
 export { cerrarPeticion, alLlegarUnaPeticion } from './peticiones';
+
+// Feature 012. Accepting writes the membership and closes the request as one
+// act, and the rules deny the client both writes: half an accept is a swimmer
+// who belongs to nobody with no request left to show for it (contract F5).
+export {
+  aceptarIngreso,
+  rechazarIngreso,
+  sacarDeLaComunidad,
+  salirDeLaComunidad,
+} from './comunidad';

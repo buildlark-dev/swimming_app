@@ -6,19 +6,27 @@
 /// que puede filtrarse, un segundo sitio que borrar al ejercer la supresión, y
 /// un segundo sitio que puede discrepar del primero (FR-038).
 ///
-/// Las reglas ya permiten esta lectura: el entrenador lee los registros de su
-/// comunidad desde la feature 007. No hizo falta abrir nada.
+/// Las reglas ya permitían esta lectura: decían que el entrenador lee los
+/// registros «de su comunidad» desde la feature 007. **No había ninguna
+/// comunidad** — la regla era `esEntrenador()`, sin más, y el comentario
+/// describía la feature 012 cuatro features antes de que existiera. Ahora es
+/// verdad, y por eso lo que lee a varios va acotado a los suyos.
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:natacion_app/datos/firestore/lo_que_haya.dart';
 import 'package:natacion_app/datos/firestore/envio_registros.dart';
+import 'package:natacion_app/datos/firestore/mis_nadadores.dart';
 import 'package:natacion_app/dominio/peticiones/molestias_enlazadas.dart';
 
 class MolestiasFirestore implements LectorDeMolestias {
-  const MolestiasFirestore(this.firestore);
+  const MolestiasFirestore(this.firestore, {this.mios});
 
   final FirebaseFirestore firestore;
+
+  /// Quiénes son los suyos (feature 012). Nulo en el recorrido de la nadadora,
+  /// que solo usa `recientesDe` con su propio identificador.
+  final MisNadadores? mios;
 
   @override
   Future<List<MolestiaEnlazada>> recientesDe(
@@ -70,42 +78,58 @@ class MolestiasFirestore implements LectorDeMolestias {
     }
   }
 
-  /// Quiénes contaron alguna molestia desde [desde]. **Una sola consulta.**
+  /// Quiénes contaron alguna molestia desde [desde]. **Acotada a los suyos.**
   ///
-  /// La misma forma que `nadadoresConRegistros` de la feature 007 y por lo
-  /// mismo: la lista de nadadores la pinta el entrenador, y preguntar ficha
-  /// por ficha serían N lecturas para dibujar una pantalla.
+  /// Era la colección entera, con la misma forma que `nadadoresConRegistros`
+  /// de la feature 007 y por lo mismo: la lista de nadadores la pinta el
+  /// entrenador, y preguntar ficha por ficha serían N lecturas para dibujar
+  /// una pantalla.
   ///
-  /// Un fallo devuelve el conjunto vacío, igual que `recientesDe`, y por el
-  /// mismo motivo declarado: **que no se puedan leer no quiere decir que no
-  /// haya**. Quien lo pinta distingue las dos cosas; la lectura completa de
-  /// la nadadora sí hace subir el fallo, porque ahí el entrenador está
+  /// **Era la sexta consulta que leía todo, y la que peor se habría roto**
+  /// (feature 012). La investigación de esta feature contó cinco; esta no
+  /// estaba en la lista porque vive en otro archivo. Con la frontera puesta,
+  /// la consulta sin filtro la rechaza el servidor entera, y el `catch` de
+  /// abajo lo habría convertido en «nadie contó nada» —para siempre, sin que
+  /// fallara nada y sin que nadie se enterara—. Es exactamente la forma de
+  /// defecto que este proyecto ya ha pagado tres veces.
+  ///
+  /// El fallo sigue devolviendo el conjunto vacío, igual que `recientesDe`,
+  /// por el motivo declarado allí: **que no se puedan leer no quiere decir que
+  /// no haya**, y quien lo pinta distingue las dos cosas. La lectura completa
+  /// de la nadadora sí hace subir el fallo, porque ahí el entrenador está
   /// mirando sus datos y no una marca en una lista.
   @override
   Future<Set<String>> quienesReportaron({required DateTime desde}) async {
-    try {
-      final consulta = await firestore
-          .collection(coleccionRegistros)
-          .leerLoQueHaya();
+    final quienesSon = mios;
+    if (quienesSon == null) return const <String>{};
 
+    try {
       final quienes = <String>{};
 
-      for (final documento in consulta.docs) {
-        final datos = documento.data();
+      for (final lote in await quienesSon.enLotes()) {
+        final consulta = await firestore
+            .collection(coleccionRegistros)
+            .where('nadadorId', whereIn: lote)
+            .leerLoQueHaya();
 
-        final nadadorId = datos['nadadorId'];
-        if (nadadorId is! String || nadadorId.isEmpty) continue;
+        for (final documento in consulta.docs) {
+          final datos = documento.data();
 
-        final molestia = datos['molestia'];
-        if (molestia is! Map) continue;
+          final nadadorId = datos['nadadorId'];
+          if (nadadorId is! String || nadadorId.isEmpty) continue;
 
-        final descripcion = molestia['descripcion'];
-        if (descripcion is! String || descripcion.trim().isEmpty) continue;
+          final molestia = datos['molestia'];
+          if (molestia is! Map) continue;
 
-        final fecha = _fecha(datos['registradoEn']) ?? _fecha(datos['cuando']);
-        if (fecha == null || !fecha.isAfter(desde)) continue;
+          final descripcion = molestia['descripcion'];
+          if (descripcion is! String || descripcion.trim().isEmpty) continue;
 
-        quienes.add(nadadorId);
+          final fecha =
+              _fecha(datos['registradoEn']) ?? _fecha(datos['cuando']);
+          if (fecha == null || !fecha.isAfter(desde)) continue;
+
+          quienes.add(nadadorId);
+        }
       }
 
       return quienes;

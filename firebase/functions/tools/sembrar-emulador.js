@@ -241,13 +241,26 @@ async function main() {
     registradoEn: new Date().toISOString(),
   });
 
+  // 5.b Lo que la **frontera** de la feature 012 necesita para poder fallar.
+  //
+  // Sin esto, cada comprobación de «este entrenador no la puede ver» pasa por
+  // la razón equivocada: si solo hay un entrenador, que nadie más la lea es
+  // cierto por accidente. Hacen falta tres cosas:
+  //
+  //   - su comunidad, con sus nadadores dentro;
+  //   - **un segundo entrenador**, con su propia comunidad y su propia
+  //     nadadora, que es contra quien se prueba la frontera;
+  //   - **una nadadora que no es de nadie**, para los estados de espera y de
+  //     «todavía no has pedido entrar».
+  await sembrarLaComunidad(usuario.uid, nadadores);
+
   // 6. Lo que la feature 008 necesita para poder recorrer su quickstart.
   //
   // Nada de esto se puede montar a mano con la app delante: hacen falta un
   // nadador **sin consentimiento vigente** —que la app, bien hecha, impide
   // crear—, uno en una categoría **sin ATR**, y fechas de competencia justo
   // en los días frontera de la derivación.
-  await sembrarParaPeticiones();
+  await sembrarParaPeticiones(usuario.uid);
 
   // **El rol se vuelve a poner al final, y no es redundante.** El disparador
   // `alCrearseUnaCuenta` corre cuando la cuenta se crea y escribe el rol por
@@ -291,7 +304,7 @@ main().then(() => process.exit(0));
  * - Tres peticiones con la competencia a **15, 16 y 44 días**, que son los
  *   días frontera de la derivación (C8). A mano, esas fechas se calculan mal.
  */
-async function sembrarParaPeticiones() {
+async function sembrarParaPeticiones(entrenadorUid) {
   const CLAVE_COMUN = CLAVE;
 
   async function cuentaDe(correo, nadadorId, nombreVisible, rol = 'nadador') {
@@ -318,7 +331,12 @@ async function sembrarParaPeticiones() {
   }
 
   // --- Sin consentimiento vigente (C12) ---------------------------------
+  // **En su comunidad, como todos los de esta siembra** (feature 012). Sin
+  // esto la pantalla del entrenador no los ve, y los recorridos C8, C9 y C12
+  // se quedan sin sujeto: la frontera no distingue a una nadadora de prueba de
+  // una de otro entrenador.
   await db.collection('nadadores').doc('n-sin-permiso').set({
+    comunidadId: entrenadorUid,
     nombre: 'Samuel Ríos',
     fechaNacimiento: '2015-03-11',
     categoria: 'precompetitivo',
@@ -335,6 +353,7 @@ async function sembrarParaPeticiones() {
 
   // --- Categoría sin ATR (C9) -------------------------------------------
   await db.collection('nadadores').doc('n-inicia').set({
+    comunidadId: entrenadorUid,
     nombre: 'Lucía Mesa',
     fechaNacimiento: '2018-09-02',
     categoria: 'iniciacion',
@@ -372,6 +391,7 @@ async function sembrarParaPeticiones() {
 
   for (const quien of fronteras) {
     await db.collection('nadadores').doc(quien.id).set({
+      comunidadId: entrenadorUid,
       nombre: quien.nombre,
       fechaNacimiento: '2011-01-15',
       categoria: 'precompetitivo',
@@ -436,4 +456,87 @@ async function sembrarParaPeticiones() {
   );
   console.log('Fronteras:  3 peticiones esperando, a 15, 16 y 44 días');
   console.log('Molestia:   Ana contó una hace un momento, para ver la cola');
+}
+
+/// La comunidad del entrenador, un segundo entrenador y una nadadora de nadie.
+///
+/// **El segundo entrenador es el punto.** La frontera de la feature 012 dice
+/// que un entrenador lee a los suyos y a nadie más, y eso no se puede
+/// comprobar con un solo entrenador en la base: que nadie más la lea sería
+/// cierto por accidente. Aquí hay alguien que podría leerla y no puede.
+///
+/// Y la nadadora que no es de nadie existe para los dos estados que la app
+/// tiene que distinguir y que antes no existían: «esperando que te acepten» y
+/// «todavía no has pedido entrar».
+async function sembrarLaComunidad(entrenadorUid, nadadores) {
+  // El identificador de la comunidad **es** el del entrenador: así «una
+  // comunidad por entrenador» es un hecho de la clave y no una regla que
+  // alguien tenga que recordar.
+  await db.collection('comunidades').doc(entrenadorUid).set({
+    entrenadorId: entrenadorUid,
+    nombre: 'Club Acuático del Valle',
+    creadaEn: FieldValue.serverTimestamp(),
+  });
+
+  for (const nadador of nadadores) {
+    await db.collection('nadadores').doc(nadador.id).set(
+      {
+        comunidadId: entrenadorUid,
+        miembroDesde: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+  }
+
+  // --- El segundo entrenador, con lo suyo ---------------------------------
+  const CORREO_OTRO = 'entrenador.otro@ejemplo.test';
+  let otro;
+  try {
+    otro = await auth.getUserByEmail(CORREO_OTRO);
+    await auth.updateUser(otro.uid, { password: CLAVE });
+  } catch (_) {
+    otro = await auth.createUser({ email: CORREO_OTRO, password: CLAVE });
+  }
+  await auth.setCustomUserClaims(otro.uid, { rol: 'entrenador' });
+  await db.collection('usuarios').doc(otro.uid).set({
+    nombre: 'Entrenadora del otro club',
+    fechaNacimiento: '1985-02-02',
+    pais: 'CO',
+    terminos: { version: 'v1', aceptadaEn: FieldValue.serverTimestamp() },
+    perfilCompletadoEn: FieldValue.serverTimestamp(),
+  });
+
+  await db.collection('comunidades').doc(otro.uid).set({
+    entrenadorId: otro.uid,
+    nombre: 'Escuela de Natación Ribera',
+    creadaEn: FieldValue.serverTimestamp(),
+  });
+
+  await db.collection('nadadores').doc('n-ajena').set({
+    nombre: 'Camila Ríos',
+    fechaNacimiento: '2011-09-03',
+    categoria: 'precompetitivo',
+    estiloObjetivo: 'libre',
+    comunidadId: otro.uid,
+    miembroDesde: FieldValue.serverTimestamp(),
+  });
+
+  // --- Y una que no es de nadie -------------------------------------------
+  //
+  // Sin comunidad y sin solicitud: es la pantalla de «todavía no has pedido
+  // entrar». La que está esperando se crea desde la app durante el recorrido,
+  // que es donde esa historia se puede ver de verdad.
+  await db.collection('nadadores').doc('n-sin-comunidad').set({
+    nombre: 'Valentina Ocampo',
+    fechaNacimiento: '2010-11-30',
+    categoria: 'precompetitivo',
+    estiloObjetivo: 'libre',
+  });
+
+  await fijarElRol(otro.uid, 'entrenador');
+
+  console.log(
+    `Otro club:  ${CORREO_OTRO} / ${CLAVE}  (uid ${otro.uid}, nadadora n-ajena)`,
+  );
+  console.log('Sin dueña:  n-sin-comunidad, para el estado de «no eres de nadie»');
 }

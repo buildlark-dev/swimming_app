@@ -16,6 +16,11 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:natacion_app/ui/hub/cola_del_entrenador.dart';
+import 'package:natacion_app/ui/comunidad/elegir_comunidad.dart';
+import 'package:natacion_app/dominio/comunidad/membresia.dart';
+import 'package:natacion_app/dominio/comunidad/solicitud_de_ingreso.dart';
+import 'package:natacion_app/datos/firestore/mis_nadadores.dart';
 import 'package:natacion_app/datos/firestore/molestias_firestore.dart';
 import 'package:natacion_app/dominio/peticiones/molestias_enlazadas.dart';
 import 'package:natacion_app/datos/firestore/consentimientos.dart';
@@ -107,6 +112,20 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   void initState() {
     super.initState();
     unawaited(_cargar());
+
+    // **El HUB se entera de dónde está ella** (feature 012).
+    //
+    // `ContextoDelHub` se construye en este `build`, así que lo que le pasa a
+    // `_nadador` no repinta Ajustes por sí solo: las pantallas que viven bajo
+    // su `ChangeNotifierProvider` sí, pero `dondeEsta` viaja por el contexto.
+    // El recorrido del quickstart lo enseñó así: salió de la comunidad, el
+    // servidor la sacó de verdad, y la tarjeta siguió diciendo «perteneces a
+    // Club Acuático del Valle» hasta recargar la app.
+    _nadador.addListener(_repintar);
+  }
+
+  void _repintar() {
+    if (mounted) setState(() {});
   }
 
   /// Particionado por cuenta: dos hermanos con el mismo teléfono no comparten
@@ -115,8 +134,25 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     cuentaId: widget.cuenta?.id,
   );
 
+  /// Su comunidad, cuando quien abre es un entrenador (feature 012).
+  ///
+  /// **Es su propio identificador de cuenta**: «una comunidad por entrenador»
+  /// es un hecho de la clave. De aquí dependen las cinco consultas del
+  /// entrenador: desde que la frontera existe, ninguna se puede hacer sin
+  /// filtro.
+  String? get _miComunidad {
+    final cuenta = widget.cuenta;
+    if (cuenta == null || cuenta.rol != Rol.entrenador) return null;
+    return cuenta.id;
+  }
+
   late final RepositoriosDelHub _repos =
-      widget.repositorios ?? RepositoriosDelHub.de(widget.recursos, _almacen);
+      widget.repositorios ??
+      RepositoriosDelHub.de(
+        widget.recursos,
+        _almacen,
+        miComunidadId: _miComunidad,
+      );
 
   /// Sus propios datos de cuenta, para Ajustes. Sin servidor, vacíos: se ven
   /// pero no hay nada guardado que mostrar.
@@ -136,7 +172,42 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   /// (FR-038). Nulo sin servidor.
   late final LectorDeMolestias? _molestias = widget.recursos.firestore == null
       ? null
-      : MolestiasFirestore(widget.recursos.firestore!);
+      : MolestiasFirestore(
+          widget.recursos.firestore!,
+          // Acotado a los suyos, igual que las otras cinco (feature 012).
+          mios: _miComunidad == null
+              ? null
+              : MisNadadores(
+                  db: widget.recursos.firestore!,
+                  comunidadId: _miComunidad!,
+                ),
+        );
+
+  /// Acepta o rechaza a quien pidió entrar (feature 012, FR-011).
+  ///
+  /// **Pasa por el servidor**, y por una razón más fuerte que la de cerrar una
+  /// petición: aceptar escribe la pertenencia en la ficha de ella y cierra la
+  /// solicitud, y media aceptación es una nadadora que no pertenece a nadie y
+  /// que ya no tiene solicitud que enseñar (garantía F5).
+  ///
+  /// Nulo sin servidor, y entonces la cola no pinta los botones: uno que no
+  /// lleva a ninguna parte es peor que no tenerlo.
+  AlResolverIngreso? get _resolverIngreso {
+    final operaciones = widget.recursos.operaciones;
+    if (operaciones == null) return null;
+
+    return ({required String nadadorId, required bool acepto}) async {
+      if (acepto) {
+        await operaciones.aceptarIngreso(nadadorId: nadadorId);
+        if (mounted) setState(() => _vecesQueCambioLaComunidad++);
+        // La acaba de aceptar: ya es suya, y lo que vea de ella tiene que
+        // contarla. Sin esto seguiría sin aparecer hasta el siguiente arranque.
+        await _recargar();
+      } else {
+        await operaciones.rechazarIngreso(nadadorId: nadadorId);
+      }
+    };
+  }
 
   /// El conmutador de recorrido del modo local. Vive en Ajustes (T053).
   Widget _conmutadorDeRecorrido() => SegmentedButton<Rol>(
@@ -279,6 +350,15 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
       if (!mounted) return;
       _nadador.abrirComo(nadador, plan: plan, registros: registros);
+
+      // **Y la segunda pregunta, aparte de la primera** (feature 012, FR-020).
+      //
+      // «¿Tengo plan?» ya está contestada arriba. «¿Pertenezco a algo?» es
+      // otra, y de ella depende qué significa no tener plan. Va después de
+      // `abrirComo` y sin bloquearlo: la pantalla sale con lo que hay y se
+      // despierta cuando esto llegue, igual que las peticiones.
+      unawaited(_averiguarDondeEsta(nadador));
+
       await _nadador.sincronizar();
     } on FalloDeDatos catch (e) {
       // Sin red y sin caché, entra igual: su plan aparecerá cuando se pueda
@@ -289,6 +369,183 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       // estado vacío que afirma algo falso o un giro que no termina. No se
       // sabe si tiene plan; eso es lo que la pantalla cuenta (D4).
       if (mounted) _nadador.noSePudoAbrir('$e');
+    }
+  }
+
+  /// Cuántas veces ha cambiado quién pertenece a su comunidad en esta sesión.
+  ///
+  /// **Solo sirve para despertar a quien cachea su lista.** `Análisis` la lee
+  /// en `initState` y nada la volvía a leer: el recorrido del quickstart
+  /// aceptó a alguien y esa pantalla siguió sin ella hasta recargar la app.
+  int _vecesQueCambioLaComunidad = 0;
+
+  /// Él la saca de su comunidad (feature 012, FR-025).
+  ///
+  /// Después de sacarla, su pantalla tiene que dejar de contarla: sin el
+  /// recuento, seguiría apareciendo en sus listas hasta el siguiente arranque,
+  /// que es la misma clase de defecto que la cola de peticiones ya tuvo.
+  Future<void> Function(Nadador)? get _sacarDeLaComunidad {
+    final operaciones = widget.recursos.operaciones;
+    if (operaciones == null || !_esEntrenador) return null;
+
+    return (nadador) async {
+      final id = nadador.id;
+      if (id == null) return;
+      await operaciones.sacarDeLaComunidad(nadadorId: id);
+      if (mounted) setState(() => _vecesQueCambioLaComunidad++);
+      await _recargar();
+    };
+  }
+
+  /// Y ella se va de la suya.
+  ///
+  /// **Solo se ofrece si pertenece a alguna**, y eso se sabe por `dondeEsta`:
+  /// un «salir de la comunidad» a quien no está en ninguna es un control que
+  /// no lleva a ninguna parte (H12).
+  Future<void> Function()? get _salirDeLaComunidad {
+    final operaciones = widget.recursos.operaciones;
+    if (operaciones == null || _esEntrenador) return null;
+    if (_nadador.dondeEsta is! Pertenece) return null;
+
+    return () async {
+      await operaciones.salirDeLaComunidad();
+      // Y se vuelve a mirar dónde está: lo que la pantalla le diga a partir de
+      // ahora tiene que ser verdad sin que ella haga nada (FR-022, por el
+      // otro lado).
+      await _abrirMiPerfil();
+    };
+  }
+
+  /// Ella retira lo que pidió, mientras nadie le ha contestado (FR-007).
+  ///
+  /// **Esta sí la puede hacer el cliente**, y es la única de las cuatro. La
+  /// regla se lo permite: su propia solicitud, de `esperando` a `retirada`, y
+  /// nada más. Aceptar y rechazar son del entrenador y escriben además la
+  /// pertenencia; retirarse no escribe nada de nadie más.
+  Future<void> Function()? get _retirarSolicitud {
+    final repo = _repos.solicitudes;
+    final donde = _nadador.dondeEsta;
+    final nadadorId = widget.cuenta?.nadadorId;
+    if (repo == null || nadadorId == null || donde is! Esperando) return null;
+
+    return () async {
+      await repo.retirar(nadadorId, donde.comunidadId);
+      // Y se vuelve a mirar: ya no espera, así que la pantalla de planes deja
+      // de decirle que espera.
+      await _abrirMiPerfil();
+    };
+  }
+
+  /// Ella pide entrar desde Ajustes (FR-005).
+  ///
+  /// **El alta ya lo prometía**: su último paso dice «puedes pedirlo más
+  /// adelante desde Ajustes», y hasta que el recorrido del quickstart lo leyó
+  /// en voz alta esa frase no llevaba a ningún sitio. Quien se saltara el paso
+  /// —o a quien le dijeran que no— se quedaba sin puerta.
+  VoidCallback? get _pedirEntrar {
+    final comunidades = _repos.comunidades;
+    final solicitudes = _repos.solicitudes;
+    final nadadorId = widget.cuenta?.nadadorId;
+    if (comunidades == null ||
+        solicitudes == null ||
+        nadadorId == null ||
+        _esEntrenador) {
+      return null;
+    }
+
+    return () async {
+      final pidio = await pedirEntrarEnUnaComunidad(
+        context,
+        comunidades: comunidades,
+        solicitudes: solicitudes,
+        nadadorId: nadadorId,
+        // De su propia ficha, que sí puede leer: lo que el entrenador no puede
+        // es leerla a ella antes de aceptarla (garantía F3).
+        miNombre: _nadador.nadador?.nombre ?? '',
+      );
+      // Si pidió, lo que las pantallas le digan a partir de ahora tiene que
+      // ser verdad sin que ella haga nada más.
+      if (pidio && mounted) await _abrirMiPerfil();
+    };
+  }
+
+  /// Cómo se llama donde está o donde pidió.
+  ///
+  /// **El letrero que el entrenador organizó**, no un identificador: ella
+  /// eligió por el nombre y por el nombre tiene que reconocerlo. Se lee aparte
+  /// y sin bloquear nada; si no se puede, la pantalla dice lo que sabe sin
+  /// inventarse un nombre.
+  String? _nombreDeMiComunidad;
+
+  Future<void> _leerElNombreDeSuComunidad(String comunidadId) async {
+    final repo = _repos.comunidades;
+    if (repo == null) return;
+
+    try {
+      final comunidad = await repo.obtener(comunidadId);
+      if (!mounted || comunidad == null) return;
+      setState(() => _nombreDeMiComunidad = comunidad.nombre);
+    } on FalloDeDatos {
+      return;
+    }
+  }
+
+  /// Dónde está ella respecto de pertenecer a algo (feature 012, FR-020).
+  ///
+  /// Dos lecturas como mucho, y la segunda solo si hace falta: **su propia
+  /// ficha ya dice si pertenece**, porque la pertenencia vive en un solo sitio
+  /// (research D1). Solo cuando no pertenece hay que mirar si pidió.
+  ///
+  /// **Si esto falla, no se anota nada**, y la pantalla dice lo de siempre.
+  /// Inventarse un «estás esperando» que nadie comprobó sería peor que la
+  /// frase genérica: la mandaría a esperar algo que quizá nadie va a hacer.
+  Future<void> _averiguarDondeEsta(Nadador nadador) async {
+    final comunidadId = nadador.comunidadId;
+    final desde = nadador.miembroDesde;
+    final id = nadador.id;
+
+    if (comunidadId != null && id != null) {
+      unawaited(_leerElNombreDeSuComunidad(comunidadId));
+      _nadador.anotarDondeEsta(
+        Pertenece(
+          Membresia(
+            nadadorId: id,
+            comunidadId: comunidadId,
+            // Sin fecha guardada, la de hoy: lo que la pantalla usa es **que**
+            // pertenece, no desde cuándo, y un nulo aquí obligaría a que el
+            // tipo admitiera una pertenencia sin principio.
+            desde: desde ?? (widget.hoyParaPruebas ?? DateTime.now()),
+          ),
+        ),
+      );
+      return;
+    }
+
+    final repo = _repos.solicitudes;
+    if (repo == null || id == null) return;
+
+    try {
+      final suya = await repo.laMia(id);
+      if (!mounted) return;
+
+      if (suya != null) {
+        unawaited(_leerElNombreDeSuComunidad(suya.comunidadId));
+      }
+
+      _nadador.anotarDondeEsta(switch (suya?.estado) {
+        null => const NoHaPedido(),
+        EstadoDeSolicitud.esperando => Esperando(suya!.comunidadId),
+        EstadoDeSolicitud.rechazada => LeDijeronQueNo(suya!.comunidadId),
+        // Se retiró ella, así que no está esperando nada y puede volver a
+        // pedir: es el mismo sitio que no haber pedido nunca.
+        EstadoDeSolicitud.retirada => const NoHaPedido(),
+        // Aceptada y sin `comunidadId` en su ficha es una aceptación a medias,
+        // que la garantía F5 hace imposible desde el servidor. Si pasara, lo
+        // honesto es no afirmar que pertenece.
+        EstadoDeSolicitud.aceptada => const NoHaPedido(),
+      });
+    } on FalloDeDatos {
+      return;
     }
   }
 
@@ -537,6 +794,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
   @override
   void dispose() {
+    _nadador.removeListener(_repintar);
     _editor.dispose();
     _nadador.dispose();
     super.dispose();
@@ -632,6 +890,20 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       macrociclosDelEntrenador: _repos.macrociclos,
       // Lo que los nadadores le preguntaron sobre una sesión (US4).
       peticionesDeFeedback: _repos.peticionesDeFeedback,
+      comunidades: _repos.comunidades,
+      // Quién quiere entrar, y en qué comunidad preguntarlo (feature 012). La
+      // comunidad no es un adorno: sin ella la consulta no se puede demostrar
+      // por sus filtros y el servidor la rechaza entera.
+      solicitudes: _repos.solicitudes,
+      miComunidad: _miComunidad,
+      alResolverIngreso: _resolverIngreso,
+      alSacarDeLaComunidad: _sacarDeLaComunidad,
+      alSalirDeLaComunidad: _salirDeLaComunidad,
+      dondeEsta: _nadador.dondeEsta,
+      nombreDeMiComunidad: _nombreDeMiComunidad,
+      alRetirarSolicitud: _retirarSolicitud,
+      alPedirEntrar: _pedirEntrar,
+      vecesQueCambioLaComunidad: _vecesQueCambioLaComunidad,
       asignacionesDelEntrenador: _repos.asignaciones,
       hoy: widget.hoyParaPruebas ?? DateTime.now(),
       selectorDePerfil: _selector,
